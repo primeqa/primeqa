@@ -1,0 +1,4 @@
+include README.md
+include VERSION
+global-exclude __pycache__
+global-exclude *.py[co]
