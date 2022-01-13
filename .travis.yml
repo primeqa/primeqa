@@ -6,4 +6,4 @@ python:
 cache: pip
 #install: pip install --use-feature=in-tree-build .
 install: pip install tox-travis
-script: tox -r
+script: tox -r --cov oneqa tests/ --cov-config .coveragerc
