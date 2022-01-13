@@ -4,5 +4,5 @@ python:
   - "3.8"
   - "3.9"
 cache: pip
-install: pip install .
+install: pip install --use-feature=in-tree-build .
 script: tox -r
