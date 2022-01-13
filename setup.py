@@ -29,6 +29,7 @@ authors = [
 _deps = [
     "bump2version",
     "pytest",
+    "pytest-cov",
     "torch>=1.8",  # TODO: see if we can reduce to 1.7 or 1.6
     "tox",
     # "tox-travis",
