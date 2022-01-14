@@ -26,35 +26,20 @@ authors = [
     "TODO"
 ]
 
-_deps = [
-    "bump2version",
-    "pytest",
-    "pytest-cov",
-    "torch>=1.8",  # TODO: see if we can reduce to 1.7 or 1.6
-    "tox",
-    # "tox-travis",
-    "transformers"  # TODO change this to range and add sentencepiece
-]
+_deps = {
+    "bump2version": ["dev"],
+    "pytest": ["test"],
+    "pytest-cov": ["test"],
+    "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
+    "tox": ["test"],
+    "transformers": ["install"]  # TODO change this to range and add sentencepiece
+}
 
-# this is a lookup table with items like:
-#
-# tokenizers: "tokenizers==0.9.4"
-# packaging: "packaging"
-#
-# some of the values are versioned whereas others aren't.
-# deps = {b: a for a, b in (re.findall(r"^(([^!=<>]+)(?:[!=<>].*)?$)", x)[0] for x in _deps)}
+extra_names = ["dev", "install", "test"]
+extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extra_names}
+extras["all"] = _deps
 
-
-# def deps_list(*pkgs):
-#     return [deps[pkg] for pkg in pkgs]
-
-
-extras = {}
-
-# TODO allow minimal set of dependencies to be installed
-
-
-install_requires = _deps
+install_requires = extras["install"]
 
 setup(
     name="one-qa",
@@ -70,10 +55,7 @@ setup(
     packages=find_packages(".", include=include_packages),
     python_requires=">=3.7.0",
     install_requires=install_requires,
-    # dev_requires=None,
-    # test_requires=None,
-    # docs_require=None,
-    # extras_require=extras,
+    extras_require=extras,
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",

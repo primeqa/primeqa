@@ -4,6 +4,5 @@ python:
   - "3.8"
   - "3.9"
 cache: pip
-#install: pip install --use-feature=in-tree-build .
 install: pip install tox-travis
 script: tox -r
