@@ -35,8 +35,8 @@ _deps = {
     "transformers": ["install"]  # TODO change this to range and add sentencepiece
 }
 
-extra_names = ["dev", "install", "test"]
-extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extra_names}
+extras_names = ["dev", "install", "test"]
+extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extras_names}
 extras["all"] = list(_deps)
 
 install_requires = extras["install"]
