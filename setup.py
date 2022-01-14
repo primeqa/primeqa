@@ -37,7 +37,7 @@ _deps = {
 
 extra_names = ["dev", "install", "test"]
 extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extra_names}
-extras["all"] = _deps
+extras["all"] = list(_deps)
 
 install_requires = extras["install"]
 
