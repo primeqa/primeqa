@@ -1,27 +1,13 @@
-run_tests: &run_tests
-  stage: "Tests"
-  install: pip install tox-travis
-  script: tox -r
-
-install_deps: &install_deps
-  stage: "Resolve & Install Dependencies"
-  script: pip install --use-feature=in-tree-build .[all]
-
 language: python
+python:
+  - "3.7"
+  - "3.8"
+  - "3.9"
 cache: pip
-jobs:
-  include:
-    - <<: *run_tests
-      python: "3.7"
-    - <<: *install_deps
-      python: "3.7"
-
-    - <<: *run_tests
-      python: "3.8"
-    - <<: *install_deps
-      python: "3.8"
-
-    - <<: *run_tests
-      python: "3.9"
-    - <<: *install_deps
-      python: "3.9"
+install: pip install tox-travis
+script:
+  - tox -r
+  - >
+    virtualenv install_with_all_deps && 
+    source ./install_with_all_deps/bin/activate && 
+    pip install --use-feature=in-tree-build .[all]
