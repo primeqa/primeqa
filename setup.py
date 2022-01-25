@@ -36,7 +36,17 @@ _deps = {
 }
 
 extras_names = ["dev", "install", "tests"]
-extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extras_names}
+extras = {extra_name: [] for extra_name in extras_names}
+for package_name, package_required_by in _deps.items():
+    if not package_required_by:
+        raise ValueError(f"Package '{package_name}' has no associated extras it is required for. "
+                         f"Choose one or more of: {extras_names}")
+
+    for extra_name in package_required_by:
+        try:
+            extras[extra_name].append(package_name)
+        except KeyError as ex:
+            raise KeyError(f"Extras name '{extra_name}' not in {extras_names}") from ex
 extras["all"] = list(_deps)
 
 install_requires = extras["install"]
