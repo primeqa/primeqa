@@ -9,7 +9,6 @@ jobs:
     - name: Tests
       install: pip install tox-travis
       script: tox -r
-
     # Make sure all dependencies can be resolved and installed
     - name: Resolve & Install Dependencies
       install: pip install .[all]
