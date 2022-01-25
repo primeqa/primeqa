@@ -1,12 +1,11 @@
 run_tests: &run_tests
-  name: Tests
+  name: "Tests"
   install: pip install tox-travis
   script: tox -r
 
 install_deps: &install_deps
-  name: Resolve & Install Dependencies
-  install: pip install .[all]
-  script: exit 0
+  name: "Resolve & Install Dependencies"
+  script: pip install --use-feature=in-tree-build .[all]
 
 language: python
 cache: pip
