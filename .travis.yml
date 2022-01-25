@@ -6,11 +6,11 @@ python:
 cache: pip
 jobs:
   include:
-    - stage: Tests
+    - name: Tests
       install: pip install tox-travis
       script: tox -r
 
     # Make sure all dependencies can be resolved and installed
-    - stage: Resolve & Install Dependencies
+    - name: Resolve & Install Dependencies
       install: pip install .[all]
       script: exit 0
