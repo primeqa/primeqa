@@ -28,14 +28,14 @@ authors = [
 
 _deps = {
     "bump2version": ["dev"],
-    "pytest": ["test"],
-    "pytest-cov": ["test"],
+    "pytest": ["tests"],
+    "pytest-cov": ["tests"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
-    "tox": ["test"],
+    "tox": ["tests"],
     "transformers": ["install"]  # TODO change this to range and add sentencepiece
 }
 
-extras_names = ["dev", "install", "test"]
+extras_names = ["dev", "install", "tests"]
 extras = {name: [dep for dep, required_for in _deps.items() if name in required_for] for name in extras_names}
 extras["all"] = list(_deps)
 
