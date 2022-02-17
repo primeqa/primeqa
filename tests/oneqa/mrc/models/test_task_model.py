@@ -1,0 +1,40 @@
+import pytest
+from pytest import raises
+from transformers import AutoConfig, MODEL_FOR_PRETRAINING_MAPPING
+
+from oneqa.mrc.models.task_model import ModelForDownstreamTasks
+from oneqa.mrc.models.heads.extractive import ExtractiveQAHead
+
+_MODEL_NAMES = ("model_name",
+                ['roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2', 'facebook/bart-base'])
+
+
+class TestModelForDownstreamTasks:
+    @pytest.mark.parametrize(*_MODEL_NAMES)
+    def test_from_config(self, model_name):
+        config = AutoConfig.from_pretrained(model_name)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=dict(qa_head=ExtractiveQAHead))
+        assert isinstance(model.task_heads['qa_head'], ExtractiveQAHead)
+        assert isinstance(model, ModelForDownstreamTasks)
+        assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
+
+    def test_model_class_from_config_then_from_pretrained(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        model_class = ModelForDownstreamTasks.model_class_from_config(config)
+        model = model_class.from_pretrained(model_name,
+                                            config=config,
+                                            task_heads=dict(qa_head=ExtractiveQAHead))
+        assert isinstance(model.task_heads['qa_head'], ExtractiveQAHead)
+        assert isinstance(model, ModelForDownstreamTasks)
+        assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
+
+    def test_raises_type_error_on_direct_instantiation(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        with raises(TypeError):
+            _ = ModelForDownstreamTasks.from_pretrained(model_name,
+                                                        config=config,
+                                                        task_heads={})
