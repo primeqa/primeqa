@@ -3,7 +3,7 @@ from pytest import raises
 from transformers import AutoConfig, MODEL_FOR_PRETRAINING_MAPPING
 
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.models.heads.extractive import ExtractiveQAHead
+from oneqa.mrc.models.heads.extractive import ExtractiveQAHead, EXTRACTIVE_HEAD
 
 _MODEL_NAMES = ("model_name",
                 ['roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2', 'facebook/bart-base'])
@@ -15,8 +15,9 @@ class TestModelForDownstreamTasks:
         config = AutoConfig.from_pretrained(model_name)
         model = ModelForDownstreamTasks.from_config(config,
                                                     model_name,
-                                                    task_heads=dict(qa_head=ExtractiveQAHead))
-        assert isinstance(model.task_heads['qa_head'], ExtractiveQAHead)
+                                                    task_heads=EXTRACTIVE_HEAD)
+        head_name = next(iter(EXTRACTIVE_HEAD))
+        assert isinstance(model.task_heads[head_name], ExtractiveQAHead)
         assert isinstance(model, ModelForDownstreamTasks)
         assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
 
@@ -26,8 +27,9 @@ class TestModelForDownstreamTasks:
         model_class = ModelForDownstreamTasks.model_class_from_config(config)
         model = model_class.from_pretrained(model_name,
                                             config=config,
-                                            task_heads=dict(qa_head=ExtractiveQAHead))
-        assert isinstance(model.task_heads['qa_head'], ExtractiveQAHead)
+                                            task_heads=EXTRACTIVE_HEAD)
+        head_name = next(iter(EXTRACTIVE_HEAD))
+        assert isinstance(model.task_heads[head_name], ExtractiveQAHead)
         assert isinstance(model, ModelForDownstreamTasks)
         assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
 

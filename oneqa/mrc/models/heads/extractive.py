@@ -97,3 +97,6 @@ class ExtractiveQAHead(AbstractTaskHead):
             hidden_states=model_outputs.hidden_states,
             attentions=model_outputs.attentions,
         )
+
+
+EXTRACTIVE_HEAD = dict(qa_head=ExtractiveQAHead)
