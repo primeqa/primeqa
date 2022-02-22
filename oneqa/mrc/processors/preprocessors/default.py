@@ -1,13 +1,10 @@
 import itertools
 import uuid
 from collections import defaultdict
-from itertools import chain
-
-import datasets
-from transformers import PreTrainedTokenizer, PreTrainedTokenizerFast, BatchEncoding
 from typing import Optional
 
-from oneqa.mrc.processors.features import InputFeatures, Target, Position
+from transformers import PreTrainedTokenizerFast
+
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 
 
