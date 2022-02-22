@@ -5,7 +5,9 @@ import datasets
 from transformers import TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
-from oneqa.mrc.processors.default import DefaultProcessor
+from oneqa.mrc.models.task_model import ModelForDownstreamTasks
+from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.trainers.default import MRCTrainer
 
 
@@ -49,27 +51,37 @@ def main():
         use_fast=True,
         # revision=model_args.model_revision,
         # use_auth_token=True if model_args.use_auth_token else None,
+        config=config,
+    )
+    model = ModelForDownstreamTasks.from_config(
+        config,
+        model_name,
     )
 
     # load data
     raw_datasets = datasets.load_dataset("tydiqa", "primary_task")
 
-    # load processor
-    processor = DefaultProcessor()
+    # load preprocessor
+    preprocessor_class = DefaultPreProcessor  # TODO parameterize
+    preprocessor = preprocessor_class(
+        max_q_len=18,
+        stride=128,
+        tokenizer=tokenizer,
+    )
 
     # process train data
     train_dataset = raw_datasets["train"]
     max_train_samples = 2000
-    if max_train_samples is not None:  #if data_args.max_train_samples is not None:
+    if max_train_samples is not None:  # if data_args.max_train_samples is not None:
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
     with training_args.main_process_first(desc="train dataset map pre-processing"):
         train_dataset = train_dataset.map(
-            processor._process,
+            preprocessor.process_train,
             batched=True,
-            num_proc=8,  #data_args.preprocessing_num_workers,
-            #remove_columns=column_names,
-            #load_from_cache_file=not data_args.overwrite_cache,
+            num_proc=8,  # data_args.preprocessing_num_workers,
+            # remove_columns=column_names,
+            # load_from_cache_file=not data_args.overwrite_cache,
             load_from_cache_file=False,
             desc="Running tokenizer on train dataset",
         )
@@ -83,11 +95,11 @@ def main():
     # Validation Feature Creation
     with training_args.main_process_first(desc="validation dataset map pre-processing"):
         eval_dataset = eval_examples.map(
-            processor._process,
+            preprocessor.process_eval,
             batched=True,
-            num_proc=8,  #data_args.preprocessing_num_workers,
+            num_proc=8,  # data_args.preprocessing_num_workers,
             # remove_columns=column_names,
-            #load_from_cache_file=not data_args.overwrite_cache,
+            # load_from_cache_file=not data_args.overwrite_cache,
             load_from_cache_file=False,
             desc="Running tokenizer on validation dataset",
         )
@@ -98,6 +110,11 @@ def main():
 
     # train
 
+    postprocessor_class = ExtractivePostProcessor  # TODO parameterize
+    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, span_tracker_factory=None)
+
+    metrics_fn = None  # TODO metrics
+
     trainer = MRCTrainer(
         model=model,
         args=training_args,
@@ -106,8 +123,8 @@ def main():
         eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=post_processing_function,
-        compute_metrics=compute_metrics,
+        post_process_function=postprocessor.process,
+        compute_metrics=metrics_fn,
     )
 
     checkpoint = None
@@ -119,26 +136,23 @@ def main():
     trainer.save_model()  # Saves the tokenizer too for easy upload
 
     metrics = train_result.metrics
-    max_train_samples = (
-        data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
-    )
-    metrics["train_samples"] = min(max_train_samples, len(train_dataset))
+    # max_train_samples = (
+    #     data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
+    # )
+    # metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
     trainer.log_metrics("train", metrics)
     trainer.save_metrics("train", metrics)
     trainer.save_state()
 
-
     logger.info("*** Evaluate ***")
     metrics = trainer.evaluate()
 
-    max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-    metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+    # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+    # metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
 
     trainer.log_metrics("eval", metrics)
     trainer.save_metrics("eval", metrics)
-
-
 
     # run val
 

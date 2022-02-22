@@ -33,10 +33,22 @@ class ModelForDownstreamTasks(PreTrainedModel):
                             f"instantiated and should be subclassed together with a XPreTrainedModel type. "
                             f"See {self.model_class_from_config.__name__} for creating these subclasses.")
 
+        if not task_heads:
+            raise ValueError("No task heads provided")
+
+        # Set the model to match the pre-trained name (e.g. self.roberta) so it can be loaded from pretrained
         setattr(self, self.base_model_prefix, MODEL_MAPPING[config.__class__](config))
+
         self.task_heads = torch.nn.ModuleDict(
             {name: model(config) for name, model in task_heads.items()})
         self.init_weights()
+
+    @property
+    def model_(self):  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
+        """
+        Returns the underlying language model. This is an alias to simplify access.
+        """
+        return getattr(self, self.base_model_prefix)
 
     def forward(self,
                 task_head: str,
@@ -52,7 +64,7 @@ class ModelForDownstreamTasks(PreTrainedModel):
                 **kwargs):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-        outputs = getattr(self, self.base_model_prefix)(
+        outputs = self.model_(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -68,6 +80,9 @@ class ModelForDownstreamTasks(PreTrainedModel):
 
     @classmethod
     def model_class_from_config(cls, config: PretrainedConfig) -> Type['ModelForDownstreamTasks']:
+        """
+        Dynamically creates a model class from a PreTrainedConfig.
+        """
         ptm_base_class = MODEL_FOR_PRETRAINING_MAPPING[config.__class__]
         model_name = config.__class__.__name__.rstrip('Config')
         class_name = f'{model_name}{cls.__name__}'
@@ -76,6 +91,10 @@ class ModelForDownstreamTasks(PreTrainedModel):
 
     @classmethod
     def from_config(cls, config: PretrainedConfig, *args, **kwargs) -> 'ModelForDownstreamTasks':
+        """
+        Dynamically creates a model class from a PreTrainedConfig and then uses the config
+        with args/kwargs to instantiate.
+        """
         model_class = cls.model_class_from_config(config)
         model = model_class.from_pretrained(*args, config=config, **kwargs)
         return model

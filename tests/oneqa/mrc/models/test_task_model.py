@@ -39,4 +39,20 @@ class TestModelForDownstreamTasks:
         with raises(TypeError):
             _ = ModelForDownstreamTasks.from_pretrained(model_name,
                                                         config=config,
-                                                        task_heads={})
+                                                        task_heads=EXTRACTIVE_HEAD)
+
+    def test_raises_value_error_on_empty_task_head_dict(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        with raises(ValueError):
+            _ = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads={})
+
+    @pytest.mark.parametrize(*_MODEL_NAMES)
+    def test_model_property(self, model_name):
+        config = AutoConfig.from_pretrained(model_name)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=EXTRACTIVE_HEAD)
+        assert model.model_ is getattr(model, model.base_model_prefix)

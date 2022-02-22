@@ -33,7 +33,8 @@ _deps = {
     "pytest-cov": ["tests"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
     "tox": ["tests"],
-    "transformers": ["install"]  # TODO change this to range and add sentencepiece
+    "transformers": ["install"],  # TODO change this to range and add sentencepiece
+    "tqdm": ["install"],
 }
 
 extras_names = ["dev", "install", "tests"]
