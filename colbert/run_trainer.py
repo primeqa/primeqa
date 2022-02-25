@@ -30,7 +30,6 @@ def main():
 
     with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
         trainer = Trainer(args.triples, args.queries, args.collection, colBERTConfig)
-        #trainer.train()
         trainer.train(args.checkpoint)
 
 
