@@ -28,11 +28,6 @@ def main():
     # args_dict to ColBERTConfig
     colBERTConfig = ColBERTConfig(**args_dict)
 
-    #runConfig = RunConfig(nranks=args.nranks, experiment=args.experiment, root=args.root)
-    #with Run().context(runConfig):
-
-    # order as in settings.py
-    #with Run().context(RunConfig(root=args.root, experiment=args.experiment, index_root=args.index_root, nranks=args.nranks, amp=args.amp)):
     with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
         trainer = Trainer(args.triples, args.queries, args.collection, colBERTConfig)
         #trainer.train()
