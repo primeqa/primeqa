@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 from transformers import PreTrainedTokenizerFast
+from datasets import Dataset
 
 
 class AbstractPreProcessor(metaclass=ABCMeta):
@@ -21,4 +22,8 @@ class AbstractPreProcessor(metaclass=ABCMeta):
 
     @abstractmethod
     def process_eval(self, examples):  # TODO return type? one method with is_train param?
+        pass
+
+    @abstractmethod
+    def adapt_dataset(self, dataset: Dataset) -> Dataset:  # TODO return type
         pass

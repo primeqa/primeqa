@@ -8,7 +8,9 @@ from transformers.trainer_utils import get_last_checkpoint, set_seed
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
+from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
+from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 
 
 def main():
@@ -18,7 +20,7 @@ def main():
         do_train=True,
         do_eval=True,
         num_train_epochs=1.,
-        fp16=True,
+        fp16=False,
     )
 
     set_seed(training_args.seed)
@@ -56,13 +58,15 @@ def main():
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
+        task_heads=EXTRACTIVE_HEAD,
     )
 
     # load data
+    logger.info('Loading dataset')
     raw_datasets = datasets.load_dataset("tydiqa", "primary_task")
 
     # load preprocessor
-    preprocessor_class = DefaultPreProcessor  # TODO parameterize
+    preprocessor_class = TyDiQAPreprocessor  # TODO parameterize
     preprocessor = preprocessor_class(
         max_q_len=18,
         stride=128,
@@ -71,12 +75,13 @@ def main():
 
     # process train data
     train_dataset = raw_datasets["train"]
+    train_dataset = preprocessor.adapt_dataset(train_dataset)
     max_train_samples = 2000
     if max_train_samples is not None:  # if data_args.max_train_samples is not None:
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
     with training_args.main_process_first(desc="train dataset map pre-processing"):
-        train_dataset = train_dataset.map(
+        train_dataset = train_dataset.map(  # TODO debug
             preprocessor.process_train,
             batched=True,
             num_proc=8,  # data_args.preprocessing_num_workers,

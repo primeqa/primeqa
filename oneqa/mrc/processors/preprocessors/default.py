@@ -4,13 +4,19 @@ from collections import defaultdict
 from typing import Optional
 
 from transformers import PreTrainedTokenizerFast
+from datasets import Dataset
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 
 
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
+    _yes_no_dict = {'NONE': -1, 'NO': 0, 'YES': 1}
+
     def __init__(self, tokenizer: PreTrainedTokenizerFast, stride: int, max_q_len: int, max_seq_len: Optional[int] = None):
         super().__init__(tokenizer, stride, max_q_len, max_seq_len)
+
+    def adapt_dataset(self, dataset: Dataset) -> Dataset:
+        return dataset
 
     def process_train(self, examples):
         return self._process(examples, is_train=True)
@@ -24,12 +30,13 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         if isinstance(examples_question, str):
             examples_question = [examples_question]
             examples_context = [examples_context]
-        examples_id = examples.get('example_id', (uuid.uuid4() for _ in range(len(examples_question))))
+        examples_id = examples.get('example_id', (str(uuid.uuid4()) for _ in range(len(examples_question))))
         target = examples.get('target')
         if target is None:
             target = itertools.repeat(None, len(examples_question))
 
         tokenized_examples = defaultdict(list)
+        tokenized_examples['target'] = {}
 
         for question, context, example_id, target in zip(examples_question, examples_context, examples_id, target):
             tokenized_contexts = self._tokenizer(
@@ -39,13 +46,14 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 return_overflowing_tokens=True,
                 add_special_tokens=False,
                 return_offsets_mapping=True,
+                truncation=True,
             )
 
             tokenized_questions = self._tokenizer(
                 question,
                 max_length=self._max_q_len,
                 truncation=True,
-                add_special_tokens=False
+                add_special_tokens=False,
             )
 
             feature_names = set(tokenized_questions.keys())
@@ -59,14 +67,14 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                     tokenized_examples['context_idx'].append(context_idx)
                     tokenized_examples['window_idx'].append(window_idx)
 
-                    model_inputs = {}
+                    # model_inputs = {}
                     qp_pair = (tokenized_questions['input_ids'], tokenized_contexts['input_ids'][idx])
                     tokenized_examples['input_ids'].append(self._tokenizer.build_inputs_with_special_tokens(*qp_pair))
                     if 'token_type_ids' in feature_names:
                         tokenized_examples['token_type_ids'].append(self._tokenizer.create_token_type_ids_from_sequences(*qp_pair))
                     if 'attention_mask' in feature_names:
                         # special_tokens_mask = self._tokenizer.get_special_tokens_mask(*qp_pair)
-                        tokenized_examples['attention_mask'].append([1] * len(model_inputs['input_ids']))
+                        tokenized_examples['attention_mask'].append([1] * len(tokenized_examples['input_ids'][-1]))
 
                     if target:
                         # offset_mapping = tokenized_contexts['offset_mapping']['idx']
@@ -83,23 +91,30 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                         #     )
                         #     for t in target
                         # ]
-                        start_position = []
-                        end_position = []
-                        passage_position = []
-                        y_n_answer = []
-                        text = []
-                        for t in target[:1 if is_train else len(target)]:
-                            start_position.append(t['position']['start']) # TODO adjust positions, map to tokenized space
-                            end_position.append(t['position']['end'])
-                            passage_position.append(t['position']['passage'])
-                            text.append(t['text'])
-                            y_n_answer.append(t.get(y_n_answer))
+                        # start_position = []
+                        # end_position = []
+                        # passage_position = []
+                        # y_n_answer = []
+                        # text = []
+                        # for t in target[:1 if is_train else len(target)]:
+                        #     start_position.append(t['position']['start']) # TODO adjust positions, map to tokenized space
+                        #     end_position.append(t['position']['end'])
+                        #     passage_position.append(t['position']['passage'])
+                        #     text.append(t['text'])
+                        #     y_n_answer.append(t.get(y_n_answer))
 
-                        tokenized_examples['start_positions'].append(start_position)
-                        tokenized_examples['end_positions'].append(end_position)
-                        tokenized_examples['passage_positions'].append(passage_position)
-                        tokenized_examples['text'].append(text)
-                        tokenized_examples['y_n_answer'].append(y_n_answer)
+                        # tokenized_examples['start_positions'].append(start_position)
+                        # tokenized_examples['end_positions'].append(end_position)
+                        # tokenized_examples['passage_positions'].append(passage_position)
+                        # tokenized_examples['text'].append(text)
+                        # tokenized_examples['yes_no_answer'].append(y_n_answer)
+                        for key in ['start_positions', 'end_positions', 'passage_indices', 'yes_no_answer']:  # TODO 'text' (generative support)
+                            value = target[key]
+                            if is_train:
+                                value=value[:1]
+                            if key == 'yes_no_answer':
+                                value = [self._yes_no_dict[item] for item in value]
+                            tokenized_examples['target'][key] = value
 
                     # else:
                     #     targets = None
@@ -136,5 +151,6 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             #                 for feature_name, feature in tokenized.items()
             #             }
             #         )
-        # return datasets.Dataset.from_dict(tokenized_examples)
-        return tokenized_examples
+        
+        return Dataset.from_dict(tokenized_examples)
+        #return tokenized_examples
