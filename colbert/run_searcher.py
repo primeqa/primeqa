@@ -27,7 +27,6 @@ def main():
 
     with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
         searcher = Searcher(args.index_name, checkpoint=args.checkpoint, collection=args.collection, config=colBERTConfig)
-        #rankings = searcher.search_all(args.queries, k=1000).todict()
 
         rankings = searcher.search_all(args.queries, args.topK)
         out_fn = args.ranks_fn
