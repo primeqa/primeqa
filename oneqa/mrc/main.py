@@ -75,12 +75,12 @@ def main():
 
     # process train data
     train_dataset = raw_datasets["train"]
-    train_dataset = preprocessor.adapt_dataset(train_dataset)
     max_train_samples = 2000
     if max_train_samples is not None:  # if data_args.max_train_samples is not None:
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
     with training_args.main_process_first(desc="train dataset map pre-processing"):
+        train_dataset = preprocessor.adapt_dataset(train_dataset)
         train_dataset = train_dataset.map(  # TODO debug
             preprocessor.process_train,
             batched=True,
