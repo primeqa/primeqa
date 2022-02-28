@@ -8,10 +8,10 @@ from transformers import PreTrainedTokenizerFast
 from datasets import Dataset
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
+from oneqa.mrc.types.target_type import TargetType
 
 
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _yes_no_dict = {'NONE': -1, 'NO': 0, 'YES': 1}
 
     def adapt_dataset(self, dataset: Dataset) -> Dataset:
         return dataset
@@ -28,8 +28,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         if isinstance(examples_question, str):  # wrap single (question, [context]) pair in list
             examples_question = [examples_question]
             examples_context = [examples_context]
+        
         examples_id = list(examples.get('example_id', (str(uuid.uuid4()) for _ in range(len(examples_question)))))
         target = examples.get('target')
+        if not target and is_train:
+            raise ValueError("No training targets found.  Ground truth targets are required for training.")
         
         # create 1:1 question:context lists
         expanded_examples_question = []
@@ -39,14 +42,13 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             expanded_examples_idx.extend(itertools.repeat(i, len(context)))
         expanded_examples_context = list(itertools.chain.from_iterable(examples_context))
 
-        pad_on_right = self._tokenizer.padding_side == "right"
 
         tokenized_examples = self._tokenizer(
-            expanded_examples_context if pad_on_right else expanded_examples_question,
-            expanded_examples_question if pad_on_right else expanded_examples_context,
+            expanded_examples_context if self._pad_on_right else expanded_examples_question,
+            expanded_examples_question if self._pad_on_right else expanded_examples_context,
             stride=self._stride,
             max_length=self._max_seq_len,
-            truncation='only_first' if pad_on_right else 'only_second',
+            truncation='only_first' if self._pad_on_right else 'only_second',
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
         )
@@ -54,28 +56,23 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         # oidx      [0, 0, 1, 2, 2, 2]
         # eidx      [0, 0, 1, 1, 1, 1]
         # cidx      [0, 0, 0, 1, 1, 1] (sub oidx eidx)
-        # widx      [0, 1, 0, 0, 1, 2] (groupby cidx group idx)
+        # widx      [0, 1, 0, 0, 1, 2] ((groupby cidx) group idx)
         # tokenized_examples['examples_idx'] = expanded_examples_idx
         tokenized_examples['examples_idx'] = [tokenized_examples["overflow_to_sample_mapping"][eidx] for eidx in expanded_examples_idx]
         tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], tokenized_examples['examples_idx']))
         tokenized_examples['window_idx'] = [idx for _, group in itertools.groupby(tokenized_examples['context_idx']) for idx, _ in enumerate(group)]
         tokenized_examples['example_id'] = [examples_id[eidx] for eidx in tokenized_examples['examples_idx']]
 
-        if target:
-            tokenized_examples = self._create_targets(tokenized_examples, target, pad_on_right, is_train)
+        if is_train:
+            tokenized_examples = self._create_train_targets(tokenized_examples, target)
+        else:
+            tokenized_examples = self._create_eval_targets(tokenized_examples, target)
 
-        if target:
-            for key in ['start_positions', 'end_positions', 'passage_indices', 'yes_no_answer']:  # TODO 'text' (generative support)
-                value = target[key]
-                if is_train:
-                    value=value[:1]
-                if key == 'yes_no_answer':
-                    value = [self._yes_no_dict[item] for item in value]
-                tokenized_examples['target'][key] = value
+        # TODO: subsample negative examples
         
         return tokenized_examples
 
-    def _create_targets(self, tokenized_examples, target, pad_on_right, is_train):
+    def _create_train_targets(self, tokenized_examples, target):
         
         # Since one example might give us several features if it has a long context, we need a map from a feature to
         # its corresponding example. This key gives us just that.
@@ -87,8 +84,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         # Let's label those examples!
         tokenized_examples["start_positions"] = []
         tokenized_examples["end_positions"] = []
-        tokenized_examples["passage_indices"] = []
-        tokenized_examples["yes_no_answer"] = []
+        tokenized_examples["target_type"] = []
 
         for i, offsets in enumerate(offset_mapping):
             # We will label impossible answers with the index of the CLS token.
@@ -100,30 +96,41 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
             # One example can give several spans, this is the index of the example containing this span of text.
             sample_index = sample_mapping[i]
-            answers = examples[answer_column_name][sample_index]
-            # If no answers are given, set the cls_index as answer.
-            if len(answers["answer_start"]) == 0:
+            context_idx = tokenized_examples['context_idx'][i]
+            t = target[sample_index][0]
+            yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'])
+
+            if t['position']['passage'] == context_idx and t['position']['start'] == -1:  # Passage Answer
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
-            else:
+                tt = yes_no_answer
+                if tt not in (TargetType.YES, TargetType.NO):
+                    tt = TargetType.PASSAGE_ANSWER
+                tokenized_examples["target_type"].append(tt)
+            elif t['position']['passage'] != context_idx or t['position']['start'] == -1:  # No Answer
+                tokenized_examples["start_positions"].append(cls_index)
+                tokenized_examples["end_positions"].append(cls_index)
+                tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
+            else:  # Span Answer
                 # Start/end character index of the answer in the text.
-                start_char = answers["answer_start"][0]
-                end_char = start_char + len(answers["text"][0])
+                start_char = t['positon']['start']
+                end_char = t['position']['end']
 
                 # Start token index of the current span in the text.
                 token_start_index = 0
-                while sequence_ids[token_start_index] != (1 if pad_on_right else 0):
+                while sequence_ids[token_start_index] != (1 if self._pad_on_right else 0):
                     token_start_index += 1
 
                 # End token index of the current span in the text.
                 token_end_index = len(input_ids) - 1
-                while sequence_ids[token_end_index] != (1 if pad_on_right else 0):
+                while sequence_ids[token_end_index] != (1 if self._pad_on_right else 0):
                     token_end_index -= 1
 
                 # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                 if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                     tokenized_examples["start_positions"].append(cls_index)
                     tokenized_examples["end_positions"].append(cls_index)
+                    tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
                 else:
                     # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                     # Note: we could go after the last offset if the answer is the last word (edge case).
@@ -133,4 +140,14 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                     while offsets[token_end_index][1] >= end_char:
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
+                    tokenized_examples["target_type"].append(TargetType.SPAN_ANSWER)
+
         return tokenized_examples
+
+    def _create_eval_targets(self, tokenized_examples, target):
+        self._logger.warning("Creating eval targets is not implemented -- skipping")
+        return tokenized_examples
+
+    @property
+    def _pad_on_right(self) -> bool:
+        return self._tokenizer.padding_side == "right"
