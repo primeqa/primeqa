@@ -1,7 +1,8 @@
-from enum import IntEnum
+from enum import Enum, unique
 
 
-class TargetType(IntEnum):
+@unique
+class TargetType(Enum):
     NO_ANSWER = 0
     SPAN_ANSWER = 1
     PASSAGE_ANSWER = 2
@@ -14,3 +15,6 @@ class TargetType(IntEnum):
         if label == 'NONE':
             label = 'NO_ANSWER'
         return cls[label]
+
+    def __int__(self):
+        return self.value

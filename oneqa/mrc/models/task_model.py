@@ -51,7 +51,7 @@ class ModelForDownstreamTasks(PreTrainedModel):
         return getattr(self, self.base_model_prefix)
 
     def forward(self,
-                task_head: str,
+                task_head: str = 'qa_head',  # TODO: parameterize
                 input_ids=None,
                 attention_mask=None,
                 token_type_ids=None,
@@ -61,6 +61,9 @@ class ModelForDownstreamTasks(PreTrainedModel):
                 output_attentions=None,
                 output_hidden_states=None,
                 return_dict=None,
+                start_positions=None,  # TODO: have preprocessor return field names to inject into kwargs so targets don't need to be kwargs
+                end_positions=None,
+                target_type=None,
                 **kwargs):
         raise RuntimeError("Stopping here, only checking preprocessing now")
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict

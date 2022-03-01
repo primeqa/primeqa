@@ -68,14 +68,13 @@ def main():
     # load preprocessor
     preprocessor_class = TyDiQAPreprocessor  # TODO parameterize
     preprocessor = preprocessor_class(
-        max_q_len=18,
         stride=128,
         tokenizer=tokenizer,
     )
 
     # process train data
     train_dataset = raw_datasets["train"]
-    max_train_samples = 2000
+    max_train_samples = 1000
     if max_train_samples is not None:  # if data_args.max_train_samples is not None:
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
@@ -84,26 +83,29 @@ def main():
         train_dataset = train_dataset.map(  # TODO debug
             preprocessor.process_train,
             batched=True,
-            num_proc=8,  # data_args.preprocessing_num_workers,
-            # remove_columns=column_names,
+            num_proc=1,  # data_args.preprocessing_num_workers,
+            remove_columns=train_dataset.column_names,
             # load_from_cache_file=not data_args.overwrite_cache,
             load_from_cache_file=False,
             desc="Running tokenizer on train dataset",
         )
 
+    # TODO: check if dataset if shuffled
+
     # process val data
     eval_examples = raw_datasets["validation"]
-    max_eval_samples = 500
+    max_eval_samples = 250
     if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
         # We will select sample from whole data
         eval_examples = eval_examples.select(range(max_eval_samples))
     # Validation Feature Creation
     with training_args.main_process_first(desc="validation dataset map pre-processing"):
+        eval_examples = preprocessor.adapt_dataset(eval_examples)
         eval_dataset = eval_examples.map(
             preprocessor.process_eval,
             batched=True,
-            num_proc=8,  # data_args.preprocessing_num_workers,
-            # remove_columns=column_names,
+            num_proc=1,  # data_args.preprocessing_num_workers,
+            remove_columns=eval_examples.column_names,
             # load_from_cache_file=not data_args.overwrite_cache,
             load_from_cache_file=False,
             desc="Running tokenizer on validation dataset",
@@ -125,10 +127,10 @@ def main():
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
-        eval_examples=eval_examples if training_args.do_eval else None,
+        # eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=postprocessor.process,
+        # post_process_function=postprocessor.process,
         compute_metrics=metrics_fn,
     )
 

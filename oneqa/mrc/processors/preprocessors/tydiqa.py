@@ -13,8 +13,8 @@ class TyDiQAPreprocessor(DefaultPreProcessor):
 
     def adapt_dataset(self, dataset: Dataset) -> Dataset:
         dataset = dataset.rename_columns(self._rename_fields)
-        dataset = dataset.map(self._split_context)
-        dataset = dataset.map(self._create_target)
+        dataset = dataset.map(self._split_context, load_from_cache_file=False)
+        dataset = dataset.map(self._create_target, load_from_cache_file=False)
         return dataset
     
     def _split_context(self, example):
