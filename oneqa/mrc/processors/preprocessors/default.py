@@ -233,21 +233,19 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return tokenized_examples
 
     def subsample_features(self, dataset: Dataset) -> Dataset:
-        keep_indices = []
-        for i, st in enumerate(dataset['subsample_type']):
-            if st == SubsampleType.POSITIVE:
-                keep_indices.append(i)
-            elif st == SubsampleType.NEGATIVE_HAS_ANSWER:
-                if random.random() < self._negative_sampling_prob_when_has_answer:
-                    keep_indices.append(i)
-            elif st == SubsampleType.NEGATIVE_NO_ANSWER:
-                if random.random() < self._negative_sampling_prob_when_no_answer:
-                    keep_indices.append(i)
-            else:
-                raise NotImplementedError(f"Unexpected subsample type: {st}")
-
+        keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
         dataset = dataset.select(keep_indices)
         return dataset
+
+    def _keep_feature(self, st: SubsampleType) -> bool:
+        if st == SubsampleType.POSITIVE:
+            return True
+        elif st == SubsampleType.NEGATIVE_HAS_ANSWER:
+            return random.random() < self._negative_sampling_prob_when_has_answer
+        elif st == SubsampleType.NEGATIVE_NO_ANSWER:
+            return random.random() < self._negative_sampling_prob_when_no_answer
+        else:
+            raise NotImplementedError(f"Unexpected subsample type: {st}")
 
     @property
     def _pad_on_right(self) -> bool:
