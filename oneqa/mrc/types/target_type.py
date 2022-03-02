@@ -1,8 +1,8 @@
-from enum import Enum, unique
+from enum import IntEnum, unique
 
 
 @unique
-class TargetType(Enum):
+class TargetType(IntEnum):
     NO_ANSWER = 0
     SPAN_ANSWER = 1
     PASSAGE_ANSWER = 2
@@ -16,5 +16,5 @@ class TargetType(Enum):
             label = 'NO_ANSWER'
         return cls[label]
 
-    def __int__(self):
-        return self.value
+    # def __int__(self):
+    #     return self.value

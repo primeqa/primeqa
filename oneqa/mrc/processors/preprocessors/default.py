@@ -1,5 +1,6 @@
 import enum
 import itertools
+import random
 import uuid
 from operator import sub
 from typing import Optional, List, Iterable
@@ -8,11 +9,12 @@ from transformers import PreTrainedTokenizerFast
 from datasets import Dataset
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
+from oneqa.mrc.types.subsample_type import SubsampleType
 from oneqa.mrc.types.target_type import TargetType
 
 
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _del_keys = ["overflow_to_sample_mapping", "offset_mapping", "context_idx", "window_idx", "example_idx"]  # TODO: remove window_idx if keeping that removed
+    _del_keys = ["overflow_to_sample_mapping", "offset_mapping"]  #, "context_idx", "window_idx", "example_idx"]  # TODO: remove window_idx if keeping that removed
 
     def adapt_dataset(self, dataset: Dataset) -> Dataset:
         return dataset
@@ -51,7 +53,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         examples_id = list(examples.get('example_id', (str(uuid.uuid4()) for _ in range(len(examples_question)))))
         tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
-        spans_per_example = self._generate_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
+        spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
         tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
         # tokenized_examples['window_idx'] = [idx for _, group in itertools.groupby(tokenized_examples['context_idx']) for idx, _ in enumerate(group)]  # TODO: is this needed?
         tokenized_examples['example_id'] = [examples_id[eidx] for eidx in tokenized_examples['example_idx']]
@@ -62,11 +64,17 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             tokenized_examples = self._create_eval_targets(tokenized_examples)
 
         # TODO: subsample negative examples: decide do this here, main, collator, other?
-        
+        # will probably need to subsample each key and the BatchEncoding here using a indicies list, seems a bit messy.
+        # positive side is the features file will be much smaller since all the negatives aren't there.
+        # also positive is there will be no conflicts between processes regarding randomization.
+        # if this will work it may be the better choice even if its messier.
 
         for key in self._del_keys:
             tokenized_examples.pop(key, None)
 
+        if is_train:
+            tokenized_examples = self.label_features_for_subsampling(tokenized_examples, examples)
+        
         return tokenized_examples
 
     def _create_train_targets(self, tokenized_examples, target):  # TODO: rename create targets fns?
@@ -107,11 +115,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 tt = yes_no_answer
                 if tt not in (TargetType.YES, TargetType.NO):
                     tt = TargetType.PASSAGE_ANSWER
-                tokenized_examples["target_type"].append(int(tt))
+                tokenized_examples["target_type"].append(tt)
             elif passage_index != context_idx or start_position == -1:  # No Answer
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
-                tokenized_examples["target_type"].append(int(TargetType.NO_ANSWER))
+                tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
             else:  # Span Answer
                 # Start/end character index of the answer in the text.
                 start_char = start_position
@@ -131,7 +139,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                     tokenized_examples["start_positions"].append(cls_index)
                     tokenized_examples["end_positions"].append(cls_index)
-                    tokenized_examples["target_type"].append(int(TargetType.NO_ANSWER))
+                    tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
                 else:
                     # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                     # Note: we could go after the last offset if the answer is the last word (edge case).
@@ -141,7 +149,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                     while offsets[token_end_index][1] >= end_char:
                         token_end_index -= 1
                     tokenized_examples["end_positions"].append(token_end_index + 1)
-                    tokenized_examples["target_type"].append(int(TargetType.SPAN_ANSWER))
+                    tokenized_examples["target_type"].append(TargetType.SPAN_ANSWER)
 
         return tokenized_examples
 
@@ -160,6 +168,86 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             ]
 
         return tokenized_examples
+
+    # def subsample_features(self, dataset: Dataset) -> Dataset:
+    #     if self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 1.:
+    #         self._logger.warning("Keeping all negative training instances -- "
+    #                              "this may create an unbalanced training set and increase training time significantly")
+    #         return dataset
+    #     elif self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 0.:
+    #         self._logger.warning("Removing all negative training instances -- only positives will be used")
+
+    #     keep_indices = []
+    #     no_answer_val = int(TargetType.NO_ANSWER)
+    #     for i in range(dataset.num_rows):
+    #         if dataset['target_type'][i] != no_answer_val:
+    #             keep_indices.append(i)
+    #         else:
+    #             has_answer = None  # TODO implement
+    #             raise NotImplementedError
+    #             p = self._negative_sampling_prob_when_has_answer if has_answer else self._negative_sampling_prob_when_no_answer
+    #             if random.random() < p:
+    #                 keep_indices.append(i)
+    #     dataset = dataset.select(keep_indices)
+    #     return dataset
+    
+    def label_features_for_subsampling(self, tokenized_examples, examples):
+        if self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 1.:
+            self._logger.warning("Keeping all negative training instances -- "
+                                 "this may create an unbalanced training set and increase training time significantly")
+            return tokenized_examples
+        elif self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 0.:
+            self._logger.warning("Removing all negative training instances -- only positives will be used")
+
+        example_mapping = tokenized_examples['example_idx']
+
+        # keep_indices = []
+        tokenized_examples['subsample_type'] = []
+        # no_answer_val = int(TargetType.NO_ANSWER)
+        for i in range(len(tokenized_examples['input_ids'])):
+            if tokenized_examples['target_type'][i] != TargetType.NO_ANSWER:
+                # keep_indices.append(i)
+                st = SubsampleType.POSITIVE
+            else:
+                example_idx = example_mapping[i]
+                passage_mapping = examples['target'][example_idx]['passage_indices']
+                passage_idx = passage_mapping[0]
+                has_answer = passage_idx != -1
+                if has_answer:
+                    st = SubsampleType.NEGATIVE_HAS_ANSWER
+                else:
+                    st = SubsampleType.NEGATIVE_NO_ANSWER
+                # if has_answer:
+                #     p = self._negative_sampling_prob_when_has_answer
+                # else:
+                #     p = self._negative_sampling_prob_when_no_answer
+                
+                # if random.random() < p:
+                #     keep_indices.append(i)
+            tokenized_examples['subsample_type'].append(st)
+
+        # for key, value in tokenized_examples.items():
+        #     tokenized_examples[key] = [value[i] for i in keep_indices]
+        # tokenized_examples.encodings = [tokenized_examples.encodings[i] for i in keep_indices]  # TODO: cannot subsample tokenized_examples, need workaround
+
+        return tokenized_examples
+
+    def subsample_features(self, dataset: Dataset) -> Dataset:
+        keep_indices = []
+        for i, st in enumerate(dataset['subsample_type']):
+            if st == SubsampleType.POSITIVE:
+                keep_indices.append(i)
+            elif st == SubsampleType.NEGATIVE_HAS_ANSWER:
+                if random.random() < self._negative_sampling_prob_when_has_answer:
+                    keep_indices.append(i)
+            elif st == SubsampleType.NEGATIVE_NO_ANSWER:
+                if random.random() < self._negative_sampling_prob_when_no_answer:
+                    keep_indices.append(i)
+            else:
+                raise NotImplementedError(f"Unexpected subsample type: {st}")
+
+        dataset = dataset.select(keep_indices)
+        return dataset
 
     @property
     def _pad_on_right(self) -> bool:

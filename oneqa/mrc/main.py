@@ -89,8 +89,10 @@ def main():
             load_from_cache_file=False,
             desc="Running tokenizer on train dataset",
         )
+        train_dataset = preprocessor.subsample_features(train_dataset)
+    # train_dataset = preprocessor.subsample_features(train_dataset)  # TODO: make sure randomization same across processes
 
-    # TODO: check if dataset if shuffled
+    # TODO: check if dataset is shuffled
 
     # process val data
     eval_examples = raw_datasets["validation"]
@@ -108,7 +110,7 @@ def main():
             remove_columns=eval_examples.column_names,
             # load_from_cache_file=not data_args.overwrite_cache,
             load_from_cache_file=False,
-            desc="Running tokenizer on validation dataset",
+            desc="Running tokenizer on training dataset",
         )
 
     # process test data
