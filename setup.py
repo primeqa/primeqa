@@ -28,12 +28,12 @@ authors = [
 
 _deps = {
     "bump2version": ["dev"],
-    "datasets": ["install"],
+    "datasets>=1.4.0": ["install"],
     "pytest": ["tests"],
     "pytest-cov": ["tests"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
     "tox": ["tests"],
-    "transformers": ["install"],  # TODO change this to range and add sentencepiece
+    "transformers>=4.0.0": ["install"],
     "tqdm": ["install"],
 }
 

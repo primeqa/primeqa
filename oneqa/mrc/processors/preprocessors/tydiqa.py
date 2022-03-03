@@ -4,7 +4,8 @@ from datasets import Dataset
 
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 
-class TyDiQAPreprocessor(DefaultPreProcessor):
+
+class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all methods
     _byte_itemgetter = itemgetter('plaintext_start_byte', 'plaintext_end_byte')
     _rename_fields = {'question_text': 'question', 'annotations': 'target'}
     _rename_target = {'passage_answer_candidate_index': 'passage_indices',
@@ -13,8 +14,8 @@ class TyDiQAPreprocessor(DefaultPreProcessor):
 
     def adapt_dataset(self, dataset: Dataset) -> Dataset:  # TODO: parameterize caching
         dataset = dataset.rename_columns(self._rename_fields)
-        dataset = dataset.map(self._split_context, load_from_cache_file=False)
-        dataset = dataset.map(self._create_target, load_from_cache_file=False)
+        dataset = dataset.map(self._split_context, load_from_cache_file=self._load_from_cache_file)
+        dataset = dataset.map(self._create_target, load_from_cache_file=self._load_from_cache_file)
         return dataset
     
     def _split_context(self, example):

@@ -79,19 +79,18 @@ def main():
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
     with training_args.main_process_first(desc="train dataset map pre-processing"):
-        train_dataset = preprocessor.adapt_dataset(train_dataset)
-        train_dataset = train_dataset.map(  # TODO debug
-            preprocessor.process_train,
-            batched=True,
-            num_proc=1,  # data_args.preprocessing_num_workers,
-            remove_columns=train_dataset.column_names,
-            # load_from_cache_file=not data_args.overwrite_cache,
-            load_from_cache_file=False,
-            desc="Running tokenizer on train dataset",
-        )
-        train_dataset = preprocessor.subsample_features(train_dataset)
-
-    # TODO: check if dataset is shuffled
+        # train_dataset = preprocessor.adapt_dataset(train_dataset)
+        # train_dataset = train_dataset.map(  # TODO debug
+        #     preprocessor.process_train,
+        #     batched=True,
+        #     num_proc=1,  # data_args.preprocessing_num_workers,
+        #     remove_columns=train_dataset.column_names,
+        #     # load_from_cache_file=not data_args.overwrite_cache,
+        #     load_from_cache_file=False,
+        #     desc="Running tokenizer on train dataset",
+        # )
+        # train_dataset = preprocessor.subsample_features(train_dataset)
+        _, train_dataset = preprocessor.process_train(train_dataset)
 
     # process val data
     eval_examples = raw_datasets["validation"]

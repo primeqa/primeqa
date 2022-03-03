@@ -3,8 +3,9 @@ import itertools
 import random
 import uuid
 from operator import sub
-from typing import Optional, List, Iterable
+from typing import Optional, List, Iterable, Tuple, Any, Dict
 
+from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
 from datasets import Dataset
 
@@ -13,19 +14,35 @@ from oneqa.mrc.types.subsample_type import SubsampleType
 from oneqa.mrc.types.target_type import TargetType
 
 
+# TODO type signatures for all methods
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     _del_keys = ["overflow_to_sample_mapping", "offset_mapping"]  #, "context_idx", "window_idx", "example_idx"]  # TODO: remove window_idx if keeping that removed
 
     def adapt_dataset(self, dataset: Dataset) -> Dataset:
         return dataset
 
-    def process_train(self, examples: BatchEncoding) -> BatchEncoding:
+    def process_train(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
         return self._process(examples, is_train=True)
 
-    def process_eval(self, examples: BatchEncoding) -> BatchEncoding:
+    def process_eval(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
         return self._process(examples, is_train=False)
 
-    def _process(self, examples: Dataset, is_train: bool) -> BatchEncoding:
+    def _process(self, examples: Dataset, is_train: bool) -> Tuple[Dataset, Dataset]:
+        examples = self.adapt_dataset(examples)
+        features = examples.map(
+            self._process_batch,
+            fn_kwargs=dict(is_train=is_train),
+            batched=True,
+            num_proc=self._num_workers,
+            remove_columns=examples.column_names,
+            load_from_cache_file=self._load_from_cache_file,
+            desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
+        )
+        if is_train:
+            features = self.subsample_features(features)
+        return examples, features
+
+    def _process_batch(self, examples: Batch, is_train: bool) -> BatchEncoding:
         examples_question = examples['question']
         examples_context = examples['context']
         if isinstance(examples_question, str):  # wrap single (question, [context]) pair in list
@@ -39,7 +56,6 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             expanded_examples_question.extend(itertools.repeat(question, len(context)))
             expanded_examples_idx.extend(itertools.repeat(i, len(context)))
         expanded_examples_context = list(itertools.chain.from_iterable(examples_context))
-
 
         tokenized_examples = self._tokenizer(
             expanded_examples_context if self._pad_on_right else expanded_examples_question,
@@ -71,7 +87,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         
         return tokenized_examples
 
-    def _create_train_targets(self, tokenized_examples, target):  # TODO: rename create targets fns?
+    def _create_train_targets(self, tokenized_examples: BatchEncoding, target: List[Dict[str, Any]]) -> BatchEncoding:  # TODO: rename create targets fns?
         
         # Since one context might give us several features if it has a long context, and each example can have many contexts,
         # we need a map from a feature to ts corresponding example. This key gives us just that.
@@ -100,7 +116,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             passage_index = t['passage_indices'][0]
             start_position = t['start_positions'][0]
             end_position = t['end_positions'][0]
-            yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'][0])
+            yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'])
 
             if passage_index == context_idx and start_position == -1:  # Passage Answer
                 tokenized_examples["start_positions"].append(cls_index)
@@ -146,7 +162,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         return tokenized_examples
 
-    def _create_eval_targets(self, tokenized_examples):
+    def _create_eval_targets(self, tokenized_examples: BatchEncoding) -> BatchEncoding:
         
         context_index = 1 if self._pad_on_right else 0
         for i in range(len(tokenized_examples["input_ids"])):
@@ -162,12 +178,12 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         return tokenized_examples
     
-    def label_features_for_subsampling(self, tokenized_examples, examples):
-        if self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 1.:
+    def label_features_for_subsampling(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:
+        if self._subsample_all_features:
             self._logger.warning("Keeping all negative training instances -- "
                                  "this may create an unbalanced training set and increase training time significantly")
             return tokenized_examples
-        elif self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 0.:
+        elif self._subsample_no_features:
             self._logger.warning("Removing all negative training instances -- only positives will be used")
 
         example_mapping = tokenized_examples['example_idx']
@@ -190,8 +206,12 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return tokenized_examples
 
     def subsample_features(self, dataset: Dataset) -> Dataset:
+        if self._subsample_all_features:
+            return dataset
+
         keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
         dataset = dataset.select(keep_indices)
+        dataset = dataset.remove_columns('subsample_type')
         return dataset
 
     def _keep_feature(self, st: SubsampleType) -> bool:
@@ -207,6 +227,14 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     @property
     def _pad_on_right(self) -> bool:
         return self._tokenizer.padding_side == "right"
+
+    @property
+    def _subsample_all_features(self) -> bool:
+        return self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 1.
+
+    @property
+    def _subsample_no_features(self) -> bool:
+        return self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 0.
 
     @staticmethod
     def _generate_previous_spans_per_example(example_idx: List[int], sample_mapping: List[int]) -> Iterable[int]:
