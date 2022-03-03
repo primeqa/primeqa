@@ -15,6 +15,3 @@ class TargetType(IntEnum):
         if label == 'NONE':
             label = 'NO_ANSWER'
         return cls[label]
-
-    # def __int__(self):
-    #     return self.value

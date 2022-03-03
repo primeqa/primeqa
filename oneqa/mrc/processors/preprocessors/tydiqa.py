@@ -11,7 +11,7 @@ class TyDiQAPreprocessor(DefaultPreProcessor):
                       'minimal_answers_start_byte': 'start_positions',
                       'minimal_answers_end_byte': 'end_positions'}
 
-    def adapt_dataset(self, dataset: Dataset) -> Dataset:
+    def adapt_dataset(self, dataset: Dataset) -> Dataset:  # TODO: parameterize caching
         dataset = dataset.rename_columns(self._rename_fields)
         dataset = dataset.map(self._split_context, load_from_cache_file=False)
         dataset = dataset.map(self._create_target, load_from_cache_file=False)

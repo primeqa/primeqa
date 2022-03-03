@@ -90,7 +90,6 @@ def main():
             desc="Running tokenizer on train dataset",
         )
         train_dataset = preprocessor.subsample_features(train_dataset)
-    # train_dataset = preprocessor.subsample_features(train_dataset)  # TODO: make sure randomization same across processes
 
     # TODO: check if dataset is shuffled
 

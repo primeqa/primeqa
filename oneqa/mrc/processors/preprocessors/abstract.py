@@ -2,7 +2,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 
-from transformers import PreTrainedTokenizerFast
+from transformers import PreTrainedTokenizerFast, BatchEncoding
 from datasets import Dataset
 
 
@@ -21,11 +21,11 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         self._negative_sampling_prob_when_no_answer = negative_sampling_prob_when_no_answer
 
     @abstractmethod
-    def process_train(self, examples):  # TODO return type?
+    def process_train(self, examples: Dataset) -> BatchEncoding:
         pass
 
     @abstractmethod
-    def process_eval(self, examples):  # TODO return type? one method with is_train param?
+    def process_eval(self, examples: Dataset) -> BatchEncoding:
         pass
 
     @abstractmethod
@@ -33,7 +33,7 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def label_features_for_subsampling(self, tokenized_examples):  # TODO: return type
+    def label_features_for_subsampling(self, tokenized_examples: BatchEncoding) -> BatchEncoding:
         pass
 
     @abstractmethod
