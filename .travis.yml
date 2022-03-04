@@ -3,6 +3,12 @@ python:
   - "3.7"
   - "3.8"
   - "3.9"
-cache: pip
+env:
+  global:
+    - HF_HOME=${HOME}/.huggingface
+cache:
+  pip: true
+  directories:
+    - ${HF_HOME}
 install: pip install tox-travis
 script: tox -r

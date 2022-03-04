@@ -1,13 +1,13 @@
-import enum
 import itertools
 import random
 import uuid
 from operator import sub
-from typing import Optional, List, Iterable, Tuple, Any, Dict
+from typing import List, Iterable, Tuple, Any, Dict, Optional, Type
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
 from datasets import Dataset
+from datasets.features.features import Sequence, Value, Features
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from oneqa.mrc.types.subsample_type import SubsampleType
@@ -16,9 +16,25 @@ from oneqa.mrc.types.target_type import TargetType
 
 # TODO type signatures for all methods
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _del_keys = ["overflow_to_sample_mapping", "offset_mapping"]  #, "context_idx", "window_idx", "example_idx"]  # TODO: remove window_idx if keeping that removed
+    _del_keys = ["overflow_to_sample_mapping", "offset_mapping"]
+    _feature_types = {'question': Value(dtype='string', id=None),
+                      'context': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
+    _train_feature_types = {
+        'target': {'start_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
+                   'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
+                   'passage_indices': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
+                   'yes_no_answer': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}}
+    # _train_feature_types = {   # TODO: switch this layout to match tydi
+    #     'annotations': Sequence(feature={
+    #         'start_positions': Value(dtype='int32', id=None),
+    #         'end_positions': Value(dtype='int32', id=None),
+    #         'passage_indices': Value(dtype='int32', id=None),
+    #         'yes_no_answer': Value(dtype='string', id=None)})
+    # }
+    _example_id_type = Value(dtype='string', id=None)
 
-    def adapt_dataset(self, dataset: Dataset) -> Dataset:
+    def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
+        self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
 
     def process_train(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
@@ -28,7 +44,10 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return self._process(examples, is_train=False)
 
     def _process(self, examples: Dataset, is_train: bool) -> Tuple[Dataset, Dataset]:
-        examples = self.adapt_dataset(examples)
+        examples = self.adapt_dataset(examples, is_train)
+        if examples.num_rows == 0:
+            raise ValueError("No examples to process")
+
         features = examples.map(
             self._process_batch,
             fn_kwargs=dict(is_train=is_train),
@@ -37,6 +56,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             remove_columns=examples.column_names,
             load_from_cache_file=self._load_from_cache_file,
             desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
+            # features=self._create_features_schema(is_train),
         )
         if is_train:
             features = self.subsample_features(features)
@@ -116,7 +136,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             passage_index = t['passage_indices'][0]
             start_position = t['start_positions'][0]
             end_position = t['end_positions'][0]
-            yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'])
+            yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'][0])
 
             if passage_index == context_idx and start_position == -1:  # Passage Answer
                 tokenized_examples["start_positions"].append(cls_index)
@@ -210,7 +230,10 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             return dataset
 
         keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
-        dataset = dataset.select(keep_indices)
+        try:
+            dataset = dataset.select(keep_indices)
+        except IndexError as ex:
+            raise ValueError("No features remaining after subsampling") from ex
         dataset = dataset.remove_columns('subsample_type')
         return dataset
 
@@ -240,7 +263,35 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     def _generate_previous_spans_per_example(example_idx: List[int], sample_mapping: List[int]) -> Iterable[int]:
         group_start_idx = 0
         for _, group in itertools.groupby(example_idx):
+            group_len = None
             for group_len, _ in enumerate(group, 1):
                 pass
+            if group_len is None:  # this should never be triggered
+                raise ValueError("Unexpected group length None")
             yield from itertools.repeat(sample_mapping[group_start_idx], group_len)
             group_start_idx += group_len
+
+    def validate_schema(self, dataset: Dataset, is_train: bool, pre_adaptation: bool = True) -> None:
+        cls = type(self) if pre_adaptation else DefaultPreProcessor
+        items = cls._feature_types.items()
+        if is_train:
+            items = itertools.chain(items, cls._train_feature_types.items())
+        for feature_name, feature_type in items:
+            if feature_name not in dataset.features:
+                raise ValueError(f"Expected but did not find feature '{feature_name}' in dataset")
+            elif dataset.features[feature_name] != feature_type:
+                raise ValueError(F"Feature type mismatch for feature '{feature_name}'. "
+                                 F"Expected {feature_type} but found {dataset.features[feature_name]}")
+
+        if 'example_id' in dataset.features:
+            if dataset.features['example_id'] != self._example_id_type:
+                raise ValueError(F"Feature type mismatch for feature 'example_id'. "
+                                 F"Expected {self._example_id_type} but found {dataset.features['example_id']}")
+
+    # def _create_features_schema(self, is_train: bool) -> Features:
+    #     schema = Features()
+    #     schema = schema.update(self._feature_types)
+    #     schema['example_id'] = self._example_id_type
+    #     if is_train:
+    #         schema.update(self._train_feature_types)
+    #     return schema

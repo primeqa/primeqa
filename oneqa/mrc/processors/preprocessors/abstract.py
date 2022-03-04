@@ -1,13 +1,13 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 from datasets.arrow_dataset import Batch
 from transformers import PreTrainedTokenizerFast, BatchEncoding
 from datasets import Dataset
 
 
-class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures for all methods
+class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures and docstrings for all methods
     def __init__(self, 
                  tokenizer: PreTrainedTokenizerFast,
                  stride: int,
@@ -42,7 +42,7 @@ class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures for all m
         pass
 
     @abstractmethod
-    def adapt_dataset(self, dataset: Dataset) -> Dataset:
+    def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         pass
 
     @abstractmethod
@@ -51,4 +51,8 @@ class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures for all m
 
     @abstractmethod
     def subsample_features(self, dataset: Dataset) -> Dataset:
+        pass
+
+    @abstractmethod
+    def validate_schema(self, dataset: Dataset, is_train: bool, pre_adaptation: bool = True) -> None:
         pass

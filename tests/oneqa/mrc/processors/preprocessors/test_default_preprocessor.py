@@ -11,41 +11,64 @@ _INVALID_PROBS = [-0.01, 1.01]
 
 class TestDefaultPreProcessor:
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def train_examples(self):
         question = ["Who walked the dog?", "What time is it?"]
         context = [["Alice walks the cat", "Bob walks the dog"],
                    ["The quick brown fox jumps over the lazy dog", "Glenn the otter lives at the aquarium", "Go"]]
+        example_id = ["foo-abc", "bar-123"]
         start_positions = [[0], [-1]]
         end_positions = [[2], [-1]]
         passage_indices = [[1], [-1]]
-        yes_no_answer = ["NONE", "NONE"]
-        examples_dict = dict(question=question, context=context,
+        yes_no_answer = [["NONE"], ["NONE"]]
+        examples_dict = dict(question=question, context=context, example_id=example_id,
                              target=[dict(start_positions=s, end_positions=e, passage_indices=p, yes_no_answer=yn)
                                      for s, e, p, yn in
                                      zip(start_positions, end_positions, passage_indices, yes_no_answer)])
         examples_dataset = Dataset.from_dict(examples_dict)
         return examples_dataset
 
-    # @pytest.fixture()
-    # def train_examples_no_answer(self, train_examples):
-    #     example_indices_has_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] != -1]
-    #     return train_examples.select(example_indices_has_answer)
-    #
-    # @pytest.fixture()
-    # def train_examples_has_answer(self, train_examples):
-    #     example_indices_no_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] == -1]
-    #     return train_examples.select(example_indices_no_answer)
+    @pytest.fixture()
+    def train_examples_has_answer(self, train_examples):
+        example_indices_has_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] != -1]
+        return train_examples.select(example_indices_has_answer)
 
     @pytest.fixture()
+    def train_examples_no_answer(self, train_examples):
+        example_indices_no_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] == -1]
+        return train_examples.select(example_indices_no_answer)
+
+    @pytest.fixture(scope='class')
     def eval_examples(self, train_examples):
-        return train_examples.remove_columns("target")
+        return train_examples.remove_columns('target')
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
+    def invalid_type_train_examples(self):
+        train_examples = Dataset.from_dict({'question': ['Who?'], 'context': [[-1]], 'target': [
+            {'start_positions': [-1], 'end_positions': [-1], 'passage_indices': [-1], 'yes_no_answer': ['NONE']}]})
+        return train_examples
+
+    @pytest.fixture(scope='class')
+    def invalid_name_train_examples(self, train_examples):
+        return train_examples.rename_columns(dict(context='contextssss'))
+
+    @pytest.fixture(scope='class')
+    def invalid_name_eval_examples(self, eval_examples):
+        return eval_examples.rename_columns(dict(context='contextssss'))
+
+    @pytest.fixture(scope='class')
+    def invalid_type_eval_examples(self, invalid_type_train_examples):
+        return invalid_type_train_examples.remove_columns('target')
+
+    @pytest.fixture(scope='class')
+    def no_examples_train(self):
+        return Dataset.from_dict({'question': [], 'context': [], 'target': [], 'example_id': []})
+
+    @pytest.fixture(scope='class')
     def tokenizer(self):
         return AutoTokenizer.from_pretrained('roberta-base')
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def preprocessor(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -55,7 +78,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=0.5,
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def preprocessor_subsample_keep_all(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -65,7 +88,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=1.,
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def preprocessor_subsample_keep_none(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -75,7 +98,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=0.,
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def preprocessor_subsample_keep_no_answer(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -85,7 +108,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=1.,
         )
 
-    @pytest.fixture()
+    @pytest.fixture(scope='class')
     def preprocessor_subsample_keep_has_answer(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -112,8 +135,11 @@ class TestDefaultPreProcessor:
                 negative_sampling_prob_when_no_answer=negative_sampling_prob_when_no_answer,
             )
 
-    def test_adapt_examples(self, train_examples, preprocessor):
-        assert preprocessor.adapt_dataset(train_examples) is train_examples
+    def test_adapt_dataset_with_train_examples(self, train_examples, preprocessor):
+        assert preprocessor.adapt_dataset(train_examples, is_train=True) is train_examples
+
+    def test_adapt_dataset_with_eval_examples(self, eval_examples, preprocessor):
+        assert preprocessor.adapt_dataset(eval_examples, is_train=False) is eval_examples
 
     def test_train_preprocessing_runs_without_errors(self, train_examples, preprocessor):
         train_examples, train_features = preprocessor.process_train(train_examples)
@@ -152,27 +178,60 @@ class TestDefaultPreProcessor:
         assert any(tt == TargetType.NO_ANSWER for tt in train_features['target_type'])
         assert train_examples.num_rows < train_features.num_rows
 
-    # def test_subsample_keep_features_from_no_answer_examples_only(self, train_examples_no_answer,
-    #                                                               preprocessor_subsample_keep_no_answer):
-    #     train_examples_no_answer, train_features = preprocessor_subsample_keep_no_answer.process_train(train_examples_no_answer)
-    #     raise NotImplementedError
-    #
-    # def test_subsample_keep_features_from_has_answer_examples_only(self, train_examples_has_answer,
-    #                                                                preprocessor_subsample_keep_has_answer):
-    #     train_examples_has_answer, train_features = preprocessor_subsample_keep_has_answer.process_train(train_examples_has_answer)
-    #     raise NotImplementedError
+    def test_raises_value_error_when_subsampling_removes_all_features(
+            self, train_examples_no_answer, preprocessor_subsample_keep_none):
+        with raises(ValueError):
+            _, _ = preprocessor_subsample_keep_none.process_train(train_examples_no_answer)
 
-    def test_subsample_keep_features_from_no_answer_examples_only(self, train_examples,
-                                                                  preprocessor_subsample_keep_no_answer):
-        train_examples, train_features = preprocessor_subsample_keep_no_answer.process_train(train_examples)
-        raise NotImplementedError
+    def test_raises_value_error_when_no_examples(self, no_examples_train, preprocessor):
+        with raises(ValueError):
+            _, _ = preprocessor.process_train(no_examples_train)
 
-    def test_subsample_keep_features_from_has_answer_examples_only(self, train_examples,
-                                                                   preprocessor_subsample_keep_has_answer):
-        train_examples, train_features = preprocessor_subsample_keep_has_answer.process_train(train_examples)
-        raise NotImplementedError
+    def test_subsample_keeps_features_from_has_answer_when_only_keeping_has_answer_negatives(
+            self, train_examples_has_answer, preprocessor_subsample_keep_has_answer):
+        train_examples_has_answer, train_features = preprocessor_subsample_keep_has_answer.process_train(
+            train_examples_has_answer)
+        for fi in range(train_features.num_rows):
+            ei = train_features['example_idx'][fi]
+            example_has_answer = train_examples_has_answer['target'][ei]['passage_indices'][0] != -1
+            tt = train_features['target_type'][fi]
+            negative_feature = tt == TargetType.NO_ANSWER
+            if negative_feature:
+                assert example_has_answer
+
+    def test_subsample_keeps_features_from_no_answer_when_only_keeping_no_answer_negatives(
+            self, train_examples_no_answer, preprocessor_subsample_keep_no_answer):
+        train_examples_no_answer, train_features = preprocessor_subsample_keep_no_answer.process_train(
+            train_examples_no_answer)
+        for fi in range(train_features.num_rows):
+            ei = train_features['example_idx'][fi]
+            example_has_answer = train_examples_no_answer['target'][ei]['passage_indices'][0] != -1
+            tt = train_features['target_type'][fi]
+            negative_feature = tt == TargetType.NO_ANSWER
+            if negative_feature:
+                assert not example_has_answer
 
     def test_eval_preprocessing_runs_without_errors(self, eval_examples, preprocessor):
         eval_examples, eval_features = preprocessor.process_eval(eval_examples)
         assert isinstance(eval_examples, Dataset)
         assert isinstance(eval_features, Dataset)
+
+    def test_cannot_adapt_dataset_with_invalid_train_schema_names(self, preprocessor, invalid_name_train_examples):
+        with raises(ValueError):
+            _ = preprocessor.adapt_dataset(invalid_name_train_examples, is_train=True)
+
+    def test_cannot_adapt_dataset_with_invalid_train_schema_types(self, preprocessor, invalid_type_train_examples):
+        with raises(ValueError):
+            _ = preprocessor.adapt_dataset(invalid_type_train_examples, is_train=True)
+
+    def test_cannot_adapt_dataset_with_invalid_train_schema_missing_target(self, preprocessor, eval_examples):
+        with raises(ValueError):
+            _ = preprocessor.adapt_dataset(eval_examples, is_train=True)
+
+    def test_cannot_adapt_dataset_with_invalid_eval_schema_names(self, preprocessor, invalid_name_eval_examples):
+        with raises(ValueError):
+            _ = preprocessor.adapt_dataset(invalid_name_eval_examples, is_train=False)
+
+    def test_cannot_adapt_dataset_with_invalid_eval_schema_types(self, preprocessor, invalid_type_eval_examples):
+        with raises(ValueError):
+            _ = preprocessor.adapt_dataset(invalid_type_eval_examples, is_train=False)
