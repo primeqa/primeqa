@@ -11,6 +11,7 @@ _MODEL_NAMES = ("model_name",
 
 class TestModelForDownstreamTasks:
     @pytest.mark.parametrize(*_MODEL_NAMES)
+    @pytest.mark.flaky(reruns=5, reruns_delay=2)
     def test_from_config(self, model_name):
         config = AutoConfig.from_pretrained(model_name)
         model = ModelForDownstreamTasks.from_config(config,
@@ -21,6 +22,7 @@ class TestModelForDownstreamTasks:
         assert isinstance(model, ModelForDownstreamTasks)
         assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
 
+    @pytest.mark.flaky(reruns=5, reruns_delay=2)
     def test_model_class_from_config_then_from_pretrained(self):
         model_name = 'roberta-base'
         config = AutoConfig.from_pretrained(model_name)
