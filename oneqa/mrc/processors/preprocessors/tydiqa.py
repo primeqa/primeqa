@@ -25,8 +25,14 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         self.validate_schema(dataset, is_train)
         dataset = dataset.rename_columns(self._rename_fields)
-        dataset = dataset.map(self._split_context, load_from_cache_file=self._load_from_cache_file)
-        dataset = dataset.map(self._create_target, load_from_cache_file=self._load_from_cache_file)
+        dataset = dataset.map(self._create_target,
+                              load_from_cache_file=self._load_from_cache_file,
+                              num_proc=self._num_workers
+                              )
+        dataset = dataset.map(self._split_context,
+                              load_from_cache_file=self._load_from_cache_file,
+                              num_proc=self._num_workers
+        )
         dataset = super().adapt_dataset(dataset, is_train)
         return dataset
     
@@ -37,6 +43,16 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
             for start_byte, end_byte in zip(*self._byte_itemgetter(example['passage_answer_candidates']))
         ]
         example['context'] = context
+
+        for i in range(len(example['target']['passage_indices'])):
+            pidx = example['target']['passage_indices'][i]
+            if pidx == -1:
+                continue
+
+            offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
+            example['target']['start_positions'][i] -= offset
+            example['target']['end_positions'][i] -= offset
+
         return example
 
     def _create_target(self, example):
