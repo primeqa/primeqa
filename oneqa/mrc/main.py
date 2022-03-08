@@ -41,6 +41,7 @@ def main():
             )
 
     model_name = 'xlm-roberta-base'
+    task_heads = EXTRACTIVE_HEAD
     config = AutoConfig.from_pretrained(
         model_name,
         # cache_dir=model_args.cache_dir,
@@ -58,8 +59,9 @@ def main():
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
-        task_heads=EXTRACTIVE_HEAD,
+        task_heads=task_heads,
     )
+    model.set_task_head(next(iter(task_heads)))
 
     # load data
     logger.info('Loading dataset')
