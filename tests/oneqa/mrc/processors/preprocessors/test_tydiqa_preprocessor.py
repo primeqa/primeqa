@@ -4,9 +4,10 @@ from datasets import Dataset
 from transformers import AutoTokenizer
 
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from tests.oneqa.mrc.unit_test import UnitTest
 
 
-class TestTyDiQAPreprocessor:
+class TestTyDiQAPreprocessor(UnitTest):
 
     @pytest.fixture(scope='class')
     def train_examples(self):

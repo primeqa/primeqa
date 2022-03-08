@@ -4,13 +4,11 @@ from transformers import AutoConfig, MODEL_FOR_PRETRAINING_MAPPING
 
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.models.heads.extractive import ExtractiveQAHead, EXTRACTIVE_HEAD
-
-_MODEL_NAMES = ("model_name",
-                ['roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2', 'facebook/bart-base'])
+from tests.oneqa.mrc.unit_test import UnitTest
 
 
-class TestModelForDownstreamTasks:
-    @pytest.mark.parametrize(*_MODEL_NAMES)
+class TestModelForDownstreamTasks(UnitTest):
+    @UnitTest.PARAMETERIZE_MODEL_NAME
     @pytest.mark.flaky(reruns=5, reruns_delay=2)
     def test_from_config(self, model_name):
         config = AutoConfig.from_pretrained(model_name)
@@ -51,7 +49,7 @@ class TestModelForDownstreamTasks:
                                                     model_name,
                                                     task_heads={})
 
-    @pytest.mark.parametrize(*_MODEL_NAMES)
+    @UnitTest.PARAMETERIZE_MODEL_NAME
     def test_model_property(self, model_name):
         config = AutoConfig.from_pretrained(model_name)
         model = ModelForDownstreamTasks.from_config(config,

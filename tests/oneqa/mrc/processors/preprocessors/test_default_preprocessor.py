@@ -5,11 +5,10 @@ from transformers import AutoTokenizer
 
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.types.target_type import TargetType
+from tests.oneqa.mrc.unit_test import UnitTest
 
-_INVALID_PROBS = [-0.01, 1.01]
 
-
-class TestDefaultPreProcessor:
+class TestDefaultPreProcessor(UnitTest):
 
     @pytest.fixture(scope='class')
     def train_examples(self):
@@ -118,8 +117,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=0.,
         )
 
-    @pytest.mark.parametrize(["negative_sampling_prob_when_has_answer", "negative_sampling_prob_when_no_answer"],
-                             [(p1, p2) for p1 in _INVALID_PROBS for p2 in _INVALID_PROBS])
+    @UnitTest.PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
     def test_preprocessor_raises_value_error_on_invalid_subsampling_prob(
             self,
             tokenizer,

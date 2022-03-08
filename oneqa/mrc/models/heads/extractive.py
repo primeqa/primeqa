@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Union
+from typing import Union, Optional
 
 import torch
 from transformers import PretrainedConfig
@@ -9,19 +9,21 @@ from transformers.models.roberta.modeling_roberta import RobertaClassificationHe
 
 from oneqa.mrc.models.heads.abstract import AbstractTaskHead
 from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
+from oneqa.mrc.types.target_type import TargetType
 
 
 class ExtractiveQAHead(AbstractTaskHead):
-    def __init__(self, config: PretrainedConfig, num_labels_override: int = -1):
+    def __init__(self, config: PretrainedConfig, num_labels_override: Optional[int] = None):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
 
         config_for_classification_head = deepcopy(config)
-        if num_labels_override == -1:
-            config_for_classification_head.num_labels = 5
-        elif num_labels_override != 0:
+        if num_labels_override is None:
+            config_for_classification_head.num_labels = len(TargetType)
+        else:
             config_for_classification_head.num_labels = num_labels_override
+        self.num_classification_head_labels = config_for_classification_head.num_labels
 
         dropout_names = ["classifier_dropout", "hidden_dropout_prob", "classifier_dropout_prob"]
         for name in dropout_names:
