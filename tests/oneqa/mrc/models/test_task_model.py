@@ -50,9 +50,50 @@ class TestModelForDownstreamTasks(UnitTest):
                                                     task_heads={})
 
     @UnitTest.PARAMETERIZE_MODEL_NAME
-    def test_model_property(self, model_name):
+    def test_model__property(self, model_name):
         config = AutoConfig.from_pretrained(model_name)
         model = ModelForDownstreamTasks.from_config(config,
                                                     model_name,
                                                     task_heads=EXTRACTIVE_HEAD)
         assert model.model_ is getattr(model, model.base_model_prefix)
+
+    def test_task_head_property_raises_value_error_when_not_set(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=EXTRACTIVE_HEAD)
+        with raises(ValueError):
+            _ = model.task_head
+
+    def test_task_head_property_retreives_set_task_head(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=EXTRACTIVE_HEAD)
+        head_name = next(iter(EXTRACTIVE_HEAD))
+        model.set_task_head(head_name)
+        assert model.task_head is model.task_heads[head_name]
+
+    def test_set_task_head_raises_key_error_on_invalid_name(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=EXTRACTIVE_HEAD)
+        head_name = 'NOT_A_REAL_NAME'
+        with raises(KeyError):
+            model.set_task_head(head_name)
+
+    def test_set_head_multiple_times(self):
+        model_name = 'roberta-base'
+        config = AutoConfig.from_pretrained(model_name)
+        task_heads = dict(qa_head=ExtractiveQAHead, qa_head_2=ExtractiveQAHead)
+        model = ModelForDownstreamTasks.from_config(config,
+                                                    model_name,
+                                                    task_heads=task_heads)
+        for _ in range(5):
+            for head_name in task_heads:
+                model.set_task_head(head_name)
+                assert model.task_head is model.task_heads[head_name]

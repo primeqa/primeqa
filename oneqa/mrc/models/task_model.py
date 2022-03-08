@@ -114,7 +114,9 @@ class ModelForDownstreamTasks(PreTrainedModel):
         return model
 
     def set_task_head(self, task_head: str):
-        if self._task_head is not None:
+        if task_head not in self.task_heads:
+            raise KeyError(f"Task head '{task_head}' not in task_heads: {list(self.task_heads)}")
+        elif self._task_head is not None:
             self._logger.info(f"Changing default task head from '{self._task_head}' to '{task_head}'")
         else:
             self._logger.info(f"Setting task head for first time to '{self._task_head}'")
