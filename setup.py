@@ -29,6 +29,7 @@ authors = [
 _deps = {
     "bump2version": ["dev"],
     "datasets>=1.4.0": ["install"],
+    "packaging": ["install"],
     "pytest": ["tests"],
     "pytest-cov": ["tests"],
     "pytest-rerunfailures": ["tests"],

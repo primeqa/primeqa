@@ -5,12 +5,10 @@ from typing import Optional
 import datasets
 import torch
 from datasets import Dataset
-from torch.utils.data import DataLoader
-from transformers import Trainer
-from transformers.trainer_pt_utils import IterableDatasetShard
-from transformers import is_datasets_available
 from packaging import version
-
+from torch.utils.data import DataLoader
+from transformers import Trainer, is_datasets_available
+from transformers.trainer_pt_utils import IterableDatasetShard
 
 logger = logging.get_logger(__name__)
 
@@ -22,7 +20,7 @@ class MRCTrainer(Trainer):
         if self._signature_columns is None:
             # Inspect model and task head forward signature to keep only the arguments it accepts.
             model_signature = inspect.signature(self.model.forward)
-            task_head_signature = inspect.signature(self.model.task_heads[self.model._task_head].forward)
+            task_head_signature = inspect.signature(self.model.task_head.forward)
 
             signature_columns = set(model_signature.parameters.keys())
             signature_columns |= task_head_signature.parameters.keys()

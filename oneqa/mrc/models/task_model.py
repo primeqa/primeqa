@@ -20,7 +20,6 @@ from oneqa.mrc.models.heads.abstract import AbstractTaskHead
 
 
 class ModelForDownstreamTasks(PreTrainedModel):
-    # model_class: Type[PreTrainedModel] = None
 
     def __init__(self,
                  config: PretrainedConfig,
@@ -47,11 +46,22 @@ class ModelForDownstreamTasks(PreTrainedModel):
         self.init_weights()
 
     @property
-    def model_(self):  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
+    def model_(self) -> PreTrainedModel:  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
         """
         Returns the underlying language model. This is an alias to simplify access.
         """
         return getattr(self, self.base_model_prefix)
+
+    @property
+    def task_head(self) -> AbstractTaskHead:
+        """
+        Returns the current task head or raises a ValueError if it has not yet been set
+        """
+        if self._task_head is not None:
+            # noinspection PyTypeChecker
+            return self.task_heads[self._task_head]
+        else:
+            raise ValueError(f"Task head is not set.  Call {ModelForDownstreamTasks.set_task_head.__name__} to set it")
 
     def forward(self,
                 input_ids=None,
@@ -65,8 +75,6 @@ class ModelForDownstreamTasks(PreTrainedModel):
                 return_dict=None,
                 **kwargs):
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-        if not self._task_head:
-            raise ValueError(f"Must provide task head by calling {ModelForDownstreamTasks.set_task_head.__name__}.")
 
         outputs = self.model_(
             input_ids,
@@ -79,8 +87,8 @@ class ModelForDownstreamTasks(PreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
-        task_head = self.task_heads[self._task_head]
-        return task_head(outputs, **kwargs)
+
+        return self.task_head(outputs, **kwargs)
 
     @classmethod
     def model_class_from_config(cls, config: PretrainedConfig) -> Type['ModelForDownstreamTasks']:
@@ -112,9 +120,9 @@ class ModelForDownstreamTasks(PreTrainedModel):
             self._logger.info(f"Setting task head for first time to '{self._task_head}'")
         self._task_head = task_head
 
-    def clear_task_head(self):
-        if self._task_head is not None:
-            self._logger.info(f"Clearing default task head '{self._task_head}'")
-            self._task_head = None
-        else:
-            self._logger.info("Requested to clear task head but is already cleared")
+    # def clear_task_head(self):
+    #     if self._task_head is not None:
+    #         self._logger.info(f"Clearing default task head '{self._task_head}'")
+    #         self._task_head = None
+    #     else:
+    #         self._logger.info("Requested to clear task head but is already cleared")
