@@ -121,10 +121,3 @@ class ModelForDownstreamTasks(PreTrainedModel):
         else:
             self._logger.info(f"Setting task head for first time to '{self._task_head}'")
         self._task_head = task_head
-
-    # def clear_task_head(self):
-    #     if self._task_head is not None:
-    #         self._logger.info(f"Clearing default task head '{self._task_head}'")
-    #         self._task_head = None
-    #     else:
-    #         self._logger.info("Requested to clear task head but is already cleared")
