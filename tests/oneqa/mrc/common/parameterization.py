@@ -1,6 +1,9 @@
 """
 Test fixtures and parameterization
 """
+from functools import wraps
+from typing import Callable
+
 import pytest
 
 # Parameterize model names in test fixtures
@@ -8,8 +11,30 @@ _MODEL_NAMES = ("model_name", [
         'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
         # 'facebook/bart-base'  # TODO: add bart support
 ])
-PARAMETERIZE_TEST_WITH_MODEL_NAME = pytest.mark.parametrize(*_MODEL_NAMES)
-PARAMETERIZE_FIXTURE_WITH_MODEL_NAME = pytest.fixture(scope='package', params=_MODEL_NAMES[1])
+# _PARAMETERIZE_TEST_WITH_MODEL_NAME = pytest.mark.parametrize(*_MODEL_NAMES)  # TODO: remove
+# _PARAMETERIZE_FIXTURE_WITH_MODEL_NAME = pytest.fixture(scope='package', params=_MODEL_NAMES[1])  # TODO: remove
+
+
+# noinspection PyPep8Naming
+def PARAMETERIZE_TEST_WITH_MODEL_NAME(f: Callable) -> Callable:  # Cannot be rewritten as constant parametrize(fixture)
+    @pytest.mark.parametrize(*_MODEL_NAMES)
+    @pytest.mark.flaky(reruns=5, reruns_delay=2)  # Account for intermittent S3 errors downloading HF models
+    @wraps(f)
+    def inner(*args, **kwargs):
+        return f(*args, **kwargs)
+
+    return inner
+
+
+# noinspection PyPep8Naming
+def PARAMETERIZE_FIXTURE_WITH_MODEL_NAME(f: Callable) -> Callable:
+    @pytest.fixture(scope='package', params=_MODEL_NAMES[1])
+    @pytest.mark.flaky(reruns=5, reruns_delay=2)
+    @wraps(f)
+    def inner(*args, **kwargs):
+        return f(*args, **kwargs)
+    return inner
+
 
 _INVALID_PROBABILITIES = [-0.01, 1.01]
 PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES = pytest.mark.parametrize(

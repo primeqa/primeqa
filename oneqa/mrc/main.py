@@ -41,7 +41,7 @@ def main():
             )
 
     model_name = 'xlm-roberta-base'
-    task_heads = EXTRACTIVE_HEAD
+    task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
         # cache_dir=model_args.cache_dir,

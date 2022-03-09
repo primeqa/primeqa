@@ -81,26 +81,6 @@ class TestExtractiveQAHead(UnitTest):
         self._assert_is_floating_point_tensor(results.target_type_logits)
         assert results.target_type_logits.shape == (bs, len(TargetType))
 
-    def test_forward_with_tuple_input(self, config_and_language_model, language_model_outputs_tuple):
-        config, model = config_and_language_model
-        bs, seq_len = model.dummy_inputs['input_ids'].shape
-        head = ExtractiveQAHead(config)
-        results = head(language_model_outputs_tuple)
-
-        assert isinstance(results, tuple)
-
-        start_logits = results[0]
-        self._assert_is_floating_point_tensor(start_logits)
-        assert start_logits.shape == (bs, seq_len)
-
-        end_logits = results[1]
-        self._assert_is_floating_point_tensor(end_logits)
-        assert end_logits.shape == (bs, seq_len)
-
-        target_type_logits = results[2]
-        self._assert_is_floating_point_tensor(target_type_logits)
-        assert target_type_logits.shape == (bs, len(TargetType))
-
     def test_forward_for_training(self, config_and_language_model, training_inputs):
         config, model = config_and_language_model
         bs, seq_len = model.dummy_inputs['input_ids'].shape
@@ -121,6 +101,26 @@ class TestExtractiveQAHead(UnitTest):
 
         self._assert_is_floating_point_tensor(results.target_type_logits)
         assert results.target_type_logits.shape == (bs, len(TargetType))
+
+    def test_forward_with_tuple_input(self, config_and_language_model, language_model_outputs_tuple):
+        config, model = config_and_language_model
+        bs, seq_len = model.dummy_inputs['input_ids'].shape
+        head = ExtractiveQAHead(config)
+        results = head(language_model_outputs_tuple)
+
+        assert isinstance(results, tuple)
+
+        start_logits = results[0]
+        self._assert_is_floating_point_tensor(start_logits)
+        assert start_logits.shape == (bs, seq_len)
+
+        end_logits = results[1]
+        self._assert_is_floating_point_tensor(end_logits)
+        assert end_logits.shape == (bs, seq_len)
+
+        target_type_logits = results[2]
+        self._assert_is_floating_point_tensor(target_type_logits)
+        assert target_type_logits.shape == (bs, len(TargetType))
 
     def test_forward_for_training_with_tuple_input(self, config_and_language_model,
                                                    training_inputs_with_tuple_from_language_model):
