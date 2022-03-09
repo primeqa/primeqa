@@ -11,6 +11,7 @@ class AbstractTaskHead(torch.nn.Module, metaclass=ABCMeta):
     def __init__(self, config: PretrainedConfig):
         super().__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
+        self.config = config
 
     @abstractmethod
     def forward(self, model_outputs: Union[tuple, ModelOutput], *args, **kwargs):

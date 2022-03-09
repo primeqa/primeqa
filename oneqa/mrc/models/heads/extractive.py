@@ -39,10 +39,8 @@ class ExtractiveQAHead(AbstractTaskHead):
         self.classifier = RobertaClassificationHead(config_for_classification_head)
 
     def forward(self, model_outputs: Union[tuple, BaseModelOutputWithPoolingAndCrossAttentions],
-                start_positions=None, end_positions=None, target_type=None, cosine_sim_lambda=None):
+                start_positions=None, end_positions=None, target_type=None):
         sequence_output = model_outputs[0]
-        # if self.max_att_distance:  # TODO add in constructor
-        #     avg_att_distance = model_outputs[-1]
 
         # Predict target answer type for the whole question answer pair
         answer_type_logits = self.classifier(sequence_output)
@@ -88,7 +86,7 @@ class ExtractiveQAHead(AbstractTaskHead):
         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)
         if not return_dict:
-            output = (start_logits, end_logits) + model_outputs[2:]
+            output = (start_logits, end_logits, answer_type_logits) + model_outputs[2:]
             return ((total_loss,) + output) if total_loss is not None else output
 
         return ExtractiveQAModelOutput(
