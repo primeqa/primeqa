@@ -1,21 +1,19 @@
 import pytest
 import torch
 from pytest import raises
-from transformers import AutoConfig, MODEL_FOR_PRETRAINING_MAPPING
+from transformers import MODEL_FOR_PRETRAINING_MAPPING
 
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.models.heads.extractive import ExtractiveQAHead, EXTRACTIVE_HEAD
+from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
 from oneqa.mrc.types.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
 
 
 class TestModelForDownstreamTasks(UnitTest):
-    @PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
-    def config_and_model_with_extractive_head(self, request):
-        model_name = request.param
-        config = AutoConfig.from_pretrained(model_name)
+    @pytest.fixture(scope='session')
+    def config_and_model_with_extractive_head(self, model_name_and_config):
+        model_name, config = model_name_and_config
         model = ModelForDownstreamTasks.from_config(config,
                                                     model_name,
                                                     task_heads=EXTRACTIVE_HEAD)
@@ -23,7 +21,7 @@ class TestModelForDownstreamTasks(UnitTest):
         model.set_task_head(head_name)
         return config, model
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def training_inputs(self, config_and_model_with_extractive_head):
         _, model = config_and_model_with_extractive_head
         bs, seq_len = model.dummy_inputs['input_ids'].shape
@@ -40,9 +38,8 @@ class TestModelForDownstreamTasks(UnitTest):
         assert isinstance(model, ModelForDownstreamTasks)
         assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
 
-    def test_model_class_from_config_then_from_pretrained(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
+    def test_model_class_from_config_then_from_pretrained(self, model_name_and_config):
+        model_name, config = model_name_and_config
         model_class = ModelForDownstreamTasks.model_class_from_config(config)
         model = model_class.from_pretrained(model_name,
                                             config=config,
@@ -52,17 +49,15 @@ class TestModelForDownstreamTasks(UnitTest):
         assert isinstance(model, ModelForDownstreamTasks)
         assert isinstance(model, MODEL_FOR_PRETRAINING_MAPPING[config.__class__])
 
-    def test_raises_type_error_on_direct_instantiation(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
+    def test_raises_type_error_on_direct_instantiation(self, model_name_and_config):
+        model_name, config = model_name_and_config
         with raises(TypeError):
             _ = ModelForDownstreamTasks.from_pretrained(model_name,
                                                         config=config,
                                                         task_heads=EXTRACTIVE_HEAD)
 
-    def test_raises_value_error_on_empty_task_head_dict(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
+    def test_raises_value_error_on_empty_task_head_dict(self, model_name_and_config):
+        model_name, config = model_name_and_config
         with raises(ValueError):
             _ = ModelForDownstreamTasks.from_config(config,
                                                     model_name,
@@ -72,38 +67,28 @@ class TestModelForDownstreamTasks(UnitTest):
         _, model = config_and_model_with_extractive_head
         assert model.model_ is getattr(model, model.base_model_prefix)
 
-    def test_task_head_property_raises_value_error_when_not_set(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
+    def test_task_head_property_raises_value_error_when_not_set(self, model_name_and_config):
+        model_name, config = model_name_and_config
         model = ModelForDownstreamTasks.from_config(config,
                                                     model_name,
                                                     task_heads=EXTRACTIVE_HEAD)
         with raises(ValueError):
             _ = model.task_head
 
-    def test_task_head_property_retreives_set_task_head(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
-        model = ModelForDownstreamTasks.from_config(config,
-                                                    model_name,
-                                                    task_heads=EXTRACTIVE_HEAD)
+    def test_task_head_property_retreives_set_task_head(self, config_and_model_with_extractive_head):
+        _, model = config_and_model_with_extractive_head
         head_name = next(iter(EXTRACTIVE_HEAD))
         model.set_task_head(head_name)
         assert model.task_head is model.task_heads[head_name]
 
-    def test_set_task_head_raises_key_error_on_invalid_name(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
-        model = ModelForDownstreamTasks.from_config(config,
-                                                    model_name,
-                                                    task_heads=EXTRACTIVE_HEAD)
+    def test_set_task_head_raises_key_error_on_invalid_name(self, config_and_model_with_extractive_head):
+        _, model = config_and_model_with_extractive_head
         head_name = 'NOT_A_REAL_NAME'
         with raises(KeyError):
             model.set_task_head(head_name)
 
-    def test_set_head_multiple_times(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
+    def test_set_head_multiple_times(self, model_name_and_config):
+        model_name, config = model_name_and_config
         task_heads = dict(qa_head=ExtractiveQAHead, qa_head_2=ExtractiveQAHead)
         model = ModelForDownstreamTasks.from_config(config,
                                                     model_name,

@@ -1,33 +1,35 @@
 import pytest
 import torch
-from transformers import AutoConfig, MODEL_MAPPING
+from transformers import MODEL_MAPPING
 
 from oneqa.mrc.models.heads.extractive import ExtractiveQAHead
 from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
 from oneqa.mrc.types.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_TEST_WITH_MODEL_NAME, \
-    PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
 
 
 class TestExtractiveQAHead(UnitTest):
-    @PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
-    def config_and_language_model(self, request):
-        model_name = request.param
-        config = AutoConfig.from_pretrained(model_name)
+    @pytest.fixture(scope='session')
+    def config_and_language_model(self, model_name_and_config):
+        model_name, config = model_name_and_config
         model = MODEL_MAPPING[config.__class__].from_pretrained(model_name, config=config)
         return config, model
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
+    def extractive_head(self, model_name_and_config):
+        _, config = model_name_and_config
+        return ExtractiveQAHead(config)
+
+    @pytest.fixture(scope='session')
     def language_model_outputs(self, config_and_language_model):
         _, model = config_and_language_model
         return model(**model.dummy_inputs)
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def language_model_outputs_tuple(self, language_model_outputs):
         return language_model_outputs.to_tuple()
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def training_inputs(self, config_and_language_model, language_model_outputs):
         _, model = config_and_language_model
         bs, seq_len = model.dummy_inputs['input_ids'].shape
@@ -37,28 +39,23 @@ class TestExtractiveQAHead(UnitTest):
         args = (language_model_outputs,)
         return args, kwargs
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def training_inputs_with_tuple_from_language_model(self, training_inputs):
         args, kwargs = training_inputs
         args = (args[0].to_tuple(),)
         return args, kwargs
 
-    @PARAMETERIZE_TEST_WITH_MODEL_NAME
-    def test_instantiation(self, model_name):
-        config = AutoConfig.from_pretrained(model_name)
+    def test_instantiation(self, model_name_and_config):
+        _, config = model_name_and_config
         head = ExtractiveQAHead(config)
         assert head.num_labels == config.num_labels
 
-    def test_correct_number_of_classification_labels_when_using_default(self):
-        model_name = 'roberta-base'
-        config = AutoConfig.from_pretrained(model_name)
-        head = ExtractiveQAHead(config)
-        assert head.num_classification_head_labels == len(TargetType)
+    def test_correct_number_of_classification_labels_when_using_default(self, extractive_head):
+        assert extractive_head.num_classification_head_labels == len(TargetType)
 
-    def test_correct_number_of_classification_labels_when_overridden(self):
-        model_name = 'roberta-base'
+    def test_correct_number_of_classification_labels_when_overridden(self, model_name_and_config):
+        _, config = model_name_and_config
         num_classification_labels = 16
-        config = AutoConfig.from_pretrained(model_name)
         head = ExtractiveQAHead(config, num_labels_override=num_classification_labels)
         assert head.num_classification_head_labels == num_classification_labels
 
