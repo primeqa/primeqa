@@ -29,7 +29,7 @@ def PARAMETERIZE_TEST_WITH_MODEL_NAME(f: Callable) -> Callable:  # Cannot be rew
 # noinspection PyPep8Naming
 def PARAMETERIZE_FIXTURE_WITH_MODEL_NAME(f: Callable) -> Callable:
     @pytest.mark.flaky(reruns=5, reruns_delay=2)
-    @pytest.fixture(scope='package', params=_MODEL_NAMES[1])
+    @pytest.fixture(scope='session', params=_MODEL_NAMES[1])
     @wraps(f)
     def inner(*args, **kwargs):
         return f(*args, **kwargs)
