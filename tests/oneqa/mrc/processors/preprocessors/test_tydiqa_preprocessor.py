@@ -4,7 +4,7 @@ from datasets import Dataset
 from transformers import AutoTokenizer
 
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from tests.oneqa.mrc.unit_test import UnitTest
+from tests.oneqa.mrc.common.base import UnitTest
 
 
 class TestTyDiQAPreprocessor(UnitTest):

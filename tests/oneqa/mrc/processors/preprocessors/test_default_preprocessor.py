@@ -5,8 +5,8 @@ from transformers import AutoTokenizer
 
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.types.target_type import TargetType
-from tests.oneqa.mrc import unit_test_constants
-from tests.oneqa.mrc.unit_test import UnitTest
+from tests.oneqa.mrc.common.base import UnitTest
+from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
 
 
 class TestDefaultPreProcessor(UnitTest):
@@ -118,7 +118,7 @@ class TestDefaultPreProcessor(UnitTest):
             negative_sampling_prob_when_no_answer=0.,
         )
 
-    @unit_test_constants.PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
+    @PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
     def test_preprocessor_raises_value_error_on_invalid_subsampling_prob(
             self,
             tokenizer,

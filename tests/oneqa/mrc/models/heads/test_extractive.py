@@ -5,12 +5,13 @@ from transformers import AutoConfig, MODEL_MAPPING
 from oneqa.mrc.models.heads.extractive import ExtractiveQAHead
 from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
 from oneqa.mrc.types.target_type import TargetType
-from tests.oneqa.mrc import unit_test_constants
-from tests.oneqa.mrc.unit_test import UnitTest
+from tests.oneqa.mrc.common.base import UnitTest
+from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_TEST_WITH_MODEL_NAME, \
+    PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
 
 
 class TestExtractiveQAHead(UnitTest):
-    @unit_test_constants.PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
+    @PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
     def config_and_language_model(self, request):
         model_name = request.param
         config = AutoConfig.from_pretrained(model_name)
@@ -42,7 +43,7 @@ class TestExtractiveQAHead(UnitTest):
         args = (args[0].to_tuple(),)
         return args, kwargs
 
-    @unit_test_constants.PARAMETERIZE_TEST_WITH_MODEL_NAME
+    @PARAMETERIZE_TEST_WITH_MODEL_NAME
     def test_instantiation(self, model_name):
         config = AutoConfig.from_pretrained(model_name)
         head = ExtractiveQAHead(config)

@@ -1,3 +1,6 @@
+"""
+Test fixtures and parameterization
+"""
 import pytest
 
 # Parameterize model names in test fixtures
