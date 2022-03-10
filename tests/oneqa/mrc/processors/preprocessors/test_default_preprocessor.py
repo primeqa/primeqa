@@ -10,24 +10,6 @@ from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMP
 
 
 class TestDefaultPreProcessor(UnitTest):
-
-    @pytest.fixture(scope='session')
-    def train_examples(self):
-        question = ["Who walked the dog?", "What time is it?"]
-        context = [["Alice walks the cat", "Bob walks the dog"],
-                   ["The quick brown fox jumps over the lazy dog", "Glenn the otter lives at the aquarium", "Go"]]
-        example_id = ["foo-abc", "bar-123"]
-        start_positions = [[0], [-1]]
-        end_positions = [[2], [-1]]
-        passage_indices = [[1], [-1]]
-        yes_no_answer = [["NONE"], ["NONE"]]
-        examples_dict = dict(question=question, context=context, example_id=example_id,
-                             target=[dict(start_positions=s, end_positions=e, passage_indices=p, yes_no_answer=yn)
-                                     for s, e, p, yn in
-                                     zip(start_positions, end_positions, passage_indices, yes_no_answer)])
-        examples_dataset = Dataset.from_dict(examples_dict)
-        return examples_dataset
-
     @pytest.fixture(scope='session')
     def train_examples_has_answer(self, train_examples):
         example_indices_has_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] != -1]
@@ -37,10 +19,6 @@ class TestDefaultPreProcessor(UnitTest):
     def train_examples_no_answer(self, train_examples):
         example_indices_no_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] == -1]
         return train_examples.select(example_indices_no_answer)
-
-    @pytest.fixture(scope='session')
-    def eval_examples(self, train_examples):
-        return train_examples.remove_columns('target')
 
     @pytest.fixture(scope='session')
     def invalid_type_train_examples(self):
@@ -63,16 +41,6 @@ class TestDefaultPreProcessor(UnitTest):
     @pytest.fixture(scope='session')
     def no_examples_train(self):
         return Dataset.from_dict({'question': [], 'context': [], 'target': [], 'example_id': []})
-
-    @pytest.fixture(scope='session')
-    def preprocessor(self, tokenizer):
-        return DefaultPreProcessor(
-            tokenizer,
-            stride=128,
-            load_from_cache_file=False,
-            negative_sampling_prob_when_has_answer=0.5,
-            negative_sampling_prob_when_no_answer=0.5,
-        )
 
     @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_all(self, tokenizer):
