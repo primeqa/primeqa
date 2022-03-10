@@ -8,6 +8,13 @@ from multiprocessing import Pool
 from collections import OrderedDict, defaultdict
 
 
+# removing (") if it is at both the begining and the end of a string (field)
+def remove_first_and_last_quote(a_str):
+    if a_str.startswith('"') and a_str.endswith('"'):
+        a_str = a_str[1:-1]
+    return a_str
+
+
 def print_message(*s, condition=True, pad=False):
     s = ' '.join([str(x) for x in s])
     msg = "[{}] {}".format(datetime.datetime.now().strftime("%b %d, %H:%M:%S"), s)

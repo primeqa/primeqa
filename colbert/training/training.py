@@ -7,6 +7,7 @@ import numpy as np
 from transformers import AdamW, get_linear_schedule_with_warmup
 from colbert.infra import ColBERTConfig
 from colbert.training.rerank_batcher import RerankBatcher
+from colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
 
 from colbert.utils.amp import MixedPrecisionManager
 from colbert.training.lazy_batcher import LazyBatcher
@@ -42,7 +43,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         else:
             reader = LazyBatcher(config, triples, queries, collection, (0 if config.rank == -1 else config.rank), config.nranks)
     else:
-        raise NotImplementedError()
+        # support text input
+        reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
 
     if not config.reranker:
         colbert = ColBERT(name=config.checkpoint, colbert_config=config)
@@ -52,6 +54,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     colbert = colbert.to(DEVICE)
     colbert.train()
 
+    #  set 0 when debug
+    # if 0:
     colbert = torch.nn.parallel.DistributedDataParallel(colbert, device_ids=[config.rank],
                                                         output_device=config.rank,
                                                         find_unused_parameters=True)
@@ -89,6 +93,18 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             set_bert_grad(colbert, True)
             warmup_bert = None
 
+        # support shuffle_every_epoch option
+        n_instances = batch_idx * config.bsize * config.nranks
+        if (n_instances + 1) % len(reader) < config.bsize * config.nranks:
+            print_message("#> ====== Epoch {}...".format((n_instances+1) // len(reader)))
+            # AttributeError: 'ColBERTConfig' object has no attribute 'shuffle_every_epoch'
+            if config.shuffle_every_epoch:
+                print_message("#> Shuffling ...")
+                reader.shuffle()
+            else:
+                print_message("#> Shuffling not specified.")
+
+
         this_batch_loss = 0.0
 
         for batch in BatchSteps:
@@ -116,7 +132,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                     loss = torch.nn.KLDivLoss(reduction='batchmean', log_target=True)(log_scores, target_scores)
                 else:
                     loss = nn.CrossEntropyLoss()(scores, labels[:scores.size(0)])
-                
+
                 if config.use_ib_negatives:
                     if config.rank < 1:
                         print('\t\t\t\t', loss.item(), ib_loss.item())

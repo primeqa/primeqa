@@ -1,3 +1,4 @@
+import random
 import os
 import ujson
 
@@ -12,6 +13,7 @@ from colbert.data.queries import Queries
 from colbert.data.examples import Examples
 
 # from colbert.utils.runs import Run
+
 
 
 class LazyBatcher():
@@ -56,6 +58,8 @@ class LazyBatcher():
 
             passages = [self.collection[pid] for pid in pids]
 
+
+
             all_queries.append(query)
             all_passages.extend(passages)
             all_scores.extend(scores)
@@ -69,6 +73,11 @@ class LazyBatcher():
         assert len(passages) == self.nway * self.bsize
 
         return self.tensorize_triples(queries, passages, scores, self.bsize // self.accumsteps, self.nway)
+
+    # adding shuffle
+    def shuffle(self):
+        print_message("#> Shuffling triples...")
+        random.shuffle(self.triples)
 
     # def skip_to_batch(self, batch_idx, intended_batch_size):
     #     Run.warn(f'Skipping to batch #{batch_idx} (with intended_batch_size = {intended_batch_size}) for training.')

@@ -7,7 +7,7 @@ from collections import defaultdict, OrderedDict
 
 from colbert.parameters import DEVICE
 from colbert.modeling.colbert import ColBERT
-from colbert.utils.utils import print_message, load_checkpoint
+from colbert.utils.utils import print_message, load_checkpoint, remove_first_and_last_quote
 from colbert.evaluation.load_model import load_model
 from colbert.utils.runs import Run
 
@@ -21,6 +21,9 @@ def load_queries(queries_path):
         for line in f:
             qid, query, *_ = line.strip().split('\t')
             qid = int(qid)
+
+            # removing (") at query
+            query = remove_first_and_last_quote(query)
 
             assert (qid not in queries), ("Query QID", qid, "is repeated!")
             queries[qid] = query
@@ -167,7 +170,11 @@ def load_collection(collection_path):
 
             if len(rest) >= 1:
                 title = rest[0]
-                passage = title + ' | ' + passage
+                # Don't add | between title and passage
+                # passage = title + ' | ' + passage
+                # remove (") at passage and add with space
+                passage = remove_first_and_last_quote(passage)
+                passage = title + ' ' + passage
 
             collection.append(passage)
 

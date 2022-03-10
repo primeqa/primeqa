@@ -143,6 +143,7 @@ class TrainingSettings:
 
     ignore_scores: bool = DefaultVal(False)
 
+    shuffle_every_epoch: bool = DefaultVal(False)
 
 @dataclass
 class IndexingSettings:
