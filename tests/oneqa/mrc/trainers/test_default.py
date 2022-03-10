@@ -16,7 +16,7 @@ class TestMRCTrainer(UnitTest):
                     output_dir=os.path.join(working_dir, 'output_dir'),
                     do_train=True,
                     do_eval=False,  # TODO: trainer test eval
-                    num_train_epochs=1.25,
+                    num_train_epochs=1.5,
                     fp16=False,
                 )
 
