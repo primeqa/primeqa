@@ -19,7 +19,7 @@ def main():
         output_dir='/dccstor/aferritt3/oneqa/test-model',
         do_train=True,
         do_eval=True,
-        num_train_epochs=1.,
+        num_train_epochs=0.1,
         fp16=False,
     )
 
@@ -102,16 +102,17 @@ def main():
         eval_examples = eval_examples.select(range(max_eval_samples))
     # Validation Feature Creation
     with training_args.main_process_first(desc="validation dataset map pre-processing"):
-        eval_examples = preprocessor.adapt_dataset(eval_examples)
-        eval_dataset = eval_examples.map(
-            preprocessor.process_eval,
-            batched=True,
-            num_proc=1,  # data_args.preprocessing_num_workers,
-            remove_columns=eval_examples.column_names,
-            # load_from_cache_file=not data_args.overwrite_cache,
-            load_from_cache_file=False,
-            desc="Running tokenizer on training dataset",
-        )
+        # eval_examples = preprocessor.adapt_dataset(eval_examples)
+        # eval_dataset = eval_examples.map(
+        #     preprocessor.process_eval,
+        #     batched=True,
+        #     num_proc=1,  # data_args.preprocessing_num_workers,
+        #     remove_columns=eval_examples.column_names,
+        #     # load_from_cache_file=not data_args.overwrite_cache,
+        #     load_from_cache_file=False,
+        #     desc="Running tokenizer on training dataset",
+        # )
+        eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
     # process test data
 
@@ -142,7 +143,7 @@ def main():
     elif last_checkpoint is not None:
         checkpoint = last_checkpoint
     train_result = trainer.train(resume_from_checkpoint=checkpoint)
-    raise ValueError("Nothing implemented beyond this point")
+    # raise ValueError("Nothing implemented beyond this point")
     trainer.save_model()  # Saves the tokenizer too for easy upload
 
     metrics = train_result.metrics

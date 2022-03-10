@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from transformers import Trainer, is_datasets_available
 from transformers.trainer_pt_utils import IterableDatasetShard
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MRCTrainer(Trainer):
