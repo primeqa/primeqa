@@ -7,8 +7,7 @@ import numpy as np
 from transformers import AdamW, get_linear_schedule_with_warmup
 from colbert.infra import ColBERTConfig
 from colbert.training.rerank_batcher import RerankBatcher
-# support text input
-from colbert.training.eager_batcher_v2 import EagerBatcher
+from colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
 
 from colbert.utils.amp import MixedPrecisionManager
 from colbert.training.lazy_batcher import LazyBatcher
