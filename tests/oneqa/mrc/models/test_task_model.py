@@ -11,26 +11,6 @@ from tests.oneqa.mrc.common.base import UnitTest
 
 
 class TestModelForDownstreamTasks(UnitTest):
-    @pytest.fixture(scope='session')
-    def config_and_model_with_extractive_head(self, model_name_and_config):
-        model_name, config = model_name_and_config
-        model = ModelForDownstreamTasks.from_config(config,
-                                                    model_name,
-                                                    task_heads=EXTRACTIVE_HEAD)
-        head_name = next(iter(EXTRACTIVE_HEAD))
-        model.set_task_head(head_name)
-        return config, model
-
-    @pytest.fixture(scope='session')
-    def training_inputs(self, config_and_model_with_extractive_head):
-        _, model = config_and_model_with_extractive_head
-        bs, seq_len = model.dummy_inputs['input_ids'].shape
-        kwargs = dict(start_positions=torch.randint(0, seq_len, (bs, 1)),
-                      end_positions=torch.randint(0, seq_len, (bs, 1)),
-                      target_type=torch.randint(0, len(TargetType), (bs, 1)))
-        kwargs.update(model.dummy_inputs)
-        return kwargs
-
     def test_from_config(self, config_and_model_with_extractive_head):
         config, model = config_and_model_with_extractive_head
         head_name = next(iter(EXTRACTIVE_HEAD))
@@ -116,10 +96,11 @@ class TestModelForDownstreamTasks(UnitTest):
         self._assert_is_floating_point_tensor(results.target_type_logits)
         assert results.target_type_logits.shape == (bs, len(TargetType))
 
-    def test_forward_for_training_with_extractive_head(self, config_and_model_with_extractive_head, training_inputs):
+    def test_forward_for_training_with_extractive_head(self, config_and_model_with_extractive_head,
+                                                       extractive_training_inputs):
         _, model = config_and_model_with_extractive_head
         bs, seq_len = model.dummy_inputs['input_ids'].shape
-        results = model(**training_inputs)
+        results = model(**extractive_training_inputs)
 
         assert isinstance(results, ExtractiveQAModelOutput)
 
@@ -154,10 +135,10 @@ class TestModelForDownstreamTasks(UnitTest):
         assert target_type_logits.shape == (bs, len(TargetType))
 
     def test_forward_for_training_with_extractive_head_with_tuple_output(
-            self, config_and_model_with_extractive_head, training_inputs):
+            self, config_and_model_with_extractive_head, extractive_training_inputs):
         _, model = config_and_model_with_extractive_head
         bs, seq_len = model.dummy_inputs['input_ids'].shape
-        results = model(**training_inputs, return_dict=False)
+        results = model(**extractive_training_inputs, return_dict=False)
 
         assert isinstance(results, tuple)
 

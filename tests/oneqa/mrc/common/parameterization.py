@@ -7,10 +7,14 @@ from typing import Callable
 import pytest
 
 # Parameterize model names in test fixtures
-_MODEL_NAMES = ("model_name", [
+# _MODEL_NAMES = ("model_name", [
+#         'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
+#         # 'facebook/bart-base'  # TODO: add bart support
+# ])
+_MODEL_NAMES = [
         'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
         # 'facebook/bart-base'  # TODO: add bart support
-])
+]
 # _PARAMETERIZE_TEST_WITH_MODEL_NAME = pytest.mark.parametrize(*_MODEL_NAMES)  # TODO: remove
 # _PARAMETERIZE_FIXTURE_WITH_MODEL_NAME = pytest.fixture(scope='package', params=_MODEL_NAMES[1])  # TODO: remove
 
@@ -30,8 +34,8 @@ _MODEL_NAMES = ("model_name", [
 # Cannot be rewritten as constant parametrize(fixture)
 # noinspection PyPep8Naming
 def PARAMETERIZE_FIXTURE_WITH_MODEL_NAME(f: Callable) -> Callable:
-    @pytest.mark.flaky(reruns=5, reruns_delay=2)  # Account for intermittent S3 errors downloading HF models
-    @pytest.fixture(scope='session', params=_MODEL_NAMES[1])
+    @pytest.mark.flaky(reruns=5, reruns_delay=2)  # Account for intermittent S3 errors downloading HF data
+    @pytest.fixture(scope='session', params=_MODEL_NAMES)
     @wraps(f)
     def inner(*args, **kwargs):
         return f(*args, **kwargs)
