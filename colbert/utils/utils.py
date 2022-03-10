@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 
 # removing (") if it is at both the begining and the end of a string (field)
 def remove_first_and_last_quote(a_str):
-    if a_str[0] == '"' and a_str[-1] == '"':
+    if a_str.startswith('"') and a_str.endswith('"'):
         a_str = a_str[1:-1]
     return a_str
 
