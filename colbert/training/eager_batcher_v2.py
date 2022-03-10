@@ -13,7 +13,6 @@ from colbert.data.collection import Collection
 from colbert.data.queries import Queries
 from colbert.data.examples import Examples
 
-# from colbert.utils.runs import Run
 
 
 class EagerBatcher():
@@ -89,4 +88,3 @@ class EagerBatcher():
         assert len(passages) == self.nway * self.bsize
 
         return self.tensorize_triples(queries, passages, scores, self.bsize // self.accumsteps, self.nway)
-
