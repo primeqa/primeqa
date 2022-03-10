@@ -44,7 +44,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         else:
             reader = LazyBatcher(config, triples, queries, collection, (0 if config.rank == -1 else config.rank), config.nranks)
     else:
-        # raise NotImplementedError()
         # support text input
         reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
 
