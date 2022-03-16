@@ -46,7 +46,7 @@ class HF_ColBERT(BertPreTrainedModel):
 
     @staticmethod
     def raw_tokenizer_from_pretrained(name_or_path):
-        if name_or_path.endswith('.dnn'):
+        if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
 

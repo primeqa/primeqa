@@ -21,6 +21,7 @@ class Arguments():
         self.add_argument('--local_rank', dest='rank', default=-1, type=int)
 
     def add_model_parameters(self):
+        self.add_argument('--model_type', dest='model_type', choices=['bert-base-uncased'], required=True )
         # Core Arguments
         self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine', 'l2'])
         self.add_argument('--dim', dest='dim', default=128, type=int)
@@ -43,6 +44,15 @@ class Arguments():
         self.add_argument('--amp', dest='amp', default=False, action='store_true')
         # adding shuffle option
         self.add_argument('--shuffle_every_epoch', dest='shuffle_every_epoch', default=False, action='store_true')
+        # support checkpoint
+        self.add_argument('--save_steps', dest='save_steps', default=2000, type=int)
+        #                  help="Training will save checkpoint at the specified steps. "
+        #                       "Overridden by save_epochs.")
+        self.add_argument('--save_epochs', dest='save_epochs', default=-1, type=int) # ,
+        #                  help="Training will save checkpoint at the specified epochs. Overrides save_steps.")
+        self.add_argument('--epochs', dest='epochs', default=10, type=int) #,
+        #                  help="Training will end at the earlier of the specified epochs or maxsteps.")
+
 
     def add_model_inference_parameters(self):
         self.add_argument('--checkpoint', dest='checkpoint', required=True)

@@ -1,6 +1,5 @@
 import torch
 
-# from transformers import BertTokenizerFast
 
 from colbert.modeling.hf_colbert import HF_ColBERT
 from colbert.infra import ColBERTConfig

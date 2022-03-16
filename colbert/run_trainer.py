@@ -10,7 +10,8 @@ def main():
     parser.add_model_parameters()
     parser.add_model_training_parameters()
     parser.add_training_input()
-    parser.add_argument('--model_type', dest='model_type', default='bert')
+    # parser.add_argument('--model_type', dest='model_type', default='bert')
+    # comment out as we define the argument at model training parameters
 
     args = parser.parse()
 
@@ -24,8 +25,8 @@ def main():
     # Namespace to dict
     args_dict = vars(args)
     # remove keys not in ColBERTConfig
-    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed', 'resume_optimizer', 'model_type','input_arguments']}
-    # args_dict to ColBERTConfig
+    # args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed', 'resume_optimizer', 'model_type','input_arguments']}
+    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed']}
     colBERTConfig = ColBERTConfig(**args_dict)
 
     with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):

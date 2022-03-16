@@ -52,7 +52,7 @@ def torch_load_dnn(path):
     
     return dnn
 
-def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, arguments=None):
+def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, arguments=None):
     print(f"#> Saving a checkpoint to {path} ..")
 
     if hasattr(model, 'module'):
@@ -64,6 +64,16 @@ def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, arguments=None):
     checkpoint['model_state_dict'] = model.state_dict()
     checkpoint['optimizer_state_dict'] = optimizer.state_dict()
     checkpoint['arguments'] = arguments
+    checkpoint['scaler_state_dict'] = amp.scaler.state_dict() if amp.activated else None
+
+    checkpoint['torch_rng_state'] = torch.get_rng_state()
+    checkpoint['torch_cuda_rng_states'] = torch.cuda.get_rng_state_all()
+
+    import numpy as np
+    checkpoint['np_rng_state'] = np.random.get_state()
+
+    import random
+    checkpoint['python_rng_state'] = random.getstate()
 
     torch.save(checkpoint, path)
 

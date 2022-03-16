@@ -125,6 +125,7 @@ class TrainingSettings:
     save_every: int = DefaultVal(None)
 
     resume: bool = DefaultVal(False)
+    resume_optimizer: bool = DefaultVal(False)
 
     ## NEW:
     warmup: int = DefaultVal(None)
@@ -144,6 +145,12 @@ class TrainingSettings:
     ignore_scores: bool = DefaultVal(False)
 
     shuffle_every_epoch: bool = DefaultVal(False)
+
+    save_steps: int = DefaultVal(2000)
+    save_epochs: int = DefaultVal(-1)
+    epochs: int = DefaultVal(10)
+    input_arguments: dict = DefaultVal({})
+    model_type: str = DefaultVal('bert-base-uncased')
 
 @dataclass
 class IndexingSettings:

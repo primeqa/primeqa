@@ -87,3 +87,8 @@ class EagerBatcher():
         assert len(passages) == self.nway * self.bsize
 
         return self.tensorize_triples(queries, passages, scores, self.bsize // self.accumsteps, self.nway)
+
+    # adding for training loop logic
+    def skip_to_batch(self, batch_idx, intended_batch_size):
+        print_message(f'Skipping to batch #{batch_idx} (with intended_batch_size = {intended_batch_size}) for training.')
+        self.position = intended_batch_size * batch_idx
