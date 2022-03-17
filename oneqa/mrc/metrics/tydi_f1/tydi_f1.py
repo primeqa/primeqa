@@ -19,10 +19,10 @@ Adapted from https://ai.google.com/research/NaturalQuestions's `nq_eval` script.
 
 _KWARGS_DESCRIPTION = """
 Args:
-    predictions: Predicted labels, as returned by a model.
+    predictions: Predicted labels.
     references: Ground truth labels.
-Returns:
-    span_f1: span answer F1 score.
+Returns: TODO
+    minmal_f1: minimal answer F1 score.
     passage_f1: passage F1 score.
 Examples:  TODO
     >>> f1_metric = datasets.load_metric("f1")

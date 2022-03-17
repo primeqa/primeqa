@@ -1,19 +1,9 @@
-import copy
-import functools
-
 import datasets
 import pytest
 
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from oneqa.mrc.types.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
-
-
-def return_name(f):
-    @functools.wraps(f)
-    def inner(*args, **kwargs):
-        return f.__name__
-    return inner
 
 
 class TestTyDiF1(UnitTest):
@@ -26,193 +16,64 @@ class TestTyDiF1(UnitTest):
         return 5
 
     @pytest.fixture(scope='session')
-    @return_name
-    def example_id_for_no_answer(self):
-        pass
+    def references_and_predictions(self, n_annotators):
+        references = [
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='a', language='finnish')] * n_annotators,
+            [dict(start_position=-1, end_position=-1, passage_index=2,
+                  yes_no_answer=TargetType.YES, example_id='b', language='finnish')] * n_annotators,
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili')] * 2 +
+            [dict(start_position=-1, end_position=-1, passage_index=-1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili')] * (n_annotators - 2),
+            [dict(start_position=-1, end_position=-1, passage_index=-1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='d', language='swahili')] * n_annotators,
+            [dict(start_position=-1, end_position=-1, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='e', language='swahili')] * n_annotators,
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='f', language='thai')] * n_annotators,
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='g', language='thai')] * n_annotators,
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='h', language='korean')] * n_annotators,
+            [dict(start_position=17, end_position=42, passage_index=1,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='i', language='korean')] * n_annotators,
 
-    @pytest.fixture(scope='session')
-    @return_name
-    def example_id_for_span_answer(self):
-        pass
-
-    @pytest.fixture(scope='session')
-    @return_name
-    def example_id_for_passage_answer(self):
-        pass
-
-    @pytest.fixture(scope='session')
-    @return_name
-    def example_id_for_mixed_answer(self):
-        pass
-
-    @pytest.fixture(scope='session')
-    @return_name
-    def example_id_for_bool_answer(self):
-        pass
-
-    @pytest.fixture(scope='session')
-    def high_confidence_score(self):
-        return 10.
-
-    @pytest.fixture(scope='session')
-    def low_confidence_score(self):
-        return -10.
-
-    @pytest.fixture(scope='session')
-    def intermediate_confidence_score(self):
-        return 0.
-
-    @pytest.fixture(scope='session')
-    def gold_all_annotators_no_answer(self, n_annotators, example_id_for_no_answer):
-        return dict(start_position=[17] * n_annotators,
-                    end_position=[42] * n_annotators,
-                    passage_index=[1] * n_annotators,
-                    yes_no_answer=[TargetType.NO_ANSWER] * n_annotators,
-                    example_id=[example_id_for_no_answer] * n_annotators,
-                    language=['english'] * n_annotators)
-
-    @pytest.fixture(scope='session')
-    def gold_all_annotators_same_span_answer(self, n_annotators, example_id_for_span_answer):
-        return dict(start_position=[17] * n_annotators,
-                    end_position=[42] * n_annotators,
-                    passage_index=[1] * n_annotators,
-                    yes_no_answer=[TargetType.NO_ANSWER] * n_annotators,
-                    example_id=[example_id_for_span_answer] * n_annotators,
-                    language=['english'] * n_annotators)
-
-    @pytest.fixture(scope='session')
-    def gold_all_annotators_same_passage_answer(self, n_annotators, example_id_for_passage_answer):
-        return dict(start_position=[-1] * n_annotators,
-                    end_position=[-1] * n_annotators,
-                    passage_index=[1] * n_annotators,
-                    yes_no_answer=[TargetType.NO_ANSWER] * n_annotators,
-                    example_id=[example_id_for_passage_answer] * n_annotators,
-                    language=['english'] * n_annotators)
-
-    @pytest.fixture(scope='session')
-    def gold_mixed_answer(self, n_annotators, example_id_for_mixed_answer):
-        return dict(start_position=[17, 128, -1, -1, -1],
-                    end_position=[42, 142, -1, -1, -1],
-                    passage_index=[1, 0, -1, -1, -1],
-                    yes_no_answer=[TargetType.NO_ANSWER] * n_annotators,
-                    example_id=[example_id_for_mixed_answer] * n_annotators,
-                    language=['english'] * n_annotators)
-
-    @pytest.fixture(scope='session')
-    def gold_bool_answer(self, n_annotators, example_id_for_bool_answer):
-        return dict(start_position=[-1] * n_annotators,
-                    end_position=[-1] * n_annotators,
-                    passage_index=[0] * n_annotators,
-                    yes_no_answer=[TargetType.YES] * n_annotators,
-                    example_id=[example_id_for_bool_answer] * n_annotators,
-                    language=['english'] * n_annotators)
-
-    @pytest.fixture(scope='session')
-    def pred_no_answer(self, example_id_for_no_answer, low_confidence_score):
-        return dict(start_position=11,
-                    end_position=14,
-                    passage_index=11,
-                    yes_no_answer=TargetType.NO_ANSWER,
-                    example_id=example_id_for_no_answer,
-                    confidence_score=low_confidence_score)
-
-    @pytest.fixture(scope='session')
-    def pred_correct_passage_answer(self, example_id_for_passage_answer, high_confidence_score):
-        return dict(start_position=-1,
-                    end_position=-1,
-                    passage_index=1,
-                    yes_no_answer=TargetType.NO_ANSWER,
-                    example_id=example_id_for_passage_answer,
-                    confidence_score=high_confidence_score)
-
-    @pytest.fixture(scope='session')
-    def pred_incorrect_passage_answer(self):
-        return dict(start_position=-1,
-                    end_position=-1,
-                    passage_index=11,
-                    yes_no_answer=TargetType.NO_ANSWER)
-
-    @pytest.fixture(scope='session')
-    def pred_correct_span_correct_passage_answer(self, example_id_for_span_answer, high_confidence_score):
-        return dict(start_position=17,
-                    end_position=42,
-                    passage_index=1,
-                    yes_no_answer=TargetType.NO_ANSWER,
-                    example_id=example_id_for_span_answer,
-                    confidence_score=high_confidence_score)
-
-    @pytest.fixture(scope='session')
-    def pred_incorrect_span_correct_passage_answer(self):
-        return dict(start_position=64,
-                    end_position=86,
-                    passage_index=1,
-                    yes_no_answer=TargetType.NO_ANSWER)
-
-    @pytest.fixture(scope='session')
-    def pred_incorrect_span_incorrect_passage_answer(self):
-        return dict(start_position=64,
-                    end_position=86,
-                    passage_index=2,
-                    yes_no_answer=TargetType.NO_ANSWER)
-
-    @pytest.fixture(scope='session')
-    def pred_incorrect_span_correct_passage_answer_partial_overlap(self):
-        return dict(start_position=24,
-                    end_position=42,
-                    passage_index=1,
-                    yes_no_answer=TargetType.NO_ANSWER)
-
-    @pytest.fixture(scope='session')
-    def pred_correct_bool_correct_passage_answer(self, example_id_for_bool_answer, high_confidence_score):
-        return dict(start_position=-1,
-                    end_position=-1,
-                    passage_index=1,
-                    yes_no_answer=TargetType.YES,
-                    example_id=example_id_for_bool_answer,
-                    confidence_score=high_confidence_score)
-
-    @pytest.fixture(scope='session')
-    def pred_incorrect_bool_correct_passage_answer(self):
-        return dict(start_position=-1,
-                    end_position=-1,
-                    passage_index=1,
-                    yes_no_answer=TargetType.NO)
-
-    @pytest.fixture(scope='session')
-    def all_correct_answers(self,
-                            gold_all_annotators_no_answer, pred_no_answer,
-                            gold_all_annotators_same_span_answer, pred_correct_span_correct_passage_answer,
-                            gold_all_annotators_same_passage_answer, pred_correct_passage_answer,
-                            gold_bool_answer, pred_correct_bool_correct_passage_answer):
-        gold = [
-            gold_all_annotators_no_answer,
-            gold_all_annotators_same_span_answer,
-            gold_all_annotators_same_passage_answer,
-            gold_bool_answer
         ]
-
-        pred = [
-            pred_no_answer,
-            pred_correct_span_correct_passage_answer,
-            pred_correct_passage_answer,
-            pred_correct_bool_correct_passage_answer
+        predictions = [
+            dict(start_position=17, end_position=42, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='a', confidence_score=10.),
+            dict(start_position=-1, end_position=-1, passage_index=2,
+                 yes_no_answer=TargetType.YES, example_id='b', confidence_score=9.9),
+            dict(start_position=17, end_position=42, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='c', confidence_score=9.8),
+            dict(start_position=17, end_position=42, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='d', confidence_score=-10.),
+            dict(start_position=17, end_position=42, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='e', confidence_score=-5.),
+            dict(start_position=24, end_position=44, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='f', confidence_score=10.1),
+            dict(start_position=24, end_position=44, passage_index=4,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='g', confidence_score=10.1),
+            dict(start_position=111, end_position=141, passage_index=1,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='h', confidence_score=10.1),
+            dict(start_position=111, end_position=141, passage_index=4,
+                 yes_no_answer=TargetType.NO_ANSWER, example_id='i', confidence_score=10.1),
         ]
-
-        return dict(references=gold, predictions=pred)
+        return dict(references=references, predictions=predictions)
 
     def test_instantiate_metric_from_class(self, metric):
         _ = metric
 
     def test_instantiate_metric_from_load_metric(self):
-        _ = datasets.load_metric(TyDiF1.__file__)
+        from oneqa.mrc.metrics.tydi_f1 import tydi_f1
+        _ = datasets.load_metric(tydi_f1.__file__)
 
-    def test_all_correct(self, metric, all_correct_answers):
-        metric.add_batch(**all_correct_answers)
-        results = metric.compute()
-        raise NotImplementedError
-
-    def test_all_incorrect(self):
-        raise NotImplementedError
-
-    def test_some_correct(self):
-        raise NotImplementedError
+    def test_compute_metric(self, metric, references_and_predictions):
+        metric.add_batch(**references_and_predictions)
+        actual_metric_values = metric.compute()
+        expected_metric_values = {
+            "avg_passage_f1": 0.75, "avg_passage_recall": 0.75, "avg_passage_precision": 0.75,
+            "avg_minimal_f1": 0.7, "avg_minimal_recall": 0.7, "avg_minimal_precision": 0.7
+        }
+        assert actual_metric_values == expected_metric_values
