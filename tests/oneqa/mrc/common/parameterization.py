@@ -34,7 +34,7 @@ _MODEL_NAMES = [
 # Cannot be rewritten as constant parametrize(fixture)
 # noinspection PyPep8Naming
 def PARAMETERIZE_FIXTURE_WITH_MODEL_NAME(f: Callable) -> Callable:
-    @pytest.mark.flaky(reruns=5, reruns_delay=2)  # Account for intermittent S3 errors downloading HF data
+    @pytest.mark.flaky(reruns=10, reruns_delay=2)  # Account for intermittent S3 errors downloading HF data
     @pytest.fixture(scope='session', params=_MODEL_NAMES)
     @wraps(f)
     def inner(*args, **kwargs):
