@@ -9,13 +9,13 @@ from tests.oneqa.mrc.common.base import UnitTest
 
 class TestTyDiQAPreprocessor(UnitTest):
 
-    @pytest.mark.flaky(reruns=10, reruns_delay=2)  # Account for intermittent S3 errors downloading HF data
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
     @pytest.fixture(scope='session')
     def train_examples(self):
         examples = datasets.load_dataset("tydiqa", "primary_task", split='train[:100]')
         return examples
 
-    @pytest.mark.flaky(reruns=10, reruns_delay=2)  # Account for intermittent S3 errors downloading HF data
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
     @pytest.fixture(scope='session')
     def eval_examples(self):
         examples = datasets.load_dataset("tydiqa", "primary_task", split='validation[:100]')
