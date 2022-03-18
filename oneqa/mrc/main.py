@@ -16,7 +16,7 @@ from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 def main():
     logger = logging.getLogger(__name__)
     training_args = TrainingArguments(
-        output_dir='/dccstor/aferritt3/oneqa/test-model',
+        output_dir='//dccstor/bsiyer6/OneQA/test-model',
         do_train=True,
         do_eval=True,
         num_train_epochs=0.1,
@@ -133,7 +133,7 @@ def main():
         # eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        # post_process_function=postprocessor.process,
+        # post_process_function=postprocessor.process,  # see QATraininer in Huggingface
         compute_metrics=metrics_fn,
     )
 

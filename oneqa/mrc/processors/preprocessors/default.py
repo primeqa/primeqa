@@ -10,8 +10,8 @@ from datasets import Dataset
 from datasets.features.features import Sequence, Value, Features
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
-from oneqa.mrc.types.subsample_type import SubsampleType
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.subsample_type import SubsampleType
+from oneqa.mrc.data_models.target_type import TargetType
 
 
 # TODO type signatures for all methods

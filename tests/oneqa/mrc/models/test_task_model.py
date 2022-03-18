@@ -5,8 +5,8 @@ from transformers import MODEL_FOR_PRETRAINING_MAPPING
 
 from oneqa.mrc.models.heads.extractive import ExtractiveQAHead, EXTRACTIVE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
+from oneqa.mrc.data_models.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
 
 
