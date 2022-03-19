@@ -16,12 +16,13 @@ from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 def main():
     logger = logging.getLogger(__name__)
     training_args = TrainingArguments(
-        output_dir='//dccstor/bsiyer6/OneQA/test-model',
-        do_train=True,
+        output_dir='/dccstor/bsiyer6/OneQA/test-model-eval',
+        do_train=False,
         do_eval=True,
         num_train_epochs=0.1,
         fp16=False,
     )
+    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
 
     set_seed(training_args.seed)
 
@@ -56,6 +57,10 @@ def main():
         # use_auth_token=True if model_args.use_auth_token else None,
         config=config,
     )
+    
+    #TMP 
+    if not training_args.do_train:
+        model_name = checkpoint_for_eval
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
@@ -96,7 +101,7 @@ def main():
 
     # process val data
     eval_examples = raw_datasets["validation"]
-    max_eval_samples = 250
+    max_eval_samples = 10 #250
     if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
         # We will select sample from whole data
         eval_examples = eval_examples.select(range(max_eval_samples))
@@ -130,31 +135,34 @@ def main():
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
         eval_dataset=eval_dataset if training_args.do_eval else None,
-        # eval_examples=eval_examples if training_args.do_eval else None,
+        eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        # post_process_function=postprocessor.process,  # see QATraininer in Huggingface
+        post_process_function=postprocessor.process,  # see QATrainner in Huggingface
         compute_metrics=metrics_fn,
     )
 
+    
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:
         checkpoint = training_args.resume_from_checkpoint
     elif last_checkpoint is not None:
         checkpoint = last_checkpoint
-    train_result = trainer.train(resume_from_checkpoint=checkpoint)
-    # raise ValueError("Nothing implemented beyond this point")
-    trainer.save_model()  # Saves the tokenizer too for easy upload
+    
+    if training_args.do_train:
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        # raise ValueError("Nothing implemented beyond this point")
+        trainer.save_model()  # Saves the tokenizer too for easy upload
 
-    metrics = train_result.metrics
+        metrics = train_result.metrics
     # max_train_samples = (
     #     data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
     # )
     # metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-    trainer.log_metrics("train", metrics)
-    trainer.save_metrics("train", metrics)
-    trainer.save_state()
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
 
     logger.info("*** Evaluate ***")
     metrics = trainer.evaluate()
