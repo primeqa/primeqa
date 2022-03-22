@@ -29,8 +29,10 @@ authors = [
 _deps = {
     "bump2version": ["dev"],
     "datasets>=1.4.0": ["install"],
+    "packaging": ["install"],
     "pytest": ["tests"],
     "pytest-cov": ["tests"],
+    "pytest-mock": ["tests"],
     "pytest-rerunfailures": ["tests"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
     "tox": ["tests"],

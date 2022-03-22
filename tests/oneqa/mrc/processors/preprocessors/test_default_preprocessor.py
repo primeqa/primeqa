@@ -5,80 +5,44 @@ from transformers import AutoTokenizer
 
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.types.target_type import TargetType
+from tests.oneqa.mrc.common.base import UnitTest
+from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
 
-_INVALID_PROBS = [-0.01, 1.01]
 
-
-class TestDefaultPreProcessor:
-
-    @pytest.fixture(scope='class')
-    def train_examples(self):
-        question = ["Who walked the dog?", "What time is it?"]
-        context = [["Alice walks the cat", "Bob walks the dog"],
-                   ["The quick brown fox jumps over the lazy dog", "Glenn the otter lives at the aquarium", "Go"]]
-        example_id = ["foo-abc", "bar-123"]
-        start_positions = [[0], [-1]]
-        end_positions = [[2], [-1]]
-        passage_indices = [[1], [-1]]
-        yes_no_answer = [["NONE"], ["NONE"]]
-        examples_dict = dict(question=question, context=context, example_id=example_id,
-                             target=[dict(start_positions=s, end_positions=e, passage_indices=p, yes_no_answer=yn)
-                                     for s, e, p, yn in
-                                     zip(start_positions, end_positions, passage_indices, yes_no_answer)])
-        examples_dataset = Dataset.from_dict(examples_dict)
-        return examples_dataset
-
-    @pytest.fixture()
+class TestDefaultPreProcessor(UnitTest):
+    @pytest.fixture(scope='session')
     def train_examples_has_answer(self, train_examples):
         example_indices_has_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] != -1]
         return train_examples.select(example_indices_has_answer)
 
-    @pytest.fixture()
+    @pytest.fixture(scope='session')
     def train_examples_no_answer(self, train_examples):
         example_indices_no_answer = [i for i, t in enumerate(train_examples['target']) if t['passage_indices'][0] == -1]
         return train_examples.select(example_indices_no_answer)
 
-    @pytest.fixture(scope='class')
-    def eval_examples(self, train_examples):
-        return train_examples.remove_columns('target')
-
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def invalid_type_train_examples(self):
         train_examples = Dataset.from_dict({'question': ['Who?'], 'context': [[-1]], 'target': [
             {'start_positions': [-1], 'end_positions': [-1], 'passage_indices': [-1], 'yes_no_answer': ['NONE']}]})
         return train_examples
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def invalid_name_train_examples(self, train_examples):
         return train_examples.rename_columns(dict(context='contextssss'))
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def invalid_name_eval_examples(self, eval_examples):
         return eval_examples.rename_columns(dict(context='contextssss'))
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def invalid_type_eval_examples(self, invalid_type_train_examples):
         return invalid_type_train_examples.remove_columns('target')
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def no_examples_train(self):
         return Dataset.from_dict({'question': [], 'context': [], 'target': [], 'example_id': []})
 
-    @pytest.fixture(scope='class')
-    def tokenizer(self):
-        return AutoTokenizer.from_pretrained('roberta-base')
-
-    @pytest.fixture(scope='class')
-    def preprocessor(self, tokenizer):
-        return DefaultPreProcessor(
-            tokenizer,
-            stride=128,
-            load_from_cache_file=False,
-            negative_sampling_prob_when_has_answer=0.5,
-            negative_sampling_prob_when_no_answer=0.5,
-        )
-
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_all(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -88,7 +52,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=1.,
         )
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_none(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -98,7 +62,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=0.,
         )
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_no_answer(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -108,7 +72,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=1.,
         )
 
-    @pytest.fixture(scope='class')
+    @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_has_answer(self, tokenizer):
         return DefaultPreProcessor(
             tokenizer,
@@ -118,8 +82,7 @@ class TestDefaultPreProcessor:
             negative_sampling_prob_when_no_answer=0.,
         )
 
-    @pytest.mark.parametrize(["negative_sampling_prob_when_has_answer", "negative_sampling_prob_when_no_answer"],
-                             [(p1, p2) for p1 in _INVALID_PROBS for p2 in _INVALID_PROBS])
+    @PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
     def test_preprocessor_raises_value_error_on_invalid_subsampling_prob(
             self,
             tokenizer,
@@ -145,8 +108,11 @@ class TestDefaultPreProcessor:
         train_examples, train_features = preprocessor.process_train(train_examples)
         assert isinstance(train_examples, Dataset)
         assert isinstance(train_features, Dataset)
-        assert set(train_features.column_names) == {'input_ids', 'attention_mask', 'example_idx', 'context_idx',
-                                                    'example_id', 'start_positions', 'end_positions', 'target_type'}
+        expected_feature_columns = {'input_ids', 'attention_mask', 'example_idx', 'context_idx',
+                                    'example_id', 'start_positions', 'end_positions', 'target_type'}
+        expected_feature_columns.update(preprocessor._tokenizer.model_input_names)
+        actual_feature_columns = set(train_features.column_names)
+        assert actual_feature_columns == expected_feature_columns
 
     def test_process_train_feature_target_type_matches_position_labels(self, train_examples, preprocessor):
         _, train_features = preprocessor.process_train(train_examples)
