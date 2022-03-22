@@ -6,10 +6,13 @@ from tqdm import tqdm
 import numpy as np
 from datetime import datetime
 import torch
+import logging
 
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
+
+logger = logging.getLogger(__name__)
 
 def to_list(tensor: torch.Tensor) -> list:
     """
@@ -41,16 +44,17 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
         # The dictionaries we have to fill.
         all_predictions = OrderedDict()
-        all_target_types = []
 
         start_idx = 0
         for example_idx, example in enumerate(tqdm(examples)):
-            example_id, example_features = next(features_itr)
-            if example_id != example_idx:
+            feat_example_idx, example_features = next(features_itr)
+            if feat_example_idx != example_idx:
                 raise ValueError(f"Example id mismatch between example ({example['example_id']}) "
-                                 f"and feature ({example_id})")
+                                 f"and feature ({feat_example_idx})")
             example_features = list(example_features)
-            context = example["context"]
+            example_id = example_features[0]['example_id']
+            example['example_id'] = example_id
+            contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
             example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
@@ -58,19 +62,16 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
             min_null_prediction = None
             prelim_predictions = []
-            # target_type = None
 
             for i, input_feature in enumerate(example_features):
+                if input_feature['example_id'] != example_id:
+                    raise ValueError(f"Example id mismatch between example ({example_id}) "
+                                 f"and feature ({input_feature['example_id']})")
                 start_logits = example_start_logits[i].tolist()
                 end_logits = example_end_logits[i].tolist()
                 target_type_logits = example_targettype_preds[i].tolist()
                 offset_mapping = input_feature["offset_mapping"]
-                # input_feature = feature_index.item()
-
-                # target_type_idx = np.argmax(target_type_logits)
-                # target_type_score = target_type_logits[target_type_idx]
-                # if target_type == None or target_type_score > target_type[1]:
-                #     target_type = (target_type_idx,target_type_score)
+                context_idx = input_feature['context_idx']
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
                 # Update minimum null prediction.
@@ -106,35 +107,48 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         if token_is_max_context is not None and not token_is_max_context.get(str(start_index), False):
                             continue
                         
-                        short_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
+                        span_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
                                                 feature_null_score, target_type_logits)
                         prelim_predictions.append(
                         {
-                            "offsets": (offset_mapping[start_index][0], offset_mapping[end_index][1]),
-                            "cls_score": feature_null_score,
-                            "start_logit": start_logits[start_index],
-                            "end_logit": end_logits[end_index],
-                            "span_answer_score" : short_answer_score,
-                            "start_index": start_index,
-                            "end_index":end_index,
-                            "target_type_logits": target_type_logits,
-                            "span_answer_text": context[i][offset_mapping[start_index][0]:offset_mapping[end_index][1]]
+                            'example_id': input_feature['example_id'],
+                            'cls_score': feature_null_score,
+                            'start_logit': start_logits[start_index],
+                            'end_logit': end_logits[end_index],
+                            'span_answer': {
+                                "start_position": offset_mapping[start_index][0], 
+                                "end_position": offset_mapping[end_index][1],
+                            },
+                            'span_answer_score' : span_answer_score,
+                            'start_index': start_index,
+                            'end_index':   end_index,
+                            'passage_index' : context_idx,
+                            'target_type_logits': target_type_logits,
+                            'span_answer_text': contexts[context_idx][offset_mapping[start_index][0]:offset_mapping[end_index][1]],
+                            'yes_no_answer': int(TargetType.NO_ANSWER)
                         }
-
                     )
             example_predictions = sorted(prelim_predictions, key=lambda x: x["span_answer_score"], reverse=True)[:self._n_best_size]
-            # all_target_types.append(target_type)
-            all_predictions[example_idx] = example_predictions
-            # Use the offsets to gather the answer text in the original context.
-            # context = example["context"]
-            # for pred in example_predictions:
-            #     offsets = pred.pop("offsets")
-            #     pred["text"] = context[offsets[0] : offsets[1]]
+            all_predictions[example_id] = example_predictions
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
-            if len(example_predictions) == 0:
-                example_predictions.insert(0, {"span_answer_text": "empty", "start_logit": 0.0, "end_logit": 0.0, "span_answer_score": 0.0})
+            if len(example_predictions) == 0: 
+                logger.info(f'We do not have any non-null predictions for example {example_id}')
+                example_predictions.append( 
+                    {
+                        'example_id': example_id,
+                        'cls_score': 0.0,
+                        'start_logit': 0.0, 
+                        'end_logit': 0.0, 
+                        'span_answer': {'start_position': -1, 'end_position': -1,},
+                        'span_answer_score': 0.0, 
+                        'span_answer_text': "empty", 
+                        'start_index': -1,
+                        'end_index':   -1,
+                        'passage_index' : -1,
+                        'yes_no_answer': int(TargetType.NO_ANSWER)
+                    })
 
             # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
             # the LogSumExp trick).
@@ -145,7 +159,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             # Include the probabilities in our predictions.
             for prob, pred in zip(probs, example_predictions):
                 pred["normalized_span_answer_score"] = prob
-
 
             # We assume null answer is not possible
             # Otherwise we first need to find the best non-empty prediction.
@@ -161,14 +174,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             #     all_predictions[example["id"]] = ""
             # else:
             #     all_predictions[example["id"]] = best_non_null_pred["text"]
-
-        # Make `predictions` JSON-serializable by casting np.float back to float.
-        # all_nbest_json[example["id"]] = [
-        #     {k: (float(v) if isinstance(v, (np.float16, np.float32, np.float64)) else v) for k, v in pred.items()}
-        #     for pred in predictions
-        # ]
-
-        #format for metrics
 
         return all_predictions
         
