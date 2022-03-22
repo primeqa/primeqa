@@ -1,4 +1,4 @@
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
 
@@ -23,7 +23,7 @@ def to_list(tensor: torch.Tensor) -> list:
     return tensor.detach().cpu().tolist()
 
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type='weighted_sum_target_type_and_score_diff'):
+    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type: str='weighted_sum_target_type_and_score_diff'):
         super().__init__(k)
         self._n_best_size = n_best_size
         self._max_answer_length = max_answer_length
@@ -38,12 +38,10 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             raise ValueError(f"Size mismatch withing {len(features)} features and predictions "
                              f"of first dim {[p.shape[0] for p in predictions]}")
         
-        all_start_logits = predictions[0]
-        all_end_logits = predictions[1]
-        all_targettype_logits = predictions[2]
+        all_start_logits, all_end_logits, all_targettype_logits = predictions
 
         # The dictionaries we have to fill.
-        all_predictions = OrderedDict()
+        all_predictions = {}
 
         start_idx = 0
         for example_idx, example in enumerate(tqdm(examples)):
@@ -53,7 +51,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                                  f"and feature ({feat_example_idx})")
             example_features = list(example_features)
             example_id = example_features[0]['example_id']
-            example['example_id'] = example_id
+            example['example_id'] = example_id  # TODO: assign example id to examples before featurization
             contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
@@ -180,7 +178,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
 
                 
-
 
 
 

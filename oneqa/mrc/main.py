@@ -58,7 +58,7 @@ def main():
         config=config,
     )
     
-    #TMP 
+    # TODO: remove during parameterization 
     if not training_args.do_train:
         model_name = checkpoint_for_eval
     model = ModelForDownstreamTasks.from_config(
