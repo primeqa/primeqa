@@ -109,7 +109,7 @@ class TestDefaultPreProcessor(UnitTest):
         assert isinstance(train_examples, Dataset)
         assert isinstance(train_features, Dataset)
         expected_feature_columns = {'input_ids', 'attention_mask', 'example_idx', 'context_idx',
-                                    'example_id', 'start_positions', 'end_positions', 'target_type'}
+                                    'example_id', 'start_positions', 'end_positions', 'target_type', 'offset_mapping'}
         expected_feature_columns.update(preprocessor._tokenizer.model_input_names)
         actual_feature_columns = set(train_features.column_names)
         assert actual_feature_columns == expected_feature_columns
