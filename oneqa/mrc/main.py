@@ -126,7 +126,7 @@ def main():
     # train
 
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, span_tracker_factory=None)
+    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type='weighted_sum_target_type_and_score_diff')
 
     metrics_fn = None  # TODO metrics
 
@@ -138,7 +138,7 @@ def main():
         eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=postprocessor.process,  # see QATrainner in Huggingface
+        post_process_function=postprocessor.process,  # see QATrainer in Huggingface
         compute_metrics=metrics_fn,
     )
 
