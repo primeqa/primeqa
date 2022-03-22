@@ -90,7 +90,7 @@ import pickle
 
 
 import logging
-from operator import not_
+from operator import not_, itemgetter
 
 from oneqa.mrc.metrics.tydi_f1 import eval_utils
 from typing import List, Optional
@@ -219,7 +219,7 @@ def byte_slice(text, start, end):
 
 
 def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, minimal_non_null_threshold, verbose,
-                  skip_missing_example_ids=True):
+                  skip_missing_example_ids=True, minimal_offsets_per_passage=True):
     """Scores all answers for all documents.
 
     Args:
@@ -253,10 +253,15 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
         example_count += 1
         gold = gold_annotation_dict[example_id]
         pred = pred_dict.get(example_id)
-        passage_answer_stats.append(
-            score_passage_answer(gold, pred, passage_non_null_threshold))
-        minimal_answer_stats.append(
-            score_minimal_answer(gold, pred, minimal_non_null_threshold))
+        passage_stats = score_passage_answer(gold, pred, passage_non_null_threshold)
+        minimal_stats = score_minimal_answer(gold, pred, minimal_non_null_threshold)
+
+        # fix stats for predictions in incorrect passages
+        if minimal_offsets_per_passage and not passage_stats[2] and minimal_stats[1]:
+            minimal_stats = (minimal_stats[0], minimal_stats[1], (0., 0., 0.), minimal_stats[3])
+
+        passage_answer_stats.append(passage_stats)
+        minimal_answer_stats.append(minimal_stats)
 
         if not verbose:
             continue
@@ -282,8 +287,8 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
                          minimal_answer_stats[-1][-2][0],
                          minimal_answer_stats[-1][-2][1])
     # use the 'score' column, which is last
-    passage_answer_stats.sort(key=lambda x: x[-1], reverse=True)
-    minimal_answer_stats.sort(key=lambda x: x[-1], reverse=True)
+    passage_answer_stats.sort(key=itemgetter(-1), reverse=True)
+    minimal_answer_stats.sort(key=itemgetter(-1), reverse=True)
     return passage_answer_stats, minimal_answer_stats
 
 
