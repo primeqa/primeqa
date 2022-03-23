@@ -5,13 +5,10 @@ python:
   - "3.9"
 env:
   global:
-    - HF_HOME=${HOME}/.cache/huggingface
-    - HF_DATASETS_CACHE=${HF_HOME}/datasets
+    - HF_HOME=${HOME}/.huggingface
 cache:
   pip: true
   directories:
     - ${HF_HOME}
-install:
-  - mkdir -pv ${HF_DATASETS_CACHE}
-  - pip install tox-travis
+install: pip install tox-travis
 script: tox -r
