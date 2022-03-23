@@ -8,8 +8,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAtte
 from transformers.models.roberta.modeling_roberta import RobertaClassificationHead
 
 from oneqa.mrc.models.heads.abstract import AbstractTaskHead
-from oneqa.mrc.types.model_outputs.extractive import ExtractiveQAModelOutput
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
+from oneqa.mrc.data_models.target_type import TargetType
 
 
 class ExtractiveQAHead(AbstractTaskHead):
