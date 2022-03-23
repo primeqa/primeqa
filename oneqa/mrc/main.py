@@ -11,6 +11,7 @@ from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 
 def main():
@@ -126,7 +127,7 @@ def main():
     # train
 
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type='weighted_sum_target_type_and_score_diff')
+    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF) #'weighted_sum_target_type_and_score_diff')
 
     metrics_fn = None  # TODO metrics
 

@@ -11,15 +11,15 @@ import logging
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
+from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 logger = logging.getLogger(__name__)
 
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type: str='weighted_sum_target_type_and_score_diff'):
+    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF): 
         super().__init__(k)
         self._n_best_size = n_best_size
         self._max_answer_length = max_answer_length
-        # self._span_trackers = defaultdict(span_tracker_factory)  # TODO factory type?
         self._score_calculator = initialize_scorer(scorer_type)
 
     def process(self, examples, features, predictions):
