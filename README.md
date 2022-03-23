@@ -7,5 +7,5 @@ OneQA to rule them all
 
 
 This logo is adapted from [this](https://commons.wikimedia.org/wiki/File:One_Ring_Blender_Render.png)
-image and is shared under the
+image from Wikipedia and is shared under the
 [Creative Commons Attribution-Share Alike 4.0 International](https://en.wikipedia.org/wiki/en:Creative_Commons) license.
