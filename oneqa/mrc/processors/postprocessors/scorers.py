@@ -16,7 +16,9 @@ END_COPYRIGHT
 import logging
 from functools import partial
 
-from typing import List, Optional, Callable
+from typing import List, Optional, Callable, Union
+from enum import Enum
+
 
 from oneqa.mrc.data_models.target_type import TargetType
 

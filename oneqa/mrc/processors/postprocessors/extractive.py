@@ -14,14 +14,6 @@ from oneqa.mrc.data_models.target_type import TargetType
 
 logger = logging.getLogger(__name__)
 
-def to_list(tensor: torch.Tensor) -> list:
-    """
-    :param torch.Tensor tensor: tensor to process
-    :return: detached cpu tensor list
-    :rtype: list
-    """
-    return tensor.detach().cpu().tolist()
-
 class ExtractivePostProcessor(AbstractPostProcessor):
     def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type: str='weighted_sum_target_type_and_score_diff'):
         super().__init__(k)
