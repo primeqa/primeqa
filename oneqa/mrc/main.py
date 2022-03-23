@@ -24,6 +24,7 @@ def main():
         fp16=False,
     )
     checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
+    scorer_type='weighted_sum_target_type_and_score_diff'
 
     set_seed(training_args.seed)
 
@@ -127,7 +128,7 @@ def main():
     # train
 
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF) #'weighted_sum_target_type_and_score_diff')
+    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
 
     metrics_fn = None  # TODO metrics
 

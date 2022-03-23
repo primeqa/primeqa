@@ -35,7 +35,7 @@ class SupportedSpanScorers(Enum):
 
 def initialize_scorer(scorer_type: Union[str, SupportedSpanScorers], target_type_weight: Optional[float]=0.5) -> Callable:
     if not isinstance(scorer_type, SupportedSpanScorers):
-        scorer_type = SupportedSpanScorers[scorer_type]
+        scorer_type = SupportedSpanScorers(scorer_type)
     if scorer_type == SupportedSpanScorers.SCORE_DIFF_BASED:
         logging.debug("\tInitialized scorer %s" % compute_score_diff_between_span_and_cls.__name__)
         return compute_score_diff_between_span_and_cls
