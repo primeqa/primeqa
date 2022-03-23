@@ -5,6 +5,7 @@ import datasets
 from transformers import TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
+from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
@@ -128,7 +129,7 @@ def main():
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
     postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type='weighted_sum_target_type_and_score_diff')
 
-    metrics_fn = None  # TODO metrics
+    metrics_fn = TyDiF1  # TODO parameterize
 
     trainer = MRCTrainer(
         model=model,
@@ -141,7 +142,6 @@ def main():
         post_process_function=postprocessor.process,  # see QATrainer in Huggingface
         compute_metrics=metrics_fn,
     )
-
     
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:
