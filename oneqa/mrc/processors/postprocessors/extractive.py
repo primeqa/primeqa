@@ -126,7 +126,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'yes_no_answer': int(TargetType.NO_ANSWER)
                         }
                     )
-            example_predictions = sorted(prelim_predictions, key=lambda x: x["span_answer_score"], reverse=True)[:self._n_best_size]
+            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._n_best_size]
             all_predictions[example_id] = example_predictions
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
@@ -178,7 +178,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
 
                 
-
 
 
 
