@@ -2,10 +2,11 @@ import logging
 import os
 
 import datasets
-from transformers import TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
+from transformers import TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer, EvalPrediction
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from oneqa.mrc.metrics.tydi_f1 import tydi_f1
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
@@ -17,13 +18,14 @@ from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 def main():
     logger = logging.getLogger(__name__)
     training_args = TrainingArguments(
-        output_dir='/dccstor/bsiyer6/OneQA/test-model-eval',
+        output_dir='/dccstor/aferritt3/oneqa/test-model',
         do_train=False,
         do_eval=True,
         num_train_epochs=0.1,
         fp16=False,
+        overwrite_output_dir=True,
     )
-    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
+    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/'
 
     set_seed(training_args.seed)
 
@@ -81,44 +83,46 @@ def main():
     )
 
     # process train data
-    train_dataset = raw_datasets["train"]
-    max_train_samples = 1000
-    if max_train_samples is not None:  # if data_args.max_train_samples is not None:
-        # We will select sample from whole data if argument is specified
-        train_dataset = train_dataset.select(range(max_train_samples))
-    with training_args.main_process_first(desc="train dataset map pre-processing"):
-        # train_dataset = preprocessor.adapt_dataset(train_dataset)
-        # train_dataset = train_dataset.map(  # TODO debug
-        #     preprocessor.process_train,
-        #     batched=True,
-        #     num_proc=1,  # data_args.preprocessing_num_workers,
-        #     remove_columns=train_dataset.column_names,
-        #     # load_from_cache_file=not data_args.overwrite_cache,
-        #     load_from_cache_file=False,
-        #     desc="Running tokenizer on train dataset",
-        # )
-        # train_dataset = preprocessor.subsample_features(train_dataset)
-        _, train_dataset = preprocessor.process_train(train_dataset)
+    if training_args.do_train:
+        train_dataset = raw_datasets["train"]
+        max_train_samples = 1000
+        if max_train_samples is not None:  # if data_args.max_train_samples is not None:
+            # We will select sample from whole data if argument is specified
+            train_dataset = train_dataset.select(range(max_train_samples))
+        with training_args.main_process_first(desc="train dataset map pre-processing"):
+            # train_dataset = preprocessor.adapt_dataset(train_dataset)
+            # train_dataset = train_dataset.map(  # TODO debug
+            #     preprocessor.process_train,
+            #     batched=True,
+            #     num_proc=1,  # data_args.preprocessing_num_workers,
+            #     remove_columns=train_dataset.column_names,
+            #     # load_from_cache_file=not data_args.overwrite_cache,
+            #     load_from_cache_file=False,
+            #     desc="Running tokenizer on train dataset",
+            # )
+            # train_dataset = preprocessor.subsample_features(train_dataset)
+            _, train_dataset = preprocessor.process_train(train_dataset)
 
-    # process val data
-    eval_examples = raw_datasets["validation"]
-    max_eval_samples = 10 #250
-    if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
-        # We will select sample from whole data
-        eval_examples = eval_examples.select(range(max_eval_samples))
-    # Validation Feature Creation
-    with training_args.main_process_first(desc="validation dataset map pre-processing"):
-        # eval_examples = preprocessor.adapt_dataset(eval_examples)
-        # eval_dataset = eval_examples.map(
-        #     preprocessor.process_eval,
-        #     batched=True,
-        #     num_proc=1,  # data_args.preprocessing_num_workers,
-        #     remove_columns=eval_examples.column_names,
-        #     # load_from_cache_file=not data_args.overwrite_cache,
-        #     load_from_cache_file=False,
-        #     desc="Running tokenizer on training dataset",
-        # )
-        eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+    if training_args.do_eval:
+        # process val data
+        eval_examples = raw_datasets["validation"]
+        max_eval_samples = 10 #250
+        if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
+            # We will select sample from whole data
+            eval_examples = eval_examples.select(range(max_eval_samples))
+        # Validation Feature Creation
+        with training_args.main_process_first(desc="validation dataset map pre-processing"):
+            # eval_examples = preprocessor.adapt_dataset(eval_examples)
+            # eval_dataset = eval_examples.map(
+            #     preprocessor.process_eval,
+            #     batched=True,
+            #     num_proc=1,  # data_args.preprocessing_num_workers,
+            #     remove_columns=eval_examples.column_names,
+            #     # load_from_cache_file=not data_args.overwrite_cache,
+            #     load_from_cache_file=False,
+            #     desc="Running tokenizer on training dataset",
+            # )
+            eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
     # process test data
 
@@ -129,7 +133,10 @@ def main():
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
     postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type='weighted_sum_target_type_and_score_diff')
 
-    metrics_fn = TyDiF1  # TODO parameterize
+    metric = datasets.load_metric(tydi_f1.__file__)  # TODO parameterize
+
+    def compute_metrics(p: EvalPrediction):
+        return metric.compute(predictions=p.predictions, references=p.label_ids)
 
     trainer = MRCTrainer(
         model=model,
@@ -140,7 +147,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=postprocessor.process,  # see QATrainer in Huggingface
-        compute_metrics=metrics_fn,
+        compute_metrics=compute_metrics,
     )
     
     checkpoint = None

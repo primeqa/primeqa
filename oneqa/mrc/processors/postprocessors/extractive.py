@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime
 import torch
 import logging
+from transformers import EvalPrediction
 
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
@@ -49,6 +50,15 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
             example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
             start_idx += len(example_features)
+
+            # TODO: move this to the preprocessor
+            label = {
+                'start_position': example['target']['start_positions'],
+                'end_position': example['target']['end_positions'],
+                'passage_index': example['target']['passage_indices'],
+                'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),
+                'example_id': example_id
+            }
 
             min_null_prediction = None
             prelim_predictions = []
