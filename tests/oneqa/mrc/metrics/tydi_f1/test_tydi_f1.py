@@ -2,7 +2,7 @@ import datasets
 import pytest
 
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
 
 
