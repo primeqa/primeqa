@@ -7,11 +7,14 @@ from colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_le
 
 
 class DocTokenizer():
-    def __init__(self, config: ColBERTConfig):
-        self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+    # def __init__(self, config: ColBERTConfig):
+    def __init__(self, doc_maxlen, model_type):
+        # self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+        self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(model_type)
 
-        self.config = config
-        self.doc_maxlen = config.doc_maxlen
+        # self.config = config
+        # self.doc_maxlen = config.doc_maxlen
+        self.doc_maxlen = doc_maxlen
 
         self.D_marker_token, self.D_marker_token_id = '[D]', self.tok.convert_tokens_to_ids('[unused1]')
         self.cls_token, self.cls_token_id = self.tok.cls_token, self.tok.cls_token_id

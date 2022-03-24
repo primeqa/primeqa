@@ -5,7 +5,8 @@ import ujson
 from functools import partial
 from colbert.infra.config.config import ColBERTConfig
 from colbert.utils.utils import print_message, zipstar
-from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer, tensorize_triples
+from colbert.modeling.tokenization import tensorize_triples
+from colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
 from colbert.evaluation.loaders import load_collection
 
 from colbert.data.collection import Collection
@@ -21,8 +22,11 @@ class LazyBatcher():
         self.bsize, self.accumsteps = config.bsize, config.accumsteps
         self.nway = config.nway
 
-        self.query_tokenizer = QueryTokenizer(config)
-        self.doc_tokenizer = DocTokenizer(config)
+        # self.query_tokenizer = QueryTokenizer(config)
+        # self.doc_tokenizer = DocTokenizer(config)
+        self.query_tokenizer = get_query_tokenizer(config.model_type, config.query_maxlen, config.attend_to_mask_tokens)
+        self.doc_tokenizer = get_doc_tokenizer(config.model_type, config.doc_maxlen)
+
         self.tensorize_triples = partial(tensorize_triples, self.query_tokenizer, self.doc_tokenizer)
         self.position = 0
 

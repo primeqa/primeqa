@@ -151,6 +151,8 @@ class TrainingSettings:
     epochs: int = DefaultVal(10)
     input_arguments: dict = DefaultVal({})
     model_type: str = DefaultVal('bert-base-uncased')
+    init_from_lm: str = DefaultVal(None)
+    local_models_repository: str = DefaultVal(None)
 
 @dataclass
 class IndexingSettings:

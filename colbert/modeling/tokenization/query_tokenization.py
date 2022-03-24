@@ -7,12 +7,16 @@ from colbert.utils.utils import batch
 
 
 class QueryTokenizer():
-    def __init__(self, config: ColBERTConfig):
-        self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+    #     def __init__(self, config: ColBERTConfig):
+    def __init__(self, query_maxlen, model_type, attend_to_mask_tokens ):
+        # self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+        self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(model_type)
 
-        self.config = config
-        self.query_maxlen = config.query_maxlen
+        # self.config = config
+        # self.query_maxlen = config.query_maxlen
+        self.query_maxlen = query_maxlen
         self.background_maxlen = 512 - self.query_maxlen + 1  # FIXME: Make this configurable
+        self.attend_to_mask_tokens = attend_to_mask_tokens
 
         self.Q_marker_token, self.Q_marker_token_id = '[Q]', self.tok.convert_tokens_to_ids('[unused0]')
         self.cls_token, self.cls_token_id = self.tok.cls_token, self.tok.cls_token_id
@@ -74,7 +78,8 @@ class QueryTokenizer():
             ids = torch.cat((ids, ids_2), dim=-1)
             mask = torch.cat((mask, mask_2), dim=-1)
 
-        if self.config.attend_to_mask_tokens:
+        # if self.config.attend_to_mask_tokens:
+        if self.attend_to_mask_tokens:
             mask[ids == self.mask_token_id] = 1
             assert mask.sum().item() == mask.size(0) * mask.size(1), mask
 

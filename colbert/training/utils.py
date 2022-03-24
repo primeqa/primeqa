@@ -55,8 +55,8 @@ def manage_checkpoints_consumed_all_triples(args, colbert, optimizer, batch_idx,
     return path_save
 
 # Add this function to supoort treaining loop logic
-def manage_checkpoints(args, colbert, optimizer, amp, batch_idx, num_per_epoch, epoch_idx=0):
-    arguments = args.input_arguments.__dict__
+def manage_checkpoints(args, colbert, optimizer, amp, batch_idx, num_per_epoch, epoch_idx=0, train_loss=0):
+    # arguments = args.input_arguments.__dict__
     # arguments = dict(args)
 
     saved_name = ""
@@ -71,7 +71,8 @@ def manage_checkpoints(args, colbert, optimizer, amp, batch_idx, num_per_epoch, 
     if args.save_epochs == -1:
         if batch_idx % args.save_steps == 0:
             saved_name = prefix + f".batch_{batch_idx}.model"
-            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, arguments)
+            # save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
     else:
         if batch_idx * args.bsize * args.nranks % int(args.save_epochs * num_per_epoch) < args.bsize * args.nranks:
             if args.save_epochs.is_integer():
@@ -79,15 +80,18 @@ def manage_checkpoints(args, colbert, optimizer, amp, batch_idx, num_per_epoch, 
             else:
                 saved_name = prefix + f".epoch_{epoch_idx}_batch_{batch_idx}.model"
 
-            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, arguments)
+            # save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
 
 
     if batch_idx in SAVED_CHECKPOINTS or batch_idx == args.maxsteps:
         name = prefix + f".batch_{batch_idx}.model"
         if not name == saved_name:
-            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, arguments)
+            # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
 
     if (batch_idx * args.bsize * args.nranks) % (args.epochs * num_per_epoch) < args.bsize * args.nranks:
         name = prefix + f".epoch_{args.epochs - 1}.model"
         if not name == saved_name:
-            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, arguments)
+            # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)

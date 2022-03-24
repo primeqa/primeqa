@@ -52,7 +52,9 @@ def torch_load_dnn(path):
     
     return dnn
 
-def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, arguments=None):
+# def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, arguments=None):
+# It makes sense to use model type instead of input arguments
+def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, model_type):
     print(f"#> Saving a checkpoint to {path} ..")
 
     if hasattr(model, 'module'):
@@ -61,9 +63,12 @@ def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, arguments=No
     checkpoint = {}
     checkpoint['epoch'] = epoch_idx
     checkpoint['batch'] = mb_idx
+    checkpoint['train_loss'] = train_loss
     checkpoint['model_state_dict'] = model.state_dict()
     checkpoint['optimizer_state_dict'] = optimizer.state_dict()
-    checkpoint['arguments'] = arguments
+    # checkpoint['arguments'] = arguments
+    checkpoint['model_type'] = model_type
+
     checkpoint['scaler_state_dict'] = amp.scaler.state_dict() if amp.activated else None
 
     checkpoint['torch_rng_state'] = torch.get_rng_state()

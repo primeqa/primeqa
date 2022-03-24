@@ -7,6 +7,10 @@ import random
 import torch.nn as nn
 import numpy as np
 import glob
+import sys
+import re
+from collections import OrderedDict
+
 from queue import Empty
 
 from colbert.infra.run import Run
@@ -25,19 +29,31 @@ from colbert.modeling.reranker.electra import ElectraReranker
 
 from colbert.utils import signals
 from colbert.utils.utils import torch_load_dnn
-from colbert.utils.utils import print_message
+from colbert.utils.utils import print_message, save_checkpoint
 from colbert.training.utils import print_progress, manage_checkpoints, manage_checkpoints_consumed_all_triples
 
 
 def train(config: ColBERTConfig, triples, queries=None, collection=None):
-    config.checkpoint = config.checkpoint or 'bert-base-uncased'
 
     if config.rank < 1:
-        # config.help()
-        # remove input arguments(dict) to make help happy
-        config_without_input_arguments = config
-        config_without_input_arguments.input_arguments = None
-        config_without_input_arguments.help()
+        config.help()
+
+    # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
+    if config.checkpoint is not None:
+        if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
+            # adding "or config.checkpoint.endswith('.model')" to be compatible with V1
+            # dnn = torch_load_dnn(config.checkpoint)
+            # config.model_type = dnn.get('input_arguments', {}).get('model_type', 'bert-base-uncased')
+            checkpoint = torch_load_dnn(config.checkpoint)
+            if checkpoint['model_type'] is not None:
+                config.model_type = checkpoint['model_type']
+
+        # Use checkpoint as a model type
+        if config.checkpoint == 'bert-base-uncased' or config.checkpoint =='bert-large-uncased' \
+                or config.checkpoint == 'xlm-roberta-base' or config.checkpoint == 'xlm-roberta-large':
+            config.model_type = config.checkpoint
+
+    print_message(f"model type: {config.model_type}")
 
     random.seed(12345)
     np.random.seed(12345)
@@ -49,6 +65,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     print("Using config.bsize =", config.bsize, "(per process) and config.accumsteps =", config.accumsteps)
 
+    # the reader , the proper tokenizer is based on model type
     if collection is not None:
         if config.reranker:
             reader = RerankBatcher(config, triples, queries, collection, (0 if config.rank == -1 else config.rank), config.nranks)
@@ -59,33 +76,76 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
 
     if not config.reranker:
-        if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
-            # adding "or config.checkpoint.endswith('.model')" to be compatible with V1
-            dnn = torch_load_dnn(config.checkpoint)
-            model_type = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
-            # "model" should be "model_type" defined at command line in previous run ?
-            colbert = ColBERT(name=model_type, colbert_config=config)
-        else:
-            colbert = ColBERT(name=config.checkpoint, colbert_config=config)
+
+        # add to support xlmr though model factory
+        colbert = ColBERT(name=config.model_type, colbert_config=config)
+        # colbert = get_ColBERT_model(model_type=config.model_type, colbert_config=config)
+
+        # add ro support pre-trained representation
+        if config.init_from_lm is not None and config.checkpoint is None:
+            # checkpoint should override init_from_lm since it continues an already init'd run
+            if DEVICE ==  torch.device("cuda"):
+                lmweights = torch.load(config.init_from_lm)
+            else:    # expect path to pytorch_model.bin
+                lmweights = torch.load(config.init_from_lm, map_location=torch.device('cpu'))  # expect path to pytorch_model.bin
+
+
+            # fix differences in keys - we could use strict=False in load_state_dict, but prefer to expose the differences
+            # 3/24/2022,  resolve conflict between bert and roberta
+            # lmweights['linear.weight'] = colbert.linear.weight
+            lmweights['model.linear.weight'] = colbert.linear.weight
+            # we don't need the keys in the lm head
+            keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
+                            'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.decoder.bias', 'lm_head.bias']
+            if config.model_type == 'xlm-roberta-base':
+                # TODO other model types may have a few extra keys to handle also ...
+
+                # 3/24/2022, resolve conflict between bert and roberta
+                lmweights_new = OrderedDict([(re.sub(r'^roberta\.', 'model.bert.', key), value) for key, value in lmweights.items()])
+
+                # lmweights['roberta.pooler.dense.weight'] = colbert.roberta.pooler.dense.weight
+                # lmweights['roberta.pooler.dense.bias'] = colbert.roberta.pooler.dense.bias
+                lmweights_new['model.bert.pooler.dense.weight'] = colbert.bert.pooler.dense.weight
+                lmweights_new['model.bert.pooler.dense.bias'] = colbert.bert.pooler.dense.bias
+
+                # I don't know what roberta.embeddings.position_ids is but it doesn't seem to be part of the model ...
+                # keys_to_drop += ['roberta.embeddings.position_ids']
+            elif config.model_type == 'tinybert':
+                keys_to_drop = ["cls.predictions.bias", "cls.predictions.transform.dense.weight",
+                                "cls.predictions.transform.dense.bias", "cls.predictions.transform.LayerNorm.weight",
+                                "cls.predictions.transform.LayerNorm.bias", "cls.predictions.decoder.weight",
+                                "cls.seq_relationship.weight", "cls.seq_relationship.bias", "fit_denses.0.weight",
+                                "fit_denses.0.bias", "fit_denses.1.weight", "fit_denses.1.bias", "fit_denses.2.weight",
+                                "fit_denses.2.bias", "fit_denses.3.weight", "fit_denses.3.bias", "fit_denses.4.weight",
+                                "fit_denses.4.bias"]
+
+            for k in keys_to_drop:
+                lmweights_new.pop(k)
+
+            colbert.load_state_dict(lmweights_new,False)
+
+
     else:
         colbert = ElectraReranker.from_pretrained(config.checkpoint)
 
-    if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
-        print_message(f"#> Starting from checkpoint {config.checkpoint}")
-        checkpoint = torch.load(config.checkpoint, map_location='cpu')
+    if config.checkpoint is not None:
+        if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
+            print_message(f"#> Starting from checkpoint {config.checkpoint}")
+            checkpoint = torch.load(config.checkpoint, map_location='cpu')
 
-        try:
-            colbert.load_state_dict(checkpoint['model_state_dict'])
-        except:
-            print_message("[WARNING] Loading checkpoint with strict=False")
-            colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
+            try:
+                colbert.load_state_dict(checkpoint['model_state_dict'])
+            except:
+                print_message("[WARNING] Loading checkpoint with strict=False")
+                colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
 
 
     colbert = colbert.to(DEVICE)
     colbert.train()
 
     #  set 0 when debug
-    colbert = torch.nn.parallel.DistributedDataParallel(colbert, device_ids=[config.rank],
+    if DEVICE == torch.device("cuda"):
+        colbert = torch.nn.parallel.DistributedDataParallel(colbert, device_ids=[config.rank],
                                                         output_device=config.rank,
                                                         find_unused_parameters=True)
 
@@ -126,8 +186,10 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     if config.resume:
          assert config.checkpoint is not None
          start_batch_idx = checkpoint['batch']
+         train_loss = checkpoint['train_loss']
 
-         reader.skip_to_batch(start_batch_idx, checkpoint['arguments']['bsize'])
+         # reader.skip_to_batch(start_batch_idx, checkpoint['arguments']['bsize'])
+         reader.skip_to_batch(start_batch_idx, config.bsize)
 
     maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
 
@@ -136,7 +198,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         os.makedirs(path)
 
     name = os.path.join(path, "colbert-EXIT.dnn")
-    arguments = config.input_arguments.__dict__
+    # arguments = config.input_arguments.__dict__
     exit_queue = signals.checkpoint_on_exit(config.rank)
 
     print_message(f"maxsteps: {config.maxsteps}")
@@ -216,10 +278,11 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             epoch_idx = ((batch_idx + 1) * config.bsize * config.nranks) // num_per_epoch - 1
             try:
                 exit_queue.get_nowait()
-                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, arguments)
+                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
                 sys.exit(0)
             except Empty:
-                manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx)
+                manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
     # save last model
     name = os.path.join(path, "colbert-LAST.dnn")
@@ -237,10 +300,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         else:
             raise
 
-    if config.rank < 1:
-        print_message("#> Done with all triples!")
-        ckpt_path = manage_checkpoints_consumed_all_triples(config, colbert, optimizer, batch_idx+1, savepath=None, consumed_all_triples=True)
-        return ckpt_path  # TODO: This should validate and return the best checkpoint, not just the last one.
+    # just return latest file
+    return latest_file
 
 
 def set_bert_grad(colbert, value):

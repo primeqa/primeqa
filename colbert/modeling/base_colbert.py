@@ -7,6 +7,8 @@ from transformers import AutoTokenizer
 from colbert.modeling.hf_colbert import HF_ColBERT
 from colbert.infra.config import ColBERTConfig
 
+from colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
+from colbert.modeling.factory import get_colbert_from_pretrained
 
 class BaseColBERT(torch.nn.Module):
     """
@@ -21,7 +23,10 @@ class BaseColBERT(torch.nn.Module):
 
         self.name = name
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)
-        self.model = HF_ColBERT.from_pretrained(name, colbert_config=self.colbert_config)
+
+        self.model = get_colbert_from_pretrained(name, colbert_config=self.colbert_config)
+
+        # self.model = HF_ColBERT.from_pretrained(name, colbert_config=self.colbert_config)
         self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)
 
         self.eval()

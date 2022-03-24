@@ -21,7 +21,6 @@ class Arguments():
         self.add_argument('--local_rank', dest='rank', default=-1, type=int)
 
     def add_model_parameters(self):
-        self.add_argument('--model_type', dest='model_type', choices=['bert-base-uncased'], required=True )
         # Core Arguments
         self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine', 'l2'])
         self.add_argument('--dim', dest='dim', default=128, type=int)
@@ -31,11 +30,17 @@ class Arguments():
         # Filtering-related Arguments
         self.add_argument('--mask-punctuation', dest='mask_punctuation', default=False, action='store_true')
 
+        # for handling models in local repository
+        self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
+
     def add_model_training_parameters(self):
         # NOTE: Providing a checkpoint is one thing, --resume is another, --resume_optimizer is yet another.
         self.add_argument('--resume', dest='resume', default=False, action='store_true')
         self.add_argument('--resume_optimizer', dest='resume_optimizer', default=False, action='store_true')
         self.add_argument('--checkpoint', dest='checkpoint', default=None, required=False)
+
+        self.add_argument('--init_from_lm', dest='init_from_lm', default=None, required=False)
+        self.add_argument('--model_type', dest='model_type', default='bert-base-uncased', choices=['bert-base-uncased', 'bert-large-uncased','xlm-roberta-base','xlm-roberta-large', 'tinybert'], required=False)
 
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)

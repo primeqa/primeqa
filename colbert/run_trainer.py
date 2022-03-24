@@ -26,7 +26,7 @@ def main():
     args_dict = vars(args)
     # remove keys not in ColBERTConfig
     # args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed', 'resume_optimizer', 'model_type','input_arguments']}
-    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed']}
+    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'lazy', 'nthreads', 'distributed','input_arguments']}
     colBERTConfig = ColBERTConfig(**args_dict)
 
     with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
