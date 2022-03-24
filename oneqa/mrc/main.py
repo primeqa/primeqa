@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 
@@ -17,9 +18,15 @@ from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 
 def main():
     logger = logging.getLogger(__name__)
+
+    # TODO: remove during parameterization
+    parser = argparse.ArgumentParser()
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model', nargs='?')
+    args = parser.parse_args()
+
     training_args = TrainingArguments(
-        output_dir='/dccstor/aferritt3/oneqa/test-model',
-        do_train=False,
+        output_dir=args.output_dir,
+        do_train=True,
         do_eval=True,
         num_train_epochs=0.1,
         fp16=False,

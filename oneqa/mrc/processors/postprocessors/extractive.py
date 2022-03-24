@@ -46,21 +46,21 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                                  f"and feature ({feat_example_idx})")
             example_features = list(example_features)
             example_id = example_features[0]['example_id']
-            example['example_id'] = example_id  # TODO: assign example id to examples before featurization
+            # example['example_id'] = example_id  # TODO: assign example id to examples before featurization
             contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
             example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
             start_idx += len(example_features)
 
-            # TODO: move this to the preprocessor
-            label = {
-                'start_position': example['target']['start_positions'],
-                'end_position': example['target']['end_positions'],
-                'passage_index': example['target']['passage_indices'],
-                'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),
-                'example_id': example_id
-            }
+            # # TODO: move this to the preprocessor
+            # label = {
+            #     'start_position': example['target']['start_positions'],
+            #     'end_position': example['target']['end_positions'],
+            #     'passage_index': example['target']['passage_indices'],
+            #     'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),
+            #     'example_id': example_id
+            # }
 
             min_null_prediction = None
             prelim_predictions = []
@@ -181,6 +181,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         
     def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
         references = []
+        n_annotators = len(examples[0]['target']['start_positions'])
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
             # label = {
@@ -194,8 +195,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'start_position': example['target']['start_positions'],
                 'end_position': example['target']['end_positions'],
                 'passage_index': example['target']['passage_indices'],
-                'yes_no_answer': example['target']['yes_no_answer'],
-                'example_id': example['example_id']
+                'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),  # TODO: decide on schema type for bool ans
+                'example_id': [example['example_id']] * n_annotators,
+                'language': [example['language']] * n_annotators  # TODO: schema does not have language by default
             }
             references.append(label)
         return references
@@ -212,7 +214,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'start_position': top_pred['span_answer']['start_position'],
                 'end_position': top_pred['span_answer']['end_position'],
                 'passage_index': top_pred['passage_index'],
-                'yes_no_answer': top_pred['yes_no_answer']
+                'yes_no_answer': top_pred['yes_no_answer'],
+                'confidence_score': top_pred['span_answer_score']
             }
             predictions_for_metric.append(prediction_for_metric)
 
