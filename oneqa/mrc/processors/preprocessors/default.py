@@ -31,9 +31,12 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     #         'passage_indices': Value(dtype='int32', id=None),
     #         'yes_no_answer': Value(dtype='string', id=None)})
     # }
-    _example_id_type = Value(dtype='string', id=None)
+    _example_id_type = {'example_id': Value(dtype='string', id=None)}
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
+        if 'example_id' not in dataset.features:
+            example_id = [str(uuid.uuid4()) for _ in range(dataset.num_rows)]
+            dataset = dataset.add_column('example_id', example_id)
         self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
 
@@ -87,7 +90,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             return_offsets_mapping=True,
         )
 
-        examples_id = list(examples.get('example_id', (str(uuid.uuid4()) for _ in range(len(examples_question)))))
+        examples_id = examples['example_id']
         tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
         spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
         tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
@@ -276,6 +279,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         items = cls._feature_types.items()
         if is_train:
             items = itertools.chain(items, cls._train_feature_types.items())
+        if not pre_adaptation:
+            items = itertools.chain(items, cls._example_id_type.items())
         for feature_name, feature_type in items:
             if feature_name not in dataset.features:
                 raise ValueError(f"Expected but did not find feature '{feature_name}' in dataset")
@@ -283,10 +288,10 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 raise ValueError(F"Feature type mismatch for feature '{feature_name}'. "
                                  F"Expected {feature_type} but found {dataset.features[feature_name]}")
 
-        if 'example_id' in dataset.features:
-            if dataset.features['example_id'] != self._example_id_type:
-                raise ValueError(F"Feature type mismatch for feature 'example_id'. "
-                                 F"Expected {self._example_id_type} but found {dataset.features['example_id']}")
+        # if not pre_adaptation:
+        #     if dataset.features['example_id'] != self._example_id_type:
+        #         raise ValueError(F"Feature type mismatch for feature 'example_id'. "
+        #                          F"Expected {self._example_id_type} but found {dataset.features['example_id']}")
 
     # def _create_features_schema(self, is_train: bool) -> Features:
     #     schema = Features()

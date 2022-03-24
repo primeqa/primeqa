@@ -146,7 +146,7 @@ def main():
         eval_examples=eval_examples if training_args.do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=postprocessor.process,  # see QATrainer in Huggingface
+        post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
         compute_metrics=compute_metrics,
     )
     

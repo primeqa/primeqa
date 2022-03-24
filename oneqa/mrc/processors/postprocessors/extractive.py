@@ -1,7 +1,9 @@
 from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
+from typing import List, Dict, Any
 
+from datasets import Dataset
 from tqdm import tqdm
 import numpy as np
 from datetime import datetime
@@ -177,13 +179,42 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
         return all_predictions
         
+    def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
+        references = []
+        for example_idx in range(examples.num_rows):
+            example = examples[example_idx]
+            # label = {
+            #     'span_answer': {'start_position': example['target']['start_positions'],
+            #                     'end_position': example['target']['end_positions'], },
+            #     'passage_index': example['target']['passage_indices'],
+            #     'yes_no_answer': example['target']['yes_no_answer'],
+            #     'example_id': example['example_id']
+            # }
+            label = {
+                'start_position': example['target']['start_positions'],
+                'end_position': example['target']['end_positions'],
+                'passage_index': example['target']['passage_indices'],
+                'yes_no_answer': example['target']['yes_no_answer'],
+                'example_id': example['example_id']
+            }
+            references.append(label)
+        return references
 
+    def process_references_and_predictions(self, examples, features, predictions) -> EvalPrediction:
+        references = self.prepare_examples_as_references(examples)
+        predictions = self.process(examples, features, predictions)
+        predictions_for_metric = []
 
-                
+        for example_id, preds in predictions.items():
+            top_pred = preds[0]
+            prediction_for_metric = {
+                'example_id': example_id,
+                'start_position': top_pred['span_answer']['start_position'],
+                'end_position': top_pred['span_answer']['end_position'],
+                'passage_index': top_pred['passage_index'],
+                'yes_no_answer': top_pred['yes_no_answer']
+            }
+            predictions_for_metric.append(prediction_for_metric)
 
-
-
-
-
-
-
+        # noinspection PyTypeChecker
+        return EvalPrediction(label_ids=references, predictions=predictions_for_metric)
