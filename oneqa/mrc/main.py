@@ -28,9 +28,11 @@ def main():
         output_dir=args.output_dir,
         do_train=True,
         do_eval=True,
-        num_train_epochs=0.1,
-        fp16=False,
+        num_train_epochs=1,
+        fp16=True,
         overwrite_output_dir=True,
+        save_steps=10000,
+        evaluation_strategy='no',
     )
     checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/'
 
@@ -92,7 +94,8 @@ def main():
     # process train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
-        max_train_samples = 1000
+        max_train_samples = None  # 1000
+        # train_dataset = train_dataset.select(range(159000, train_dataset.num_rows))
         if max_train_samples is not None:  # if data_args.max_train_samples is not None:
             # We will select sample from whole data if argument is specified
             train_dataset = train_dataset.select(range(max_train_samples))
@@ -113,7 +116,7 @@ def main():
     if training_args.do_eval:
         # process val data
         eval_examples = raw_datasets["validation"]
-        max_eval_samples = 10 #250
+        max_eval_samples = None  # 10 #250
         if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
             # We will select sample from whole data
             eval_examples = eval_examples.select(range(max_eval_samples))

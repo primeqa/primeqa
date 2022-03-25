@@ -26,7 +26,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         self._score_calculator = initialize_scorer(scorer_type)
 
     def process(self, examples, features, predictions):
-        features_itr = groupby(features, key=itemgetter('example_idx'))
+        features_itr = groupby(features, key=itemgetter('example_idx'))  # TODO: may need to change this to example_id when getting rid of example_idx column.
         predictions_i = 0
         if len(features) != predictions[0].shape[0] and all(
                 p.shape[0] == predictions[0].shape[0] for p in predictions[1:]):

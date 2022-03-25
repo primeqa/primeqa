@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 import itertools
 import random
 import uuid
@@ -71,6 +72,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         if isinstance(examples_question, str):  # wrap single (question, [context]) pair in list
             examples_question = [examples_question]
             examples_context = [examples_context]
+        examples_question = [q.lstrip()[:self._max_q_char_len] for q in examples_question]
         
         # create 1:1 question:context lists
         expanded_examples_question = []
@@ -91,6 +93,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         )
 
         examples_id = examples['example_id']
+
+        # TODO: won't this reset to start at zero every batch?  Soln: add column to delete keys and switch postprocessor to use example_id
         tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
         spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
         tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
@@ -228,10 +232,26 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         return tokenized_examples
 
+    @dataclass
+    class Subsampler:
+        preprocessor: AbstractPreProcessor  # TODO: try DefaultPreProcessor to see if it can resolve
+        dataset: Dataset
+        _keep_indices: Iterable = field(init=False, hash=False)
+
+        def __post_init__(self):
+            self._keep_indices = (i for i, st in enumerate(self.dataset['subsample_type']) if self.preprocessor._keep_feature(st))
+
+        def __iter__(self):
+            yield from self._keep_indices
+        
+
     def subsample_features(self, dataset: Dataset) -> Dataset:
         if self._subsample_all_features:
             return dataset
 
+        # TODO: make this hashable so result of select can be cached, ideally without using mem of list
+        # Idea: create a hashable (data)class which implements __iter__
+        # keep_indices = self.Subsampler(self, dataset)
         keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
         try:
             dataset = dataset.select(keep_indices)
