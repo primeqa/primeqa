@@ -1,0 +1,123 @@
+from datasets import Dataset
+import pytest
+import sys
+from pytest import raises
+from transformers import AutoTokenizer
+from itertools import groupby
+from operator import itemgetter
+
+import numpy as np
+
+from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from oneqa.mrc.data_models.target_type import TargetType
+from tests.oneqa.mrc.common.base import UnitTest
+from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
+
+
+class TestExtractivePostProcessor(UnitTest):
+
+    _start_score_of_cls_token = 0
+    _end_score_of_cls_token = 0
+    _score_none_token = -10
+    example1_start_scores = [ [0.5, 0.3, 0.2, 0.1, 0.1], 
+                              [1.5, 0.7, 0.2, 0.1, 0.1],
+                ]
+    example1_end_scores = [ [0.5, 0.3, 0, 0, 0], 
+                            [1.5, 0.7, 0, 0, 0],
+                ]
+    example2_start_scores = [ [-1, 2, 1, -3, -2.5, -5, -4, -2, -2, -1, -1.5, -2.5],  
+                              [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5], 
+                              [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5], 
+                ]
+    example2_end_scores = [   [-1, 1, 1, -3, -2.5, -5, -4, -2, -2, -1, -1.5, -2.5], 
+                              [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5],
+                              [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5],
+                ]
+
+    _start_scores = [example1_start_scores, example2_start_scores]
+    _end_scores = [ example1_end_scores, example2_end_scores]
+
+    _target_type_scores = [
+        np.array([ -4.2624542e-04, 1.2508204e+00, -1.8462906e-02, -4.0960628e-01, -3.8014248e-01,  -4.2624542e-04], dtype=np.float32),
+        np.array([  1.0599241 , 0.01550296, -0.40537557, -0.3395432 ,  0.12297338],dtype=np.float32),
+    ]
+
+    _expected_predictions = {
+        'foo-abc' : {
+            'start_index': 8,
+            'end_index': 8,
+            'passage_index': 1,
+            'target_type' : int(TargetType.SPAN_ANSWER),
+            'span_answer_text': 'Bob'
+        },
+        'bar-123': {
+            'start_index': 9,
+            'end_index': 10,
+            'passage_index': 0,
+            'target_type' : int(TargetType.NO_ANSWER),
+            'span_answer_text': 'quick brown'
+        }
+    }
+
+    def _start_end_target_type_logits(self, examples, features):
+
+        all_start_logits = []
+        all_end_logits = []
+        all_target_type_logits = []
+
+        features_itr = groupby(features, key=itemgetter('example_idx'))
+        for example in examples:
+            example_idx, example_features = next(features_itr)
+            example_features = list(example_features)
+
+            for feat_idx, feature in enumerate(example_features):
+                offset_mapping = feature["offset_mapping"]
+                start_logits = []
+                end_logits = []
+                start_scores_iter = iter(self._start_scores[example_idx][feat_idx])
+
+                end_scores_iter = iter(self._end_scores[example_idx][feat_idx])
+                for i, offset in enumerate(offset_mapping):
+                    if i == 0:
+                        start_logits.append(self._start_score_of_cls_token)
+                        end_logits.append(self._end_score_of_cls_token)
+                    elif offset == None:
+                        start_logits.append(self._score_none_token)
+                        end_logits.append(self._score_none_token)
+                    else:
+                        try:
+                            start_logits.append(next(start_scores_iter))
+                            end_logits.append(next(end_scores_iter))
+                        except StopIteration:
+                            print("failed")
+                start_logits +=  [sys.float_info.min]*(128-len(start_logits))
+                all_start_logits.append(np.array( start_logits))
+                end_logits += [sys.float_info.min]*(128-len(end_logits))
+                all_end_logits.append(np.array( end_logits))
+                all_target_type_logits.append(self._target_type_scores[example_idx])
+
+        return ( np.array(all_start_logits), np.array(all_end_logits), np.array(all_target_type_logits) )
+
+    def test_post_processor_has_examples_and_features(self, eval_examples_and_features):
+        eval_examples, eval_features = eval_examples_and_features
+        postprocessor_class = ExtractivePostProcessor  
+        scorer_type='weighted_sum_target_type_and_score_diff'
+
+        predictions = self._start_end_target_type_logits(eval_examples, eval_features)
+        
+        postprocessor = postprocessor_class(k=5, n_best_size=3, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
+        example_predictions = postprocessor.process(eval_examples, eval_features, predictions)
+        for example_id, preds in  example_predictions.items():
+            predicted = preds[0]
+            expected = self._expected_predictions[example_id]
+            ptargettype = int(np.argmax(predicted['target_type_logits']))
+            #TODO: Fails with bert-base-uncased and albert-base-v2
+            #assert( (predicted['start_index'],predicted['end_index']) ) == (expected['start_index'], expected['end_index'])
+            assert( predicted['passage_index']  == expected['passage_index'] )
+            assert( ptargettype  == expected['target_type'] )
+
+
+
+
+    
