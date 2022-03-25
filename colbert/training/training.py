@@ -42,8 +42,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     if config.checkpoint is not None:
         if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
             # adding "or config.checkpoint.endswith('.model')" to be compatible with V1
-            # dnn = torch_load_dnn(config.checkpoint)
-            # config.model_type = dnn.get('input_arguments', {}).get('model_type', 'bert-base-uncased')
             checkpoint = torch_load_dnn(config.checkpoint)
             if checkpoint['model_type'] is not None:
                 config.model_type = checkpoint['model_type']
@@ -77,11 +75,10 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     if not config.reranker:
 
-        # add to support xlmr though model factory
+        # add to support xlmr though model through factory
         colbert = ColBERT(name=config.model_type, colbert_config=config)
-        # colbert = get_ColBERT_model(model_type=config.model_type, colbert_config=config)
 
-        # add ro support pre-trained representation
+        # add support pre-trained representation
         if config.init_from_lm is not None and config.checkpoint is None:
             # checkpoint should override init_from_lm since it continues an already init'd run
             if DEVICE ==  torch.device("cuda"):
@@ -90,9 +87,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 lmweights = torch.load(config.init_from_lm, map_location=torch.device('cpu'))  # expect path to pytorch_model.bin
 
 
-            # fix differences in keys - we could use strict=False in load_state_dict, but prefer to expose the differences
-            # 3/24/2022,  resolve conflict between bert and roberta
-            # lmweights['linear.weight'] = colbert.linear.weight
             lmweights['model.linear.weight'] = colbert.linear.weight
             # we don't need the keys in the lm head
             keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
@@ -100,11 +94,9 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             if config.model_type == 'xlm-roberta-base':
                 # TODO other model types may have a few extra keys to handle also ...
 
-                # 3/24/2022, resolve conflict between bert and roberta
+                # resolve conflict between bert and roberta
                 lmweights_new = OrderedDict([(re.sub(r'^roberta\.', 'model.bert.', key), value) for key, value in lmweights.items()])
 
-                # lmweights['roberta.pooler.dense.weight'] = colbert.roberta.pooler.dense.weight
-                # lmweights['roberta.pooler.dense.bias'] = colbert.roberta.pooler.dense.bias
                 lmweights_new['model.bert.pooler.dense.weight'] = colbert.bert.pooler.dense.weight
                 lmweights_new['model.bert.pooler.dense.bias'] = colbert.bert.pooler.dense.bias
 
@@ -124,26 +116,26 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
             colbert.load_state_dict(lmweights_new,False)
 
+        # load from checkpoint if checkpoint is a actual model
+        if config.checkpoint is not None:
+            if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
+                print_message(f"#> Starting from checkpoint {config.checkpoint}")
+                checkpoint = torch.load(config.checkpoint, map_location='cpu')
+
+                try:
+                    colbert.load_state_dict(checkpoint['model_state_dict'])
+                except:
+                    print_message("[WARNING] Loading checkpoint with strict=False")
+                    colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
+
 
     else:
         colbert = ElectraReranker.from_pretrained(config.checkpoint)
-
-    if config.checkpoint is not None:
-        if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
-            print_message(f"#> Starting from checkpoint {config.checkpoint}")
-            checkpoint = torch.load(config.checkpoint, map_location='cpu')
-
-            try:
-                colbert.load_state_dict(checkpoint['model_state_dict'])
-            except:
-                print_message("[WARNING] Loading checkpoint with strict=False")
-                colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
 
 
     colbert = colbert.to(DEVICE)
     colbert.train()
 
-    #  set 0 when debug
     if DEVICE == torch.device("cuda"):
         colbert = torch.nn.parallel.DistributedDataParallel(colbert, device_ids=[config.rank],
                                                         output_device=config.rank,

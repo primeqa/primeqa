@@ -12,21 +12,16 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
         
         This makes sure `{from,save}_pretrained` and `init_weights` are applied to new parameters correctly.
     """
-    # 3/24/2022 check this, not used !
-    # _keys_to_ignore_on_load_unexpected = [r"cls"]
-    # _keys_to_ignore_on_load_missing = [r"encoder", r"pooler", r"embeddings"]
 
     def __init__(self, config, colbert_config):
         super().__init__(config)
 
         self.dim = colbert_config.dim
-        # 3/24/2022, resolve conflict between bert and roberta
+        # resolve conflict between bert and roberta
         # self.roberta = XLMRobertaModel(config)
         # self.bert = self.roberta
         self.bert = XLMRobertaModel(config)
 
-        #self.roberta = AutoModel.from_config(config) <<<< revisit this
-        #self.bert = AutoModel.from_config(config)
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
 
         # if colbert_config.relu:
