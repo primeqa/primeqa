@@ -6,6 +6,7 @@ from transformers import AutoTokenizer
 from itertools import groupby
 from operator import itemgetter
 
+
 import numpy as np
 
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -30,7 +31,7 @@ class TestExtractivePostProcessor(UnitTest):
                               [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5], 
                               [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5], 
                 ]
-    example2_end_scores = [   [-1, 1, 1, -3, -2.5, -5, -4, -2, -2, -1, -1.5, -2.5], 
+    example2_end_scores = [   [-1, 1, 1.5, -3, -2.5, -5, -4, -2, -2, -1, -1.5, -2.5], 
                               [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5],
                               [-3, -2, -5, -2,-1, -1, -3, -2, -4, -5, -1.5, -2.5],
                 ]
@@ -45,15 +46,15 @@ class TestExtractivePostProcessor(UnitTest):
 
     _expected_predictions = {
         'foo-abc' : {
-            'start_index': 8,
-            'end_index': 8,
+            'start_index': 0, #8,
+            'end_index': 0, #8,
             'passage_index': 1,
             'target_type' : int(TargetType.SPAN_ANSWER),
             'span_answer_text': 'Bob'
         },
         'bar-123': {
-            'start_index': 9,
-            'end_index': 10,
+            'start_index': 1, # 9,
+            'end_index': 2, #10,
             'passage_index': 0,
             'target_type' : int(TargetType.NO_ANSWER),
             'span_answer_text': 'quick brown'
@@ -65,14 +66,26 @@ class TestExtractivePostProcessor(UnitTest):
         all_start_logits = []
         all_end_logits = []
         all_target_type_logits = []
+        adjusted_start_end_index = {}
 
         features_itr = groupby(features, key=itemgetter('example_idx'))
         for example in examples:
+            example_id = example['example_id']
+            expected = self._expected_predictions[example_id]
+
             example_idx, example_features = next(features_itr)
             example_features = list(example_features)
 
             for feat_idx, feature in enumerate(example_features):
                 offset_mapping = feature["offset_mapping"]
+
+                if feat_idx == expected['passage_index']:
+                    for i, offset in enumerate(offset_mapping):
+                        if offset != None:
+                            adjusted_start_end_index[example_id] = (expected['start_index']+i,
+                                                    expected['end_index'] + i)
+                            break
+
                 start_logits = []
                 end_logits = []
                 start_scores_iter = iter(self._start_scores[example_idx][feat_idx])
@@ -97,25 +110,25 @@ class TestExtractivePostProcessor(UnitTest):
                 all_end_logits.append(np.array( end_logits))
                 all_target_type_logits.append(self._target_type_scores[example_idx])
 
-        return ( np.array(all_start_logits), np.array(all_end_logits), np.array(all_target_type_logits) )
+        return adjusted_start_end_index, ( np.array(all_start_logits), np.array(all_end_logits), np.array(all_target_type_logits) )
 
     def test_post_processor_has_examples_and_features(self, eval_examples_and_features):
         eval_examples, eval_features = eval_examples_and_features
         postprocessor_class = ExtractivePostProcessor  
         scorer_type='weighted_sum_target_type_and_score_diff'
 
-        predictions = self._start_end_target_type_logits(eval_examples, eval_features)
+        expected_start_end_index, predictions = self._start_end_target_type_logits(eval_examples, eval_features)
         
         postprocessor = postprocessor_class(k=5, n_best_size=3, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
         example_predictions = postprocessor.process(eval_examples, eval_features, predictions)
         for example_id, preds in  example_predictions.items():
             predicted = preds[0]
             expected = self._expected_predictions[example_id]
+            expected_start_end = expected_start_end_index[example_id]
             ptargettype = int(np.argmax(predicted['target_type_logits']))
-            #TODO: Fails with bert-base-uncased and albert-base-v2
-            #assert( (predicted['start_index'],predicted['end_index']) ) == (expected['start_index'], expected['end_index'])
-            assert( predicted['passage_index']  == expected['passage_index'] )
-            assert( ptargettype  == expected['target_type'] )
+            assert (predicted['start_index'], predicted['end_index']) == expected_start_end
+            assert predicted['passage_index']  == expected['passage_index'] 
+            assert ptargettype  == expected['target_type'] 
 
 
 
