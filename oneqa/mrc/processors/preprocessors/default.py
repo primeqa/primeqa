@@ -1,14 +1,13 @@
-from dataclasses import dataclass, field
 import itertools
 import random
 import uuid
 from operator import sub
-from typing import List, Iterable, Tuple, Any, Dict, Optional, Type
+from typing import List, Iterable, Tuple, Any, Dict
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
 from datasets import Dataset
-from datasets.features.features import Sequence, Value, Features
+from datasets.features.features import Sequence, Value
 
 from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from oneqa.mrc.data_models.subsample_type import SubsampleType
@@ -232,41 +231,17 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         return tokenized_examples
 
-    @dataclass(frozen=True)
-    class Subsampler:
-        preprocessor: 'DefaultPreProcessor'
-        dataset: Dataset
-        _keep_indices: Iterable = field(init=False, hash=False)
-
-        def __post_init__(self):
-            _keep_indices = (i for i, st in enumerate(self.dataset['subsample_type'])
-                             if self.preprocessor._keep_feature(st))
-            super().__setattr__('_keep_indices', _keep_indices)
-
-        def __iter__(self):
-            yield from self._keep_indices
-
-        def subsample(self) -> Dataset:
-            try:
-                dataset = self.dataset.select(self)
-            except IndexError as ex:
-                raise ValueError("No features remaining after subsampling") from ex
-            dataset = dataset.remove_columns('subsample_type')
-            return dataset
-
     def subsample_features(self, dataset: Dataset) -> Dataset:
         if self._subsample_all_features:
             return dataset
 
-        # # keep_indices = self.Subsampler(self, dataset)
-        # keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
-        # try:
-        #     dataset = dataset.select(keep_indices)
-        # except IndexError as ex:
-        #     raise ValueError("No features remaining after subsampling") from ex
-        # dataset = dataset.remove_columns('subsample_type')
-        # return dataset
-        return self.Subsampler(self, dataset).subsample()
+        keep_indices = [i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st)]
+        try:
+            dataset = dataset.select(keep_indices)
+        except IndexError as ex:
+            raise ValueError("No features remaining after subsampling") from ex
+        dataset = dataset.remove_columns('subsample_type')
+        return dataset
 
     def _keep_feature(self, st: SubsampleType) -> bool:
         if st == SubsampleType.POSITIVE:
