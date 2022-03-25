@@ -232,33 +232,41 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         return tokenized_examples
 
-    @dataclass
+    @dataclass(frozen=True)
     class Subsampler:
-        preprocessor: AbstractPreProcessor  # TODO: try DefaultPreProcessor to see if it can resolve
+        preprocessor: 'DefaultPreProcessor'
         dataset: Dataset
         _keep_indices: Iterable = field(init=False, hash=False)
 
         def __post_init__(self):
-            self._keep_indices = (i for i, st in enumerate(self.dataset['subsample_type']) if self.preprocessor._keep_feature(st))
+            _keep_indices = (i for i, st in enumerate(self.dataset['subsample_type'])
+                             if self.preprocessor._keep_feature(st))
+            super().__setattr__('_keep_indices', _keep_indices)
 
         def __iter__(self):
             yield from self._keep_indices
-        
+
+        def subsample(self) -> Dataset:
+            try:
+                dataset = self.dataset.select(self)
+            except IndexError as ex:
+                raise ValueError("No features remaining after subsampling") from ex
+            dataset = dataset.remove_columns('subsample_type')
+            return dataset
 
     def subsample_features(self, dataset: Dataset) -> Dataset:
         if self._subsample_all_features:
             return dataset
 
-        # TODO: make this hashable so result of select can be cached, ideally without using mem of list
-        # Idea: create a hashable (data)class which implements __iter__
-        # keep_indices = self.Subsampler(self, dataset)
-        keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
-        try:
-            dataset = dataset.select(keep_indices)
-        except IndexError as ex:
-            raise ValueError("No features remaining after subsampling") from ex
-        dataset = dataset.remove_columns('subsample_type')
-        return dataset
+        # # keep_indices = self.Subsampler(self, dataset)
+        # keep_indices = (i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st))
+        # try:
+        #     dataset = dataset.select(keep_indices)
+        # except IndexError as ex:
+        #     raise ValueError("No features remaining after subsampling") from ex
+        # dataset = dataset.remove_columns('subsample_type')
+        # return dataset
+        return self.Subsampler(self, dataset).subsample()
 
     def _keep_feature(self, st: SubsampleType) -> bool:
         if st == SubsampleType.POSITIVE:
