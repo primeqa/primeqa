@@ -74,8 +74,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         "end_logit": end_logits[0],
                     }
 
-                start_indexes = np.argsort(start_logits)[-1 : -self._n_best_size - 1 : -1].tolist()
-                end_indexes = np.argsort(end_logits)[-1 : -self._n_best_size - 1 : -1].tolist()
+                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
+                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
                 for start_index in start_indexes:
                     for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
