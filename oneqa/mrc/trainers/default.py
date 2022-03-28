@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class MRCTrainer(Trainer):
+    def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eval_examples = eval_examples
+        self.eval_dataset = eval_dataset
+        self.post_process_function = post_process_function
+
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         if not self.args.remove_unused_columns:
             return dataset
@@ -101,10 +107,12 @@ class MRCTrainer(Trainer):
         Subclass and override this method if you want to inject some custom behavior.
 
         Args:
-            eval_dataset (`torch.utils.data.Dataset`, *optional*):
-                If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
+            eval_dataset (`torch.utils.data.Dataset`, *optional*)
+            If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
                 accepted by the `model.forward()` method are automatically removed. It must implement `__len__`.
+
         """
+
         if eval_dataset is None and self.eval_dataset is None:
             raise ValueError("Trainer: evaluation requires an eval_dataset.")
         eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
@@ -184,3 +192,47 @@ class MRCTrainer(Trainer):
     #         drop_last=self.args.dataloader_drop_last,
     #         pin_memory=self.args.dataloader_pin_memory,
     #     )
+
+    def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+        eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        eval_examples = self.eval_examples if eval_examples is None else eval_examples
+
+        # # Temporarily disable metric computation, we will do it in the loop here.
+        compute_metrics = self.compute_metrics
+        # self.compute_metrics = None
+        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        try:
+            output = eval_loop(
+                eval_dataloader,
+                description="Evaluation",
+                # No point gathering the predictions if there are no metrics, otherwise we defer to
+                # self.args.prediction_loss_only
+                # gather predictions if running in eval mode
+                prediction_loss_only=self.args.prediction_loss_only, #True if compute_metrics is None else None,
+                ignore_keys=ignore_keys,
+            )
+        finally:
+            self.compute_metrics = compute_metrics
+        
+
+        if self.post_process_function is not None:
+            eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+        if self.post_process_function is not None and self.compute_metrics is not None:
+            metrics = self.compute_metrics(eval_preds)
+
+            # Prefix all keys with metric_key_prefix + '_'
+            for key in list(metrics.keys()):
+                if not key.startswith(f"{metric_key_prefix}_"):
+                    metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
+
+            self.log(metrics)
+        else:
+            metrics = {}
+
+        # if self.args.tpu_metrics_debug or self.args.debug:
+        #     # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
+        #     xm.master_print(met.metrics_report())
+
+        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
+        return metrics
