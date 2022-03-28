@@ -55,6 +55,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             self._process_batch,
             fn_kwargs=dict(is_train=is_train),
             batched=True,
+            with_indices=True,
             num_proc=self._num_workers,
             remove_columns=examples.column_names,
             load_from_cache_file=self._load_from_cache_file,
@@ -65,7 +66,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             features = self.subsample_features(features)
         return examples, features
 
-    def _process_batch(self, examples: Batch, is_train: bool) -> BatchEncoding:
+    def _process_batch(self, examples: Batch, indices: List[int], is_train: bool) -> BatchEncoding:
         examples_question = examples['question']
         examples_context = examples['context']
         if isinstance(examples_question, str):  # wrap single (question, [context]) pair in list
@@ -102,14 +103,14 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
         if is_train:
             tokenized_examples = self._create_train_targets(tokenized_examples, examples['target'])
+            tokenized_examples = self.label_features_for_subsampling(tokenized_examples, examples)
         else:
             tokenized_examples = self._create_eval_targets(tokenized_examples)
 
+        tokenized_examples['example_idx'] = [indices[eidx] for eidx in tokenized_examples['example_idx']]
+
         for key in self._del_keys:
             tokenized_examples.pop(key, None)
-
-        if is_train:
-            tokenized_examples = self.label_features_for_subsampling(tokenized_examples, examples)
         
         return tokenized_examples
 
