@@ -99,11 +99,9 @@ class TestExtractivePostProcessor(UnitTest):
                         start_logits.append(self._score_none_token)
                         end_logits.append(self._score_none_token)
                     else:
-                        try:
-                            start_logits.append(next(start_scores_iter))
-                            end_logits.append(next(end_scores_iter))
-                        except StopIteration:
-                            print("failed")
+                        start_logits.append(next(start_scores_iter))
+                        end_logits.append(next(end_scores_iter))
+
                 start_logits +=  [sys.float_info.min]*(128-len(start_logits))
                 all_start_logits.append(np.array( start_logits))
                 end_logits += [sys.float_info.min]*(128-len(end_logits))
