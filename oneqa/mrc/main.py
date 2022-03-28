@@ -21,18 +21,21 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-bs-64-lr-4e-05-ep-3-nss-1e-01', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         do_train=True,
         do_eval=True,
-        num_train_epochs=1,
+        num_train_epochs=3,
         fp16=True,
         overwrite_output_dir=True,
-        save_steps=10000,
+        save_steps=50000,
         evaluation_strategy='no',
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=128,
+        learning_rate=4e-05,
     )
     checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/'
 
@@ -89,6 +92,8 @@ def main():
     preprocessor = preprocessor_class(
         stride=128,
         tokenizer=tokenizer,
+        negative_sampling_prob_when_has_answer=0.1,
+        negative_sampling_prob_when_no_answer=0.1,
     )
 
     # process train data
