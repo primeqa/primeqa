@@ -29,7 +29,8 @@ class TestTyDiQAPreprocessor(UnitTest):
     def tydiqa_preprocessor(self, tokenizer):
         return TyDiQAPreprocessor(
             tokenizer,
-            stride=128
+            stride=128,
+            load_from_cache_file=False,
         )
 
     def test_train_preprocessing_runs_without_errors(self, train_examples, tydiqa_preprocessor):

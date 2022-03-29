@@ -158,7 +158,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             end_position = t['end_positions'][0]
             yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'][0])
 
-            if passage_index == context_idx and start_position == -1:  # Passage Answer
+            if passage_index == context_idx and start_position == -1:  # Passage or Y/N Answer
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
                 tt = yes_no_answer
@@ -188,7 +188,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                     tokenized_examples["start_positions"].append(cls_index)
                     tokenized_examples["end_positions"].append(cls_index)
-                    tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
+                    tokenized_examples["target_type"].append(TargetType.PASSAGE_ANSWER)
                 else:
                     # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                     # Note: we could go after the last offset if the answer is the last word (edge case).
