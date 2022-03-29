@@ -48,7 +48,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
     @staticmethod
     def _insert_example_ids(examples: Batch) -> Batch:
-        example_id = [str(uuid.uuid4()) for _ in range(len(examples))]
+        n_examples = len(examples['question'])
+        example_id = [str(uuid.uuid4()) for _ in range(n_examples)]
         examples['example_id'] = example_id
         return examples
 
