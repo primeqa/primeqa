@@ -215,7 +215,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'end_position': top_pred['span_answer']['end_position'],
                 'passage_index': top_pred['passage_index'],
                 'yes_no_answer': top_pred['yes_no_answer'],
-                'confidence_score': top_pred['span_answer_score']
+                'confidence_score': top_pred['normalized_span_answer_score']
             }
             predictions_for_metric.append(prediction_for_metric)
 

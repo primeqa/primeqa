@@ -21,7 +21,7 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-bs-64-lr-4e-05-ep-3-nss-1e-01', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-bs-64-lr-4e-05-ep-3-nss-1e-01-norm-conf', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
@@ -32,7 +32,7 @@ def main():
         fp16=True,
         overwrite_output_dir=True,
         save_steps=50000,
-        evaluation_strategy='no',
+        evaluation_strategy='epoch',
         per_device_train_batch_size=64,
         per_device_eval_batch_size=128,
         learning_rate=4e-05,
@@ -56,7 +56,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-base'
+    model_name = 'xlm-roberta-large'
     task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,

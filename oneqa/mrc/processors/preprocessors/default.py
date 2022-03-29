@@ -35,10 +35,22 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         if 'example_id' not in dataset.features:
-            example_id = [str(uuid.uuid4()) for _ in range(dataset.num_rows)]
-            dataset = dataset.add_column('example_id', example_id)
+            # example_id = [str(uuid.uuid4()) for _ in range(dataset.num_rows)]
+            # dataset = dataset.add_column('example_id', example_id)
+            dataset = dataset.map(  # Map instead of add column to allow caching
+                self._insert_example_ids,
+                batched=True,
+                load_from_cache_file=self._load_from_cache_file,
+                num_proc=self._num_workers,
+            )
         self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
+
+    @staticmethod
+    def _insert_example_ids(examples: Batch) -> Batch:
+        example_id = [str(uuid.uuid4()) for _ in range(len(examples))]
+        examples['example_id'] = example_id
+        return examples
 
     def process_train(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
         return self._process(examples, is_train=True)
