@@ -23,7 +23,7 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep-max-1-128-chars', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
