@@ -4,7 +4,7 @@ import datasets
 
 from oneqa.mrc.metrics.tydi_f1.eval_utils import Span, TyDiLabel
 from oneqa.mrc.metrics.tydi_f1.tydi_eval import pretty_print
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.target_type import TargetType
 
 # TODO tydi f1 docs
 _DESCRIPTION = """

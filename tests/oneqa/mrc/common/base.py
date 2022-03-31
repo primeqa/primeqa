@@ -6,7 +6,7 @@ from transformers import AutoConfig, AutoModel, AutoTokenizer
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
-from oneqa.mrc.types.target_type import TargetType
+from oneqa.mrc.data_models.target_type import TargetType
 from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
 
 
