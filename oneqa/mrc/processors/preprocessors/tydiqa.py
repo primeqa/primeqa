@@ -46,12 +46,15 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
 
         for i in range(len(example['target']['passage_indices'])):
             pidx = example['target']['passage_indices'][i]
-            if pidx == -1:
+            if pidx == -1 or example['target']['start_positions'][i] == -1:
                 continue
 
             offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
             example['target']['start_positions'][i] -= offset
             example['target']['end_positions'][i] -= offset
+
+        # if any(x < -1 for x in example['target']['start_positions']) or any(x < -1 for x in example['target']['end_positions']) or any(x < -1 for x in example['target']['passage_indices']):
+        #     raise ValueError(f"Error processing example: {example}")
 
         return example
 
