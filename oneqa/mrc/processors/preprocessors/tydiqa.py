@@ -1,4 +1,5 @@
 from operator import itemgetter
+from typing import Optional
 
 from datasets import Dataset
 from datasets.features.features import Sequence, Value
@@ -22,6 +23,10 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
                       'minimal_answers_start_byte': 'start_positions',
                       'minimal_answers_end_byte': 'end_positions'}
 
+    def __init__(self, *args, max_contexts: Optional[int] = 48, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._max_contexts = max_contexts
+
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         self.validate_schema(dataset, is_train)
         dataset = dataset.rename_columns(self._rename_fields)
@@ -42,7 +47,7 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
             context_bytes[start_byte: end_byte].decode('utf-8')
             for start_byte, end_byte in zip(*self._byte_itemgetter(example['passage_answer_candidates']))
         ]
-        example['context'] = context
+        example['context'] = context[:self._max_contexts] if self._max_contexts is not None else context
 
         for i in range(len(example['target']['passage_indices'])):
             pidx = example['target']['passage_indices'][i]

@@ -1,5 +1,6 @@
 import argparse
 import logging
+from operator import attrgetter
 import os
 
 import datasets
@@ -22,27 +23,27 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-base-bs-64-lr-4e-05-ep-1-fix-eid-warmup-1e-01-weight-decay-1e-01-eval-small', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
-        do_train=False,
+        do_train=True,
         do_eval=True,
-        num_train_epochs=1,
-        fp16=False,
+        num_train_epochs=3,
+        fp16=True,
         overwrite_output_dir=True,
         save_steps=50000,
         evaluation_strategy='no',
         per_device_train_batch_size=32,
-        per_device_eval_batch_size=8,
+        per_device_eval_batch_size=128,
         learning_rate=4e-05,
         gradient_accumulation_steps=2,
         # optim='adamw_torch',
         warmup_ratio=0.1,
         weight_decay=0.1,
     )
-    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-base-bs-64-lr-4e-05-ep-1-fix-eid-warmup-1e-01-weight-decay-1e-01'
+    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-base-feat-fix'
 
     set_seed(training_args.seed)
 
@@ -61,7 +62,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-base'
+    model_name = 'xlm-roberta-large'
     task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
@@ -99,6 +100,7 @@ def main():
         tokenizer=tokenizer,
         # negative_sampling_prob_when_has_answer=0.1,
         # negative_sampling_prob_when_no_answer=0.1,
+        load_from_cache_file=False,
     )
 
     # process train data
@@ -126,7 +128,7 @@ def main():
     if training_args.do_eval:
         # process val data
         eval_examples = raw_datasets["validation"]
-        max_eval_samples = 10 #250
+        max_eval_samples = None  # 10 #250
         if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
             # We will select sample from whole data
             eval_examples = eval_examples.select(range(max_eval_samples))
@@ -145,8 +147,8 @@ def main():
             eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
     # process test data
-
-    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if training_args.fp16 else None)
+    using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
+    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     # train
 
