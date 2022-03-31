@@ -16,7 +16,7 @@ from oneqa.mrc.data_models.target_type import TargetType
 
 # TODO type signatures for all methods
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _del_keys = ["overflow_to_sample_mapping", "offset_mapping"]
+    _del_keys = ["overflow_to_sample_mapping"] #, "offset_mapping"]
     _feature_types = {'question': Value(dtype='string', id=None),
                       'context': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
     _train_feature_types = {
@@ -78,11 +78,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         expanded_examples_context = list(itertools.chain.from_iterable(examples_context))
 
         tokenized_examples = self._tokenizer(
-            expanded_examples_context if self._pad_on_right else expanded_examples_question,
             expanded_examples_question if self._pad_on_right else expanded_examples_context,
+            expanded_examples_context if self._pad_on_right else expanded_examples_question,
             stride=self._stride,
             max_length=self._max_seq_len,
-            truncation='only_first' if self._pad_on_right else 'only_second',
+            truncation='only_second' if self._pad_on_right else 'only_first',
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
         )
