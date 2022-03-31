@@ -14,6 +14,7 @@ from transformers import EvalPrediction
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
+from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 
 logger = logging.getLogger(__name__)
 
@@ -215,9 +216,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'end_position': top_pred['span_answer']['end_position'],
                 'passage_index': top_pred['passage_index'],
                 'yes_no_answer': top_pred['yes_no_answer'],
-                'confidence_score': top_pred['normalized_span_answer_score']
+                'confidence_score': top_pred['span_answer_score']
             }
             predictions_for_metric.append(prediction_for_metric)
 
         # noinspection PyTypeChecker
-        return EvalPrediction(label_ids=references, predictions=predictions_for_metric)
+        return EvalPredictionWithProcessing(label_ids=references, predictions=predictions, processed_predictions=predictions_for_metric)

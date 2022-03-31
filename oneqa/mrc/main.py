@@ -14,6 +14,7 @@ from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 
 
 def main():
@@ -21,23 +22,27 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-bs-64-lr-4e-05-ep-3-nss-1e-01-norm-conf', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-base-bs-64-lr-4e-05-ep-1-fix-eid-warmup-1e-01-weight-decay-1e-01-eval-small', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
-        do_train=True,
+        do_train=False,
         do_eval=True,
-        num_train_epochs=3,
-        fp16=True,
+        num_train_epochs=1,
+        fp16=False,
         overwrite_output_dir=True,
         save_steps=50000,
-        evaluation_strategy='epoch',
-        per_device_train_batch_size=64,
-        per_device_eval_batch_size=128,
+        evaluation_strategy='no',
+        per_device_train_batch_size=32,
+        per_device_eval_batch_size=8,
         learning_rate=4e-05,
+        gradient_accumulation_steps=2,
+        # optim='adamw_torch',
+        warmup_ratio=0.1,
+        weight_decay=0.1,
     )
-    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/'
+    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-base-bs-64-lr-4e-05-ep-1-fix-eid-warmup-1e-01-weight-decay-1e-01'
 
     set_seed(training_args.seed)
 
@@ -56,7 +61,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-large'
+    model_name = 'xlm-roberta-base'
     task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
@@ -92,8 +97,8 @@ def main():
     preprocessor = preprocessor_class(
         stride=128,
         tokenizer=tokenizer,
-        negative_sampling_prob_when_has_answer=0.1,
-        negative_sampling_prob_when_no_answer=0.1,
+        # negative_sampling_prob_when_has_answer=0.1,
+        # negative_sampling_prob_when_no_answer=0.1,
     )
 
     # process train data
@@ -121,7 +126,7 @@ def main():
     if training_args.do_eval:
         # process val data
         eval_examples = raw_datasets["validation"]
-        max_eval_samples = None  # 10 #250
+        max_eval_samples = 10 #250
         if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
             # We will select sample from whole data
             eval_examples = eval_examples.select(range(max_eval_samples))
@@ -150,8 +155,8 @@ def main():
 
     metric = datasets.load_metric(tydi_f1.__file__)  # TODO parameterize
 
-    def compute_metrics(p: EvalPrediction):
-        return metric.compute(predictions=p.predictions, references=p.label_ids)
+    def compute_metrics(p: EvalPredictionWithProcessing):
+        return metric.compute(predictions=p.processed_predictions, references=p.label_ids)
 
     trainer = MRCTrainer(
         model=model,
@@ -186,14 +191,15 @@ def main():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
 
-    logger.info("*** Evaluate ***")
-    metrics = trainer.evaluate()
+    if training_args.do_eval:
+        logger.info("*** Evaluate ***")
+        metrics = trainer.evaluate()
 
-    # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-    # metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+        # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+        # metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
 
-    trainer.log_metrics("eval", metrics)
-    trainer.save_metrics("eval", metrics)
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
 
     # run val
 
