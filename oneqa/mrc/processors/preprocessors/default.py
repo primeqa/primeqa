@@ -1,4 +1,5 @@
 import itertools
+from lib2to3.pgen2.tokenize import tokenize
 import random
 import uuid
 from operator import sub
@@ -43,7 +44,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 load_from_cache_file=self._load_from_cache_file,
                 num_proc=self._num_workers,
             )
-        self.validate_schema(dataset, is_train, pre_adaptation=False)
+        # self.validate_schema(dataset, is_train, pre_adaptation=False)  # TODO: re-enable
         return dataset
 
     @staticmethod
@@ -91,8 +92,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         expanded_examples_question = []
         expanded_examples_idx = []
         for i, (question, context) in enumerate(zip(examples_question, examples_context)):
-            expanded_examples_question.extend(itertools.repeat(question, len(context)))
-            expanded_examples_idx.extend(itertools.repeat(i, len(context)))
+            n_context_for_example = len(context)
+            if self._single_context_multiple_passages and n_context_for_example != 1:
+                raise ValueError("Must have exactly one context for each question to use single_context_multiple_passages")
+            expanded_examples_question.extend(itertools.repeat(question, n_context_for_example))
+            expanded_examples_idx.extend(itertools.repeat(i, n_context_for_example))
         expanded_examples_context = list(itertools.chain.from_iterable(examples_context))
 
         tokenized_examples = self._tokenizer(
@@ -105,17 +109,18 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             return_offsets_mapping=True,
         )
 
-        examples_id = examples['example_id']
-
-        # TODO: won't this reset to start at zero every batch?  Soln: add column to delete keys and switch postprocessor to use example_id
         tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
-        spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
-        tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
-        # tokenized_examples['window_idx'] = [idx for _, group in itertools.groupby(tokenized_examples['context_idx']) for idx, _ in enumerate(group)]  # TODO: is this needed?
-        tokenized_examples['example_id'] = [examples_id[eidx] for eidx in tokenized_examples['example_idx']]
+        tokenized_examples['example_id'] = [examples['example_id'][eidx] for eidx in tokenized_examples['example_idx']]
+
+        if self._single_context_multiple_passages:
+            # context_idx = self._assign_context_idxs_to_single_passage(tokenized_examples, examples)
+            pass
+        else:
+            spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
+            tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
 
         if is_train:
-            tokenized_examples = self._create_train_targets(tokenized_examples, examples['target'])
+            tokenized_examples = self._create_train_targets(tokenized_examples, examples)
             tokenized_examples = self.label_features_for_subsampling(tokenized_examples, examples)
         else:
             tokenized_examples = self._create_eval_targets(tokenized_examples)
@@ -127,8 +132,9 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         
         return tokenized_examples
 
-    def _create_train_targets(self, tokenized_examples: BatchEncoding, target: List[Dict[str, Any]]) -> BatchEncoding:  # TODO: rename create targets fns?
-        
+    def _create_train_targets(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:  # TODO: rename create targets fns?
+        target = examples['target']
+
         # Since one context might give us several features if it has a long context, and each example can have many contexts,
         # we need a map from a feature to ts corresponding example. This key gives us just that.
         example_mapping = tokenized_examples['example_idx']
@@ -151,39 +157,60 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
             # One example can give several spans, this is the index of the example containing this span of text.
             example_index = example_mapping[i]
-            context_idx = tokenized_examples['context_idx'][i]
+            passage_candidates = examples['passage_answer_candidates'][example_index]
             t = target[example_index]
             passage_index = t['passage_indices'][0]
             start_position = t['start_positions'][0]
             end_position = t['end_positions'][0]
             yes_no_answer = TargetType.from_bool_label(t['yes_no_answer'][0])
 
-            if passage_index == context_idx and start_position == -1:  # Passage or Y/N Answer
+            # Start/end character index of the answer in the text.
+            start_char = start_position
+            end_char = end_position
+
+            # Start token index of the current span in the text.
+            token_start_index = 0
+            while sequence_ids[token_start_index] != (1 if self._pad_on_right else 0):
+                token_start_index += 1
+
+            # End token index of the current span in the text.
+            token_end_index = len(input_ids) - 1
+            while sequence_ids[token_end_index] != (1 if self._pad_on_right else 0):
+                token_end_index -= 1
+
+            if passage_index == -1:
+                window_contains_correct_passage = False
+            else:
+                if self._single_context_multiple_passages:
+                    # for i in range(len(passage_candidates['plaintext_start_byte'])):
+                    #     psb = passage_candidates['plaintext_start_byte'][i]
+                    #     peb = passage_candidates['plaintext_end_byte'][i]
+                    #     if self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1])):
+                    #     # if psb <= offsets[token_start_index][0] <= peb or psb <= offsets[token_end_index][1] <= peb:
+                    #         window_contains_correct_passage = True
+                    #         break
+                    # else:
+                    #     window_contains_correct_passage = False
+
+                    psb = passage_candidates['plaintext_start_byte'][passage_index]
+                    peb = passage_candidates['plaintext_end_byte'][passage_index]
+                    window_contains_correct_passage = self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1]))
+                else:
+                    context_idx = tokenized_examples['context_idx'][i]
+                    window_contains_correct_passage = passage_index == context_idx
+
+            if window_contains_correct_passage and start_position == -1:  # Passage or Y/N Answer
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
                 tt = yes_no_answer
                 if tt not in (TargetType.YES, TargetType.NO):
                     tt = TargetType.PASSAGE_ANSWER
                 tokenized_examples["target_type"].append(tt)
-            elif passage_index != context_idx or start_position == -1:  # No Answer
+            elif not window_contains_correct_passage or start_position == -1:  # No Answer
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
                 tokenized_examples["target_type"].append(TargetType.NO_ANSWER)
             else:  # Span Answer
-                # Start/end character index of the answer in the text.
-                start_char = start_position
-                end_char = end_position
-
-                # Start token index of the current span in the text.
-                token_start_index = 0
-                while sequence_ids[token_start_index] != (1 if self._pad_on_right else 0):
-                    token_start_index += 1
-
-                # End token index of the current span in the text.
-                token_end_index = len(input_ids) - 1
-                while sequence_ids[token_end_index] != (1 if self._pad_on_right else 0):
-                    token_end_index -= 1
-
                 # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
                 if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
                     tokenized_examples["start_positions"].append(cls_index)
@@ -317,3 +344,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     #     if is_train:
     #         schema.update(self._train_feature_types)
     #     return schema
+
+    # def _generate_previous_spans_per_example(self, tokenized_examples: BatchEncoding, examples: Batch) -> List[int]:
+    #     context_idx = [-1] * len(tokenized_examples["overflow_to_sample_mapping"])
+
+    @staticmethod
+    def _spans_intersect(s1: Tuple[int, int], s2: Tuple[int, int]) -> bool:
+        return (s1[0] <= s2[0] <= s1[1]) or (s2[0] <= s1[0] <= s2[1]) or \
+               (s1[0] <= s2[1] <= s1[1]) or (s2[0] <= s1[1] <= s2[1])

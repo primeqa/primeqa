@@ -23,14 +23,14 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep-max-1-128-chars', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-base-single-context-fix-f1-overlap-fix-more-feat-fix', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         do_train=True,
         do_eval=True,
-        num_train_epochs=3,
+        num_train_epochs=1,
         fp16=True,
         overwrite_output_dir=True,
         save_steps=50000,
@@ -43,7 +43,7 @@ def main():
         warmup_ratio=0.1,
         weight_decay=0.1,
     )
-    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-base-feat-fix'
+    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep-max-1-128-chars'
 
     set_seed(training_args.seed)
 
@@ -62,7 +62,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-large'
+    model_name = 'xlm-roberta-base'
     task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
@@ -106,7 +106,7 @@ def main():
     # process train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
-        max_train_samples = None  # 1000
+        max_train_samples = None  # 10
         # train_dataset = train_dataset.select(range(159000, train_dataset.num_rows))
         if max_train_samples is not None:  # if data_args.max_train_samples is not None:
             # We will select sample from whole data if argument is specified

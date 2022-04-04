@@ -26,6 +26,7 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
     def __init__(self, *args, max_contexts: Optional[int] = 48, **kwargs):
         super().__init__(*args, **kwargs)
         self._max_contexts = max_contexts
+        self._single_context_multiple_passages = True
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         self.validate_schema(dataset, is_train)
@@ -42,21 +43,21 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
         return dataset
     
     def _split_context(self, example):
-        context_bytes = example['document_plaintext'].encode('utf-8')
-        context = [
-            context_bytes[start_byte: end_byte].decode('utf-8')
-            for start_byte, end_byte in zip(*self._byte_itemgetter(example['passage_answer_candidates']))
-        ]
-        example['context'] = context[:self._max_contexts] if self._max_contexts is not None else context
+        context = example['document_plaintext']
+        if self._max_contexts and len(example['passage_answer_candidates']) > self._max_contexts:
+            context_bytes = context.encode('utf-8')
+            context_bytes = context_bytes[:example['passage_answer_candidates'][self._max_contexts - 1]['plaintext_end_byte']]
+            context = context_bytes.decode('utf-8')
+        example['context'] = [context]
 
-        for i in range(len(example['target']['passage_indices'])):
-            pidx = example['target']['passage_indices'][i]
-            if pidx == -1 or example['target']['start_positions'][i] == -1:
-                continue
+        # for i in range(len(example['target']['passage_indices'])):
+        #     pidx = example['target']['passage_indices'][i]
+        #     if pidx == -1 or example['target']['start_positions'][i] == -1:
+        #         continue
 
-            offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
-            example['target']['start_positions'][i] -= offset
-            example['target']['end_positions'][i] -= offset
+        #     offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
+        #     example['target']['start_positions'][i] -= offset
+        #     example['target']['end_positions'][i] -= offset
 
         # if any(x < -1 for x in example['target']['start_positions']) or any(x < -1 for x in example['target']['end_positions']) or any(x < -1 for x in example['target']['passage_indices']):
         #     raise ValueError(f"Error processing example: {example}")
