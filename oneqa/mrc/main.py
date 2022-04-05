@@ -23,7 +23,7 @@ def main():
 
     # TODO: remove during parameterization
     parser = argparse.ArgumentParser()
-    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-base-single-context-fix-f1-overlap-fix-more-feat-fix', nargs='?')
+    parser.add_argument('output_dir', default='/dccstor/aferritt3/oneqa/test-model-base-single-context-offset-fix', nargs='?')
     args = parser.parse_args()
 
     training_args = TrainingArguments(

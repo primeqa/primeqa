@@ -44,24 +44,31 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
     
     def _split_context(self, example):
         context = example['document_plaintext']
-        if self._max_contexts and len(example['passage_answer_candidates']) > self._max_contexts:
-            context_bytes = context.encode('utf-8')
-            context_bytes = context_bytes[:example['passage_answer_candidates'][self._max_contexts - 1]['plaintext_end_byte']]
-            context = context_bytes.decode('utf-8')
-        example['context'] = [context]
+        context_bytes = context.encode('utf-8')
 
-        # for i in range(len(example['target']['passage_indices'])):
-        #     pidx = example['target']['passage_indices'][i]
-        #     if pidx == -1 or example['target']['start_positions'][i] == -1:
-        #         continue
+        for i in range(len(example['target']['passage_indices'])):
+            pidx = example['target']['passage_indices'][i]
+            if pidx == -1 or example['target']['start_positions'][i] == -1:
+                continue
 
-        #     offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
-        #     example['target']['start_positions'][i] -= offset
-        #     example['target']['end_positions'][i] -= offset
+            # offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
+            # example['target']['start_positions'][i] -= offset
+            # example['target']['end_positions'][i] -= offset
+
+            example['target']['start_positions'][i] = len(context_bytes[:example['target']['start_positions'][i]].decode('utf-8', errors='replace'))
+            example['target']['end_positions'][i] = len(context_bytes[:example['target']['end_positions'][i]].decode('utf-8', errors='replace'))
+
+        for i in range(len(example['passage_answer_candidates']['plaintext_start_byte'])):
+            example['passage_answer_candidates']['plaintext_start_byte'][i] = len(context_bytes[:example['passage_answer_candidates']['plaintext_start_byte'][i]].decode('utf-8', errors='replace'))
+            example['passage_answer_candidates']['plaintext_end_byte'][i] = len(context_bytes[:example['passage_answer_candidates']['plaintext_end_byte'][i]].decode('utf-8', errors='replace'))
 
         # if any(x < -1 for x in example['target']['start_positions']) or any(x < -1 for x in example['target']['end_positions']) or any(x < -1 for x in example['target']['passage_indices']):
         #     raise ValueError(f"Error processing example: {example}")
 
+        if self._max_contexts and len(example['passage_answer_candidates']) > self._max_contexts:
+            context_bytes = context_bytes[:example['passage_answer_candidates'][self._max_contexts - 1]['plaintext_end_byte']]
+            context = context_bytes.decode('utf-8')
+        example['context'] = [context]
         return example
 
     def _create_target(self, example):
