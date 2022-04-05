@@ -1,8 +1,11 @@
 import logging
 import os
+import sys
 
 import datasets
-from transformers import TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
@@ -12,19 +15,187 @@ from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+
+# modified from
+# https://github.com/huggingface/transformers/blob/main/examples/pytorch/question-answering/run_qa.py
+@dataclass
+class ModelArguments:
+    """
+    Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
+    """
+
+    model_name_or_path: str = field(
+        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+    )
+    config_name: Optional[str] = field(
+        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+    )
+    tokenizer_name: Optional[str] = field(
+        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+    )
+    cache_dir: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to directory to store the pretrained models downloaded from huggingface.co"},
+    )
+    checkpoint_for_eval: Optional[str] = field(
+        default=None,
+        metadata={"help": "Path to the checkpoint model for evaluation."}
+    )
+
+# modified from
+# https://github.com/huggingface/transformers/blob/main/examples/pytorch/question-answering/run_qa.py
+@dataclass
+class DataTrainingArguments:
+    """
+    Arguments pertaining to what data we are going to input our model for training and eval.
+    """
+
+    dataset_name: Optional[str] = field(
+        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
+    dataset_config_name: Optional[str] = field(
+        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+    )
+    train_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    validation_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
+    )
+    test_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "An optional input test data file to evaluate the perplexity on (a text file)."},
+    )
+    overwrite_cache: bool = field(
+        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+    )
+    preprocessing_num_workers: Optional[int] = field(
+        default=None,
+        metadata={"help": "The number of processes to use for the preprocessing."},
+    )
+    max_seq_length: int = field(
+        default=512,
+        metadata={
+            "help": "The maximum total input sequence length after tokenization. Sequences longer "
+                    "than this will be truncated, sequences shorter will be padded."
+        },
+    )
+    pad_to_max_length: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to pad all samples to `max_seq_length`. "
+                    "If False, will pad the samples dynamically when batching to the maximum length in the batch (which can "
+                    "be faster on GPU but will be slower on TPU)."
+        },
+    )
+    max_train_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of training examples to this "
+                    "value if set."
+        },
+    )
+    max_eval_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                    "value if set."
+        },
+    )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of prediction examples to this "
+                    "value if set."
+        },
+    )
+    doc_stride: int = field(
+        default=128,
+        metadata={"help": "When splitting up a long document into chunks, how much stride to take between chunks."},
+    )
+    n_best_size: int = field(
+        default=20,
+        metadata={"help": "The total number of n-best predictions to generate when looking for an answer."},
+    )
+    n_best_logits: int = field(
+        default=20,
+        metadata={"help": "The number of logits to consider when searching for start and end position of an answer"}
+    )
+    max_answer_length: int = field(
+        default=32,
+        metadata={
+            "help": "The maximum length of an answer that can be generated. This is needed because the start "
+                    "and end predictions are not conditioned on one another."
+        },
+    )
+    negative_sampling_rate: float = field(
+        default=0.01,
+        metadata={"help": "The sampling rate to select features from the context without answer."},
+    )
+
+
+@dataclass
+class TaskArguments:
+    """
+    Task specific arguments.
+    """
+    scorer_type: str = field(
+        default='weighted_sum_target_type_and_score_diff',
+        metadata={"help": "The name of the scorer to compute answer score.",
+                  "choices": ["weighted_sum_target_type_and_score_diff"]
+                  }
+    )
+    task_heads: str = field(
+        default='EXTRACTIVE_HEAD',
+        metadata={"help": "The name of the task head to use.",
+                  "choices": ["EXTRACTIVE_HEAD"]
+                  }
+    )
+    preprocessor: str = field(
+        default='TyDiQAPreprocessor',
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": ["TyDiQAPreprocessor"]
+                  }
+    )
+    postprocessor: str = field(
+        default='ExtractivePostProcessor',
+        metadata={"help": "The name of the postprocessor to use.",
+                  "choices": ["ExtractivePostProcessor"]
+                  }
+    )
+    eval_metrics: Optional[str] = field(
+        default=None,
+        metadata={"help": "The name of the evaluation metric function."
+                  }
+    )
+
 
 
 def main():
+
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
+    if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+    # If we pass only one argument to the script and it's the path to a json file,
+    # let's parse it to get our arguments.
+        model_args, data_args, training_args, task_args = \
+            parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+    else:
+        model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
+
     logger = logging.getLogger(__name__)
-    training_args = TrainingArguments(
-        output_dir='/dccstor/bsiyer6/OneQA/test-model-eval',
-        do_train=False,
-        do_eval=True,
-        num_train_epochs=0.1,
-        fp16=False,
-    )
-    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
-    scorer_type='weighted_sum_target_type_and_score_diff'
+
+#    training_args = TrainingArguments(
+#        output_dir='/dccstor/zhrong-nmt/QA/oneqa/exp/03212022/',
+#        do_train=True,
+#        do_eval=True,
+#        num_train_epochs=0.1,
+#        fp16=False,
+#    )
+
+    checkpoint_for_eval = model_args.checkpoint_for_eval
+        #'/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
+    scorer_type = task_args.scorer_type
+        #weighted_sum_target_type_and_score_diff'
 
     set_seed(training_args.seed)
 
@@ -43,8 +214,10 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-base'
-    task_heads = EXTRACTIVE_HEAD  # TODO parameterize
+    model_name = model_args.model_name_or_path
+        #'xlm-roberta-base'
+    task_heads = getattr(sys.modules[__name__], task_args.task_heads)
+        #EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
         # cache_dir=model_args.cache_dir,
@@ -62,7 +235,7 @@ def main():
     
     # TODO: remove during parameterization 
     if not training_args.do_train:
-        model_name = checkpoint_for_eval
+        model_name = model_args.checkpoint_for_eval
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
@@ -72,18 +245,22 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset("tydiqa", "primary_task")
+    raw_datasets = datasets.load_dataset(data_args.dataset_name, data_args.dataset_config_name)
+        #("tydiqa", "primary_task")
 
     # load preprocessor
-    preprocessor_class = TyDiQAPreprocessor  # TODO parameterize
+    preprocessor_class = getattr(sys.modules[__name__], task_args.preprocessor)
+        #TyDiQAPreprocessor  # TODO parameterize
     preprocessor = preprocessor_class(
-        stride=128,
+        stride=data_args.doc_stride,
+        #128,
         tokenizer=tokenizer,
     )
 
     # process train data
     train_dataset = raw_datasets["train"]
-    max_train_samples = 1000
+    max_train_samples = data_args.max_train_samples
+        #1000
     if max_train_samples is not None:  # if data_args.max_train_samples is not None:
         # We will select sample from whole data if argument is specified
         train_dataset = train_dataset.select(range(max_train_samples))
@@ -103,7 +280,8 @@ def main():
 
     # process val data
     eval_examples = raw_datasets["validation"]
-    max_eval_samples = 10 #250
+    max_eval_samples = data_args.max_eval_samples
+        #10 #250
     if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
         # We will select sample from whole data
         eval_examples = eval_examples.select(range(max_eval_samples))
@@ -127,10 +305,19 @@ def main():
 
     # train
 
-    postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
+    postprocessor_class = getattr(sys.modules[__name__], task_args.postprocessor)
+        #ExtractivePostProcessor  # TODO parameterize
+    postprocessor = postprocessor_class(
+        k=data_args.n_best_logits, #5,
+        n_best_size=data_args.n_best_size, #20,
+        max_answer_length=data_args.max_answer_length, #30,
+        scorer_type=SupportedSpanScorers(scorer_type))
 
-    metrics_fn = None  # TODO metrics
+    if task_args.eval_metrics:
+        metrics_fn = getattr(sys.modules[__name__], task_args.eval_metrics)
+    else:
+        metrics_fn = None
+        #None  # TODO metrics
 
     trainer = MRCTrainer(
         model=model,
@@ -172,8 +359,8 @@ def main():
     # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
     # metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
 
-    trainer.log_metrics("eval", metrics)
-    trainer.save_metrics("eval", metrics)
+#    trainer.log_metrics("eval", metrics)
+#    trainer.save_metrics("eval", metrics)
 
     # run val
 
