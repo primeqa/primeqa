@@ -1,29 +1,34 @@
 from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
+from typing import List, Dict, Any
 
+from datasets import Dataset
 from tqdm import tqdm
 import numpy as np
 from datetime import datetime
 import torch
 import logging
+from transformers import EvalPrediction
 
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
+from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 logger = logging.getLogger(__name__)
 
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF): 
+    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF, single_context_multiple_passages: bool = True):
         super().__init__(k)
         self._n_best_size = n_best_size
         self._max_answer_length = max_answer_length
         self._score_calculator = initialize_scorer(scorer_type)
+        self._single_context_multiple_passages = single_context_multiple_passages
 
     def process(self, examples, features, predictions):
-        features_itr = groupby(features, key=itemgetter('example_idx'))
+        features_itr = groupby(features, key=itemgetter('example_idx'))  # TODO: may need to change this to example_id when getting rid of example_idx column.
         predictions_i = 0
         if len(features) != predictions[0].shape[0] and all(
                 p.shape[0] == predictions[0].shape[0] for p in predictions[1:]):
@@ -43,12 +48,21 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                                  f"and feature ({feat_example_idx})")
             example_features = list(example_features)
             example_id = example_features[0]['example_id']
-            example['example_id'] = example_id  # TODO: assign example id to examples before featurization
+            # example['example_id'] = example_id  # TODO: assign example id to examples before featurization
             contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
             example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
             start_idx += len(example_features)
+
+            # # TODO: move this to the preprocessor
+            # label = {
+            #     'start_position': example['target']['start_positions'],
+            #     'end_position': example['target']['end_positions'],
+            #     'passage_index': example['target']['passage_indices'],
+            #     'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),
+            #     'example_id': example_id
+            # }
 
             min_null_prediction = None
             prelim_predictions = []
@@ -61,7 +75,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 end_logits = example_end_logits[i].tolist()
                 target_type_logits = example_targettype_preds[i].tolist()
                 offset_mapping = input_feature["offset_mapping"]
-                context_idx = input_feature['context_idx']
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
                 # Update minimum null prediction.
@@ -96,7 +109,26 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         # provided).
                         if token_is_max_context is not None and not token_is_max_context.get(str(start_index), False):
                             continue
-                        
+
+                        start_position = offset_mapping[start_index][0]
+                        end_position = offset_mapping[end_index][1]
+
+                        if self._single_context_multiple_passages:
+                            passage_candidates = example['passage_answer_candidates']
+                            for i in range(len(passage_candidates['plaintext_start_byte'])):
+                                psb = passage_candidates['plaintext_start_byte'][i]
+                                peb = passage_candidates['plaintext_end_byte'][i]
+                                if psb <= start_position <= end_position <= peb:
+                                    context_idx = i
+                                    break
+                            else:
+                                context_idx = -1
+                            passage_text = contexts[0]
+                        else:
+                            context_idx = input_feature['context_idx']
+                            passage_text = contexts[context_idx]
+
+                        span_answer_text = passage_text[offset_mapping[start_index][0]:offset_mapping[end_index][1]]
                         span_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
                                                 feature_null_score, target_type_logits)
                         prelim_predictions.append(
@@ -106,15 +138,15 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'start_logit': start_logits[start_index],
                             'end_logit': end_logits[end_index],
                             'span_answer': {
-                                "start_position": offset_mapping[start_index][0], 
-                                "end_position": offset_mapping[end_index][1],
+                                "start_position": start_position,
+                                "end_position": end_position,
                             },
                             'span_answer_score' : span_answer_score,
                             'start_index': start_index,
                             'end_index':   end_index,
                             'passage_index' : context_idx,
                             'target_type_logits': target_type_logits,
-                            'span_answer_text': contexts[context_idx][offset_mapping[start_index][0]:offset_mapping[end_index][1]],
+                            'span_answer_text': span_answer_text,
                             'yes_no_answer': int(TargetType.NO_ANSWER)
                         }
                     )
@@ -167,13 +199,45 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
         return all_predictions
         
+    def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
+        references = []
+        n_annotators = len(examples[0]['target']['start_positions'])
+        for example_idx in range(examples.num_rows):
+            example = examples[example_idx]
+            # label = {
+            #     'span_answer': {'start_position': example['target']['start_positions'],
+            #                     'end_position': example['target']['end_positions'], },
+            #     'passage_index': example['target']['passage_indices'],
+            #     'yes_no_answer': example['target']['yes_no_answer'],
+            #     'example_id': example['example_id']
+            # }
+            label = {
+                'start_position': example['target']['start_positions'],
+                'end_position': example['target']['end_positions'],
+                'passage_index': example['target']['passage_indices'],
+                'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),  # TODO: decide on schema type for bool ans
+                'example_id': [example['example_id']] * n_annotators,
+                'language': [example['language']] * n_annotators  # TODO: schema does not have language by default
+            }
+            references.append(label)
+        return references
 
+    def process_references_and_predictions(self, examples, features, predictions) -> EvalPrediction:
+        references = self.prepare_examples_as_references(examples)
+        predictions = self.process(examples, features, predictions)
+        predictions_for_metric = []
 
-                
+        for example_id, preds in predictions.items():
+            top_pred = preds[0]
+            prediction_for_metric = {
+                'example_id': example_id,
+                'start_position': top_pred['span_answer']['start_position'],
+                'end_position': top_pred['span_answer']['end_position'],
+                'passage_index': top_pred['passage_index'],
+                'yes_no_answer': top_pred['yes_no_answer'],
+                'confidence_score': top_pred['span_answer_score']
+            }
+            predictions_for_metric.append(prediction_for_metric)
 
-
-
-
-
-
-
+        # noinspection PyTypeChecker
+        return EvalPredictionWithProcessing(label_ids=references, predictions=predictions, processed_predictions=predictions_for_metric)
