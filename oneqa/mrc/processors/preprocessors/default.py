@@ -44,7 +44,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 load_from_cache_file=self._load_from_cache_file,
                 num_proc=self._num_workers,
             )
-        # self.validate_schema(dataset, is_train, pre_adaptation=False)  # TODO: re-enable
+        self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
 
     @staticmethod
@@ -157,7 +157,6 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
             # One example can give several spans, this is the index of the example containing this span of text.
             example_index = example_mapping[i]
-            passage_candidates = examples['passage_answer_candidates'][example_index]
             t = target[example_index]
             passage_index = t['passage_indices'][0]
             start_position = t['start_positions'][0]
@@ -182,6 +181,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 window_contains_correct_passage = False
             else:
                 if self._single_context_multiple_passages:
+                    passage_candidates = examples['passage_answer_candidates'][example_index]
                     # for i in range(len(passage_candidates['plaintext_start_byte'])):
                     #     psb = passage_candidates['plaintext_start_byte'][i]
                     #     peb = passage_candidates['plaintext_end_byte'][i]

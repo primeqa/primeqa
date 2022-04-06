@@ -74,6 +74,6 @@ class TestTyDiF1(UnitTest):
         actual_metric_values = metric.compute()
         expected_metric_values = {
             "avg_passage_f1": 0.75, "avg_passage_recall": 0.75, "avg_passage_precision": 0.75,
-            "avg_minimal_f1": 0.6, "avg_minimal_recall": 0.6, "avg_minimal_precision": 0.6
+            "avg_minimal_f1": 0.7, "avg_minimal_recall": 0.7, "avg_minimal_precision": 0.7
         }
         assert actual_metric_values == expected_metric_values
