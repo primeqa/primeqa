@@ -17,7 +17,7 @@ from oneqa.mrc.data_models.target_type import TargetType
 
 # TODO type signatures for all methods
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _del_keys = ["overflow_to_sample_mapping"] #, "offset_mapping"]
+    _del_keys = ["overflow_to_sample_mapping"]
     _feature_types = {'question': Value(dtype='string', id=None),
                       'context': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
     _train_feature_types = {
@@ -25,14 +25,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                    'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
                    'passage_indices': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
                    'yes_no_answer': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}}
-    # _train_feature_types = {   # TODO: switch this layout to match tydi
-    #     'annotations': Sequence(feature={
-    #         'start_positions': Value(dtype='int32', id=None),
-    #         'end_positions': Value(dtype='int32', id=None),
-    #         'passage_indices': Value(dtype='int32', id=None),
-    #         'yes_no_answer': Value(dtype='string', id=None)})
-    # }
     _example_id_type = {'example_id': Value(dtype='string', id=None)}
+    _single_context_type = {'passage_candidates': {
+        'start_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
+        'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None)
+    }}
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         if 'example_id' not in dataset.features:
@@ -318,6 +315,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             items = itertools.chain(items, cls._train_feature_types.items())
         if not pre_adaptation:
             items = itertools.chain(items, cls._example_id_type.items())
+        if self._single_context_multiple_passages:
+            items = itertools.chain(items, cls._single_context_type.items())
         for feature_name, feature_type in items:
             if feature_name not in dataset.features:
                 raise ValueError(f"Expected but did not find feature '{feature_name}' in dataset")

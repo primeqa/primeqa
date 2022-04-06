@@ -29,7 +29,9 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
     def __init__(self, *args, max_contexts: Optional[int] = 48, **kwargs):
         super().__init__(*args, **kwargs)
         self._max_contexts = max_contexts
-        self._single_context_multiple_passages = True
+        if not self._single_context_multiple_passages:
+            self._logger.info(f"{self.__class__.__name__} only supports single context multiple passages -- enabling")
+            self._single_context_multiple_passages = True
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         self.validate_schema(dataset, is_train)
