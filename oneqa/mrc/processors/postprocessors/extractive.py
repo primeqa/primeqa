@@ -15,15 +15,15 @@ from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 logger = logging.getLogger(__name__)
 
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type: str='weighted_sum_target_type_and_score_diff', single_context_multiple_passages: bool = True):
+    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF, single_context_multiple_passages: bool = True):
         super().__init__(k)
         self._n_best_size = n_best_size
         self._max_answer_length = max_answer_length
-        # self._span_trackers = defaultdict(span_tracker_factory)  # TODO factory type?
         self._score_calculator = initialize_scorer(scorer_type)
         self._single_context_multiple_passages = single_context_multiple_passages
 
@@ -87,8 +87,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         "end_logit": end_logits[0],
                     }
 
-                start_indexes = np.argsort(start_logits)[-1 : -self._n_best_size - 1 : -1].tolist()
-                end_indexes = np.argsort(end_logits)[-1 : -self._n_best_size - 1 : -1].tolist()
+                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
+                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
                 for start_index in start_indexes:
                     for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
@@ -138,7 +138,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'start_logit': start_logits[start_index],
                             'end_logit': end_logits[end_index],
                             'span_answer': {
-                                "start_position": start_position, 
+                                "start_position": start_position,
                                 "end_position": end_position,
                             },
                             'span_answer_score' : span_answer_score,

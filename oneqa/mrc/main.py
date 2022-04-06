@@ -16,6 +16,7 @@ from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 
 def main():
@@ -43,7 +44,8 @@ def main():
         warmup_ratio=0.1,
         weight_decay=0.1,
     )
-    checkpoint_for_eval='/dccstor/aferritt3/oneqa/test-model-large-feat-fix-limit-48-contexts-3ep-max-1-128-chars'
+    checkpoint_for_eval='/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
+    scorer_type='weighted_sum_target_type_and_score_diff'
 
     set_seed(training_args.seed)
 
@@ -153,7 +155,7 @@ def main():
     # train
 
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type='weighted_sum_target_type_and_score_diff')
+    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
 
     metric = datasets.load_metric(tydi_f1.__file__)  # TODO parameterize
 
