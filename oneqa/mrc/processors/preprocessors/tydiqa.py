@@ -65,6 +65,7 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
         # if any(x < -1 for x in example['target']['start_positions']) or any(x < -1 for x in example['target']['end_positions']) or any(x < -1 for x in example['target']['passage_indices']):
         #     raise ValueError(f"Error processing example: {example}")
 
+        # TODO: this currently does nothing since the len == 2 which never triggers the statement
         if self._max_contexts and len(example['passage_answer_candidates']) > self._max_contexts:
             context_bytes = context_bytes[:example['passage_answer_candidates'][self._max_contexts - 1]['plaintext_end_byte']]
             context = context_bytes.decode('utf-8')
