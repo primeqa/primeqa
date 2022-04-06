@@ -181,20 +181,13 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 window_contains_correct_passage = False
             else:
                 if self._single_context_multiple_passages:
-                    passage_candidates = examples['passage_answer_candidates'][example_index]
-                    # for i in range(len(passage_candidates['plaintext_start_byte'])):
-                    #     psb = passage_candidates['plaintext_start_byte'][i]
-                    #     peb = passage_candidates['plaintext_end_byte'][i]
-                    #     if self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1])):
-                    #     # if psb <= offsets[token_start_index][0] <= peb or psb <= offsets[token_end_index][1] <= peb:
-                    #         window_contains_correct_passage = True
-                    #         break
-                    # else:
-                    #     window_contains_correct_passage = False
-
-                    psb = passage_candidates['plaintext_start_byte'][passage_index]
-                    peb = passage_candidates['plaintext_end_byte'][passage_index]
-                    window_contains_correct_passage = self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1]))
+                    passage_candidates = examples['passage_candidates'][example_index]
+                    passage_start_position = passage_candidates['start_positions'][passage_index]
+                    passage_end_position = passage_candidates['end_positions'][passage_index]
+                    window_contains_correct_passage = self._spans_intersect(
+                        (passage_start_position, passage_end_position),
+                        (offsets[token_start_index][0], offsets[token_end_index][1])
+                    )
                 else:
                     context_idx = tokenized_examples['context_idx'][i]
                     window_contains_correct_passage = passage_index == context_idx

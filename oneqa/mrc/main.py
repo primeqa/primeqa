@@ -155,7 +155,13 @@ def main():
     # train
 
     postprocessor_class = ExtractivePostProcessor  # TODO parameterize
-    postprocessor = postprocessor_class(k=5, n_best_size=20, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
+    postprocessor = postprocessor_class(
+        k=5,
+        n_best_size=20,
+        max_answer_length=30,
+        scorer_type=SupportedSpanScorers(scorer_type),
+        single_context_multiple_passages=preprocessor._single_context_multiple_passages
+    )
 
     metric = datasets.load_metric(tydi_f1.__file__)  # TODO parameterize
 

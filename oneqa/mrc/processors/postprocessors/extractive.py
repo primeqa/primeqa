@@ -19,8 +19,13 @@ from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 logger = logging.getLogger(__name__)
 
+
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int, n_best_size: int, max_answer_length: int, scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF, single_context_multiple_passages: bool = True):
+    def __init__(self, k: int,
+                 n_best_size: int,
+                 max_answer_length: int,
+                 scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF,
+                 single_context_multiple_passages: bool = False):
         super().__init__(k)
         self._n_best_size = n_best_size
         self._max_answer_length = max_answer_length
@@ -48,21 +53,11 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                                  f"and feature ({feat_example_idx})")
             example_features = list(example_features)
             example_id = example_features[0]['example_id']
-            # example['example_id'] = example_id  # TODO: assign example id to examples before featurization
             contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
             example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
             start_idx += len(example_features)
-
-            # # TODO: move this to the preprocessor
-            # label = {
-            #     'start_position': example['target']['start_positions'],
-            #     'end_position': example['target']['end_positions'],
-            #     'passage_index': example['target']['passage_indices'],
-            #     'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),
-            #     'example_id': example_id
-            # }
 
             min_null_prediction = None
             prelim_predictions = []
@@ -114,12 +109,11 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         end_position = offset_mapping[end_index][1]
 
                         if self._single_context_multiple_passages:
-                            passage_candidates = example['passage_answer_candidates']
-                            for i in range(len(passage_candidates['plaintext_start_byte'])):
-                                psb = passage_candidates['plaintext_start_byte'][i]
-                                peb = passage_candidates['plaintext_end_byte'][i]
-                                if psb <= start_position <= end_position <= peb:
-                                    context_idx = i
+                            passage_candidates = example['passage_candidates']
+                            for context_idx in range(len(passage_candidates['start_positions'])):
+                                passage_start_position = passage_candidates['start_positions'][context_idx]
+                                passage_end_position = passage_candidates['end_positions'][context_idx]
+                                if passage_start_position <= start_position <= end_position <= passage_end_position:
                                     break
                             else:
                                 context_idx = -1
@@ -204,13 +198,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         n_annotators = len(examples[0]['target']['start_positions'])
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
-            # label = {
-            #     'span_answer': {'start_position': example['target']['start_positions'],
-            #                     'end_position': example['target']['end_positions'], },
-            #     'passage_index': example['target']['passage_indices'],
-            #     'yes_no_answer': example['target']['yes_no_answer'],
-            #     'example_id': example['example_id']
-            # }
             label = {
                 'start_position': example['target']['start_positions'],
                 'end_position': example['target']['end_positions'],
@@ -240,4 +227,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             predictions_for_metric.append(prediction_for_metric)
 
         # noinspection PyTypeChecker
-        return EvalPredictionWithProcessing(label_ids=references, predictions=predictions, processed_predictions=predictions_for_metric)
+        return EvalPredictionWithProcessing(
+            label_ids=references,
+            predictions=predictions,
+            processed_predictions=predictions_for_metric
+        )
