@@ -25,10 +25,12 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
                       'minimal_answers_end_byte': 'end_positions'}
     _rename_passages = {'plaintext_start_byte': 'start_positions',
                         'plaintext_end_byte': 'end_positions'}
+    _single_context_type = {'passage_answer_candidates': Sequence(
+        feature={'plaintext_start_byte': Value(dtype='int32', id=None),
+                 'plaintext_end_byte': Value(dtype='int32', id=None)})}
 
-    def __init__(self, *args, max_contexts: Optional[int] = 48, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._max_contexts = max_contexts
         if not self._single_context_multiple_passages:
             self._logger.info(f"{self.__class__.__name__} only supports single context multiple passages -- enabling")
             self._single_context_multiple_passages = True
@@ -70,10 +72,10 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
             example['passage_candidates']['end_positions'][i] = len(
                 context_bytes[:passage_end_position].decode('utf-8', errors='replace'))
 
-        if self._max_contexts and num_passages > self._max_contexts:
-            end_of_last_passage_to_process = example['passage_candidates']['end_positions'][self._max_contexts - 1]
-            context_bytes = context_bytes[:end_of_last_passage_to_process]
-            context = context_bytes.decode('utf-8', errors='replace')
+        # if self._max_contexts and num_passages > self._max_contexts:
+        #     end_of_last_passage_to_process = example['passage_candidates']['end_positions'][self._max_contexts - 1]
+        #     context_bytes = context_bytes[:end_of_last_passage_to_process]
+        #     context = context_bytes.decode('utf-8', errors='replace')
         example['context'] = [context]
         return example
 
