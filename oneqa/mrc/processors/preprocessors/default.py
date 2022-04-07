@@ -89,7 +89,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         expanded_examples_question = []
         expanded_examples_idx = []
         for i, (question, context) in enumerate(zip(examples_question, examples_context)):
-            context = self._trim_to_max_contexts(context, examples['passage_candidates'][i])
+            context = self._trim_to_max_contexts(context, examples, i)
             n_context_for_example = len(context)
             if self._single_context_multiple_passages and n_context_for_example != 1:
                 raise ValueError("Must have exactly one context for each question "
@@ -346,10 +346,12 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
     def _trim_to_max_contexts(self,
                               context: Union[List[str], List[List[str]]],
-                              passage_candidates: dict) -> Union[List[str], List[List[str]]]:
+                              examples: Batch,
+                              example_idx: int) -> Union[List[str], List[List[str]]]:
         if self._max_contexts is None:
             pass
         elif self._single_context_multiple_passages:
+            passage_candidates = examples['passage_candidates'][example_idx]
             if len(passage_candidates['start_positions']) > self._max_contexts:
                 context[0] = context[0][:passage_candidates['end_positions'][self._max_contexts - 1]]
         else:
