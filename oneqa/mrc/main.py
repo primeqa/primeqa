@@ -64,7 +64,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    model_name = 'xlm-roberta-base'
+    model_name = 'xlm-roberta-large'
     task_heads = EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
@@ -103,6 +103,7 @@ def main():
         # negative_sampling_prob_when_has_answer=0.1,
         # negative_sampling_prob_when_no_answer=0.1,
         load_from_cache_file=False,
+        max_contexts=None,
     )
 
     # process train data
