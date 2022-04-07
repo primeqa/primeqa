@@ -72,10 +72,6 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
             example['passage_candidates']['end_positions'][i] = len(
                 context_bytes[:passage_end_position].decode('utf-8', errors='replace'))
 
-        # if self._max_contexts and num_passages > self._max_contexts:
-        #     end_of_last_passage_to_process = example['passage_candidates']['end_positions'][self._max_contexts - 1]
-        #     context_bytes = context_bytes[:end_of_last_passage_to_process]
-        #     context = context_bytes.decode('utf-8', errors='replace')
         example['context'] = [context]
         return example
 
