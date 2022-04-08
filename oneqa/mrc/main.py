@@ -264,6 +264,7 @@ def main():
         tokenizer=tokenizer,
         negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
         negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+        load_from_cache_file=data_args.overwrite_cache,
     )
 
     # process train data
