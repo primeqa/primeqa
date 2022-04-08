@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Type
 from importlib import import_module
 import traceback
-from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
+from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, \
+                        AutoConfig, AutoTokenizer, EvalPrediction
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
