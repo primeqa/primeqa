@@ -153,6 +153,8 @@ class TrainingSettings:
     model_type: str = DefaultVal('bert-base-uncased')
     init_from_lm: str = DefaultVal(None)
     local_models_repository: str = DefaultVal(None)
+    ranks_fn: str = DefaultVal(None)
+    topK: int = DefaultVal(100)
 
 @dataclass
 class IndexingSettings:

@@ -6,7 +6,9 @@ from colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
 from colbert.utils.amp import MixedPrecisionManager
 
 from colbert.modeling.colbert import ColBERT
-
+from colbert.utils.utils import torch_load_dnn
+from colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
+from colbert.utils.utils import print_message
 
 class Checkpoint(ColBERT):
     """
@@ -16,13 +18,27 @@ class Checkpoint(ColBERT):
     """
 
     def __init__(self, name, colbert_config=None):
-        super().__init__(name, colbert_config)
+
+        model_type=name
+        # get model type from checkpoint
+        if name.endswith('.dnn') or name.endswith('.model'):
+            dnn_checkpoint = torch_load_dnn(colbert_config.checkpoint)
+            # replacing name with model type
+            model_type = dnn_checkpoint['model_type']
+            # model_type = 'bert-base-uncased'
+
+        super().__init__(model_type, colbert_config)
         assert self.training is False
 
-        self.query_tokenizer = QueryTokenizer(self.colbert_config)
-        self.doc_tokenizer = DocTokenizer(self.colbert_config)
+        # self.query_tokenizer = QueryTokenizer(self.colbert_config)
+        # self.doc_tokenizer = DocTokenizer(self.colbert_config)
+        # get proper tokenizer based on model type
+        self.query_tokenizer = get_query_tokenizer(model_type, colbert_config.query_maxlen, colbert_config.attend_to_mask_tokens)
+        self.doc_tokenizer = get_doc_tokenizer(model_type, colbert_config.doc_maxlen)
 
         self.amp_manager = MixedPrecisionManager(True)
+
+        self.docFromText_used = False
 
     def query(self, *args, to_cpu=False, **kw_args):
         with torch.no_grad():
@@ -52,8 +68,15 @@ class Checkpoint(ColBERT):
     def docFromText(self, docs, bsize=None, keep_dims=True, to_cpu=False, showprogress=False, return_tokens=False):
         assert keep_dims in [True, False, 'flatten']
 
+        if self.docFromText_used is False:
+            print_message(f"#> checkpoint, docFromText, Input: {docs[0]}, \t\t {bsize}")
+
         if bsize:
             text_batches, reverse_indices = self.doc_tokenizer.tensorize(docs, bsize=bsize)
+
+            if self.docFromText_used is False:
+                print_message(f"#> checkpoint, docFromText, Output IDs: {text_batches[0]}")
+                self.docFromText_used = True
 
             returned_text = []
             if return_tokens:

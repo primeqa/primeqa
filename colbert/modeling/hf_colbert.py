@@ -30,7 +30,9 @@ class HF_ColBERT(BertPreTrainedModel):
 
     @classmethod
     def from_pretrained(cls, name_or_path, colbert_config):
-        if name_or_path.endswith('.dnn'):
+        if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
+        # if True:  # name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
+            # name_or_path = '/dccstor/colbert-ir/weizhong/experiments/Apr3_2022_v2_txt_xmlr_BERT/none/2022-04/03/13.20.02/checkpoints/colbert_75000.dnn'
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
 

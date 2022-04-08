@@ -1,16 +1,19 @@
 import torch
 
 from transformers import XLMRobertaTokenizer # there's no Fast version
+from colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
 from colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_length
-
+from colbert.utils.utils import print_message
 
 class DocTokenizerXLMR():
     def __init__(self, doc_maxlen, model_type):
-        self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
+        # self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
+        self.tok = HF_ColBERT_XLMR.raw_tokenizer_from_pretrained(model_type)
+
         self.doc_maxlen = doc_maxlen
 
         self.Q_marker_token, self.D_marker_token_id = '?', 9749  # Hot Beverage
-
+        self.used = False
 
     # tokenizer is not used colbert code base, but is implemented in DocTokenizer
     def tokenize(self, batch_text, add_special_tokens=False):
@@ -36,6 +39,17 @@ class DocTokenizerXLMR():
 
         # postprocess for the [D] marker
         ids[:, 1] = self.D_marker_token_id
+
+        if self.used is False:
+            self.used = True
+            # firstbg = (context is None) or context[0]
+            # print()
+            print_message("#> XLMR DocTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
+            # print(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
+            print_message(f"#> Input: {batch_text[0]}, \t\t {bsize}")
+            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
+            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
+            # print()
 
         if bsize:
             ids, mask, reverse_indices = _sort_by_length(ids, mask, bsize)

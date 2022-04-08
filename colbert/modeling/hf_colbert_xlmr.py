@@ -35,7 +35,7 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
 
     @classmethod
     def from_pretrained(cls, name_or_path, colbert_config):
-        if name_or_path.endswith('.dnn'):
+        if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model', 'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
 
@@ -52,7 +52,7 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
 
     @staticmethod
     def raw_tokenizer_from_pretrained(name_or_path):
-        if name_or_path.endswith('.dnn'):
+        if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model',  'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
 

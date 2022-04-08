@@ -6,6 +6,8 @@ from colbert.modeling.base_colbert import BaseColBERT
 import torch
 import string
 
+import random
+import numpy as np
 
 class ColBERT(BaseColBERT):
     """
@@ -13,12 +15,17 @@ class ColBERT(BaseColBERT):
     """
 
     def __init__(self, name='bert-base-uncased', colbert_config=None):
+
+        print_message(f"#>>>>> at ColBERT name (model type) : {name}")
+
         super().__init__(name, colbert_config)
 
         if self.colbert_config.mask_punctuation:
             self.skiplist = {w: True
                              for symbol in string.punctuation
                              for w in [symbol, self.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]}
+        self.query_used = False
+        self.doc_used = False
 
     def forward(self, Q, D):
         Q = self.query(*Q)
@@ -54,8 +61,26 @@ class ColBERT(BaseColBERT):
 
     def query(self, input_ids, attention_mask):
         input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
+        # print query input_ids
+        if self.query_used is False:
+
+            # print()
+            print_message("#>>>> colbert query ==")
+            print_message(f"#>>>>> input_ids: {input_ids[0].size()}, {input_ids[0]}")
+            # print()
+
         Q = self.bert(input_ids, attention_mask=attention_mask)[0]
         Q = self.linear(Q)
+
+        # print out Q
+        if self.query_used is False:
+            self.query_used = True
+
+            # print()
+            print_message("#>>>> colbert query ==")
+            print_message(f"#>>>>> Q: {Q[0].size()}, {Q[0]}")
+            # print()
+
 
         mask = torch.tensor(self.mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float()
         Q = Q * mask
@@ -66,8 +91,36 @@ class ColBERT(BaseColBERT):
         assert keep_dims in [True, False, 'return_mask']
 
         input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
+        # print doc input_ids
+        # [     0,   9749,   4960,  40455,      6,  58745,  48302,    136,   4343,   71,
+        if self.doc_used is False:
+            # print()
+            print_message("#>>>> colbert doc ==")
+            print_message(f"#>>>>> input_ids: {input_ids[0].size()}, {input_ids[0]}")
+            # print()
+
+            random.seed(12345)
+            np.random.seed(12345)
+            torch.manual_seed(12345)
+            torch.cuda.manual_seed(12345)
+
         D = self.bert(input_ids, attention_mask=attention_mask)[0]
+
+        if self.doc_used is False:
+            print_message("#>>>> before linear doc ==")
+            print_message(f"#>>>>> D: {D[0].size()}, {D[0]}")
+
         D = self.linear(D)
+
+        # print out D
+        if self.doc_used is False:
+            self.doc_used = True
+
+            # print()
+            print_message("#>>>> colbert doc ==")
+            print_message(f"#>>>>> D: {D[0].size()}, {D[0]}")
+            # print()
+
 
         mask = torch.tensor(self.mask(input_ids, skiplist=self.skiplist), device=self.device).unsqueeze(2).float()
         D = D * mask

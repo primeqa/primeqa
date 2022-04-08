@@ -165,8 +165,12 @@ def load_collection(collection_path):
             if line_idx % (1000*1000) == 0:
                 print(f'{line_idx // 1000 // 1000}M', end=' ', flush=True)
 
-            pid, passage, *rest = line.strip('\n\r ').split('\t')
+            # pid, passage, *rest = line.strip('\n\r ').split('\t')
+            pid, passage, *rest = line.strip().split('\t')
             assert pid == 'id' or int(pid) == line_idx
+
+            if pid == 'id':
+                continue
 
             if len(rest) >= 1:
                 title = rest[0]
@@ -174,7 +178,7 @@ def load_collection(collection_path):
                 # passage = title + ' | ' + passage
                 # remove (") at passage and add with space
                 passage = remove_first_and_last_quote(passage)
-                passage = title + ' ' + passage
+                passage = remove_first_and_last_quote(title) + ' | ' + passage
 
             collection.append(passage)
 

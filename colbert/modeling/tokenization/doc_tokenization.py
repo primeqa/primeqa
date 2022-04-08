@@ -4,12 +4,13 @@ import torch
 from colbert.modeling.hf_colbert import HF_ColBERT
 from colbert.infra import ColBERTConfig
 from colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_length
-
+from colbert.utils.utils import print_message
 
 class DocTokenizer():
     # def __init__(self, config: ColBERTConfig):
     def __init__(self, doc_maxlen, model_type):
         # self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+        # assert False
         self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(model_type)
 
         # self.config = config
@@ -21,8 +22,11 @@ class DocTokenizer():
         self.sep_token, self.sep_token_id = self.tok.sep_token, self.tok.sep_token_id
 
         assert self.D_marker_token_id == 2
+        self.used = False
 
     def tokenize(self, batch_text, add_special_tokens=False):
+        # assert False
+
         assert type(batch_text) in [list, tuple], (type(batch_text))
 
         tokens = [self.tok.tokenize(x, add_special_tokens=False) for x in batch_text]
@@ -66,5 +70,20 @@ class DocTokenizer():
             ids, mask, reverse_indices = _sort_by_length(ids, mask, bsize)
             batches = _split_into_batches(ids, mask, bsize)
             return batches, reverse_indices
+
+        if self.used is False:
+            self.used = True
+
+            # firstbg = (context is None) or context[0]
+
+            # print()
+            print_message("#> BERT DocTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
+            # print(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
+            print_message(f"#> Input: {batch_text[0]}, \t\t {bsize}")
+            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
+            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
+            # print()
+
+
 
         return ids, mask

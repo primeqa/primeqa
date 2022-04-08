@@ -1,6 +1,10 @@
 import os
 import time
 
+import torch
+import random
+import numpy as np
+
 import torch.multiprocessing as mp
 
 from colbert.infra.run import Run
@@ -17,13 +21,26 @@ class Indexer:
         """
            Use Run().context() to choose the run's configuration. They are NOT extracted from `config`.
         """
+        random.seed(12345)
+        np.random.seed(12345)
+        torch.manual_seed(12345)
+        torch.cuda.manual_seed(12345)
 
         self.index_path = None
         self.checkpoint = checkpoint
         self.checkpoint_config = ColBERTConfig.load_from_checkpoint(checkpoint)
 
+        # set model_type from checkpoint's config
+        # config.model_type = self.checkpoint_config.model_type
+
         self.config = ColBERTConfig.from_existing(self.checkpoint_config, config, Run().config)
+
+        # set model_type from checkpoint's config
+        # self.config.model_type = self.checkpoint_config.model_type
+
         self.configure(checkpoint=checkpoint)
+
+
 
     def configure(self, **kw_args):
         self.config.configure(**kw_args)
@@ -60,6 +77,7 @@ class Indexer:
 
         self.configure(collection=collection, index_name=name)
         self.configure(bsize=64, partitions=None)
+        # self.configure(bsize=1, partitions=None)
 
         self.index_path = self.config.index_path_
         index_does_not_exist = (not os.path.exists(self.config.index_path_))

@@ -38,7 +38,10 @@ class CollectionIndexer():
             self.config.help()
 
         self.collection = Collection.cast(collection)
-        self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config).cuda()
+        if torch.cuda.is_available():
+            self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config).cuda()
+        else:
+            self.checkpoint = Checkpoint(self.config.checkpoint, colbert_config=self.config).cpu()
 
         self.encoder = CollectionEncoder(config, self.checkpoint)
         self.saver = IndexSaver(config)
@@ -72,7 +75,9 @@ class CollectionIndexer():
         # Select the number of partitions
         num_passages = len(self.collection)
         self.num_embeddings_est = num_passages * avg_doclen_est
-        self.num_partitions = int(2 ** np.floor(np.log2(16 * np.sqrt(self.num_embeddings_est))))
+        # self.num_partitions = int(2 ** np.floor(np.log2(16 * np.sqrt(self.num_embeddings_est))))
+        # 16 --> 4 suggested by @Omar Khattab, reduce the numbers of centroids
+        self.num_partitions = int(2 ** np.floor(np.log2(4 * np.sqrt(self.num_embeddings_est))))
 
         Run().print_main(f'Creaing {self.num_partitions:,} partitions.')
         Run().print_main(f'*Estimated* {int(self.num_embeddings_est):,} embeddings.')
@@ -103,15 +108,29 @@ class CollectionIndexer():
 
         local_sample_embs, doclens = self.encoder.encode_passages(local_sample)
 
-        self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cuda()
-        torch.distributed.all_reduce(self.num_sample_embs)
+        if torch.cuda.is_available():
 
-        avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
-        avg_doclen_est = torch.tensor([avg_doclen_est]).cuda()
-        torch.distributed.all_reduce(avg_doclen_est)
+            self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cuda()
+            torch.distributed.all_reduce(self.num_sample_embs)
 
-        nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cuda()
-        torch.distributed.all_reduce(nonzero_ranks)
+            avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
+            avg_doclen_est = torch.tensor([avg_doclen_est]).cuda()
+            torch.distributed.all_reduce(avg_doclen_est)
+
+            nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cuda()
+            torch.distributed.all_reduce(nonzero_ranks)
+        else:
+            self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cpu()
+            torch.distributed.all_reduce(self.num_sample_embs)
+
+            avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
+            avg_doclen_est = torch.tensor([avg_doclen_est]).cpu()
+            torch.distributed.all_reduce(avg_doclen_est)
+
+            nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cpu()
+            torch.distributed.all_reduce(nonzero_ranks)
+
+
 
         avg_doclen_est = avg_doclen_est.item() / nonzero_ranks.item()
         self.avg_doclen_est = avg_doclen_est
@@ -188,7 +207,8 @@ class CollectionIndexer():
         return sample, sample_heldout
 
     def _train_kmeans(self, sample, shared_lists):
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
         do_fork_for_faiss = False  # set to True to free faiss GPU-0 memory at the cost of one more copy of `sample`.
 
@@ -219,9 +239,14 @@ class CollectionIndexer():
     def _compute_avg_residual(self, centroids, heldout):
         compressor = ResidualCodec(config=self.config, centroids=centroids, avg_residual=None)
 
-        heldout_reconstruct = compressor.compress_into_codes(heldout, out_device='cuda')
-        heldout_reconstruct = compressor.lookup_centroids(heldout_reconstruct, out_device='cuda')
-        heldout_avg_residual = heldout.cuda() - heldout_reconstruct
+        if torch.cuda.is_available():
+            heldout_reconstruct = compressor.compress_into_codes(heldout, out_device='cuda')
+            heldout_reconstruct = compressor.lookup_centroids(heldout_reconstruct, out_device='cuda')
+            heldout_avg_residual = heldout.cuda() - heldout_reconstruct
+        else:
+            heldout_reconstruct = compressor.compress_into_codes(heldout, out_device='cpu')
+            heldout_reconstruct = compressor.lookup_centroids(heldout_reconstruct, out_device='cpu')
+            heldout_avg_residual = heldout - heldout_reconstruct
 
         avg_residual = torch.abs(heldout_avg_residual).mean(dim=0).cpu()
         print([round(x, 3) for x in avg_residual.squeeze().tolist()])
@@ -313,7 +338,22 @@ class CollectionIndexer():
             chunk_codes = ResidualCodec.Embeddings.load_codes(self.config.index_path_, chunk_idx)
 
             codes[offset:offset+chunk_codes.size(0)] = chunk_codes
-        
+
+        print_message(f"offset: {offset}")
+        print_message(f"chunk codes size(0): {chunk_codes.size(0)}")
+        print_message(f"codes size(0): {codes.size(0)}")
+        print_message(f"codes size(): {codes.size()}")
+
+        '''
+            codes_sort = codes.sort()
+            ivf, values = codes_sort.indices, codes_sort.values
+            partitions, ivf_lengths = values.unique_consecutive(return_counts=True)
+
+            print(f'>>>> codes.size(): {codes.size()}, self.num_partitions : {self.num_partitions}')
+            print(f'>>>> codes_sort: {codes_sort}')
+            print(f'>>>> codes_sort.values.size(): {codes_sort.values.size()}, partitions.size() : {partitions.size()}')
+        '''
+
         assert offset+chunk_codes.size(0) == codes.size(0), (offset, chunk_codes.size(0), codes.size()) 
 
 
@@ -325,6 +365,10 @@ class CollectionIndexer():
         print_memory_stats(f'RANK:{self.rank}')
 
         partitions, ivf_lengths = values.unique_consecutive(return_counts=True)
+
+
+        print_message(f">>>>partition.size(0): {partitions.size(0)}")
+        print_message(f">>>>num_partition: {self.num_partitions}")
 
         # All partitions should be non-empty. (We can use torch.histc otherwise.)
         assert partitions.size(0) == self.num_partitions, (partitions.size(), self.num_partitions)

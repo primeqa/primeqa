@@ -49,11 +49,14 @@ class BaseConfig(CoreConfig):
     
     @classmethod
     def load_from_checkpoint(cls, checkpoint_path):
-        if checkpoint_path.endswith('.dnn'):
+        if checkpoint_path.endswith('.dnn') or checkpoint_path.endswith('.model'):
             dnn = torch_load_dnn(checkpoint_path)
             config, _ = cls.from_deprecated_args(dnn.get('arguments', {}))
 
-            # TODO: FIXME: Decide if the line below will have any unintended consequences. We don't want to overwrite those!
+            # get model type from a dnn file
+            if dnn['model_type'] is not None:
+                config.model_type = dnn['model_type']
+
             config.set('checkpoint', checkpoint_path)
 
             return config

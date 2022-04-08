@@ -9,6 +9,7 @@ import numpy as np
 import glob
 import sys
 import re
+import copy
 from collections import OrderedDict
 
 from queue import Empty
@@ -36,7 +37,11 @@ from colbert.training.utils import print_progress, manage_checkpoints, manage_ch
 def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     if config.rank < 1:
-        config.help()
+        # config.help()
+        # config.help is not happy with print input augument
+        config_without_input_arguments = copy.deepcopy(config)
+        config_without_input_arguments.input_arguments = None
+        config_without_input_arguments.help()
 
     # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
     if config.checkpoint is not None:
@@ -81,6 +86,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         # add support pre-trained representation
         if config.init_from_lm is not None and config.checkpoint is None:
             # checkpoint should override init_from_lm since it continues an already init'd run
+            print_message(f"#> Load init from lm {config.init_from_lm}")
             if DEVICE ==  torch.device("cuda"):
                 lmweights = torch.load(config.init_from_lm)
             else:    # expect path to pytorch_model.bin
@@ -190,13 +196,16 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         os.makedirs(path)
 
     name = os.path.join(path, "colbert-EXIT.dnn")
-    # arguments = config.input_arguments.__dict__
+    arguments = config.input_arguments.__dict__
     exit_queue = signals.checkpoint_on_exit(config.rank)
 
     print_message(f"maxsteps: {config.maxsteps}")
     print_message(f"{config.epochs} epochs of {len(reader)} examples")
     print_message(f"batch size: {config.bsize}")
     print_message(f"maxsteps set to {maxsteps}")
+
+    print_message(f"start batch idx: {start_batch_idx}")
+
 
     for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
         if (warmup_bert is not None) and warmup_bert <= batch_idx:
@@ -271,7 +280,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             try:
                 exit_queue.get_nowait()
                 # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                 sys.exit(0)
             except Empty:
                 manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)

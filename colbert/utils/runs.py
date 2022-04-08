@@ -42,7 +42,8 @@ class _RunManager():
 
                 # TODO: This should timeout and exit (i.e., fail) given no response for 60 seconds.
 
-                response = input()
+                # response = input()
+                response = 'yes'
                 if response.strip() != 'yes':
                     assert not os.path.exists(self.path), self.path
             else:

@@ -80,6 +80,8 @@ class Arguments():
         self.add_argument('--queries', dest='queries', default=None)
         self.add_argument('--collection', dest='collection', default=None)
         self.add_argument('--qrels', dest='qrels', default=None)
+        self.add_argument('--ranks_fn', dest='ranks_fn', required=True)
+        self.add_argument('--topK', dest='topK', default=100, type=int)
 
     def add_reranking_input(self):
         self.add_ranking_input()

@@ -22,6 +22,7 @@ class CollectionEncoder():
             # Storing on the GPU helps with speed of masking, etc.
             # But ideally this batching happens internally inside docFromText.
             for passages_batch in batch(passages, self.config.bsize * 50):
+            # for passages_batch in batch(passages, self.config.bsize * 1):
                 embs_, doclens_ = self.checkpoint.docFromText(passages_batch, bsize=self.config.bsize,
                                                               keep_dims='flatten', showprogress=False)
                 embs.append(embs_)

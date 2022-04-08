@@ -11,7 +11,7 @@ from colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
 from colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
 
 import os
-
+import json
 
 # Based on model type to associate to a proper model and tokennizers(query, doc)
 #----------------------------------------------------------------
@@ -23,9 +23,18 @@ def get_colbert_from_pretrained(name, colbert_config):
 
     local_models_repository = colbert_config.local_models_repository
     model_type = name
+    # if it is a directory, load json file to get the model type
+    if os.path.isdir(name):
+        json_file= name + '/config.json'
+        print_message(f"json file (get_colbert_from_pretrained): {json_file}")
+        with open(json_file) as file:
+            data = json.load(file)
+        model_type = data["_name_or_path"]
+
     if colbert_config.model_type is not None:
         model_type = colbert_config.model_type
-    print_message(f"model type: {model_type}")
+
+    print_message(f"get colbert model type: {model_type}")
 
     if model_type=='bert-base-uncased' or model_type=='bert-large-uncased':
         colbert = HF_ColBERT.from_pretrained(name, colbert_config)
@@ -46,6 +55,17 @@ def get_colbert_from_pretrained(name, colbert_config):
 #----------------------------------------------------------------
 def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
 
+
+    # if it is a directory, load json file to get the model type
+    if os.path.isdir(model_type):
+        json_file = model_type + '/config.json'
+        print_message(f"json file (get_query_tokenizer): {json_file}")
+        with open(json_file) as file:
+            data = json.load(file)
+        model_type = data["_name_or_path"]
+
+    print_message(f"get query model type: {model_type}")
+
     if model_type=='bert-base-uncased' or model_type=='bert-large-uncased':
         return QueryTokenizer(maxlen,model_type, attend_to_mask_tokens)
     elif model_type=='tinybert':
@@ -57,6 +77,18 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(model_type, maxlen):
+
+
+    # if it is a directory, load json file to get the model type
+    if os.path.isdir(model_type):
+        json_file = model_type + '/config.json'
+        print_message(f"json file (get_doc_tokenizer): {json_file}")
+        with open(json_file) as file:
+            data = json.load(file)
+        model_type = data["_name_or_path"]
+
+
+    print_message(f"get doc model type: {model_type}")
 
     if model_type=='bert-base-uncased' or model_type=='bert-large-uncased':
         return DocTokenizer(maxlen, model_type)

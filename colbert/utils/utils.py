@@ -12,6 +12,7 @@ from collections import OrderedDict, defaultdict
 def remove_first_and_last_quote(a_str):
     if a_str.startswith('"') and a_str.endswith('"'):
         a_str = a_str[1:-1]
+        a_str=a_str.replace('""','"')
     return a_str
 
 
@@ -54,7 +55,8 @@ def torch_load_dnn(path):
 
 # def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, arguments=None):
 # It makes sense to use model type instead of input arguments
-def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, model_type):
+# def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, model_type):
+def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, model_type, arguments=None):
     print(f"#> Saving a checkpoint to {path} ..")
 
     if hasattr(model, 'module'):
@@ -66,7 +68,7 @@ def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, 
     checkpoint['train_loss'] = train_loss
     checkpoint['model_state_dict'] = model.state_dict()
     checkpoint['optimizer_state_dict'] = optimizer.state_dict()
-    # checkpoint['arguments'] = arguments
+    checkpoint['arguments'] = arguments
     checkpoint['model_type'] = model_type
 
     checkpoint['scaler_state_dict'] = amp.scaler.state_dict() if amp.activated else None

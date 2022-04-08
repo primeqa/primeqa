@@ -1,8 +1,9 @@
 import torch
 
+from colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
 from transformers import XLMRobertaTokenizer # there's no Fast version
 from colbert.modeling.tokenization.utils import _split_into_batches
-
+from colbert.utils.utils import print_message
 
 # only the following official escape sequences are available
 # 0            0     <s>
@@ -18,13 +19,15 @@ from colbert.modeling.tokenization.utils import _split_into_batches
 
 class QueryTokenizerXLMR():
     def __init__(self, query_maxlen, model_type):
-        self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
+        # self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
+        self.tok = HF_ColBERT_XLMR.raw_tokenizer_from_pretrained(model_type)
         self.query_maxlen = query_maxlen
 
         self.Q_marker_token, self.Q_marker_token_id = '?', 9748  # Umbrellawith Rain Drops
         self.mask_token, self.mask_token_id = self.tok.pad_token, self.tok.pad_token_id
 
 #        assert self.Q_marker_token_id == 1 and self.mask_token_id == 103
+        self.used = False
 
     # tokenizer is not used colbert code base, but is implemented in QueryTokenizer
     def tokenize(self, batch_text, add_special_tokens=False):
@@ -34,7 +37,7 @@ class QueryTokenizerXLMR():
     def encode(self, batch_text, add_special_tokens=False):
         raise NotImplementedError()
 
-    def tensorize(self, batch_text, bsize=None):
+    def tensorize(self, batch_text, bsize=None, context=None):
         assert type(batch_text) in [list, tuple], (type(batch_text))
 
         # add placehold for the [Q] marker
@@ -53,6 +56,19 @@ class QueryTokenizerXLMR():
         # roberta tokenizer has pad_token_id=1, <s>=0, so the following statement must be omitted
         #        ids[ids == 0] = self.mask_token_id
         # I'm keeping commented-out code here in case of comparison with QueryTokenizer.py (bert)
+
+        if context is not None:
+            print_message(f"#> length of context: {len(context)}")
+
+        if self.used is False:
+            self.used = True
+            firstbg = (context is None) or context[0]
+
+            print_message("#> XMLR QueryTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
+            print_message(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
+            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
+            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
+
 
         if bsize:
             batches = _split_into_batches(ids, mask, bsize)

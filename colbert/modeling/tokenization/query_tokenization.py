@@ -4,12 +4,13 @@ from colbert.modeling.hf_colbert import HF_ColBERT
 from colbert.infra import ColBERTConfig
 from colbert.modeling.tokenization.utils import _split_into_batches
 from colbert.utils.utils import batch
-
-
+from colbert.utils.utils import print_message
 class QueryTokenizer():
     #     def __init__(self, config: ColBERTConfig):
     def __init__(self, query_maxlen, model_type, attend_to_mask_tokens ):
         # self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(config.checkpoint)
+        # assert False
+
         self.tok = HF_ColBERT.raw_tokenizer_from_pretrained(model_type)
 
         # self.config = config
@@ -27,6 +28,8 @@ class QueryTokenizer():
         self.used = False
 
     def tokenize(self, batch_text, add_special_tokens=False):
+        # assert False
+
         assert type(batch_text) in [list, tuple], (type(batch_text))
 
         tokens = [self.tok.tokenize(x, add_special_tokens=False) for x in batch_text]
@@ -92,11 +95,11 @@ class QueryTokenizer():
 
             firstbg = (context is None) or context[0]
 
-            print()
-            print("#> QueryTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
-            print(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
-            print(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
-            print(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
-            print()
+            # print()
+            print_message("#> BERT QueryTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
+            print_message(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
+            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
+            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
+            # print()
 
         return ids, mask
