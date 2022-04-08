@@ -219,7 +219,7 @@ def byte_slice(text, start, end):
 
 
 def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, minimal_non_null_threshold, verbose,
-                  skip_missing_example_ids=True, minimal_offsets_per_passage=True):
+                  skip_missing_example_ids=True, minimal_offsets_per_passage=False):
     """Scores all answers for all documents.
 
     Args:

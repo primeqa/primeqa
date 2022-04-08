@@ -117,7 +117,9 @@ class TestExtractivePostProcessor(UnitTest):
 
         expected_start_end_index, predictions = self._start_end_target_type_logits(eval_examples, eval_features)
         
-        postprocessor = postprocessor_class(k=5, n_best_size=3, max_answer_length=30, scorer_type=SupportedSpanScorers(scorer_type))
+        postprocessor = postprocessor_class(k=5, n_best_size=3, max_answer_length=30,
+                                            scorer_type=SupportedSpanScorers(scorer_type),
+                                            single_context_multiple_passages=False)
         example_predictions = postprocessor.process(eval_examples, eval_features, predictions)
         for example_id, preds in  example_predictions.items():
             predicted = preds[0]

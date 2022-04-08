@@ -1,5 +1,7 @@
 import inspect
+import json
 import logging
+import os
 from typing import Optional
 
 import datasets
@@ -200,7 +202,7 @@ class MRCTrainer(Trainer):
 
         # # Temporarily disable metric computation, we will do it in the loop here.
         compute_metrics = self.compute_metrics
-        # self.compute_metrics = None
+        self.compute_metrics = None
         eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
         try:
             output = eval_loop(
@@ -218,6 +220,12 @@ class MRCTrainer(Trainer):
 
         if self.post_process_function is not None:
             eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+
+            # TODO: return eval_preds and metrics, write save function for preds
+            with open(os.path.join(self.args.output_dir, 'eval_predictions.json'), 'w') as f:
+                json.dump(eval_preds.predictions, f, indent=4)
+            with open(os.path.join(self.args.output_dir, 'eval_predictions_processed.json'), 'w') as f:
+                json.dump(eval_preds.processed_predictions, f, indent=4)
         if self.post_process_function is not None and self.compute_metrics is not None:
             metrics = self.compute_metrics(eval_preds)
 
