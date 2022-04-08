@@ -260,9 +260,10 @@ def main():
     preprocessor_class = getattr(sys.modules[__name__], task_args.preprocessor)
         #TyDiQAPreprocessor  # TODO parameterize
     preprocessor = preprocessor_class(
-        stride=data_args.doc_stride,
-        #128,
+        stride=data_args.doc_stride, #128,
         tokenizer=tokenizer,
+        negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+        negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
     )
 
     # process train data
