@@ -38,10 +38,6 @@ class ModelArguments:
         default=None,
         metadata={"help": "Path to directory to store the pretrained models downloaded from huggingface.co"},
     )
-    checkpoint_for_eval: Optional[str] = field(
-        default=None,
-        metadata={"help": "Path to the checkpoint model for evaluation."}
-    )
 
 # modified from
 # https://github.com/huggingface/transformers/blob/main/examples/pytorch/question-answering/run_qa.py
