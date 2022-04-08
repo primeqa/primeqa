@@ -124,9 +124,21 @@ class DataTrainingArguments:
                     "and end predictions are not conditioned on one another."
         },
     )
-    negative_sampling_rate: float = field(
+    negative_sampling_prob_when_has_answer: float = field(
         default=0.01,
-        metadata={"help": "The sampling rate to select features from the context without answer."},
+        metadata={"help": "Only used when preparing training features, not for decoding. "
+                          "This ratio will be used when the example has a short answer, but "
+                          "the span does not. Specifically we will keep the span with "
+                          "probability negative_sampling_prob_when_has_answer."
+                 },
+    )
+    negative_sampling_prob_when_no_answer: float = field(
+        default=0.04,
+        metadata={"help": "Only used when preparing training features, not for decoding. "
+                          "This ratio will be used when the example has NO short answer. "
+                          "Specifically we will keep spans from this example with "
+                          "probability negative_sampling_prob_when_has_answer."
+                 },
     )
 
 
