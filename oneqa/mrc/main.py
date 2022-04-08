@@ -4,7 +4,9 @@ import sys
 
 import datasets
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
+from importlib import import_module
+import traceback
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
@@ -177,7 +179,32 @@ class TaskArguments:
                   }
     )
 
+def class_reference(class_reference_as_str: str) -> Type:
+    """
+    Given a fully qualified path to a class reference, return a pointer to the class reference
+    :param str class_reference_as_str: the fully qualified path (expects the fully qualified
+        path in dot notation, e.g. 
+        oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor)
+    :return: class
+    :rtype: Type
+    """
+    def _split_into_class_and_module_name(class_path):
+        modules = class_path.split('.')
+        if len(modules) > 1:
+            return ".".join(modules[:-1]), modules[-1]
+        else:
+            return class_path, None
 
+    try:
+        module_name, class_name = _split_into_class_and_module_name(class_reference_as_str)
+        module_reference = import_module(module_name)
+        if class_name is None:
+            return module_reference
+        else:
+            return getattr(module_reference, class_name)
+    except Exception as ex:
+        traceback.print_exc()  # Shows additional traceback for why imports fail
+        raise TypeError("Unable to resolve the string {} to a fully qualified class path".format(class_reference_as_str))
 
 def main():
 
@@ -224,7 +251,7 @@ def main():
 
     model_name = model_args.model_name_or_path
         #'xlm-roberta-base'
-    task_heads = getattr(sys.modules[__name__], task_args.task_heads)
+    task_heads = class_reference(task_args.task_heads)
         #EXTRACTIVE_HEAD  # TODO parameterize
     config = AutoConfig.from_pretrained(
         model_name,
@@ -257,7 +284,7 @@ def main():
         #("tydiqa", "primary_task")
 
     # load preprocessor
-    preprocessor_class = getattr(sys.modules[__name__], task_args.preprocessor)
+    preprocessor_class = class_reference(task_args.preprocessor)
         #TyDiQAPreprocessor  # TODO parameterize
     preprocessor = preprocessor_class(
         stride=data_args.doc_stride, #128,
@@ -315,7 +342,7 @@ def main():
 
     # train
 
-    postprocessor_class = getattr(sys.modules[__name__], task_args.postprocessor)
+    postprocessor_class = class_reference(task_args.postprocessor)
         #ExtractivePostProcessor  # TODO parameterize
     postprocessor = postprocessor_class(
         k=data_args.n_best_logits, #5,
@@ -324,7 +351,7 @@ def main():
         scorer_type=SupportedSpanScorers(scorer_type))
 
     if task_args.eval_metrics:
-        metrics_fn = getattr(sys.modules[__name__], task_args.eval_metrics)
+        metrics_fn = class_reference(task_args.eval_metrics)
     else:
         metrics_fn = None
         #None  # TODO metrics
