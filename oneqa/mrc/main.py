@@ -227,7 +227,7 @@ def main():
 #        fp16=False,
 #    )
 
-    checkpoint_for_eval = model_args.checkpoint_for_eval
+    checkpoint_for_eval = model_args.model_name_or_path
         #'/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
     scorer_type = task_args.scorer_type
         #weighted_sum_target_type_and_score_diff'
@@ -270,7 +270,7 @@ def main():
     
     # TODO: remove during parameterization 
     if not training_args.do_train:
-        model_name = model_args.checkpoint_for_eval
+        model_name = checkpoint_for_eval
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
