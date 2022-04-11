@@ -282,8 +282,8 @@ def main():
     )
     
     # TODO: remove during parameterization 
-    if not training_args.do_train:
-        model_name = checkpoint_for_eval
+    #if not training_args.do_train:
+    #    model_name = checkpoint_for_eval
     model = ModelForDownstreamTasks.from_config(
         config,
         model_name,
