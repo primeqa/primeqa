@@ -209,7 +209,7 @@ def class_reference(class_reference_as_str: str) -> Type:
             return getattr(module_reference, class_name)
     except Exception as ex:
         traceback.print_exc()  # Shows additional traceback for why imports fail
-        raise TypeError("Unable to resolve the string {} to a fully qualified class path".format(class_reference_as_str))
+        raise TypeError("Unable to resolve the string {} to a fully qualified class path".format(class_reference_as_str)) from ex
 
 def main():
 
