@@ -1,6 +1,4 @@
 import logging
-from operator import attrgetter
-import logging
 import os
 import sys
 import traceback
@@ -177,19 +175,19 @@ class TaskArguments:
     task_heads: class_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
-                  "choices": ["oneqa.mrc.models.heads.extractive.EXTRACTIVE_HEAD"]
+                  "choices": [EXTRACTIVE_HEAD]
                   }
     )
     preprocessor: class_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": ["oneqa.mrc.processors.preprocessors.tydiqa.TyDiQAPreprocessor"]
+                  "choices": [TyDiQAPreprocessor]
                   }
     )
     postprocessor: class_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": ["oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor"]
+                  "choices": [ExtractivePostProcessor]
                   }
     )
     eval_metrics: class_reference = field(
@@ -264,7 +262,7 @@ def main():
         negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
         negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
         load_from_cache_file=not data_args.overwrite_cache,
-        max_seq_len=data_args.max_seq_len,
+        max_seq_len=data_args.max_seq_length,
         num_workers=data_args.preprocessing_num_workers,
         max_q_char_len=data_args.max_q_char_len,
         single_context_multiple_passages=data_args.single_context_multiple_passages,
