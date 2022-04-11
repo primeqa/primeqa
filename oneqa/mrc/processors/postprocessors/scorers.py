@@ -30,7 +30,7 @@ class SupportedSpanScorers(Enum):
 
     @classmethod
     def get_supported(cls):
-        return [entry.name for entry in cls]
+        return [entry.value for entry in cls]
 
 
 def initialize_scorer(scorer_type: Union[str, SupportedSpanScorers], target_type_weight: Optional[float]=0.5) -> Callable:
