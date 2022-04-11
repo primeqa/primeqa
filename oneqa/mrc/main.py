@@ -161,19 +161,19 @@ class TaskArguments:
                   }
     )
     task_heads: str = field(
-        default='EXTRACTIVE_HEAD',
+        default='oneqa.mrc.models.heads.extractive.EXTRACTIVE_HEAD',
         metadata={"help": "The name of the task head to use.",
                   "choices": ["oneqa.mrc.models.heads.extractive.EXTRACTIVE_HEAD"]
                   }
     )
     preprocessor: str = field(
-        default='TyDiQAPreprocessor',
+        default='oneqa.mrc.processors.preprocessors.tydiqa.TyDiQAPreprocessor',
         metadata={"help": "The name of the preprocessor to use.",
                   "choices": ["oneqa.mrc.processors.preprocessors.tydiqa.TyDiQAPreprocessor"]
                   }
     )
     postprocessor: str = field(
-        default='ExtractivePostProcessor',
+        default='oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor',
         metadata={"help": "The name of the postprocessor to use.",
                   "choices": ["oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor"]
                   }
