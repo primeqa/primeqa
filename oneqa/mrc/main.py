@@ -157,7 +157,7 @@ class TaskArguments:
     scorer_type: str = field(
         default='weighted_sum_target_type_and_score_diff',
         metadata={"help": "The name of the scorer to compute answer score.",
-                  "choices": ["score_diff_based", "target_type_weighted_score_diff", "weighted_sum_target_type_and_score_diff"]
+                  "choices": SupportedSpanScorers.get_supported()
                   }
     )
     task_heads: str = field(
