@@ -242,8 +242,6 @@ def main():
 #        warmup_ratio=0.1,
 #        weight_decay=0.1,
 #    )
-    checkpoint_for_eval = model_args.model_name_or_path
-        #'/dccstor/bsiyer6/OneQA/test-model/pytorch_model.bin'
     scorer_type = task_args.scorer_type
         #weighted_sum_target_type_and_score_diff'
 
