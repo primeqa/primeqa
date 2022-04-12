@@ -192,17 +192,17 @@ class TaskArguments:
     )
     eval_metrics: class_reference = field(
         default=TyDiF1,
-        metadata={"help": "The name of the evaluation metric function."
-                  }
+        metadata={"help": "The name of the evaluation metric function.",
+                  "choices": [TyDiF1]
+                 }
     )
 
     def __post_init__(self):
         if not self.task_heads:
-            self.task_heads = EXTRACTIVE_HEAD
+            self.task_heads = EXTRACTIVE_HEAD  # cannot directly set mutable value as default
 
 
 def main():
-
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
     # If we pass only one argument to the script and it's the path to a json file,
@@ -298,11 +298,13 @@ def main():
         k=data_args.n_best_logits,
         n_best_size=data_args.n_best_size,
         max_answer_length=data_args.max_answer_length,
-        scorer_type=SupportedSpanScorers(scorer_type)
+        scorer_type=SupportedSpanScorers(scorer_type),
+        single_context_multiple_passages=preprocessor._single_context_multiple_passages,
     )
 
+    eval_metrics = task_args.eval_metrics()
     def compute_metrics(p: EvalPredictionWithProcessing):
-        return task_args.eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
 
     trainer = MRCTrainer(
         model=model,
