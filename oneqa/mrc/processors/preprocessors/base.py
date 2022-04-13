@@ -35,7 +35,7 @@ class BasePreProcessor(AbstractPreProcessor):
 
     Notes for subclassing:
     - Override [`oneqa.mrc.processors.preprocessors.BasePreProcessor.adapt_dataset`] to format data following above schema
-    - Just before returning `dataset from overridden `adapt_dataset` include line `dataset = super().adapt_dataset(dataset, is_train)` as in [`oneqa.mrc.processors.preprocessors.BasePreProcessor.adapt_dataset`]
+    - Just before returning `dataset` from overridden `adapt_dataset` include line `dataset = super().adapt_dataset(dataset, is_train)` as in [`oneqa.mrc.processors.preprocessors.TyDiQAPreProcessor.adapt_dataset`]
     - See [`oneqa.mrc.processors.preprocessors.TyDiQAPreProcessor`] as an example
     """
     _del_keys = ["overflow_to_sample_mapping"]
