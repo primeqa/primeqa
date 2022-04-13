@@ -247,12 +247,13 @@ def main():
         config,
         model_args.model_name_or_path,
         task_heads=task_heads,
+        cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
 
     # load data
     logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset(data_args.dataset_name, data_args.dataset_config_name)
+    raw_datasets = datasets.load_dataset(data_args.dataset_name, data_args.dataset_config_name, cache_dir=model_args.cache_dir)
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
