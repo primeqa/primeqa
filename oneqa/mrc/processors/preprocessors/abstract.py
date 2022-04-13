@@ -17,7 +17,8 @@ class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures and docst
                  num_workers: Optional[int] = None,
                  load_from_cache_file: bool = True,
                  max_q_char_len: int = 128,
-                 single_context_multiple_passages: bool = False):
+                 single_context_multiple_passages: bool = False,
+                 max_contexts: Optional[int] = None):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._tokenizer = tokenizer
         self._stride = stride
@@ -28,6 +29,7 @@ class AbstractPreProcessor(metaclass=ABCMeta):  # TODO type signatures and docst
         self._load_from_cache_file = load_from_cache_file
         self._max_q_char_len = max_q_char_len
         self._single_context_multiple_passages = single_context_multiple_passages
+        self._max_contexts = max_contexts
 
         if not (0. <= self._negative_sampling_prob_when_has_answer <= 1.):
             raise ValueError(f"Expected 0 <= negative_sampling_prob_when_has_answer <= 1 but got: "

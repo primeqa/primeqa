@@ -3,7 +3,7 @@ from lib2to3.pgen2.tokenize import tokenize
 import random
 import uuid
 from operator import sub
-from typing import List, Iterable, Tuple, Any, Dict
+from typing import List, Iterable, Tuple, Any, Dict, Union
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
@@ -17,7 +17,7 @@ from oneqa.mrc.data_models.target_type import TargetType
 
 # TODO type signatures for all methods
 class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
-    _del_keys = ["overflow_to_sample_mapping"] #, "offset_mapping"]
+    _del_keys = ["overflow_to_sample_mapping"]
     _feature_types = {'question': Value(dtype='string', id=None),
                       'context': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
     _train_feature_types = {
@@ -25,14 +25,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                    'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
                    'passage_indices': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
                    'yes_no_answer': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}}
-    # _train_feature_types = {   # TODO: switch this layout to match tydi
-    #     'annotations': Sequence(feature={
-    #         'start_positions': Value(dtype='int32', id=None),
-    #         'end_positions': Value(dtype='int32', id=None),
-    #         'passage_indices': Value(dtype='int32', id=None),
-    #         'yes_no_answer': Value(dtype='string', id=None)})
-    # }
     _example_id_type = {'example_id': Value(dtype='string', id=None)}
+    _single_context_type = {'passage_candidates': {
+        'start_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
+        'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None)
+    }}
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         if 'example_id' not in dataset.features:
@@ -92,9 +89,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         expanded_examples_question = []
         expanded_examples_idx = []
         for i, (question, context) in enumerate(zip(examples_question, examples_context)):
+            context = self._trim_to_max_contexts(context, examples, i)
             n_context_for_example = len(context)
             if self._single_context_multiple_passages and n_context_for_example != 1:
-                raise ValueError("Must have exactly one context for each question to use single_context_multiple_passages")
+                raise ValueError("Must have exactly one context for each question "
+                                 "to use single_context_multiple_passages")
             expanded_examples_question.extend(itertools.repeat(question, n_context_for_example))
             expanded_examples_idx.extend(itertools.repeat(i, n_context_for_example))
         expanded_examples_context = list(itertools.chain.from_iterable(examples_context))
@@ -112,10 +111,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
         tokenized_examples['example_id'] = [examples['example_id'][eidx] for eidx in tokenized_examples['example_idx']]
 
-        if self._single_context_multiple_passages:
-            # context_idx = self._assign_context_idxs_to_single_passage(tokenized_examples, examples)
-            pass
-        else:
+        if not self._single_context_multiple_passages:  # context_idx only defined in this case
             spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
             tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
 
@@ -181,20 +177,13 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 window_contains_correct_passage = False
             else:
                 if self._single_context_multiple_passages:
-                    passage_candidates = examples['passage_answer_candidates'][example_index]
-                    # for i in range(len(passage_candidates['plaintext_start_byte'])):
-                    #     psb = passage_candidates['plaintext_start_byte'][i]
-                    #     peb = passage_candidates['plaintext_end_byte'][i]
-                    #     if self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1])):
-                    #     # if psb <= offsets[token_start_index][0] <= peb or psb <= offsets[token_end_index][1] <= peb:
-                    #         window_contains_correct_passage = True
-                    #         break
-                    # else:
-                    #     window_contains_correct_passage = False
-
-                    psb = passage_candidates['plaintext_start_byte'][passage_index]
-                    peb = passage_candidates['plaintext_end_byte'][passage_index]
-                    window_contains_correct_passage = self._spans_intersect((psb, peb), (offsets[token_start_index][0], offsets[token_end_index][1]))
+                    passage_candidates = examples['passage_candidates'][example_index]
+                    passage_start_position = passage_candidates['start_positions'][passage_index]
+                    passage_end_position = passage_candidates['end_positions'][passage_index]
+                    window_contains_correct_passage = self._spans_intersect(
+                        (passage_start_position, passage_end_position),
+                        (offsets[token_start_index][0], offsets[token_end_index][1])
+                    )
                 else:
                     context_idx = tokenized_examples['context_idx'][i]
                     window_contains_correct_passage = passage_index == context_idx
@@ -325,6 +314,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             items = itertools.chain(items, cls._train_feature_types.items())
         if not pre_adaptation:
             items = itertools.chain(items, cls._example_id_type.items())
+        if self._single_context_multiple_passages:
+            items = itertools.chain(items, cls._single_context_type.items())
         for feature_name, feature_type in items:
             if feature_name not in dataset.features:
                 raise ValueError(f"Expected but did not find feature '{feature_name}' in dataset")
@@ -352,3 +343,17 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
     def _spans_intersect(s1: Tuple[int, int], s2: Tuple[int, int]) -> bool:
         return (s1[0] <= s2[0] <= s1[1]) or (s2[0] <= s1[0] <= s2[1]) or \
                (s1[0] <= s2[1] <= s1[1]) or (s2[0] <= s1[1] <= s2[1])
+
+    def _trim_to_max_contexts(self,
+                              context: Union[List[str], List[List[str]]],
+                              examples: Batch,
+                              example_idx: int) -> Union[List[str], List[List[str]]]:
+        if self._max_contexts is None:
+            pass
+        elif self._single_context_multiple_passages:
+            passage_candidates = examples['passage_candidates'][example_idx]
+            if len(passage_candidates['start_positions']) > self._max_contexts:
+                context[0] = context[0][:passage_candidates['end_positions'][self._max_contexts - 1]]
+        else:
+            context = context[:self._max_contexts]
+        return context

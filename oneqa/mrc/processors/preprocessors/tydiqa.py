@@ -18,20 +18,27 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
                    'yes_no_answer': Value(dtype='string', id=None)})
     }
     _byte_itemgetter = itemgetter('plaintext_start_byte', 'plaintext_end_byte')
-    _rename_fields = {'question_text': 'question', 'annotations': 'target'}
+    _rename_fields = {'question_text': 'question', 'annotations': 'target',
+                      'passage_answer_candidates': 'passage_candidates'}
     _rename_target = {'passage_answer_candidate_index': 'passage_indices',
                       'minimal_answers_start_byte': 'start_positions',
                       'minimal_answers_end_byte': 'end_positions'}
+    _rename_passages = {'plaintext_start_byte': 'start_positions',
+                        'plaintext_end_byte': 'end_positions'}
+    _single_context_type = {'passage_answer_candidates': Sequence(
+        feature={'plaintext_start_byte': Value(dtype='int32', id=None),
+                 'plaintext_end_byte': Value(dtype='int32', id=None)})}
 
-    def __init__(self, *args, max_contexts: Optional[int] = 48, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._max_contexts = max_contexts
-        self._single_context_multiple_passages = True
+        if not self._single_context_multiple_passages:
+            self._logger.info(f"{self.__class__.__name__} only supports single context multiple passages -- enabling")
+            self._single_context_multiple_passages = True
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         self.validate_schema(dataset, is_train)
         dataset = dataset.rename_columns(self._rename_fields)
-        dataset = dataset.map(self._create_target,
+        dataset = dataset.map(self._rename_examples,
                               load_from_cache_file=self._load_from_cache_file,
                               num_proc=self._num_workers
                               )
@@ -51,31 +58,32 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
             if pidx == -1 or example['target']['start_positions'][i] == -1:
                 continue
 
-            # offset = example['passage_answer_candidates']['plaintext_start_byte'][pidx]
-            # example['target']['start_positions'][i] -= offset
-            # example['target']['end_positions'][i] -= offset
+            example['target']['start_positions'][i] = len(
+                context_bytes[:example['target']['start_positions'][i]].decode('utf-8', errors='replace'))
+            example['target']['end_positions'][i] = len(
+                context_bytes[:example['target']['end_positions'][i]].decode('utf-8', errors='replace'))
 
-            example['target']['start_positions'][i] = len(context_bytes[:example['target']['start_positions'][i]].decode('utf-8', errors='replace'))
-            example['target']['end_positions'][i] = len(context_bytes[:example['target']['end_positions'][i]].decode('utf-8', errors='replace'))
+        num_passages = len(example['passage_candidates']['start_positions'])
+        for i in range(num_passages):
+            passage_start_position = example['passage_candidates']['start_positions'][i]
+            passage_end_position = example['passage_candidates']['end_positions'][i]
+            example['passage_candidates']['start_positions'][i] = len(
+                context_bytes[:passage_start_position].decode('utf-8', errors='replace'))
+            example['passage_candidates']['end_positions'][i] = len(
+                context_bytes[:passage_end_position].decode('utf-8', errors='replace'))
 
-        for i in range(len(example['passage_answer_candidates']['plaintext_start_byte'])):
-            example['passage_answer_candidates']['plaintext_start_byte'][i] = len(context_bytes[:example['passage_answer_candidates']['plaintext_start_byte'][i]].decode('utf-8', errors='replace'))
-            example['passage_answer_candidates']['plaintext_end_byte'][i] = len(context_bytes[:example['passage_answer_candidates']['plaintext_end_byte'][i]].decode('utf-8', errors='replace'))
-
-        # if any(x < -1 for x in example['target']['start_positions']) or any(x < -1 for x in example['target']['end_positions']) or any(x < -1 for x in example['target']['passage_indices']):
-        #     raise ValueError(f"Error processing example: {example}")
-
-        # TODO: this currently does nothing since the len == 2 which never triggers the statement
-        if self._max_contexts and len(example['passage_answer_candidates']) > self._max_contexts:
-            context_bytes = context_bytes[:example['passage_answer_candidates'][self._max_contexts - 1]['plaintext_end_byte']]
-            context = context_bytes.decode('utf-8')
         example['context'] = [context]
         return example
 
-    def _create_target(self, example):
+    def _rename_examples(self, example):
         target = example['target']
         for old_key, new_key in self._rename_target.items():
             target[new_key] = target.pop(old_key)
         # TODO text extraction by byte from document_plaintext (generative support)
         example['target'] = target
+
+        passage_candidates = example['passage_candidates']
+        for old_key, new_key in self._rename_passages.items():
+            passage_candidates[new_key] = passage_candidates.pop(old_key)
+        example['passage_candidates'] = passage_candidates
         return example
