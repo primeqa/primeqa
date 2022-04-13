@@ -5,7 +5,7 @@ from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
+from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
 from oneqa.mrc.data_models.target_type import TargetType
 from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
 
@@ -70,7 +70,7 @@ class UnitTest:
 
     @pytest.fixture(scope='session')
     def preprocessor(self, tokenizer):
-        return DefaultPreProcessor(
+        return BasePreProcessor(
             tokenizer,
             stride=128,
             load_from_cache_file=False,
