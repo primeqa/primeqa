@@ -30,6 +30,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         'start_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None),
         'end_positions': Sequence(feature=Value(dtype='int64', id=None), length=-1, id=None)
     }}
+    _language_feature_type = {'language': Value(dtype='string', id=None)}
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         if 'example_id' not in dataset.features:
@@ -41,6 +42,8 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 load_from_cache_file=self._load_from_cache_file,
                 num_proc=self._num_workers,
             )
+        if 'language' not in dataset.features:
+            dataset = dataset.add_column('language', ['UNKNOWN'] * dataset.num_rows)
         self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
 
@@ -313,7 +316,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         if is_train:
             items = itertools.chain(items, cls._train_feature_types.items())
         if not pre_adaptation:
-            items = itertools.chain(items, cls._example_id_type.items())
+            items = itertools.chain(items, cls._example_id_type.items(), cls._language_feature_type.items())
         if self._single_context_multiple_passages:
             items = itertools.chain(items, cls._single_context_type.items())
         for feature_name, feature_type in items:

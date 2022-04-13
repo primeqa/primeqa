@@ -99,10 +99,15 @@ class TestDefaultPreProcessor(UnitTest):
             )
 
     def test_adapt_dataset_with_train_examples(self, train_examples, preprocessor):
-        assert preprocessor.adapt_dataset(train_examples, is_train=True) is train_examples
+        assert preprocessor.adapt_dataset(train_examples, is_train=True) is not train_examples
 
     def test_adapt_dataset_with_eval_examples(self, eval_examples, preprocessor):
-        assert preprocessor.adapt_dataset(eval_examples, is_train=False) is eval_examples
+        assert preprocessor.adapt_dataset(eval_examples, is_train=False) is not eval_examples
+
+    def test_adapt_dataset_with_train_examples_does_not_modify_examples_with_all_fields(self,
+                                                                                        train_examples, preprocessor):
+        train_examples = train_examples.add_column('language', ['FOO'] * train_examples.num_rows)
+        assert preprocessor.adapt_dataset(train_examples, is_train=True) is train_examples
 
     def test_train_preprocessing_runs_without_errors(self, train_examples, preprocessor):
         train_examples, train_features = preprocessor.process_train(train_examples)
@@ -120,15 +125,12 @@ class TestDefaultPreProcessor(UnitTest):
             tt = train_features['target_type'][i]
             cls_index = train_features['input_ids'][i].index(preprocessor._tokenizer.cls_token_id)
             if tt in (TargetType.PASSAGE_ANSWER, TargetType.YES, TargetType.NO):
-                # assert train_features['passage_indices'][i] != -1
                 assert train_features['start_positions'][i] == cls_index
                 assert train_features['end_positions'][i] == cls_index
             elif tt == TargetType.SPAN_ANSWER:
-                # assert train_features['passage_indices'][i] != -1
                 assert train_features['start_positions'][i] != cls_index
                 assert train_features['end_positions'][i] != cls_index
             elif tt == TargetType.NO_ANSWER:
-                # assert train_features['passage_indices'][i] == -1
                 assert train_features['start_positions'][i] == cls_index
                 assert train_features['end_positions'][i] == cls_index
             else:
@@ -201,3 +203,8 @@ class TestDefaultPreProcessor(UnitTest):
     def test_cannot_adapt_dataset_with_invalid_eval_schema_types(self, preprocessor, invalid_type_eval_examples):
         with raises(ValueError):
             _ = preprocessor.adapt_dataset(invalid_type_eval_examples, is_train=False)
+
+    def test_language_field_imputed_when_does_not_already_exist(self, train_examples_and_features):
+        train_examples, _ = train_examples_and_features
+        assert 'language' in train_examples.features
+        assert all(lang == 'UNKNOWN' for lang in train_examples['language'])
