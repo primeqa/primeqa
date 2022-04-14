@@ -27,10 +27,11 @@ def object_reference(reference_as_str: str) -> object:
     This will work with types, functions, methods, and other objects (e.g. dict).
 
     Args:
-        reference_as_str (`str`): the fully qualified path (expects the fully qualified path in dot notation,
-                                  e.g. `oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`).
+        reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
+                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
-    Returns: reference to path given by input
+    Returns:
+        reference to path given by input
 
     Raises:
         TypeError: Unable to resolve input path
