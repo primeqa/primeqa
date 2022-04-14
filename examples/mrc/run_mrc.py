@@ -21,14 +21,19 @@ from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.default import MRCTrainer
 
 
-def class_reference(class_reference_as_str: str) -> Type:
+def object_reference(reference_as_str: str) -> object:
     """
-    Given a fully qualified path to a class reference, return a pointer to the class reference
-    :param str class_reference_as_str: the fully qualified path (expects the fully qualified
-        path in dot notation, e.g.
-        oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor)
-    :return: class
-    :rtype: Type
+    Given a fully qualified path to a class reference, return a pointer to the reference.
+    This will work with types, functions, methods, and other objects (e.g. dict).
+
+    Args:
+        reference_as_str (`str`): the fully qualified path (expects the fully qualified path in dot notation,
+                                  e.g. `oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`).
+
+    Returns: reference to path given by input
+
+    Raises:
+        TypeError: Unable to resolve input path
     """
     def _split_into_class_and_module_name(class_path):
         modules = class_path.split('.')
@@ -38,15 +43,16 @@ def class_reference(class_reference_as_str: str) -> Type:
             return class_path, None
 
     try:
-        module_name, class_name = _split_into_class_and_module_name(class_reference_as_str)
+        module_name, object_name = _split_into_class_and_module_name(reference_as_str)
         module_reference = import_module(module_name)
-        if class_name is None:
+        if object_name is None:
             return module_reference
         else:
-            return getattr(module_reference, class_name)
+            return getattr(module_reference, object_name)
     except Exception as ex:
         traceback.print_exc()  # Shows additional traceback for why imports fail
-        raise TypeError("Unable to resolve the string {} to a fully qualified class path".format(class_reference_as_str)) from ex
+        raise TypeError(f"Unable to resolve the string {reference_as_str} to a fully qualified class path") from ex
+
 
 # modified from
 # https://github.com/huggingface/transformers/blob/main/examples/pytorch/question-answering/run_qa.py
@@ -83,7 +89,9 @@ class DataTrainingArguments:
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
     dataset_config_name: str = field(
-        default="primary_task", metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+        default="primary_task", metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        }
     )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
@@ -103,9 +111,11 @@ class DataTrainingArguments:
         default=128, metadata={"help": "Max length per question in characters"}
     )
     single_context_multiple_passages: bool = field(
-        default=False, metadata={"help": "Allow multiple passages in the same feature span. Note that not all"
-                                         "datasets/preprocessors support both values of this parameter."
-                                         "Some preprocessors may override this value."}
+        default=False, metadata={
+            "help": "Allow multiple passages in the same feature span. "
+                    "Note that not all datasets/preprocessors support "
+                    "both values of this parameter. Some preprocessors may override this value."
+            },
     )
     max_contexts: Optional[int] = field(
         default=None, metadata={"help": "Max contexts per consider"}
@@ -145,19 +155,21 @@ class DataTrainingArguments:
     )
     negative_sampling_prob_when_has_answer: float = field(
         default=0.01,
-        metadata={"help": "Only used when preparing training features, not for decoding. "
-                          "This ratio will be used when the example has a short answer, but "
-                          "the span does not. Specifically we will keep the span with "
-                          "probability negative_sampling_prob_when_has_answer."
-                 },
+        metadata={
+            "help": "Only used when preparing training features, not for decoding. "
+                    "This ratio will be used when the example has a short answer, but "
+                    "the span does not. Specifically we will keep the span with "
+                    "probability negative_sampling_prob_when_has_answer."
+        },
     )
     negative_sampling_prob_when_no_answer: float = field(
         default=0.04,
-        metadata={"help": "Only used when preparing training features, not for decoding. "
-                          "This ratio will be used when the example has NO short answer. "
-                          "Specifically we will keep spans from this example with "
-                          "probability negative_sampling_prob_when_has_answer."
-                 },
+        metadata={
+            "help": "Only used when preparing training features, not for decoding. "
+                    "This ratio will be used when the example has NO short answer. "
+                    "Specifically we will keep spans from this example with "
+                    "probability negative_sampling_prob_when_has_answer."
+        },
     )
 
 
@@ -172,25 +184,25 @@ class TaskArguments:
                   "choices": SupportedSpanScorers.get_supported()
                   }
     )
-    task_heads: class_reference = field(
+    task_heads: object_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
                   "choices": [EXTRACTIVE_HEAD]
                   }
     )
-    preprocessor: class_reference = field(
+    preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
                   "choices": [TyDiQAPreprocessor]
                   }
     )
-    postprocessor: class_reference = field(
+    postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
                   "choices": [ExtractivePostProcessor]
                   }
     )
-    eval_metrics: class_reference = field(
+    eval_metrics: object_reference = field(
         default=TyDiF1,
         metadata={"help": "The name of the evaluation metric function.",
                   "choices": [TyDiF1]
@@ -205,8 +217,8 @@ class TaskArguments:
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
-    # If we pass only one argument to the script and it's the path to a json file,
-    # let's parse it to get our arguments.
+        # If we pass only one argument to the script and it's the path to a json file,
+        # let's parse it to get our arguments.
         model_args, data_args, training_args, task_args = \
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
@@ -242,7 +254,6 @@ def main():
         use_fast=True,
         config=config,
     )
-
     model = ModelForDownstreamTasks.from_config(
         config,
         model_args.model_name_or_path,
@@ -253,7 +264,11 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset(data_args.dataset_name, data_args.dataset_config_name, cache_dir=model_args.cache_dir)
+    raw_datasets = datasets.load_dataset(
+        data_args.dataset_name,
+        data_args.dataset_config_name,
+        cache_dir=model_args.cache_dir,
+    )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
@@ -274,27 +289,31 @@ def main():
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
         max_train_samples = data_args.max_train_samples
-        if max_train_samples is not None:  # if data_args.max_train_samples is not None:
+        if max_train_samples is not None:
             # We will select sample from whole data if argument is specified
             train_dataset = train_dataset.select(range(max_train_samples))
+        # Train Feature Creation
         with training_args.main_process_first(desc="train dataset map pre-processing"):
             _, train_dataset = preprocessor.process_train(train_dataset)
 
+    # process val data
     if training_args.do_eval:
-        # process val data
         eval_examples = raw_datasets["validation"]
         max_eval_samples = data_args.max_eval_samples
-        if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
-            # We will select sample from whole data
+        if max_eval_samples is not None:
+            # We will select sample from whole data if argument is specified
             eval_examples = eval_examples.select(range(max_eval_samples))
         # Validation Feature Creation
         with training_args.main_process_first(desc="validation dataset map pre-processing"):
             eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
+    # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
+
+    # noinspection PyProtectedMember
     postprocessor = postprocessor_class(
         k=data_args.n_best_logits,
         n_best_size=data_args.n_best_size,
@@ -304,6 +323,7 @@ def main():
     )
 
     eval_metrics = task_args.eval_metrics()
+
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
 
@@ -318,13 +338,14 @@ def main():
         post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
         compute_metrics=compute_metrics,
     )
-    
+
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:
         checkpoint = training_args.resume_from_checkpoint
     elif last_checkpoint is not None:
         checkpoint = last_checkpoint
-    
+
+    # training
     if training_args.do_train:
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         trainer.save_model()  # Saves the tokenizer too for easy upload
@@ -339,6 +360,7 @@ def main():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
 
+    # validation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
         metrics = trainer.evaluate()
