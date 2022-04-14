@@ -12,8 +12,8 @@ An example usage command is:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --learning_rate 4e-5 \
-       --do_train --do_eval --per_device_train_batch_size 32 \
-       --per_device_eval_batch_size 128 --gradient_accumulation_steps 2 \
+       --do_train --do_eval --per_device_train_batch_size 16 \
+       --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
        --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
 ```
