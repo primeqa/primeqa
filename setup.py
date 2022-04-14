@@ -26,6 +26,7 @@ authors = [
     "TODO"
 ]
 
+# Dependency versions are pinned for stability.  Un-pinning dependencies is not supported.
 _deps = {
     "bump2version~=1.0.1": ["dev"],
     "datasets~=2.0.0": ["install"],
@@ -34,7 +35,7 @@ _deps = {
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
     "pytest-rerunfailures~=10.2": ["tests"],
-    "torch~=1.11.0": ["install"],
+    "torch>=1.8.2,<1.12.0,!=1.9.*,!=1.10.*": ["install"],  # LTS 1.8 or Stable 1.11
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
