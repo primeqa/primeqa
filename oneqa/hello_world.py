@@ -49,7 +49,7 @@ class HelloWorld:
     def baz(self) -> dict:
         """
         Returns:
-            {'a': 1, 'b': 2, 'c': 3}
+            dict of a-c -> 1-3
         """
         return {'a': 1, 'b': 2, 'c': 3}
 
