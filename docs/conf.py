@@ -31,6 +31,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.duration',
+    'sphinx.ext.napoleon',
 ]
 
 # Enable extensions

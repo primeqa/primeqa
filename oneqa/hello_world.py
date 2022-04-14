@@ -1,18 +1,18 @@
 def hello_world() -> str:
     """
-    Hello, world!
-
-    :return: "Hello, world!"
+    Returns:
+        'Hello, World!'
     """
     return "Hello, World!"
 
 
 def hello_name(name: str) -> str:
     """
-    Hello, {name}!
+    Args:
+        name: say hello to
 
-    :param name: who to say hello to
-    :return: "Hello, {name}!"
+    Returns:
+        f"Hello, {name}!"
     """
     return f"Hello, {name}!"
 
@@ -27,25 +27,29 @@ class HelloWorld:
 
     def to_str(self) -> str:
         """
-        :return: str representation of object
+        Returns:
+            str rep of object
         """
         return str(self)
 
     def foo(self) -> int:
         """
-        :return: 1
+        Returns:
+            1
         """
         return 1
 
     def bar(self) -> list:
         """
-        :return: [1, 2, 3]
+        Returns:
+            [1, 2, 3]
         """
         return [1, 2, 3]
 
     def baz(self) -> dict:
         """
-        :return: {'a': 1, 'b': 2, 'c': 3}
+        Returns:
+            {'a': 1, 'b': 2, 'c': 3}
         """
         return {'a': 1, 'b': 2, 'c': 3}
 
