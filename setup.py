@@ -28,10 +28,10 @@ authors = [
 
 _deps = {
     "bump2version": ["dev"],
-    "pydata-sphinx-theme": ["docs"],
+    "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pytest": ["tests"],
     "pytest-cov": ["tests"],
-    "sphinx": ["docs"],
+    "sphinx~=4.4.0": ["docs"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
     "tox": ["test"],
     "transformers": ["install"]  # TODO change this to range and add sentencepiece
