@@ -22,6 +22,8 @@ This will detect a GPU if present as well as multiple CPU cores for accelerating
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
 depending on your hardware configuration.
 
+The dataset name and config are currently omitted as only TyDi is supported at the moment.
+
 ### Task Arguments
 
 Some task arguments take references which allow for dynamic imports of existing or
