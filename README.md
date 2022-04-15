@@ -26,6 +26,9 @@ pip install .
 pip install -e .[all]
 ```
 
+Please note that dependencies (specified in [setup.py](./setup.py)) are pinned to provide a stable experience.
+When installing from source these can be modified, however this is not officially supported.
+
 ## Unit Tests
 
 To run the unit tests you first need to [install OneQA](#Installation).
