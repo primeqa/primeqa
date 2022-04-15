@@ -18,10 +18,10 @@ class TargetType(IntEnum):
         Alternate constructor from a boolean label string.
 
         Args:
-            label (`str`): yes|no|none
+            label: yes|no|none
 
         Returns:
-            ([`oneqa.mrc.data_models.target_type.TargetType`]): target type corresponding to label
+            target type corresponding to label
         """
         label = label.upper()
         if label == 'NONE':

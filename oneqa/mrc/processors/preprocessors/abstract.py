@@ -25,29 +25,29 @@ class AbstractPreProcessor(metaclass=ABCMeta):
                  max_contexts: Optional[int] = None):
         """
         Args:
-            tokenizer (`PreTrainedTokenizerFast`):
+            tokenizer:
                 Tokenizer used to prepare model inputs.
-            stride (`int`):
+            stride:
                 Step size to move sliding window across context.
-            max_seq_len (`int`, *optional*):
+            max_seq_len:
                 Maximum length of question and context inputs to the model (in word pieces/bpes).
                 Uses tokenizer default if not given.
-            negative_sampling_prob_when_has_answer (`float`, *optional*, defaults to 0.01):
+            negative_sampling_prob_when_has_answer:
                 Probability to select a negative feature from an example which has an answer.
-            negative_sampling_prob_when_no_answer (`float`, *optional*, defaults to 0.04):
+            negative_sampling_prob_when_no_answer:
                 Probability to select a negative feature from an example which does not have an answer.
-            num_workers (`int`, *optional*):
+            num_workers:
                 Number of workers to use for preprocessing.
                 Uses all available logical cores by default.
-            load_from_cache_file (`bool`, *optional*, defaults to True):
+            load_from_cache_file:
                 Whether to attempt loading features from cache file.
-            max_q_char_len (`int`, *optional*, defaults to 128):
+            max_q_char_len :
                 Max length allowed per question (in characters).
                 Remainder will be trimmed.
-            single_context_multiple_passages (`bool`, *optional*, defaults to False):
+            single_context_multiple_passages:
                 Iff true allow multiple context passages from the same example in the same feature span.
                 Note some preprocessors may override this parameter.
-            max_contexts (`int`, *optional*):
+            max_contexts:
                 Maximum number of contexts to search per example.
                 Remainder will be trimmed.
                 Defaults to searching all contexts.
@@ -78,12 +78,10 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         Process training examples into features.
 
         Args:
-            examples (`Dataset`): examples to process into features.
+            examples: examples to process into features.
 
         Returns:
-            `tuple(Dataset, Dataset)` comprising:
-                - ** examples **: examples adapted into standardized format.
-                - ** features **: processed inputs for model.
+            tuple (examples, features) comprising examples adapted into standardized format and processed input features for model.
         """
         pass
 
@@ -93,12 +91,10 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         Process eval examples into features.
 
         Args:
-            examples (`Dataset`): examples to process into features.
+            examples: examples to process into features.
 
         Returns:
-            `tuple(Dataset, Dataset)` comprising:
-                - ** examples **: examples adapted into standardized format.
-                - ** features **: processed inputs for model.
+            tuple (examples, features) comprising examples adapted into standardized format and processed input features for model.
         """
         pass
 
@@ -109,22 +105,22 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         This method will likely need to be overridden when subclassing.
 
         Args:
-            dataset (Dataset): data to adapt.
-            is_train (`bool`): whether the dataset is for training.
+            dataset: data to adapt.
+            is_train: whether the dataset is for training.
 
-        Returns: Adapted dataset.
+        Returns:
+            Adapted dataset.
         """
         pass
 
     @abstractmethod
     def label_features_for_subsampling(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:
         """
-        Annotate each training feature with a 'subsample_type' of type
-        [`oneqa.mrc.data_models.subsample_type.SubsampleType`] for subsampling.
+        Annotate each training feature with a 'subsample_type' of type `SubsampleType` for subsampling.
 
         Args:
-            tokenized_examples (`BatchEncoding`): featurized examples to annotate.
-            examples (`Batch`): original examples corresponding to the `tokenized_examples` features.
+            tokenized_examples: featurized examples to annotate.
+            examples: original examples corresponding to the `tokenized_examples` features.
 
         Returns: `tokenized_examples` annotated with 'subsample_type' for subsampling.
 
@@ -135,15 +131,16 @@ class AbstractPreProcessor(metaclass=ABCMeta):
     def subsample_features(self, dataset: Dataset) -> Dataset:
         """
         Subsample training features according to 'subsample_type':
-        - All positive features are kept.
-        - All negative features from an example that has an answer are kept with probability `self._negative_sampling_prob_when_has_answer`.
-        - All negative features from an example that has no answer are kept with probability `self._negative_sampling_prob_when_no_answer`.
+
+        * All positive features are kept.
+        * All negative features from an example that has an answer are kept with probability `self._negative_sampling_prob_when_has_answer`.
+        * All negative features from an example that has no answer are kept with probability `self._negative_sampling_prob_when_no_answer`.
 
         Args:
-            dataset (`Dataset`): features to subsample.
+            dataset: features to subsample.
 
         Returns:
-            `Dataset`: subsampled features.
+            subsampled features.
         """
         pass
 
@@ -153,11 +150,10 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         Validate the data schema is correct for this preprocessor.
 
         Args:
-            dataset (`Dataset`): data to validate schema of
-            is_train (`bool`): whether the data is for training
-            pre_adaptation (`bool`, *optional*, defaults to True): whether
-                            [`oneqa.mrc.processors.preprocessors.AbstractPreProcessor.adapt_dataset`] has been called.
-                            This allows for optional fields (e.g. example_id) to be imputed during adaptation.
+            dataset: data to validate schema of
+            is_train: whether the data is for training
+            pre_adaptation: whether adapt_dataset has been called. This allows for optional fields
+                            (e.g. example_id) to be imputed during adaptation.
 
         Returns:
             None

@@ -87,7 +87,7 @@ class TyDiQAPreprocessor(BasePreProcessor):
 
     def _rename_examples(self, example: Example):
         """
-        Rename examples from TyDi schema to [`oneqa.mrc.processors.preprocessors.base.BasePreProcessor`] schema.
+        Rename examples from TyDi schema to `BasePreProcessor` schema.
         """
         target = example['target']
         for old_key, new_key in self._rename_target.items():

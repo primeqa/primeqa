@@ -20,23 +20,28 @@ class BasePreProcessor(AbstractPreProcessor):
     Base class which implements core preprocessing functionality.
 
     Processes datasets with the following schema.
-    - 'question': str
-    - 'context': list[str]
+
+    * 'question': `str`
+    * 'context': `list[str]`
 
     Optional fields which will be imputed if not provided:
-    - 'example_id': str
-    - 'language': str
+
+    * 'example_id': `str`
+    *  'language': `str`
 
     Required for training data:
-    - 'target': {'start_positions': list[int], 'end_positions': list[int], 'passage_indices': list[int], 'yes_no_answer': list[str] }
+
+    * 'target': `{'start_positions': list[int], 'end_positions': list[int], 'passage_indices': list[int], 'yes_no_answer': list[str] }`
 
     Required for `single_context_multiple_passages=True`:
-    - 'passage_candidates' : { 'start_positions': list[int], 'end_positions': list[int] }
+
+    * 'passage_candidates' : `{ 'start_positions': list[int], 'end_positions': list[int] }`
 
     Notes for subclassing:
-    - Override [`oneqa.mrc.processors.preprocessors.BasePreProcessor.adapt_dataset`] to format data following above schema
-    - Just before returning `dataset` from overridden `adapt_dataset` include line `dataset = super().adapt_dataset(dataset, is_train)` as in [`oneqa.mrc.processors.preprocessors.TyDiQAPreProcessor.adapt_dataset`]
-    - See [`oneqa.mrc.processors.preprocessors.TyDiQAPreProcessor`] as an example
+
+    * Override adapt_dataset to format data following above schema
+    * Just before returning dataset from overridden adapt_dataset include line `dataset = super().adapt_dataset(dataset, is_train)`
+    * See `TyDiQAPreProcessor` as an example
     """
     _del_keys = ["overflow_to_sample_mapping"]
     _feature_types = {'question': Value(dtype='string', id=None),
@@ -305,7 +310,7 @@ class BasePreProcessor(AbstractPreProcessor):
         Return True iff this training feature should be kept based on the subsample type.
 
         Raises:
-            NotImplementedError: invalid [`oneqa.mrc.data_models.subsample_type.SubsampleType`] value.
+            NotImplementedError: invalid SubsampleType value.
         """
         if st == SubsampleType.POSITIVE:
             return True
