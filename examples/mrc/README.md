@@ -31,3 +31,11 @@ user-defined functionality.  For example, to select the `ExtractivePostProcessor
 `--postprocessor oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
 Alternatively, a new postprocessor could be written and selected with 
 `--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+
+For example, if one was implementing a new model which made predictions by means other than
+an extractive head then a `NewPostProcessor` which derived predictions from the model
+outputs would be needed.
+
+Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
+This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
+for the `NewPreProcessor` corresponding to this dataset and schema.

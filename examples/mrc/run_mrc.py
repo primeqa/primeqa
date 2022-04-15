@@ -113,9 +113,11 @@ class DataTrainingArguments:
     )
     single_context_multiple_passages: bool = field(
         default=False, metadata={
-            "help": "Allow multiple passages in the same feature span. "
-                    "Note that not all datasets/preprocessors support "
-                    "both values of this parameter. Some preprocessors may override this value."
+            "help": "Allow multiple passages in the same input feature. "
+                    "For an example with question q and context c_{1..n} setting this to True"
+                    "will allow q|c_{i}c_{i+1}; whereas setting this to False enforces q|c_{i} q|c_{i+1}. "
+                    "Note that not all datasets/preprocessors support both values of this parameter. "
+                    "Some preprocessors may override this value."
             },
     )
     max_contexts: Optional[int] = field(
@@ -158,18 +160,18 @@ class DataTrainingArguments:
         default=0.01,
         metadata={
             "help": "Only used when preparing training features, not for decoding. "
-                    "This ratio will be used when the example has a short answer, but "
-                    "the span does not. Specifically we will keep the span with "
-                    "probability negative_sampling_prob_when_has_answer."
+                    "For an example with question q and context c_{1..n} where ∃ answer a ∈ c"
+                    "an input feature q|c_{i} where a ∉ c_{i} will be kept with this probability."
+                    "Otherwise it will be discarded."
         },
     )
     negative_sampling_prob_when_no_answer: float = field(
         default=0.04,
         metadata={
             "help": "Only used when preparing training features, not for decoding. "
-                    "This ratio will be used when the example has NO short answer. "
-                    "Specifically we will keep spans from this example with "
-                    "probability negative_sampling_prob_when_has_answer."
+                    "For an example with question q and context c_{1..n} where ∄ answer a ∈ c"
+                    "an input feature q|c_{i} will be kept with this probability."
+                    "Otherwise it will be discarded."
         },
     )
 
