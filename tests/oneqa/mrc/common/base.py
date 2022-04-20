@@ -7,7 +7,7 @@ from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
 from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
+from tests.oneqa.mrc.common.parameterization import parameterize_fixture_with_model_name
 
 
 class UnitTest:
@@ -15,7 +15,7 @@ class UnitTest:
     Base class for all unit test classes
     """
 
-    @PARAMETERIZE_FIXTURE_WITH_MODEL_NAME
+    @parameterize_fixture_with_model_name
     def model_name_and_config(self, request):
         model_name = request.param
         _ = AutoModel.from_pretrained(model_name)  # Pre-download LM inside flaky fixture so other tests have it
