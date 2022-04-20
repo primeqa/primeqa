@@ -30,17 +30,19 @@ _deps = {
     "bump2version~=1.0.1": ["dev"],
     "datasets~=2.0.0": ["install"],
     "packaging~=21.3": ["install"],
+    "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
     "pytest-rerunfailures~=10.2": ["tests"],
+    "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
 }
 
-extras_names = ["dev", "install", "tests"]
+extras_names = ["docs", "dev", "install", "tests"]
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
