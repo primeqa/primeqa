@@ -1,6 +1,3 @@
-from operator import itemgetter
-from typing import Optional
-
 from datasets import Dataset
 from datasets.arrow_dataset import Example
 from datasets.features.features import Sequence, Value
@@ -23,7 +20,6 @@ class TyDiQAPreprocessor(BasePreProcessor):
                    'passage_answer_candidate_index': Value(dtype='int32', id=None),
                    'yes_no_answer': Value(dtype='string', id=None)})
     }
-    _byte_itemgetter = itemgetter('plaintext_start_byte', 'plaintext_end_byte')
     _rename_fields = {'question_text': 'question', 'annotations': 'target',
                       'passage_answer_candidates': 'passage_candidates'}
     _rename_target = {'passage_answer_candidate_index': 'passage_indices',
