@@ -28,14 +28,16 @@ authors = [
 
 _deps = {
     "bump2version": ["dev"],
+    "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pytest": ["tests"],
     "pytest-cov": ["tests"],
+    "sphinx~=4.4.0": ["docs"],
     "torch>=1.8": ["install"],  # TODO: see if we can reduce to 1.7 or 1.6
     "tox": ["tests"],
     "transformers": ["install"]  # TODO change this to range and add sentencepiece
 }
 
-extras_names = ["dev", "install", "tests"]
+extras_names = ["docs", "dev", "install", "tests"]
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
