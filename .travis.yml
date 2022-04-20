@@ -5,4 +5,9 @@ python:
   - "3.9"
 cache: pip
 install: pip install tox-travis
-script: tox -r
+script:
+  - tox -r
+  - >
+    virtualenv install_with_all_deps && 
+    source ./install_with_all_deps/bin/activate && 
+    pip install .[all]
