@@ -7,7 +7,7 @@ from tests.oneqa.mrc.common.base import UnitTest
 
 
 class TestAbstractTaskHead(UnitTest):
-    @pytest.fixture()
+    @pytest.fixture(scope='session')
     def mocked_config(self, mocker):
         return mocker.Mock(PretrainedConfig)
 
