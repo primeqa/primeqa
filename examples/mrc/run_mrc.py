@@ -161,7 +161,7 @@ class DataTrainingArguments:
         metadata={
             "help": "Only used when preparing training features, not for decoding. "
                     "For an example with question q and context c_{1..n} where ∃ answer a ∈ c"
-                    "an input feature q|c_{i} where a ∉ c_{i} will be kept with this probability."
+                    "an input feature span q|c_{i} where a ∉ c_{i} will be kept with this probability."
                     "Otherwise it will be discarded."
         },
     )
@@ -170,7 +170,7 @@ class DataTrainingArguments:
         metadata={
             "help": "Only used when preparing training features, not for decoding. "
                     "For an example with question q and context c_{1..n} where ∄ answer a ∈ c"
-                    "an input feature q|c_{i} will be kept with this probability."
+                    "an input feature span q|c_{i} will be kept with this probability."
                     "Otherwise it will be discarded."
         },
     )
