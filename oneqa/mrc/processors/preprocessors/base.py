@@ -27,7 +27,7 @@ class BasePreProcessor(AbstractPreProcessor):
     Optional fields which will be imputed if not provided:
 
     * 'example_id': `str`
-    *  'language': `str`
+    * 'language': `str`
 
     Required for training data:
 
