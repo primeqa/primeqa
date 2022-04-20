@@ -60,7 +60,7 @@ class QueryTokenizerXLMR():
         if context is not None:
             print_message(f"#> length of context: {len(context)}")
 
-        if self.used is False:
+        if not self.used:
             self.used = True
             firstbg = (context is None) or context[0]
 
@@ -68,7 +68,6 @@ class QueryTokenizerXLMR():
             print_message(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
             print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
             print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
-
 
         if bsize:
             batches = _split_into_batches(ids, mask, bsize)

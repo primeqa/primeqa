@@ -10,7 +10,8 @@ from colbert.utils.utils import timestamp, torch_load_dnn
 
 from utility.utils.save_metadata import get_metadata_only
 from .core_config import *
-
+from colbert.utils.utils import print_message
+import ujson
 
 @dataclass
 class BaseConfig(CoreConfig):
@@ -39,11 +40,20 @@ class BaseConfig(CoreConfig):
 
     @classmethod
     def from_path(cls, name):
+
+        print_message(f"#> base_config.py from_path {name}")
+
         with open(name) as f:
+
             args = ujson.load(f)
+
+            print_message(f"#> base_config.py from_path args loaded! ")
 
             if 'config' in args:
                 args = args['config']
+
+                print_message(f"#> base_config.py from_path args replaced ! ")
+
 
         return cls.from_deprecated_args(args)  # the new, non-deprecated version functions the same at this level.
     
@@ -62,6 +72,10 @@ class BaseConfig(CoreConfig):
             return config
 
         loaded_config_path = os.path.join(checkpoint_path, 'artifact.metadata')
+
+        print_message(f"#> base_config.py load_from_checkpoint {checkpoint_path}")
+        print_message(f"#> base_config.py load_from_checkpoint {loaded_config_path}")
+
         if os.path.exists(loaded_config_path):
             loaded_config, _ = cls.from_path(loaded_config_path)
             loaded_config.set('checkpoint', checkpoint_path)

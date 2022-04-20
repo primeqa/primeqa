@@ -36,7 +36,13 @@ class HF_ColBERT(BertPreTrainedModel):
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
 
-            obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
+            state_dict=dnn['model_state_dict']
+            from collections import OrderedDict
+            import re
+            state_dict = OrderedDict([(re.sub(r'^model.bert.', 'bert.', key), value) for key, value in state_dict.items()])
+            state_dict = OrderedDict([(re.sub(r'^model.linear.', 'linear.', key), value) for key, value in state_dict.items()])
+            obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
+            #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
             obj.base = base
 
             return obj

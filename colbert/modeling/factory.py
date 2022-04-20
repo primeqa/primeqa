@@ -12,6 +12,7 @@ from colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizer
 
 import os
 import json
+from colbert.utils.utils import torch_load_dnn
 
 # Based on model type to associate to a proper model and tokennizers(query, doc)
 #----------------------------------------------------------------
@@ -23,18 +24,23 @@ def get_colbert_from_pretrained(name, colbert_config):
 
     local_models_repository = colbert_config.local_models_repository
     model_type = name
-    # if it is a directory, load json file to get the model type
+
+    if colbert_config.model_type is not None:
+        model_type = colbert_config.model_type
+
+    # if it is a directory, load json file to get the model type,or  if it is a dnn file
     if os.path.isdir(name):
         json_file= name + '/config.json'
         print_message(f"json file (get_colbert_from_pretrained): {json_file}")
         with open(json_file) as file:
             data = json.load(file)
         model_type = data["_name_or_path"]
+    elif name.endswith('.dnn') or name.endswith('.model'):
+        dnn_checkpoint = torch_load_dnn(name)
+        # replacing name with model type
+        model_type = dnn_checkpoint['model_type']
 
-    if colbert_config.model_type is not None:
-        model_type = colbert_config.model_type
-
-    print_message(f"get colbert model type: {model_type}")
+    print_message(f"factory model type: {model_type}")
 
     if model_type=='bert-base-uncased' or model_type=='bert-large-uncased':
         colbert = HF_ColBERT.from_pretrained(name, colbert_config)

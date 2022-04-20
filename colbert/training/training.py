@@ -31,30 +31,34 @@ from colbert.modeling.reranker.electra import ElectraReranker
 from colbert.utils import signals
 from colbert.utils.utils import torch_load_dnn
 from colbert.utils.utils import print_message, save_checkpoint
-from colbert.training.utils import print_progress, manage_checkpoints, manage_checkpoints_consumed_all_triples
+from colbert.training.utils import print_progress, manage_checkpoints_consumed_all_triples, manage_checkpoints_with_path_save
 
 
 def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     if config.rank < 1:
-        # config.help()
+        config.help()
         # config.help is not happy with print input augument
-        config_without_input_arguments = copy.deepcopy(config)
-        config_without_input_arguments.input_arguments = None
-        config_without_input_arguments.help()
+        # config_without_input_arguments = copy.deepcopy(config)
+        # config_without_input_arguments.input_arguments = None
+        # config_without_input_arguments.help()
 
     # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
     if config.checkpoint is not None:
         if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
             # adding "or config.checkpoint.endswith('.model')" to be compatible with V1
             checkpoint = torch_load_dnn(config.checkpoint)
-            if checkpoint['model_type'] is not None:
-                config.model_type = checkpoint['model_type']
+            # if checkpoint['model_type'] is not None:
+            assert 'model_type' in checkpoint and checkpoint['model_type'] is not None, f"missing or invalid  checkpoint type in {config.checkpoint}"
+            config.model_type = checkpoint['model_type']
 
         # Use checkpoint as a model type
-        if config.checkpoint == 'bert-base-uncased' or config.checkpoint =='bert-large-uncased' \
+        elif config.checkpoint == 'bert-base-uncased' or config.checkpoint =='bert-large-uncased' \
                 or config.checkpoint == 'xlm-roberta-base' or config.checkpoint == 'xlm-roberta-large':
             config.model_type = config.checkpoint
+        else:
+            print_message(f"unsupported checkpoint type or format: {config.checkpoint}")
+            raise NotImplementedError
 
     print_message(f"model type: {config.model_type}")
 
@@ -66,7 +70,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     assert config.bsize % config.nranks == 0, (config.bsize, config.nranks)
     config.bsize = config.bsize // config.nranks
 
-    print("Using config.bsize =", config.bsize, "(per process) and config.accumsteps =", config.accumsteps)
+    print_message("Using config.bsize =", config.bsize, "(per process) and config.accumsteps =", config.accumsteps)
 
     # the reader , the proper tokenizer is based on model type
     if collection is not None:
@@ -87,7 +91,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         if config.init_from_lm is not None and config.checkpoint is None:
             # checkpoint should override init_from_lm since it continues an already init'd run
             print_message(f"#> Load init from lm {config.init_from_lm}")
-            if DEVICE ==  torch.device("cuda"):
+            if DEVICE == torch.device("cuda"):
                 lmweights = torch.load(config.init_from_lm)
             else:    # expect path to pytorch_model.bin
                 lmweights = torch.load(config.init_from_lm, map_location=torch.device('cpu'))  # expect path to pytorch_model.bin
@@ -161,7 +165,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     scheduler = None
     if config.warmup is not None:
-        print(f"#> LR will use {config.warmup} warmup steps and linear decay over {config.maxsteps} steps.")
+        print_message(f"#> LR will use {config.warmup} warmup steps and linear decay over {config.maxsteps} steps.")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=config.warmup,
                                                     num_training_steps=config.maxsteps)
     
@@ -196,7 +200,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         os.makedirs(path)
 
     name = os.path.join(path, "colbert-EXIT.dnn")
-    arguments = config.input_arguments.__dict__
+    # arguments = config.input_arguments.__dict__
     exit_queue = signals.checkpoint_on_exit(config.rank)
 
     print_message(f"maxsteps: {config.maxsteps}")
@@ -280,15 +284,16 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             try:
                 exit_queue.get_nowait()
                 # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
-                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
+                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                 sys.exit(0)
             except Empty:
-                manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
+                # manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
+                manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
     # save last model
     name = os.path.join(path, "colbert-LAST.dnn")
-    print('name:' + name)
+    print_message('name:' + name)
     list_of_files = glob.glob(f'{path}/*.model')  # * means all if need specific format then *.csv
     latest_file = max(list_of_files, key=os.path.getctime)
     # Run.info(f"Make a sym link of {latest_file} to {name}")
@@ -302,8 +307,13 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         else:
             raise
 
+    if config.rank < 1:
+        print_message("#> Done with all triples!")
+        ckpt_path = manage_checkpoints_consumed_all_triples(config, colbert, optimizer, batch_idx+1, savepath=None, consumed_all_triples=True)
+        return ckpt_path  # TODO: This should validate and return the best checkpoint, not just the last one.
+
     # just return latest file
-    return latest_file
+    # return latest_file
 
 
 def set_bert_grad(colbert, value):

@@ -77,7 +77,10 @@ class CollectionIndexer():
         self.num_embeddings_est = num_passages * avg_doclen_est
         # self.num_partitions = int(2 ** np.floor(np.log2(16 * np.sqrt(self.num_embeddings_est))))
         # 16 --> 4 suggested by @Omar Khattab, reduce the numbers of centroids
-        self.num_partitions = int(2 ** np.floor(np.log2(4 * np.sqrt(self.num_embeddings_est))))
+        # self.num_partitions = int(2 ** np.floor(np.log2(4 * np.sqrt(self.num_embeddings_est))))
+        num_partitions_multiplier = 4
+        self.num_partitions = int(2 ** np.floor(np.log2(num_partitions_multiplier * np.sqrt(self.num_embeddings_est))))
+        print_message(f'>> num_partitions_multiplier = {num_partitions_multiplier}, self.num_partitions = {self.num_partitions}')
 
         Run().print_main(f'Creaing {self.num_partitions:,} partitions.')
         Run().print_main(f'*Estimated* {int(self.num_embeddings_est):,} embeddings.')

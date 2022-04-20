@@ -66,24 +66,16 @@ class DocTokenizer():
         # postprocess for the [D] marker
         ids[:, 1] = self.D_marker_token_id
 
+        if not self.used:
+            self.used = True
+            print_message("#> BERT DocTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
+            print_message(f"#> Input: {batch_text[0]}, \t\t {bsize}")
+            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
+            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
+
         if bsize:
             ids, mask, reverse_indices = _sort_by_length(ids, mask, bsize)
             batches = _split_into_batches(ids, mask, bsize)
             return batches, reverse_indices
-
-        if self.used is False:
-            self.used = True
-
-            # firstbg = (context is None) or context[0]
-
-            # print()
-            print_message("#> BERT DocTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
-            # print(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
-            print_message(f"#> Input: {batch_text[0]}, \t\t {bsize}")
-            print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
-            print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
-            # print()
-
-
 
         return ids, mask

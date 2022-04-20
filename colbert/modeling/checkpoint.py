@@ -19,16 +19,17 @@ class Checkpoint(ColBERT):
 
     def __init__(self, name, colbert_config=None):
 
-        model_type=name
+        super().__init__(name, colbert_config)
+        assert self.training is False
+
         # get model type from checkpoint
         if name.endswith('.dnn') or name.endswith('.model'):
             dnn_checkpoint = torch_load_dnn(colbert_config.checkpoint)
             # replacing name with model type
             model_type = dnn_checkpoint['model_type']
             # model_type = 'bert-base-uncased'
-
-        super().__init__(model_type, colbert_config)
-        assert self.training is False
+        else:
+            model_type=name
 
         # self.query_tokenizer = QueryTokenizer(self.colbert_config)
         # self.doc_tokenizer = DocTokenizer(self.colbert_config)
@@ -68,13 +69,13 @@ class Checkpoint(ColBERT):
     def docFromText(self, docs, bsize=None, keep_dims=True, to_cpu=False, showprogress=False, return_tokens=False):
         assert keep_dims in [True, False, 'flatten']
 
-        if self.docFromText_used is False:
+        if not self.docFromText_used:
             print_message(f"#> checkpoint, docFromText, Input: {docs[0]}, \t\t {bsize}")
 
         if bsize:
             text_batches, reverse_indices = self.doc_tokenizer.tensorize(docs, bsize=bsize)
 
-            if self.docFromText_used is False:
+            if not self.docFromText_used:
                 print_message(f"#> checkpoint, docFromText, Output IDs: {text_batches[0]}")
                 self.docFromText_used = True
 

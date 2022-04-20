@@ -34,7 +34,11 @@ class Searcher:
         self.collection = Collection.cast(collection or self.config.collection)
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
 
-        self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config).cuda()
+        if torch.cuda.is_available():
+            self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config).cuda()
+        else:
+            self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config).cpu()
+
         self.ranker = IndexScorer(self.index)
 
         print_memory_stats()

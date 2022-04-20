@@ -15,20 +15,37 @@ class ResidualCodec:
 
     def __init__(self, config, centroids, avg_residual=None, bucket_cutoffs=None, bucket_weights=None):
         self.dim, self.nbits = config.dim, config.nbits
-        self.centroids = centroids.half().cuda()
+
+        if torch.cuda.is_available():
+            self.centroids = centroids.half().cuda()
+        else:
+            self.centroids = centroids.half().cpu()
+
         self.avg_residual = avg_residual
 
         if torch.is_tensor(self.avg_residual):
-            self.avg_residual = self.avg_residual.half().cuda()
-        
+
+            if torch.cuda.is_available():
+                self.avg_residual = self.avg_residual.half().cuda()
+            else:
+                self.avg_residual = self.avg_residual.half().cpu()
+
         if torch.is_tensor(bucket_cutoffs):
-            bucket_cutoffs = bucket_cutoffs.cuda()
-            bucket_weights = bucket_weights.half().cuda()
+
+            if torch.cuda.is_available():
+                bucket_cutoffs = bucket_cutoffs.cuda()
+                bucket_weights = bucket_weights.half().cuda()
+            else:
+                bucket_cutoffs = bucket_cutoffs.cpu()
+                bucket_weights = bucket_weights.half().cpu()
 
         self.bucket_cutoffs = bucket_cutoffs
         self.bucket_weights = bucket_weights
 
-        self.arange_bits = torch.arange(0, self.nbits, device='cuda', dtype=torch.uint8)
+        if torch.cuda.is_available():
+            self.arange_bits = torch.arange(0, self.nbits, device='cuda', dtype=torch.uint8)
+        else:
+            self.arange_bits = torch.arange(0, self.nbits, device='cpu', dtype=torch.uint8)
 
     @classmethod
     def load(cls, index_path):
@@ -67,7 +84,12 @@ class ResidualCodec:
         codes, residuals = [], []
 
         for batch in embs.split(1 << 18):
-            batch = batch.cuda().half()
+
+            if torch.cuda.is_available():
+                batch = batch.cuda().half()
+            else:
+                batch = batch.cpu().half()
+
             codes_ = self.compress_into_codes(batch, out_device=batch.device)
             centroids_ = self.lookup_centroids(codes_, out_device=batch.device)
 
@@ -107,7 +129,12 @@ class ResidualCodec:
 
         bsize = (1 << 29) // self.centroids.size(0)
         for batch in embs.split(bsize):
-            indices = (self.centroids @ batch.T.cuda().half()).max(dim=0).indices.to(device=out_device)
+
+            if torch.cuda.is_available():
+                indices = (self.centroids @ batch.T.cuda().half()).max(dim=0).indices.to(device=out_device)
+            else:
+                indices = (self.centroids @ batch.T.cpu().half()).max(dim=0).indices.to(device=out_device)
+
             codes.append(indices)
 
         return torch.cat(codes)
@@ -122,7 +149,11 @@ class ResidualCodec:
         centroids = []
 
         for batch in codes.split(1 << 20):
-            centroids.append(self.centroids[batch.cuda().long()].to(device=out_device))
+
+            if torch.cuda.is_available():
+                centroids.append(self.centroids[batch.cuda().long()].to(device=out_device))
+            else:
+                centroids.append(self.centroids[batch.cpu().long()].to(device=out_device))
 
         return torch.cat(centroids)
 
@@ -135,8 +166,14 @@ class ResidualCodec:
 
         D = []
         for codes_, residuals_ in zip(codes.split(1 << 15), residuals.split(1 << 15)):
-            codes_, residuals_ = codes_.cuda(), residuals_.cuda()
-            centroids_ = self.lookup_centroids(codes_, out_device='cuda')
+
+            if torch.cuda.is_available():
+                codes_, residuals_ = codes_.cuda(), residuals_.cuda()
+                centroids_ = self.lookup_centroids(codes_, out_device='cuda')
+            else:
+                codes_, residuals_ = codes_.cpu(), residuals_.cpu()
+                centroids_ = self.lookup_centroids(codes_, out_device='cpu')
+
             residuals_ = self.decompress_residuals(residuals_).to(device=centroids_.device)
 
             centroids_.add_(residuals_)
@@ -151,13 +188,22 @@ class ResidualCodec:
 
         residuals = cupy.unpackbits(cupy.asarray(binary_residuals.contiguous().flatten()))
 
-        residuals = torch.as_tensor(residuals, dtype=torch.uint8, device='cuda')
+        if torch.cuda.is_available():
+            residuals = torch.as_tensor(residuals, dtype=torch.uint8, device='cuda')
+        else:
+            residuals = torch.as_tensor(residuals, dtype=torch.uint8, device='cpu')
+
 
         if self.nbits > 1:
             residuals = residuals.reshape(binary_residuals.size(0), self.dim, self.nbits)
             residuals = (residuals << self.arange_bits).sum(-1)
 
         residuals = residuals.reshape(binary_residuals.size(0), self.dim)
-        residuals = self.bucket_weights[residuals.long()].cuda()
+
+        if torch.cuda.is_available():
+            residuals = self.bucket_weights[residuals.long()].cuda()
+        else:
+            residuals = self.bucket_weights[residuals.long()].cpu()
+
 
         return residuals

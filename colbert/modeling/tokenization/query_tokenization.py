@@ -86,20 +86,16 @@ class QueryTokenizer():
             mask[ids == self.mask_token_id] = 1
             assert mask.sum().item() == mask.size(0) * mask.size(1), mask
 
-        if bsize:
-            batches = _split_into_batches(ids, mask, bsize)
-            return batches
-        
-        if self.used is False:
+        if not self.used:
             self.used = True
-
             firstbg = (context is None) or context[0]
-
-            # print()
             print_message("#> BERT QueryTokenizer.tensorize(batch_text[0], batch_background[0], bsize) ==")
             print_message(f"#> Input: {batch_text[0]}, \t\t {firstbg}, \t\t {bsize}")
             print_message(f"#> Output IDs: {ids[0].size()}, {ids[0]}")
             print_message(f"#> Output Mask: {mask[0].size()}, {mask[0]}")
-            # print()
+
+        if bsize:
+            batches = _split_into_batches(ids, mask, bsize)
+            return batches
 
         return ids, mask

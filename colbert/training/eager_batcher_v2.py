@@ -53,7 +53,8 @@ class EagerBatcher():
                 if line_idx % nranks == rank:
                     query, pos, neg = line.strip().split('\t')
 
-                    triples.append((remove_first_and_last_quote(query), remove_first_and_last_quote(pos), remove_first_and_last_quote(neg)))
+                    # triples.append((remove_first_and_last_quote(query), remove_first_and_last_quote(pos), remove_first_and_last_quote(neg)))
+                    triples.append((query, pos, neg))
 
         return triples
 

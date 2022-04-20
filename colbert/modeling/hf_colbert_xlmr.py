@@ -7,6 +7,7 @@ from transformers import PreTrainedModel
 from transformers import XLMRobertaModel
 
 class HF_ColBERT_XLMR(XLMRobertaModel):
+#class HF_ColBERT_XLMR(PreTrainedModel):
     """
         Shallow wrapper around HuggingFace transformers. All new parameters should be defined at this level.
         
@@ -20,7 +21,13 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
         # resolve conflict between bert and roberta
         # self.roberta = XLMRobertaModel(config)
         # self.bert = self.roberta
-        self.bert = XLMRobertaModel(config)
+        self.encoder = None
+        self.embeddings = None
+        self.pooler = None
+
+        self.roberta = XLMRobertaModel(config)
+        self.bert = self.roberta
+        #self.bert = XLMRobertaModel(config)
 
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
 
@@ -39,7 +46,18 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
             dnn = torch_load_dnn(name_or_path)
             base = dnn.get('arguments', {}).get('model', 'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
 
-            obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
+            state_dict=dnn['model_state_dict']
+            from collections import OrderedDict
+            import re
+
+            # for reading V1
+            # state_dict = OrderedDict([(re.sub(r'^roberta.', 'bert.', key), value) for key, value in state_dict.items()])
+
+            # for reading V2
+            state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
+
+            obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
+            #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
             obj.base = base
 
             return obj

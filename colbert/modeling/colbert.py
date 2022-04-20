@@ -62,24 +62,26 @@ class ColBERT(BaseColBERT):
     def query(self, input_ids, attention_mask):
         input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
         # print query input_ids
-        if self.query_used is False:
+        if not self.query_used:
 
-            # print()
             print_message("#>>>> colbert query ==")
             print_message(f"#>>>>> input_ids: {input_ids[0].size()}, {input_ids[0]}")
-            # print()
 
         Q = self.bert(input_ids, attention_mask=attention_mask)[0]
-        Q = self.linear(Q)
 
         # print out Q
-        if self.query_used is False:
+        if not self.query_used:
+            print_message("#>>>> before linear query ==")
+            print_message(f"#>>>>> Q: {Q[0].size()}, {Q[0]}")
+            print_message(f"#>>>>> self.linear query : {self.linear.weight}")
+
+        Q = self.linear(Q)
+
+        if not self.query_used:
             self.query_used = True
 
-            # print()
             print_message("#>>>> colbert query ==")
             print_message(f"#>>>>> Q: {Q[0].size()}, {Q[0]}")
-            # print()
 
 
         mask = torch.tensor(self.mask(input_ids, skiplist=[]), device=self.device).unsqueeze(2).float()
@@ -93,33 +95,26 @@ class ColBERT(BaseColBERT):
         input_ids, attention_mask = input_ids.to(self.device), attention_mask.to(self.device)
         # print doc input_ids
         # [     0,   9749,   4960,  40455,      6,  58745,  48302,    136,   4343,   71,
-        if self.doc_used is False:
-            # print()
+        if not self.doc_used:
             print_message("#>>>> colbert doc ==")
             print_message(f"#>>>>> input_ids: {input_ids[0].size()}, {input_ids[0]}")
-            # print()
-
-            random.seed(12345)
-            np.random.seed(12345)
-            torch.manual_seed(12345)
-            torch.cuda.manual_seed(12345)
 
         D = self.bert(input_ids, attention_mask=attention_mask)[0]
 
-        if self.doc_used is False:
+        if not self.doc_used:
             print_message("#>>>> before linear doc ==")
             print_message(f"#>>>>> D: {D[0].size()}, {D[0]}")
+
+            print_message(f"#>>>>> self.linear doc : {self.linear.weight}")
 
         D = self.linear(D)
 
         # print out D
-        if self.doc_used is False:
+        if not self.doc_used:
             self.doc_used = True
 
-            # print()
             print_message("#>>>> colbert doc ==")
             print_message(f"#>>>>> D: {D[0].size()}, {D[0]}")
-            # print()
 
 
         mask = torch.tensor(self.mask(input_ids, skiplist=self.skiplist), device=self.device).unsqueeze(2).float()
