@@ -38,8 +38,11 @@ class ExtractiveQAHead(AbstractTaskHead):
 
         self.classifier = RobertaClassificationHead(config_for_classification_head)
 
-    def forward(self, model_outputs: Union[tuple, BaseModelOutputWithPoolingAndCrossAttentions],
-                start_positions=None, end_positions=None, target_type=None):
+    def forward(self,
+                model_outputs: Union[tuple, BaseModelOutputWithPoolingAndCrossAttentions],
+                start_positions=None,
+                end_positions=None,
+                target_type=None) -> Union[tuple, ExtractiveQAModelOutput]:
         sequence_output = model_outputs[0]
 
         # Predict target answer type for the whole question answer pair
@@ -65,23 +68,11 @@ class ExtractiveQAHead(AbstractTaskHead):
             start_positions.clamp_(0, ignored_index)
             end_positions.clamp_(0, ignored_index)
 
-            # if self.max_att_distance:
-            #     # attention diversity implementation uses reduction functions
-            #     # so need float calls to prevent grad overflow
-            #     start_logits = start_logits.float()
-            #     end_logits = end_logits.float()
-            #     answer_type_logits = answer_type_logits.float()
-
             loss_fct = torch.nn.CrossEntropyLoss(ignore_index=ignored_index)
             start_loss = loss_fct(start_logits, start_positions)
             end_loss = loss_fct(end_logits, end_positions)
             answer_type_loss = loss_fct(answer_type_logits, target_type)
-            # if self.max_att_distance:
-            #     total_loss = (start_loss + end_loss + answer_type_loss + (
-            #             cosine_sim_lambda * avg_att_distance)) / 4
-            # else:
             total_loss = (start_loss + end_loss + answer_type_loss) / 3
-            # outputs = (total_loss,) + outputs
 
         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)

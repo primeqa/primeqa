@@ -58,7 +58,7 @@ class MRCTrainer(Trainer):
 
     def get_train_dataloader(self) -> DataLoader:
         """
-        Returns the training [`~torch.utils.data.DataLoader`].
+        Returns the training torch `DataLoader`.
 
         Will use no sampler if `self.train_dataset` does not implement `__len__`, a random sampler (adapted
         to distributed training if necessary) otherwise.
@@ -104,14 +104,14 @@ class MRCTrainer(Trainer):
 
     def get_eval_dataloader(self, eval_dataset: Optional[Dataset] = None) -> DataLoader:
         """
-        Returns the evaluation [`~torch.utils.data.DataLoader`].
+        Returns the evaluation torch `DataLoader`.
 
         Subclass and override this method if you want to inject some custom behavior.
 
         Args:
-            eval_dataset (`torch.utils.data.Dataset`, *optional*)
-            If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
-                accepted by the `model.forward()` method are automatically removed. It must implement `__len__`.
+            eval_dataset: If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
+                          accepted by the `model.forward()` method are automatically removed.
+                          It must implement `__len__`.
 
         """
 
@@ -151,49 +151,7 @@ class MRCTrainer(Trainer):
             pin_memory=self.args.dataloader_pin_memory,
         )
 
-    # TODO
-    # def get_test_dataloader(self, test_dataset: Dataset) -> DataLoader:
-    #     """
-    #     Returns the test [`~torch.utils.data.DataLoader`].
-    #
-    #     Subclass and override this method if you want to inject some custom behavior.
-    #
-    #     Args:
-    #         test_dataset (`torch.utils.data.Dataset`, *optional*):
-    #             The test dataset to use. If it is an `datasets.Dataset`, columns not accepted by the
-    #             `model.forward()` method are automatically removed. It must implement `__len__`.
-    #     """
-    #     if is_datasets_available() and isinstance(test_dataset, datasets.Dataset):
-    #         test_dataset = self._remove_unused_columns(test_dataset, description="test")
-    #
-    #     if isinstance(test_dataset, torch.utils.data.IterableDataset):
-    #         if self.args.world_size > 1:
-    #             test_dataset = IterableDatasetShard(
-    #                 test_dataset,
-    #                 batch_size=self.args.eval_batch_size,
-    #                 drop_last=self.args.dataloader_drop_last,
-    #                 num_processes=self.args.world_size,
-    #                 process_index=self.args.process_index,
-    #             )
-    #         return DataLoader(
-    #             test_dataset,
-    #             batch_size=self.args.eval_batch_size,
-    #             collate_fn=self.data_collator,
-    #             num_workers=self.args.dataloader_num_workers,
-    #             pin_memory=self.args.dataloader_pin_memory,
-    #         )
-    #
-    #     test_sampler = self._get_eval_sampler(test_dataset)
-    #
-    #     # We use the same batch_size as for eval.
-    #     return DataLoader(
-    #         test_dataset,
-    #         sampler=test_sampler,
-    #         batch_size=self.args.eval_batch_size,
-    #         collate_fn=self.data_collator,
-    #         drop_last=self.args.dataloader_drop_last,
-    #         pin_memory=self.args.dataloader_pin_memory,
-    #     )
+    # TODO: when implementing test support implement `get_test_dataloader`
 
     def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
@@ -216,7 +174,6 @@ class MRCTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
-        
 
         if self.post_process_function is not None:
             eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
@@ -237,10 +194,6 @@ class MRCTrainer(Trainer):
             self.log(metrics)
         else:
             metrics = {}
-
-        # if self.args.tpu_metrics_debug or self.args.debug:
-        #     # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
-        #     xm.master_print(met.metrics_report())
 
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
         return metrics

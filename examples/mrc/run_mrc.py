@@ -18,7 +18,7 @@ from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.trainers.default import MRCTrainer
+from oneqa.mrc.trainers.mrc import MRCTrainer
 
 
 def class_reference(class_reference_as_str: str) -> Type:
