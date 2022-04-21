@@ -40,6 +40,9 @@ _deps = {
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
+    "pyserini": ["install"],
+    "jsonlines": ["install"],
+    "faiss-cpu": ["install"]
 }
 
 extras_names = ["docs", "dev", "install", "tests"]
