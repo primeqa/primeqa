@@ -2,14 +2,15 @@ from typing import NamedTuple, Tuple, Union
 
 import numpy as np
 
-class EvalPredictionWithProcessing(NamedTuple):
+
+class EvalPredictionWithProcessing(NamedTuple):  # TODO check if doc renders
     """
     Evaluation output (always contains labels), to be used to compute metrics.
 
-    Parameters:
-        predictions (`np.ndarray`): Predictions of the model.
-        label_ids (`np.ndarray`): Targets to be matched.
-        processed_predictions (`np.ndarray`): Predictions of the model processed for metric use.
+    Args:
+        predictions: Predictions of the model.
+        label_ids: Targets to be matched.
+        processed_predictions: Predictions of the model processed for metric use.
     """
 
     predictions: Union[np.ndarray, Tuple[np.ndarray]]

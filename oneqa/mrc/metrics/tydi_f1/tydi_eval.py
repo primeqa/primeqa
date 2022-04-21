@@ -21,22 +21,8 @@ task, the SQuAD-compatible gold Passage (GoldP) task.
 
   ------------------------------------------------------------------------------
 
-  Example usage:
-
-  tydi_eval --gold_path=<path-to-gold-files> --predictions_path=<path_to_jsonl>
-
-  This will compute both the official byte-level F1 scores, recall@precision
-  tables for both passage and minimal answers (if the optional answer scores are
-  provided), and also breakdown per language.
-
   Note that R@P are only meaningful if your model populates the score fields
   of the prediction JSON format (which is not required).
-
-  gold_path should point to a single N way annotated dev data in the
-  original download format (gzipped jsonlines) or jsonlines.
-
-  predictions_path should point to a jsonl file (one json object per line),
-  where each line contains the predictions in the format given below.
 
   ------------------------------------------------------------------------------
 
@@ -79,21 +65,14 @@ task, the SQuAD-compatible gold Passage (GoldP) task.
     Scoring minimal answer candidates: score_minimal_answer(),
                                        eval_utils.compute_partial_match_scores()
     Computing language-wise F1: compute_macro_f1()
-    Averaging over non-English languages: main()
-
 """
 
 import collections
 import json
-import os
-import pickle
-
-
 import logging
 from operator import not_, itemgetter
 
 from oneqa.mrc.metrics.tydi_f1 import eval_utils
-from typing import List, Optional
 
 
 def score_passage_answer(gold_label_list, pred_label,
@@ -121,7 +100,6 @@ def score_passage_answer(gold_label_list, pred_label,
     if pred_label is None:
         return gold_has_answer, not gold_has_answer, False, 0
 
-    # pred_has_answer = pred_label.long_answer_span.start_byte >= 0
     pred_has_answer = pred_label.passage_answer_index != -1
 
     is_correct = False
@@ -135,13 +113,9 @@ def score_passage_answer(gold_label_list, pred_label,
             if gold_label.passage_answer_index < 0:
                 continue
 
-            # if gold_label.passage_span.start_byte_offset == pred_label.long_answer_span.start_byte:
-            #     is_correct = True
-            #     break
-
             if gold_label.passage_answer_index == pred_label.passage_answer_index:
-              is_correct = True
-              break
+                is_correct = True
+                break
 
     return gold_has_answer, pred_has_answer, is_correct, score
 
@@ -225,6 +199,11 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
     Args:
       gold_annotation_dict: a dict from example id to list of `TyDiLabel`s.
       pred_dict: a dict from example id to list of `TyDiLabel`s.
+      passage_non_null_threshold:
+      minimal_non_null_threshold: minimal number of non-null annotations per example to be considered non-null
+      verbose: whether to enable verbose logging
+      skip_missing_example_ids: skip missing examples
+      minimal_offsets_per_passage: whether minimal answer offsets are per passage (as opposed to per document)
 
     Returns:
       passage_answer_stats: List of scores for passage answers.
@@ -431,27 +410,6 @@ def print_r_at_p_table(answer_stats):
             target, recall, precision, row))
 
 
-def get_metrics_as_dict(gold_path, prediction_path, passage_non_null_threshold, minimal_non_null_threshold, verbose):
-    """Library version of the end-to-end evaluation.
-
-    Arguments:
-      gold_path: Path to a single JSONL data. Could be gzipped or not.
-      prediction_path: Path to the JSONL file of prediction data.
-
-    Returns:
-      metrics: A dictionary mapping string names to metric scores.
-    """
-
-    tydi_gold_dict = eval_utils.read_annotation(gold_path)
-    tydi_pred_dict = eval_utils.read_prediction_jsonl(prediction_path)
-
-    passage_answer_stats, minimal_answer_stats = score_answers(
-        tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold, minimal_non_null_threshold, verbose)
-
-    return get_metrics_with_answer_stats(
-        passage_answer_stats, minimal_answer_stats)
-
-
 def get_metrics_with_answer_stats(passage_answer_stats, minimal_answer_stats):
     """Generate metrics dict using passage and minimal answer stats."""
 
@@ -483,23 +441,10 @@ def get_latex_str(f1, precision, recall):
             '%.1f' % (precision * 100)) + '}{' + ('%.1f' % (recall * 100)) + '}'
 
 
-# def load_gt_lookup_as_dict(gold_path, num_workers):
-#     cache_path = os.path.join(os.path.dirname(gold_path), 'cache')
-#
-#     if os.path.exists(cache_path):
-#         logging.info('Reading from cache: %s', format(cache_path))
-#         tydi_gold_dict = pickle.load(open(cache_path, 'rb'))  # pytype: disable=wrong-arg-types
-#     else:
-#         tydi_gold_dict = eval_utils.read_annotation(gold_path, n_threads=num_workers)
-#         logging.info('Caching gold data for future to: %s', format(cache_path))
-#         cache_to_pickle_file(tydi_gold_dict, cache_path)  # pytype: disable=wrong-arg-types
-#
-#         logging.info('Read in gt lookup for %d examples into memory' % len(tydi_gold_dict))
-#     return tydi_gold_dict
-
-
-def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, minimal_non_null_threshold=2, verbose=False, skip_missing_example_ids=False):
-    if any(map(not_, tydi_gold_dict.values())) or any(annotations[0].minimal_answer_span is None for annotations in tydi_gold_dict.values()):
+def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, minimal_non_null_threshold=2,
+                 verbose=False, skip_missing_example_ids=False):
+    if any(map(not_, tydi_gold_dict.values())) or any(
+            annotations[0].minimal_answer_span is None for annotations in tydi_gold_dict.values()):
         logging.warning("At least one example in gold dict has no annotations -- skipping pretty print evaluation")
         return
 
@@ -607,45 +552,3 @@ def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, m
                          'avg_minimal_precision': avg_minimal_precision}
     print(json.dumps(aggregate_metrics))
     return aggregate_metrics
-
-
-# def main(input_args: Optional[List[str]] = None):
-#     args = parser.parse_args(input_args)
-#     args = vars(args)
-#     args['do_pretty_print'] = args.pop('pretty_print')
-#     eval_tydi(**args)
-
-
-# def eval_tydi(gold_path: str, predictions_path: str, verbose: bool = True, cache_gold_data: bool = True, do_pretty_print: bool = False,
-#               passage_non_null_threshold: int = 2, minimal_non_null_threshold: int = 2, num_workers: int = 10,
-#               skip_missing_ids: bool = False):
-#     cache_path = os.path.join(os.path.dirname(gold_path), 'cache')
-#     if cache_gold_data and os.path.exists(cache_path):
-#         logging.info('Reading from cache: %s', format(cache_path))
-#         with open(cache_path, 'rb') as f:
-#             tydi_gold_dict = pickle.load(f)  # pytype: disable=wrong-arg-types
-#     else:
-#         tydi_gold_dict = eval_utils.read_annotation(gold_path, num_workers)
-#         if cache_gold_data:
-#             logging.info('Caching gold data for future to: %s', format(cache_path))
-#             with open(cache_path, 'wb') as f:
-#                 pickle.dump(tydi_gold_dict, f, protocol=pickle.HIGHEST_PROTOCOL)  # pytype: disable=wrong-arg-types
-#
-#     total_ans_count = 0
-#     count = 0
-#
-#     for ans in tydi_gold_dict.values():
-#         count += 1
-#         gold_has_answer = eval_utils.gold_has_minimal_answer(
-#             ans, minimal_non_null_threshold)
-#         total_ans_count += gold_has_answer
-#
-#     logging.info('%d examples have minimal answers', total_ans_count)
-#     logging.info('*' * 40)
-#     tydi_pred_dict = dict(predictions=nq_eval_utils.read_prediction_json_from_file(predictions_path))
-#     pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold,
-#                  minimal_non_null_threshold, verbose, skip_missing_ids)
-#
-#
-# if __name__ == '__main__':
-#     main()

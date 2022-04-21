@@ -76,7 +76,7 @@ class TyDiF1(datasets.Metric):
                     predictions={**self._common_answer_schema, **self._pred_answer_schema},
                     references=datasets.Sequence(feature={**self._common_answer_schema, **self._ref_answer_schema})
                 )),
-            reference_urls=["https://github.com/google-research-datasets/natural-questions/blob/master/nq_eval.py"],
+            reference_urls=["https://github.com/google-research-datasets/natural-questions/blob/master/nq_eval.py"],  # TODO fix
         )
 
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
@@ -94,6 +94,14 @@ class TyDiF1(datasets.Metric):
         return metrics
 
     def _convert_ref_to_entry(self, ref):
+        """
+
+        Args:
+            ref:
+
+        Returns:
+
+        """
         if not all(ref['example_id'][0] == ref['example_id'][i] for i in range(len(ref['example_id']))):
             raise ValueError("Found mismatched examples")
         elif not all(ref['language'][0] == ref['language'][i] for i in range(len(ref['language']))):
@@ -122,6 +130,14 @@ class TyDiF1(datasets.Metric):
         return key, value
 
     def _convert_pred_to_entry(self, pred):
+        """
+
+        Args:
+            pred:
+
+        Returns:
+
+        """
         key = pred['example_id']
         value = TyDiLabel(
                 example_id=pred['example_id'],
@@ -142,7 +158,16 @@ class TyDiF1(datasets.Metric):
             )
         return key, value
 
-    def _bool_target(self, target_type: TargetType) -> str:
+    @staticmethod
+    def _bool_target(target_type: TargetType) -> str:
+        """
+
+        Args:
+            target_type:
+
+        Returns:
+
+        """
         if target_type == TargetType.YES:
             return 'yes'
         elif target_type == TargetType.NO:
