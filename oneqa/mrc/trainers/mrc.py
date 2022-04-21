@@ -17,12 +17,35 @@ logger = logging.getLogger(__name__)
 
 class MRCTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
+        """
+        MRC training and evaluation.
+
+        Args:
+            *args: Arguments for super-class constructor.
+            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            post_process_function:  Function to create predictions from model outputs.
+            **kwargs: Keyword arguments for super-class constructor.
+        """
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.eval_dataset = eval_dataset
         self.post_process_function = post_process_function
 
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
+        """
+        Infer needed `Dataset` columns matching model and (active) model head argument names.
+        Remove unneeded columns from `dataset`.
+
+        Since this is a private method being overridden we override the calling methods as well.
+
+        Args:
+            dataset: `Dataset` to remove unneeded columns from
+            description: `dataset` description
+
+        Returns:
+            `dataset` with unneeded columns removed.
+        """
         if not self.args.remove_unused_columns:
             return dataset
         if self._signature_columns is None:
@@ -154,6 +177,20 @@ class MRCTrainer(Trainer):
     # TODO: when implementing test support implement `get_test_dataloader`
 
     def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+        """
+        Evaluate model using either eval data passed to method (if given).
+        Otherwise use data given to constructor at instantiation.
+
+        Args:
+            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            ignore_keys: Keys to ignore in evaluation loop.
+            metric_key_prefix: Append this prefix to metric names.
+
+        Returns:
+            Evaluation metrics if post-processing and metric computation functions
+            were provided to constructor at instantiation, otherwise an empty dict.
+        """
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         eval_examples = self.eval_examples if eval_examples is None else eval_examples

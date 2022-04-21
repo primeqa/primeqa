@@ -13,7 +13,15 @@ from oneqa.mrc.data_models.target_type import TargetType
 
 
 class ExtractiveQAHead(AbstractTaskHead):
+    """
+    Task head for extractive Question Answering.
+    """
     def __init__(self, config: PretrainedConfig, num_labels_override: Optional[int] = None):
+        """
+        Args:
+            config: Language model config.
+            num_labels_override: Set this to override number of answer types from default `len(TargetType)`.
+        """
         super().__init__(config)
         self.num_labels = config.num_labels
         self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
@@ -43,6 +51,18 @@ class ExtractiveQAHead(AbstractTaskHead):
                 start_positions=None,
                 end_positions=None,
                 target_type=None) -> Union[tuple, ExtractiveQAModelOutput]:
+        """
+        Compute the task head's forward pass.
+
+        Args:
+            model_outputs: Language model outputs.
+            start_positions: (training only) Ground-truth start positions.
+            end_positions: (training only) Ground-truth end positions.
+            target_type: (training only) Ground-truth target type.
+
+        Returns:
+            Extractive QA task head result in data structure corresponding to type of `model_outputs`.
+        """
         sequence_output = model_outputs[0]
 
         # Predict target answer type for the whole question answer pair
