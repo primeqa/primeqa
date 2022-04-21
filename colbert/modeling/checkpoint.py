@@ -25,15 +25,10 @@ class Checkpoint(ColBERT):
         # get model type from checkpoint
         if name.endswith('.dnn') or name.endswith('.model'):
             dnn_checkpoint = torch_load_dnn(colbert_config.checkpoint)
-            # replacing name with model type
             model_type = dnn_checkpoint['model_type']
-            # model_type = 'bert-base-uncased'
         else:
             model_type=name
 
-        # self.query_tokenizer = QueryTokenizer(self.colbert_config)
-        # self.doc_tokenizer = DocTokenizer(self.colbert_config)
-        # get proper tokenizer based on model type
         self.query_tokenizer = get_query_tokenizer(model_type, colbert_config.query_maxlen, colbert_config.attend_to_mask_tokens)
         self.doc_tokenizer = get_doc_tokenizer(model_type, colbert_config.doc_maxlen)
 

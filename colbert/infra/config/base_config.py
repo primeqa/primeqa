@@ -65,7 +65,7 @@ class BaseConfig(CoreConfig):
 
             # get model type from a dnn file
             if dnn['model_type'] is not None:
-                config.model_type = dnn['model_type']
+                config.set('model_type', dnn['model_type'])
 
             config.set('checkpoint', checkpoint_path)
 

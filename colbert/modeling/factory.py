@@ -34,11 +34,12 @@ def get_colbert_from_pretrained(name, colbert_config):
         print_message(f"json file (get_colbert_from_pretrained): {json_file}")
         with open(json_file) as file:
             data = json.load(file)
-        model_type = data["_name_or_path"]
+        assert model_type == data["_name_or_path"], f"model type in {name} not matching"
+        # model_type = data["_name_or_path"]
     elif name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
-        # replacing name with model type
-        model_type = dnn_checkpoint['model_type']
+        assert model_type == dnn_checkpoint['model_type'], f"model type in {name} not matching"
+        # model_type = dnn_checkpoint['model_type']
 
     print_message(f"factory model type: {model_type}")
 
