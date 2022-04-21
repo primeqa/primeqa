@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Tuple, List
 
 import datasets
 
@@ -6,47 +6,38 @@ from oneqa.mrc.metrics.tydi_f1.eval_utils import Span, TyDiLabel
 from oneqa.mrc.metrics.tydi_f1.tydi_eval import pretty_print
 from oneqa.mrc.data_models.target_type import TargetType
 
-# TODO tydi f1 docs
+
 _DESCRIPTION = """
-TODO
 The F1 score is the harmonic mean of the precision and recall. It can be computed with:
 F1 = 2 * (precision * recall) / (precision + recall).  This implementation of F1 is based
-on the Natural Questions (NQ) leaderboard and does not award partial credit unlike
-the SQuAD-style F1.
+on the TyDi QA leaderboard.
 
-Adapted from https://ai.google.com/research/NaturalQuestions's `nq_eval` script.
+Adapted from https://github.com/google-research-datasets/tydiqa/blob/master/tydi_eval.py.
 """
 
 _KWARGS_DESCRIPTION = """
 Args:
     predictions: Predicted labels.
     references: Ground truth labels.
-Returns: TODO
-    minmal_f1: minimal answer F1 score.
-    passage_f1: passage F1 score.
-Examples:  TODO
-    >>> f1_metric = datasets.load_metric("f1")
-    >>> results = f1_metric.compute(predictions=[0, 1], references=[0, 1])
-    >>> print(results)
-    {'f1': 1.0}
-    >>> predictions = [0, 2, 1, 0, 0, 1]
-    >>> references = [0, 1, 2, 0, 1, 2]
-    >>> results = f1_metric.compute(predictions=predictions, references=references, average="macro")
-    >>> print(results)
-    {'f1': 0.26666666666666666}
-    >>> results = f1_metric.compute(predictions=predictions, references=references, average="micro")
-    >>> print(results)
-    {'f1': 0.3333333333333333}
-    >>> results = f1_metric.compute(predictions=predictions, references=references, average="weighted")
-    >>> print(results)
-    {'f1': 0.26666666666666666}
-    >>> results = f1_metric.compute(predictions=predictions, references=references, average=None)
-    >>> print(results)
-    {'f1': array([0.8, 0. , 0. ])}
+    
+Returns: metrics dict comprising:
+
+  * minimal_f1: Minimal Answer F1.
+  * minimal_precision: Minimal Answer Precision.
+  * minimal_recall: Minimal Answer Recall.
+  * passage_f1: Passage Answer F1.
+  * passage_precision: Passage Answer Precision.
+  * passage_recall: Passage Answer Recall.
 """
 
 _CITATION = """\
-TODO
+@article{tydiqa,
+title   = {TyDi QA: A Benchmark for Information-Seeking Question Answering in Typologically Diverse Languages},
+author  = {Jonathan H. Clark and Eunsol Choi and Michael Collins and Dan Garrette and Tom Kwiatkowski and 
+           Vitaly Nikolaev and Jennimaria Palomaki}
+year    = {2020},
+journal = {Transactions of the Association for Computational Linguistics}
+}
 """
 
 
@@ -76,7 +67,7 @@ class TyDiF1(datasets.Metric):
                     predictions={**self._common_answer_schema, **self._pred_answer_schema},
                     references=datasets.Sequence(feature={**self._common_answer_schema, **self._ref_answer_schema})
                 )),
-            reference_urls=["https://github.com/google-research-datasets/natural-questions/blob/master/nq_eval.py"],  # TODO fix
+            reference_urls=["https://github.com/google-research-datasets/tydiqa/blob/master/tydi_eval.py"],
         )
 
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
@@ -93,14 +84,9 @@ class TyDiF1(datasets.Metric):
         metrics = pretty_print(references, predictions)
         return metrics
 
-    def _convert_ref_to_entry(self, ref):
+    def _convert_ref_to_entry(self, ref: dict) -> Tuple[str, List[TyDiLabel]]:
         """
-
-        Args:
-            ref:
-
-        Returns:
-
+        Converts a reference dict into an example_id, [labels] pair.
         """
         if not all(ref['example_id'][0] == ref['example_id'][i] for i in range(len(ref['example_id']))):
             raise ValueError("Found mismatched examples")
@@ -129,14 +115,9 @@ class TyDiF1(datasets.Metric):
         ]
         return key, value
 
-    def _convert_pred_to_entry(self, pred):
+    def _convert_pred_to_entry(self, pred: dict) -> Tuple[str, TyDiLabel]:
         """
-
-        Args:
-            pred:
-
-        Returns:
-
+        Converts a prediction dict into an example_id, label pair.
         """
         key = pred['example_id']
         value = TyDiLabel(
@@ -161,12 +142,7 @@ class TyDiF1(datasets.Metric):
     @staticmethod
     def _bool_target(target_type: TargetType) -> str:
         """
-
-        Args:
-            target_type:
-
-        Returns:
-
+        Converts a target type into a boolean string as expected by TyDi eval.
         """
         if target_type == TargetType.YES:
             return 'yes'
