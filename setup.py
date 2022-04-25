@@ -40,6 +40,7 @@ _deps = {
     "jsonlines~=3.0.0": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
+    "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
