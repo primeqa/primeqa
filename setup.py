@@ -29,6 +29,7 @@ authors = [
 _deps = {
     "bump2version~=1.0.1": ["dev"],
     "datasets~=2.0.0": ["install"],
+    "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
     "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pytest~=7.1.1": ["tests"],
