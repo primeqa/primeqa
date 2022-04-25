@@ -24,4 +24,4 @@ Note: the CI sometimes fails even when there are no test errors due to issues in
 This is a [known issue](https://zenhub.ibm.com/workspaces/oneqa-61eed731a578f53e48934109/issues/ai-foundation/oneqa/82).
 As mentioned in the issue the workaround is to re-run the failing test in Travis.
 This will typically manifest as one of the Python versions failing (e.g. 3.8) and others
-passing (e.g. 3.7 and 3.9).
+passing (e.g. 3.7 and 3.9). 
