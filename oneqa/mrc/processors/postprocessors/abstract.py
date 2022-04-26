@@ -6,6 +6,9 @@ from datasets import Dataset
 
 
 class AbstractPostProcessor(metaclass=ABCMeta):
+    """
+    Base class for post processors.
+    """
     def __init__(self,
                  k: int,
 

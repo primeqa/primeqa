@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 class ExtractivePostProcessor(AbstractPostProcessor):
+    """
+    Post processor for extractive QA (use with `ExtractiveQAHead`).
+    """
     def __init__(self,
                  *args,
                  n_best_size: int,
