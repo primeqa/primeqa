@@ -13,12 +13,15 @@ For example, `install` is for dependencies required to install/run OneQA (i.e. `
 whereas `docs` is for dependencies which are only needed to build the documentation. 
 All values other than `install` correspond to pip extras. 
 Additionally, there is an `all` extra that will install all dependencies.
+<<<<<<< HEAD
 
 A description of the pip extras is as follows:
 - `docs`: for building documentation
 - `dev`: for OneQA software development
 - `install`: for installing and running OneQA
 - `tests`: for running unit tests
+=======
+>>>>>>> dev docs
 
 ## Versioning
 
