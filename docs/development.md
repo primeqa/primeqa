@@ -8,10 +8,11 @@ OneQA uses Python 3.7+.  Previous versions (e.g. 3.6) are unsupported.
 
 OneQA uses pip for dependency management. Dependencies are controlled through
 the `_deps` dict in [setup.py](https://github.ibm.com/ai-foundation/OneQA/blob/master/setup.py). 
-Each entry maps a dependency to what it is required for. For example, "install" is for 
-dependencies required to install/run OneQA (i.e. `install_requires`) whereas "docs" is for dependencies which are only
-needed to build the documentation.  All values other than "install" correspond to pip extras.
-Additionally there is an "all" extra that will install all dependencies.
+Each entry maps a dependency to what it is required for.  All entries are alphabetized.
+For example, `install` is for dependencies required to install/run OneQA (i.e. `install_requires`) 
+whereas `docs` is for dependencies which are only needed to build the documentation. 
+All values other than `install` correspond to pip extras. 
+Additionally, there is an `all` extra that will install all dependencies.
 
 ## Versioning
 
@@ -42,11 +43,11 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 
 ### Folder Structure
 
-TODO
+TODO pending decision
 
 ### Design Conventions
 
-TODO
+TODO pending decision
 
 ### Documentation
 
@@ -68,9 +69,7 @@ Docstrings are used to generate the API reference.
 OneQA Docstrings follow the Google convention. 
 See [Sec. 3.8](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for more details.
 
-
 If you are using PyCharm, this docstring style can be selected from: `File --> Settings --> Tools --> Python Integrated Tools`.
-
 
 #### Documentation Pages
 Documentation pages (such as this one) are generated from a collection of Markdown files located
