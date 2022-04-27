@@ -37,21 +37,7 @@ class PyseriniRetriever(BaseRetriever):
         """
 
         hits = self.searcher.search(query, top_k)
-        passage_hits = []
-        for i, hit in enumerate(hits):
-            title, text = json.loads(hit.raw)['contents'].split("\t")
-            title = title.replace('\n',' ')
-            text = text.replace('\n',' ')
-            docid = hit.docid
-            passage_hit = {
-                "rank": i,
-                "score": hit.score,
-                "passage_id": docid,
-                "doc_id": docid,
-                "title": title,
-                "text": text 
-            }
-            passage_hits.append(passage_hit)
+        passage_hits = self._collect_hits(hits)
         return passage_hits
 
     def batch_retrieve(self,  queries: List[str], qids: List[str], k: int = 10, threads: int = 1):
@@ -62,7 +48,7 @@ class PyseriniRetriever(BaseRetriever):
         return query_to_passage_hits
 
 
-    def _collect_hits(hits):
+    def _collect_hits(self, hits):
         passage_hits = []
         for i, hit in enumerate(hits):
             title, text = json.loads(hit.raw)['contents'].split("\t")
