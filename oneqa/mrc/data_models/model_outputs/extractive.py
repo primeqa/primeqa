@@ -7,7 +7,10 @@ from transformers.file_utils import ModelOutput
 
 @dataclass
 class ExtractiveQAModelOutput(ModelOutput):
-    #         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
+    """
+    Extractive QA model outputs comprising:
+    (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions).
+    """
     loss: Optional[torch.FloatTensor] = None
     start_logits: torch.FloatTensor = None
     end_logits: torch.FloatTensor = None

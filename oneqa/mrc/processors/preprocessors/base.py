@@ -15,8 +15,34 @@ from oneqa.mrc.data_models.subsample_type import SubsampleType
 from oneqa.mrc.data_models.target_type import TargetType
 
 
-# TODO type signatures for all methods
-class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
+class BasePreProcessor(AbstractPreProcessor):
+    """
+    Base class which implements core preprocessing functionality.
+
+    Processes datasets with the following schema.
+
+    * 'question': `str`
+    * 'context': `list[str]`
+
+    Optional fields which will be imputed if not provided:
+
+    * 'example_id': `str`
+    * 'language': `str`
+
+    Required for training data:
+
+    * 'target': `{'start_positions': list[int], 'end_positions': list[int], 'passage_indices': list[int], 'yes_no_answer': list[str] }`
+
+    Required for `single_context_multiple_passages=True`:
+
+    * 'passage_candidates' : `{ 'start_positions': list[int], 'end_positions': list[int] }`
+
+    Notes for subclassing:
+
+    * Override adapt_dataset to format data following above schema
+    * Just before returning dataset from overridden adapt_dataset include line `dataset = super().adapt_dataset(dataset, is_train)`
+    * See `TyDiQAPreProcessor` as an example
+    """
     _del_keys = ["overflow_to_sample_mapping"]
     _feature_types = {'question': Value(dtype='string', id=None),
                       'context': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)}
@@ -34,8 +60,6 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         if 'example_id' not in dataset.features:
-            # example_id = [str(uuid.uuid4()) for _ in range(dataset.num_rows)]
-            # dataset = dataset.add_column('example_id', example_id)
             dataset = dataset.map(  # Map instead of add column to allow caching
                 self._insert_example_ids,
                 batched=True,
@@ -47,13 +71,6 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         self.validate_schema(dataset, is_train, pre_adaptation=False)
         return dataset
 
-    @staticmethod
-    def _insert_example_ids(examples: Batch) -> Batch:
-        n_examples = len(examples['question'])
-        example_id = [str(uuid.uuid4()) for _ in range(n_examples)]
-        examples['example_id'] = example_id
-        return examples
-
     def process_train(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
         return self._process(examples, is_train=True)
 
@@ -61,6 +78,9 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return self._process(examples, is_train=False)
 
     def _process(self, examples: Dataset, is_train: bool) -> Tuple[Dataset, Dataset]:
+        """
+        Provides implementation for public processing methods.
+        """
         examples = self.adapt_dataset(examples, is_train)
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
@@ -74,13 +94,15 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             remove_columns=examples.column_names,
             load_from_cache_file=self._load_from_cache_file,
             desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
-            # features=self._create_features_schema(is_train),
         )
         if is_train:
             features = self.subsample_features(features)
         return examples, features
 
     def _process_batch(self, examples: Batch, indices: List[int], is_train: bool) -> BatchEncoding:
+        """
+        Process a batch of examples into features
+        """
         examples_question = examples['question']
         examples_context = examples['context']
         if isinstance(examples_question, str):  # wrap single (question, [context]) pair in list
@@ -111,12 +133,16 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             return_offsets_mapping=True,
         )
 
-        tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in tokenized_examples["overflow_to_sample_mapping"]]
+        tokenized_examples['example_idx'] = [expanded_examples_idx[oidx] for oidx in
+                                             tokenized_examples["overflow_to_sample_mapping"]]
         tokenized_examples['example_id'] = [examples['example_id'][eidx] for eidx in tokenized_examples['example_idx']]
 
         if not self._single_context_multiple_passages:  # context_idx only defined in this case
-            spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'], tokenized_examples["overflow_to_sample_mapping"])
-            tokenized_examples['context_idx'] = list(map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
+            spans_per_example = self._generate_previous_spans_per_example(tokenized_examples['example_idx'],
+                                                                          tokenized_examples[
+                                                                              "overflow_to_sample_mapping"])
+            tokenized_examples['context_idx'] = list(
+                map(sub, tokenized_examples["overflow_to_sample_mapping"], spans_per_example))
 
         if is_train:
             tokenized_examples = self._create_train_targets(tokenized_examples, examples)
@@ -131,11 +157,15 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         
         return tokenized_examples
 
-    def _create_train_targets(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:  # TODO: rename create targets fns?
+    def _create_train_targets(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:
+        """
+        Create start/end position and target type targets for training.
+        """
         target = examples['target']
 
-        # Since one context might give us several features if it has a long context, and each example can have many contexts,
-        # we need a map from a feature to ts corresponding example. This key gives us just that.
+        # Since one context might give us several features if it has a long context,
+        # and each example can have many contexts, we need a map from a feature to ts corresponding example.
+        # This key gives us just that.
         example_mapping = tokenized_examples['example_idx']
         # The offset mappings will give us a map from token to character position in the original context. This will
         # help us compute the start_positions and end_positions.
@@ -222,7 +252,9 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return tokenized_examples
 
     def _create_eval_targets(self, tokenized_examples: BatchEncoding) -> BatchEncoding:
-        
+        """
+        Adjust offset mapping to prevent predicting invalid offsets.
+        """
         context_index = 1 if self._pad_on_right else 0
         for i in range(len(tokenized_examples["input_ids"])):
             # Grab the sequence corresponding to that example (to know what is the context and what is the question).
@@ -277,6 +309,12 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         return dataset
 
     def _keep_feature(self, st: SubsampleType) -> bool:
+        """
+        Return True iff this training feature should be kept based on the subsample type.
+
+        Raises:
+            NotImplementedError: invalid SubsampleType value.
+        """
         if st == SubsampleType.POSITIVE:
             return True
         elif st == SubsampleType.NEGATIVE_HAS_ANSWER:
@@ -288,18 +326,30 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
 
     @property
     def _pad_on_right(self) -> bool:
+        """
+        Returns true iff tokenizer pads on right side.
+        """
         return self._tokenizer.padding_side == "right"
 
     @property
     def _subsample_all_features(self) -> bool:
+        """
+        Returns true iff subsampling is configured to keep all features.
+        """
         return self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 1.
 
     @property
     def _subsample_no_features(self) -> bool:
+        """
+        Returns true iff subsampling is configured to keep no negative features.
+        """
         return self._negative_sampling_prob_when_has_answer == self._negative_sampling_prob_when_no_answer == 0.
 
     @staticmethod
     def _generate_previous_spans_per_example(example_idx: List[int], sample_mapping: List[int]) -> Iterable[int]:
+        """
+        Yields cumulative number of spans from previous examples.
+        """
         group_start_idx = 0
         for _, group in itertools.groupby(example_idx):
             group_len = None
@@ -311,7 +361,7 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
             group_start_idx += group_len
 
     def validate_schema(self, dataset: Dataset, is_train: bool, pre_adaptation: bool = True) -> None:
-        cls = type(self) if pre_adaptation else DefaultPreProcessor
+        cls = type(self) if pre_adaptation else BasePreProcessor
         items = cls._feature_types.items()
         if is_train:
             items = itertools.chain(items, cls._train_feature_types.items())
@@ -326,24 +376,11 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                 raise ValueError(F"Feature type mismatch for feature '{feature_name}'. "
                                  F"Expected {feature_type} but found {dataset.features[feature_name]}")
 
-        # if not pre_adaptation:
-        #     if dataset.features['example_id'] != self._example_id_type:
-        #         raise ValueError(F"Feature type mismatch for feature 'example_id'. "
-        #                          F"Expected {self._example_id_type} but found {dataset.features['example_id']}")
-
-    # def _create_features_schema(self, is_train: bool) -> Features:
-    #     schema = Features()
-    #     schema = schema.update(self._feature_types)
-    #     schema['example_id'] = self._example_id_type
-    #     if is_train:
-    #         schema.update(self._train_feature_types)
-    #     return schema
-
-    # def _generate_previous_spans_per_example(self, tokenized_examples: BatchEncoding, examples: Batch) -> List[int]:
-    #     context_idx = [-1] * len(tokenized_examples["overflow_to_sample_mapping"])
-
     @staticmethod
     def _spans_intersect(s1: Tuple[int, int], s2: Tuple[int, int]) -> bool:
+        """
+        Returns true iff two spans s1, s2 intersect.
+        """
         return (s1[0] <= s2[0] <= s1[1]) or (s2[0] <= s1[0] <= s2[1]) or \
                (s1[0] <= s2[1] <= s1[1]) or (s2[0] <= s1[1] <= s2[1])
 
@@ -351,6 +388,9 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
                               context: Union[List[str], List[List[str]]],
                               examples: Batch,
                               example_idx: int) -> Union[List[str], List[List[str]]]:
+        """
+        Trims each example to at most max_contexts if it is set.
+        """
         if self._max_contexts is None:
             pass
         elif self._single_context_multiple_passages:
@@ -360,3 +400,13 @@ class DefaultPreProcessor(AbstractPreProcessor):  # todo better name?
         else:
             context = context[:self._max_contexts]
         return context
+
+    @staticmethod
+    def _insert_example_ids(examples: Batch) -> Batch:
+        """
+        Add arbitrary, unique example_ids to examples.
+        """
+        n_examples = len(examples['question'])
+        example_id = [str(uuid.uuid4()) for _ in range(n_examples)]
+        examples['example_id'] = example_id
+        return examples

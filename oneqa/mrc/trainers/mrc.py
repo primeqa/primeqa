@@ -17,12 +17,35 @@ logger = logging.getLogger(__name__)
 
 class MRCTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
+        """
+        MRC training and evaluation.
+
+        Args:
+            *args: Arguments for super-class constructor.
+            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            post_process_function:  Function to create predictions from model outputs.
+            **kwargs: Keyword arguments for super-class constructor.
+        """
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.eval_dataset = eval_dataset
         self.post_process_function = post_process_function
 
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
+        """
+        Infer needed `Dataset` columns matching model and (active) model head argument names.
+        Remove unneeded columns from `dataset`.
+
+        Since this is a private method being overridden we override the calling methods as well.
+
+        Args:
+            dataset: `Dataset` to remove unneeded columns from
+            description: `dataset` description
+
+        Returns:
+            `dataset` with unneeded columns removed.
+        """
         if not self.args.remove_unused_columns:
             return dataset
         if self._signature_columns is None:
@@ -58,7 +81,7 @@ class MRCTrainer(Trainer):
 
     def get_train_dataloader(self) -> DataLoader:
         """
-        Returns the training [`~torch.utils.data.DataLoader`].
+        Returns the training torch `DataLoader`.
 
         Will use no sampler if `self.train_dataset` does not implement `__len__`, a random sampler (adapted
         to distributed training if necessary) otherwise.
@@ -104,14 +127,14 @@ class MRCTrainer(Trainer):
 
     def get_eval_dataloader(self, eval_dataset: Optional[Dataset] = None) -> DataLoader:
         """
-        Returns the evaluation [`~torch.utils.data.DataLoader`].
+        Returns the evaluation torch `DataLoader`.
 
         Subclass and override this method if you want to inject some custom behavior.
 
         Args:
-            eval_dataset (`torch.utils.data.Dataset`, *optional*)
-            If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
-                accepted by the `model.forward()` method are automatically removed. It must implement `__len__`.
+            eval_dataset: If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
+                          accepted by the `model.forward()` method are automatically removed.
+                          It must implement `__len__`.
 
         """
 
@@ -151,51 +174,23 @@ class MRCTrainer(Trainer):
             pin_memory=self.args.dataloader_pin_memory,
         )
 
-    # TODO
-    # def get_test_dataloader(self, test_dataset: Dataset) -> DataLoader:
-    #     """
-    #     Returns the test [`~torch.utils.data.DataLoader`].
-    #
-    #     Subclass and override this method if you want to inject some custom behavior.
-    #
-    #     Args:
-    #         test_dataset (`torch.utils.data.Dataset`, *optional*):
-    #             The test dataset to use. If it is an `datasets.Dataset`, columns not accepted by the
-    #             `model.forward()` method are automatically removed. It must implement `__len__`.
-    #     """
-    #     if is_datasets_available() and isinstance(test_dataset, datasets.Dataset):
-    #         test_dataset = self._remove_unused_columns(test_dataset, description="test")
-    #
-    #     if isinstance(test_dataset, torch.utils.data.IterableDataset):
-    #         if self.args.world_size > 1:
-    #             test_dataset = IterableDatasetShard(
-    #                 test_dataset,
-    #                 batch_size=self.args.eval_batch_size,
-    #                 drop_last=self.args.dataloader_drop_last,
-    #                 num_processes=self.args.world_size,
-    #                 process_index=self.args.process_index,
-    #             )
-    #         return DataLoader(
-    #             test_dataset,
-    #             batch_size=self.args.eval_batch_size,
-    #             collate_fn=self.data_collator,
-    #             num_workers=self.args.dataloader_num_workers,
-    #             pin_memory=self.args.dataloader_pin_memory,
-    #         )
-    #
-    #     test_sampler = self._get_eval_sampler(test_dataset)
-    #
-    #     # We use the same batch_size as for eval.
-    #     return DataLoader(
-    #         test_dataset,
-    #         sampler=test_sampler,
-    #         batch_size=self.args.eval_batch_size,
-    #         collate_fn=self.data_collator,
-    #         drop_last=self.args.dataloader_drop_last,
-    #         pin_memory=self.args.dataloader_pin_memory,
-    #     )
+    # TODO: when implementing test support implement `get_test_dataloader`
 
     def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+        """
+        Evaluate model using either eval data passed to method (if given).
+        Otherwise use data given to constructor at instantiation.
+
+        Args:
+            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            ignore_keys: Keys to ignore in evaluation loop.
+            metric_key_prefix: Append this prefix to metric names.
+
+        Returns:
+            Evaluation metrics if post-processing and metric computation functions
+            were provided to constructor at instantiation, otherwise an empty dict.
+        """
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
@@ -216,7 +211,6 @@ class MRCTrainer(Trainer):
             )
         finally:
             self.compute_metrics = compute_metrics
-        
 
         if self.post_process_function is not None:
             eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
@@ -237,10 +231,6 @@ class MRCTrainer(Trainer):
             self.log(metrics)
         else:
             metrics = {}
-
-        # if self.args.tpu_metrics_debug or self.args.debug:
-        #     # tpu-comment: Logging debug metrics for PyTorch/XLA (compile, execute times, ops, etc.)
-        #     xm.master_print(met.metrics_report())
 
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
         return metrics
