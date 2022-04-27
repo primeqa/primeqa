@@ -49,7 +49,7 @@ class BaseRetriever(metaclass=ABCMeta):
                 top_k:    number of hits to return, defaults to 10
                 threads:  maximum number of threads to use
                 
-            Returns;
+            Returns:
                 Dict of query to hits where a hit is a dict of key-values:
                 {
                     "rank": i,
@@ -160,4 +160,3 @@ class PyseriniRetriever(BaseRetriever):
             }
             passage_hits.append(passage_hit)
         return passage_hits
-
