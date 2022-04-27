@@ -1,7 +1,7 @@
 from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
 from datasets import Dataset
 from tqdm import tqdm
@@ -21,20 +21,27 @@ logger = logging.getLogger(__name__)
 
 
 class ExtractivePostProcessor(AbstractPostProcessor):
-    def __init__(self, k: int,
+    """
+    Post processor for extractive QA (use with `ExtractiveQAHead`).
+    """
+    def __init__(self,
+                 *args,
                  n_best_size: int,
-                 max_answer_length: int,
                  scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF,
-                 single_context_multiple_passages: bool = False):
-        super().__init__(k)
+                 **kwargs):
+        """
+        Args:
+            *args: Arguments for super class constructor.
+            n_best_size: Max number of start/end logits to consider (max values).
+            scorer_type: Scoring algorithm to use.
+            **kwargs: Keyword Arguments for super class constructor.
+        """
+        super().__init__(*args, **kwargs)
         self._n_best_size = n_best_size
-        self._max_answer_length = max_answer_length
         self._score_calculator = initialize_scorer(scorer_type)
-        self._single_context_multiple_passages = single_context_multiple_passages
 
-    def process(self, examples, features, predictions):
-        features_itr = groupby(features, key=itemgetter('example_idx'))  # TODO: may need to change this to example_id when getting rid of example_idx column.
-        predictions_i = 0
+    def process(self, examples: Dataset, features: Dataset, predictions: Tuple[np.ndarray, np.ndarray, np.ndarray]):
+        features_itr = groupby(features, key=itemgetter('example_idx'))
         if len(features) != predictions[0].shape[0] and all(
                 p.shape[0] == predictions[0].shape[0] for p in predictions[1:]):
             raise ValueError(f"Size mismatch withing {len(features)} features and predictions "
@@ -144,7 +151,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'yes_no_answer': int(TargetType.NO_ANSWER)
                         }
                     )
-            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._n_best_size]
+            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
             all_predictions[example_id] = example_predictions
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
@@ -176,21 +183,6 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             for prob, pred in zip(probs, example_predictions):
                 pred["normalized_span_answer_score"] = prob
 
-            # We assume null answer is not possible
-            # Otherwise we first need to find the best non-empty prediction.
-            # i = 0
-            # while predictions[i]["text"] == "":
-            #     i += 1
-            # best_non_null_pred = predictions[i]
-
-            # Then we compare to the null prediction using the threshold.
-            # score_diff = null_score - best_non_null_pred["start_logit"] - best_non_null_pred["end_logit"]
-            # scores_diff_json[example["id"]] = float(score_diff)  # To be JSON-serializable.
-            # if score_diff > null_score_diff_threshold:
-            #     all_predictions[example["id"]] = ""
-            # else:
-            #     all_predictions[example["id"]] = best_non_null_pred["text"]
-
         return all_predictions
         
     def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
@@ -204,12 +196,12 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'passage_index': example['target']['passage_indices'],
                 'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),  # TODO: decide on schema type for bool ans
                 'example_id': [example['example_id']] * n_annotators,
-                'language': [example['language']] * n_annotators  # TODO: schema does not have language by default
+                'language': [example['language']] * n_annotators
             }
             references.append(label)
         return references
 
-    def process_references_and_predictions(self, examples, features, predictions) -> EvalPrediction:
+    def process_references_and_predictions(self, examples, features, predictions) -> EvalPredictionWithProcessing:
         references = self.prepare_examples_as_references(examples)
         predictions = self.process(examples, features, predictions)
         predictions_for_metric = []
