@@ -9,6 +9,7 @@ and evaluate performance on the Google translation of the XORTyDI DEV set querie
 
 ### Java SDK Dependency
 Pyserini requires Java 11
+Set the environment variable JAVA_HOME to the path where the Java SDK is installed 
 
 ### PyseriniRetriever usage
 Here's how to run a search query against an index and retrieve ranked list of documents:
