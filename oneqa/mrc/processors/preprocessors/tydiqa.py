@@ -1,13 +1,16 @@
-from operator import itemgetter
-from typing import Optional
-
 from datasets import Dataset
+from datasets.arrow_dataset import Example
 from datasets.features.features import Sequence, Value
 
-from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
+from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
 
 
-class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all methods
+class TyDiQAPreprocessor(BasePreProcessor):
+    """
+    Preprocessor for TyDi QA data.
+    Note this preprocessor only supports `single_context_multiple_passages=True` and will
+    override the value accordingly.
+    """
     _feature_types = {'question_text': Value(dtype='string', id=None),
                       'document_plaintext': Value(dtype='string', id=None)}
     _train_feature_types = {
@@ -17,7 +20,6 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
                    'passage_answer_candidate_index': Value(dtype='int32', id=None),
                    'yes_no_answer': Value(dtype='string', id=None)})
     }
-    _byte_itemgetter = itemgetter('plaintext_start_byte', 'plaintext_end_byte')
     _rename_fields = {'question_text': 'question', 'annotations': 'target',
                       'passage_answer_candidates': 'passage_candidates'}
     _rename_target = {'passage_answer_candidate_index': 'passage_indices',
@@ -42,14 +44,18 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
                               load_from_cache_file=self._load_from_cache_file,
                               num_proc=self._num_workers
                               )
-        dataset = dataset.map(self._split_context,
+        dataset = dataset.map(self._convert_start_and_end_positions_from_bytes_to_chars,
                               load_from_cache_file=self._load_from_cache_file,
                               num_proc=self._num_workers
-        )
+                              )
         dataset = super().adapt_dataset(dataset, is_train)
         return dataset
     
-    def _split_context(self, example):
+    @staticmethod
+    def _convert_start_and_end_positions_from_bytes_to_chars(example: Example):
+        """
+        Converts the target start/end positions from bytes to character offsets.
+        """
         context = example['document_plaintext']
         context_bytes = context.encode('utf-8')
 
@@ -75,7 +81,10 @@ class TyDiQAPreprocessor(DefaultPreProcessor):  # TODO type signatures for all m
         example['context'] = [context]
         return example
 
-    def _rename_examples(self, example):
+    def _rename_examples(self, example: Example):
+        """
+        Rename examples from TyDi schema to `BasePreProcessor` schema.
+        """
         target = example['target']
         for old_key, new_key in self._rename_target.items():
             target[new_key] = target.pop(old_key)
