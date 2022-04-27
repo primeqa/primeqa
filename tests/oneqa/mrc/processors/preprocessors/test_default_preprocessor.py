@@ -3,7 +3,7 @@ import pytest
 from pytest import raises
 from transformers import AutoTokenizer
 
-from oneqa.mrc.processors.preprocessors.default import DefaultPreProcessor
+from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
 from oneqa.mrc.data_models.target_type import TargetType
 from tests.oneqa.mrc.common.base import UnitTest
 from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
@@ -44,7 +44,7 @@ class TestDefaultPreProcessor(UnitTest):
 
     @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_all(self, tokenizer):
-        return DefaultPreProcessor(
+        return BasePreProcessor(
             tokenizer,
             stride=128,
             load_from_cache_file=False,
@@ -54,7 +54,7 @@ class TestDefaultPreProcessor(UnitTest):
 
     @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_none(self, tokenizer):
-        return DefaultPreProcessor(
+        return BasePreProcessor(
             tokenizer,
             stride=128,
             load_from_cache_file=False,
@@ -64,7 +64,7 @@ class TestDefaultPreProcessor(UnitTest):
 
     @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_no_answer(self, tokenizer):
-        return DefaultPreProcessor(
+        return BasePreProcessor(
             tokenizer,
             stride=128,
             load_from_cache_file=False,
@@ -74,7 +74,7 @@ class TestDefaultPreProcessor(UnitTest):
 
     @pytest.fixture(scope='session')
     def preprocessor_subsample_keep_has_answer(self, tokenizer):
-        return DefaultPreProcessor(
+        return BasePreProcessor(
             tokenizer,
             stride=128,
             load_from_cache_file=False,
@@ -90,7 +90,7 @@ class TestDefaultPreProcessor(UnitTest):
             negative_sampling_prob_when_no_answer
     ):
         with raises(ValueError):
-            _ = DefaultPreProcessor(
+            _ = BasePreProcessor(
                 tokenizer,
                 stride=128,
                 load_from_cache_file=False,
