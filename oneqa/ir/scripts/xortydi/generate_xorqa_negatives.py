@@ -59,69 +59,6 @@ def run_query(query, searcher, max_retrieved):
         retrieved.append( (hit['doc_id'],hit['score'], hit['title'], hit['text']) )
     return retrieved
 
-# def run_query(query, index_url, max_retrieved):
-
-#     escapeRules = {'+': r'\+',
-#            '-': r'\-',
-#            '&': r'\&',
-#            '|': r'\|',
-#            '!': r'\!',
-#            '(': r'\(',
-#            ')': r'\)',
-#            '{': r'\{',
-#            '}': r'\}',
-#            '[': r'\[',
-#            ']': r'\]',
-#            '^': r'\^',
-#            '~': r'\~',
-#            '*': r'\*',
-#            '?': r'\?',
-#            ':': r'\:',
-#            '"': r'\"',
-#            '\\': r'\\;',
-#            '/': r'\/',
-#            '>': r' ',
-#            '<': r' '}
-
-#     def escapedSeq(term):
-#         """ Yield the next string based on the
-#             next character (either this char
-#             or escaped version """
-#         for char in term:
-#             if char in escapeRules.keys():
-#                 yield escapeRules[char]
-#             else:
-#                 yield char
-
-#     def escapeESArg(term):
-#         """ Apply escaping to the passed in query terms
-#             escaping special characters like : , etc"""
-#         term = term.replace('\\', r'\\')   # escape \ first
-#         return "".join([nextStr for nextStr in escapedSeq(term)])
-
-
-#     question_string_escaped = escapeESArg(query.replace('?', ''))
-
-#     query_data = {
-#                         "from" : 0, "size" : max_retrieved,
-#                         "query": {
-#                             "query_string": {
-#                                 "query": question_string_escaped
-#                             }
-#                         }
-#                     }
-
-#     response = requests.post(url=index_url, json=query_data, verify=False)
-#     retrieved = []
-#     response_text_dict = json.loads(response.text)
-
-#     if 'hits' in response_text_dict:
-#         for hit in response_text_dict['hits']['hits']:
-#             retrieved.append((hit['_id'], hit['_score'],
-#                               (hit['_source']['title'] if 'title' in hit['_source'] else "", hit['_source']['text'])))
-
-#     return retrieved
-
 def read_jsonlines(file_name):
     lines = []
     print("loading examples from {0}".format(file_name))
