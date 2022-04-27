@@ -7,23 +7,19 @@ from transformers import PretrainedConfig, PreTrainedModel, MODEL_FOR_PRETRAININ
 from oneqa.mrc.models.heads.abstract import AbstractTaskHead
 
 
-# def create_task_model_class_from_config(config: PretrainedConfig) -> Type['ModelForDownstreamTasks']:
-#     ptm_base_class = MODEL_FOR_PRETRAINING_MAPPING[config.__class__]
-#     # inner_model_class = MODEL_MAPPING[config]
-#     # base_model_prefix = getattr(ptm_base_class, 'base_model_prefix', config.model_type)
-#     # model_type = config.model_type
-#     # model_name = ''.join(map(str.title, re.split(r'[^\w\d]', model_type)))
-#     model_name = config.__class__.__name__.rstrip('Config')
-#     class_name = f'{model_name}{ModelForDownstreamTasks.__name__}'
-#     model_class = type(class_name, (ModelForDownstreamTasks, ptm_base_class), {})
-#     return model_class
-
-
 class ModelForDownstreamTasks(PreTrainedModel):
+    """
+    Language model for downstream tasks.  Tasks are implemented via task heads which subclass `AbstractTaskHead`.
+    """
 
     def __init__(self,
                  config: PretrainedConfig,
                  task_heads: Dict[str, Type[AbstractTaskHead]]):
+        """
+        Args:
+            config: Model config
+            task_heads: dict mapping task head name to constructor
+        """
         super().__init__(config)
         self._logger = logging.getLogger(self.__class__.__name__)
 
@@ -41,8 +37,9 @@ class ModelForDownstreamTasks(PreTrainedModel):
         # Set the model to match the pre-trained name (e.g. self.roberta) so it can be loaded from pretrained
         setattr(self, self.base_model_prefix, MODEL_MAPPING[config.__class__](config))
 
-        self.task_heads = torch.nn.ModuleDict(
-            {name: model(config) for name, model in task_heads.items()})
+        self.task_heads = torch.nn.ModuleDict({
+            name: model(config) for name, model in task_heads.items()
+        })
         self.init_weights()
 
     @property
@@ -55,7 +52,7 @@ class ModelForDownstreamTasks(PreTrainedModel):
     @property
     def task_head(self) -> AbstractTaskHead:
         """
-        Returns the current task head or raises a ValueError if it has not yet been set
+        Return the current task head or raises a `ValueError` if it has not yet been set.
         """
         if self._task_head is not None:
             # noinspection PyTypeChecker
@@ -74,6 +71,10 @@ class ModelForDownstreamTasks(PreTrainedModel):
                 output_hidden_states=None,
                 return_dict=None,
                 **kwargs):
+        """
+        Returns task head applied to language model outputs and any additional arguments supplied via `kwargs`.
+        See HF transformers documentation for more details on other parameters.
+        """
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         outputs = self.model_(
@@ -93,7 +94,7 @@ class ModelForDownstreamTasks(PreTrainedModel):
     @classmethod
     def model_class_from_config(cls, config: PretrainedConfig) -> Type['ModelForDownstreamTasks']:
         """
-        Dynamically creates a model class from a PreTrainedConfig.
+        Dynamically creates and returns a model class from a PreTrainedConfig.
         """
         ptm_base_class = MODEL_FOR_PRETRAINING_MAPPING[config.__class__]
         model_name = config.__class__.__name__.rstrip('Config')
@@ -107,13 +108,20 @@ class ModelForDownstreamTasks(PreTrainedModel):
     def from_config(cls, config: PretrainedConfig, *args, **kwargs) -> 'ModelForDownstreamTasks':
         """
         Dynamically creates a model class from a PreTrainedConfig and then uses the config
-        with args/kwargs to instantiate.
+        with `args` or `kwargs` to instantiate and return a model.
         """
         model_class = cls.model_class_from_config(config)
         model = model_class.from_pretrained(*args, config=config, **kwargs)
         return model
 
-    def set_task_head(self, task_head: str):
+    def set_task_head(self, task_head: str) -> None:
+        """
+        Args:
+            task_head: name of the task head to activate.
+
+        Raises:
+            KeyError: model does not have task head with name `task_head`.
+        """
         if task_head not in self.task_heads:
             raise KeyError(f"Task head '{task_head}' not in task_heads: {list(self.task_heads)}")
         elif self._task_head is not None:
