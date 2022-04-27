@@ -92,6 +92,15 @@ self._logger = logging.getLogger(self.__class__.__name__)  # create logger
 self._logger.info("Log message")
 ```
 
+Use the standard `logging` library over `print` calls.
+Further, when creating classes whose methods need logging, create a 
+`_logger` instance attribute and use that for logging.
+
+```python
+self._logger = logging.getLogger(self.__class__.__name__)  # create logger
+self._logger.info("Log message")
+```
+
 ### Documentation
 
 Documentation is generated using Sphinx based on:
