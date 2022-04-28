@@ -1,9 +1,10 @@
 import os
 import torch
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
-
 from transformers import AutoTokenizer
+
+from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
 from oneqa.ir.dense.colbert_top.colbert.modeling.factory import get_colbert_from_pretrained
@@ -20,7 +21,7 @@ class BaseColBERT(torch.nn.Module):
     def __init__(self, name, colbert_config=None):
         super().__init__()
 
-        print(f"#>>>>> at BaseColBERT name (model type) : {name}")
+        print_message(f"#>>>>> at BaseColBERT name (model type) : {name}")
 
         self.name = name
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)

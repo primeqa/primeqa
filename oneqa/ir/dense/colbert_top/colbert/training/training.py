@@ -38,10 +38,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     if config.rank < 1:
         config.help()
-        # config.help is not happy with print input augument
-        # config_without_input_arguments = copy.deepcopy(config)
-        # config_without_input_arguments.input_arguments = None
-        # config_without_input_arguments.help()
 
     # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
     if config.checkpoint is not None:
@@ -78,13 +74,14 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             reader = RerankBatcher(config, triples, queries, collection, (0 if config.rank == -1 else config.rank), config.nranks)
         else:
             reader = LazyBatcher(config, triples, queries, collection, (0 if config.rank == -1 else config.rank), config.nranks)
+        assert config.teacher_checkpoint is None, "Student/Teacher training is not supported for numerical triples (yet)"
     else:
         # support text input
         reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
+        if config.teacher_checkpoint is not None:
+            teacher_reader = EagerBatcher(config, config.teacher_triples, (0 if config.rank == -1 else config.rank), config.nranks)
 
     if not config.reranker:
-
-        # add to support xlmr though model through factory
         colbert = ColBERT(name=config.model_type, colbert_config=config)
 
         # add support pre-trained representation
@@ -126,7 +123,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
             colbert.load_state_dict(lmweights_new,False)
 
-        # load from checkpoint if checkpoint is a actual model
+        # load from checkpoint if checkpoint is an actual model
         if config.checkpoint is not None:
             if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
                 print_message(f"#> Starting from checkpoint {config.checkpoint}")
@@ -138,7 +135,18 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                     print_message("[WARNING] Loading checkpoint with strict=False")
                     colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
 
+        if config.teacher_checkpoint is not None:
+            teacher_colbert = ColBERT(name=config.teacher_model_type, colbert_config=config)
 
+            if config.teacher_checkpoint.endswith('.dnn') or config.teacher_checkpoint.endswith('.model'):
+                print_message(f"#> Loading teacher checkpoint {config.teacher_checkpoint}")
+                teacher_checkpoint = torch.load(config.teacher_checkpoint, map_location='cpu')
+
+                try:
+                    teacher_colbert.load_state_dict(teacher_checkpoint['model_state_dict'])
+                except:
+                    print_message("[WARNING] Loading checkpoint with strict=False")
+                    teacher_colbert.load_state_dict(teacher_checkpoint['model_state_dict'], strict=False)
     else:
         colbert = ElectraReranker.from_pretrained(config.checkpoint)
 
@@ -146,10 +154,26 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     colbert = colbert.to(DEVICE)
     colbert.train()
 
+    if config.teacher_checkpoint is not None:
+        teacher_colbert = teacher_colbert.to(DEVICE)
+        if config.distill_query_passage_separately:
+            assert False, "distill_query_passage_separately functionality is not supported (yet)"
+            if config.loss_function == 'MSE':
+                student_teacher_loss_fct = torch.nn.MSELoss()
+            elif config.loss_function == 'l1':
+                student_teacher_loss_fct = torch.nn.L1Loss()
+        else:
+            student_teacher_loss_fct = torch.nn.KLDivLoss(reduction="batchmean")
+
     if DEVICE == torch.device("cuda"):
         colbert = torch.nn.parallel.DistributedDataParallel(colbert, device_ids=[config.rank],
                                                         output_device=config.rank,
                                                         find_unused_parameters=True)
+        if config.teacher_checkpoint is not None:
+            teacher_colbert = torch.nn.parallel.DistributedDataParallel(teacher_colbert, device_ids=[config.rank],
+                                                output_device=config.rank,
+                                                find_unused_parameters=True)
+
 
     optimizer = AdamW(filter(lambda p: p.requires_grad, colbert.parameters()), lr=config.lr, eps=1e-8)
     optimizer.zero_grad()
@@ -157,7 +181,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     if config.resume_optimizer:
         print_message(f"#> Resuming optimizer from checkpoint {config.checkpoint}")
         torch.set_rng_state(checkpoint['torch_rng_state'].to(torch.get_rng_state().device))
-        torch.cuda.set_rng_state_all([ state.to(torch.cuda.get_rng_state_all()[pos].device) for pos, state in enumerate(checkpoint['torch_cuda_rng_states']) ] )
+        if torch.cuda.is_available():
+            torch.cuda.set_rng_state_all([ state.to(torch.cuda.get_rng_state_all()[pos].device) for pos, state in enumerate(checkpoint['torch_cuda_rng_states']) ] )
         np.random.set_state(checkpoint['np_rng_state'])
         random.setstate(checkpoint['python_rng_state'])
 
@@ -192,6 +217,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
          # reader.skip_to_batch(start_batch_idx, checkpoint['arguments']['bsize'])
          reader.skip_to_batch(start_batch_idx, config.bsize)
+         if config.teacher_checkpoint is not None:
+            teacher_reader.skip_to_batch(start_batch_idx, config.bsize)
 
     maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
 
@@ -210,86 +237,171 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     print_message(f"start batch idx: {start_batch_idx}")
 
+    # TODO: unify the student/teacher and student-only cases
+    if config.teacher_checkpoint is not None:
+        for batch_idx, BatchSteps, teacher_BatchSteps in zip(range(start_batch_idx, maxsteps), reader, teacher_reader):
+            if (warmup_bert is not None) and warmup_bert <= batch_idx:
+                set_bert_grad(colbert, True)
+                warmup_bert = None
 
-    for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
-        if (warmup_bert is not None) and warmup_bert <= batch_idx:
-            set_bert_grad(colbert, True)
-            warmup_bert = None
-
-        # support shuffle_every_epoch option
-        n_instances = batch_idx * config.bsize * config.nranks
-        if (n_instances + 1) % len(reader) < config.bsize * config.nranks:
-            print_message("#> ====== Epoch {}...".format((n_instances+1) // len(reader)))
-            # AttributeError: 'ColBERTConfig' object has no attribute 'shuffle_every_epoch'
-            if config.shuffle_every_epoch:
-                print_message("#> Shuffling ...")
-                reader.shuffle()
-            else:
-                print_message("#> Shuffling not specified.")
-
-
-        this_batch_loss = 0.0
-
-        for batch in BatchSteps:
-            with amp.context():
-                try:
-                    queries, passages, target_scores = batch
-                    encoding = [queries, passages]
-                except:
-                    encoding, target_scores = batch
-                    encoding = [encoding.to(DEVICE)]
-
-                scores = colbert(*encoding)
-
-                if config.use_ib_negatives:
-                    scores, ib_loss = scores
-
-                scores = scores.view(-1, config.nway)
-
-                if len(target_scores) and not config.ignore_scores:
-                    target_scores = torch.tensor(target_scores).view(-1, config.nway).to(DEVICE)
-                    target_scores = target_scores * config.distillation_alpha
-                    target_scores = torch.nn.functional.log_softmax(target_scores, dim=-1)
-
-                    log_scores = torch.nn.functional.log_softmax(scores, dim=-1)
-                    loss = torch.nn.KLDivLoss(reduction='batchmean', log_target=True)(log_scores, target_scores)
+            # support shuffle_every_epoch option
+            n_instances = batch_idx * config.bsize * config.nranks
+            if (n_instances + 1) % len(reader) < config.bsize * config.nranks:
+                print_message("#> ====== Epoch {}...".format((n_instances+1) // len(reader)))
+                # AttributeError: 'ColBERTConfig' object has no attribute 'shuffle_every_epoch'
+                if config.shuffle_every_epoch:
+                    print_message("[WARNING] Data shuffling is not supported (yet) for Student/Teacher training")
                 else:
-                    loss = nn.CrossEntropyLoss()(scores, labels[:scores.size(0)])
+                    print_message("#> Shuffling not specified.")
 
-                if config.use_ib_negatives:
-                    if config.rank < 1:
-                        print('\t\t\t\t', loss.item(), ib_loss.item())
+            this_batch_loss = 0.0
 
-                    loss += ib_loss
+            for queries_passages, teacher_queries_passages in zip(BatchSteps, teacher_BatchSteps):
+                assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
 
-                loss = loss / config.accumsteps
+                with amp.context():
+                    try:
+                        queries, passages, target_scores = queries_passages
+                        encoding = [queries, passages]
+                    except:
+                        encoding, target_scores = queries_passages
+                        encoding = [encoding.to(DEVICE)]
+
+                    scores = colbert(*encoding)
+
+                    if config.use_ib_negatives:
+                        scores, ib_loss = scores
+
+                    scores = scores.view(-1, config.nway)
+
+                    with torch.no_grad():
+                        try:
+                            teacher_queries, teacher_passages, teacher_target_scores = teacher_queries_passages
+                            teacher_encoding = [teacher_queries, teacher_passages]
+                        except:
+                            teacher_encoding, teacher_target_scores = teacher_queries_passages
+                            teacher_encoding = [teacher_encoding.to(DEVICE)]
+
+                        teacher_scores = teacher_colbert(*teacher_encoding)
+
+                        if config.use_ib_negatives:
+                            teacher_scores, teacher_ib_loss = teacher_scores
+
+                        teacher_scores = teacher_scores.view(-1, config.nway)
+
+                    loss = student_teacher_loss_fct(
+                                torch.nn.functional.log_softmax(scores / config.student_teacher_temperature, dim=-1),
+                                torch.nn.functional.softmax(teacher_scores / config.student_teacher_temperature, dim=-1),
+                            ) * (config.student_teacher_temperature ** 2)
+
+                    loss = loss / config.accumsteps
+
+                if config.rank < 1:
+                    print_progress(scores)
+
+                amp.backward(loss)
+
+                this_batch_loss += loss.item()
+
+            train_loss = this_batch_loss if train_loss is None else train_loss
+            train_loss = train_loss_mu * train_loss + (1 - train_loss_mu) * this_batch_loss
+
+            amp.step(colbert, optimizer, scheduler)
 
             if config.rank < 1:
-                print_progress(scores)
+                print_message(batch_idx, train_loss)
 
-            amp.backward(loss)
+                num_per_epoch = len(reader)
+                epoch_idx = ((batch_idx + 1) * config.bsize * config.nranks) // num_per_epoch - 1
+                try:
+                    exit_queue.get_nowait()
+                    # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
+                    sys.exit(0)
+                except Empty:
+                    # manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
+                    manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
-            this_batch_loss += loss.item()
+    else:
+        for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
+            if (warmup_bert is not None) and warmup_bert <= batch_idx:
+                set_bert_grad(colbert, True)
+                warmup_bert = None
 
-        train_loss = this_batch_loss if train_loss is None else train_loss
-        train_loss = train_loss_mu * train_loss + (1 - train_loss_mu) * this_batch_loss
+            # support shuffle_every_epoch option
+            n_instances = batch_idx * config.bsize * config.nranks
+            if (n_instances + 1) % len(reader) < config.bsize * config.nranks:
+                print_message("#> ====== Epoch {}...".format((n_instances+1) // len(reader)))
+                # AttributeError: 'ColBERTConfig' object has no attribute 'shuffle_every_epoch'
+                if config.shuffle_every_epoch:
+                    print_message("#> Shuffling ...")
+                    reader.shuffle()
+                else:
+                    print_message("#> Shuffling not specified.")
 
-        amp.step(colbert, optimizer, scheduler)
+            this_batch_loss = 0.0
 
-        if config.rank < 1:
-            print_message(batch_idx, train_loss)
+            for batch in BatchSteps:
+                with amp.context():
+                    try:
+                        queries, passages, target_scores = batch
+                        encoding = [queries, passages]
+                    except:
+                        encoding, target_scores = batch
+                        encoding = [encoding.to(DEVICE)]
 
-            num_per_epoch = len(reader)
-            epoch_idx = ((batch_idx + 1) * config.bsize * config.nranks) // num_per_epoch - 1
-            try:
-                exit_queue.get_nowait()
-                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
-                # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
-                sys.exit(0)
-            except Empty:
-                # manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
-                manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
+                    scores = colbert(*encoding)
+
+                    if config.use_ib_negatives:
+                        scores, ib_loss = scores
+
+                    scores = scores.view(-1, config.nway)
+
+                    if len(target_scores) and not config.ignore_scores:
+                        target_scores = torch.tensor(target_scores).view(-1, config.nway).to(DEVICE)
+                        target_scores = target_scores * config.distillation_alpha
+                        target_scores = torch.nn.functional.log_softmax(target_scores, dim=-1)
+
+                        log_scores = torch.nn.functional.log_softmax(scores, dim=-1)
+                        loss = torch.nn.KLDivLoss(reduction='batchmean', log_target=True)(log_scores, target_scores)
+                    else:
+                        loss = nn.CrossEntropyLoss()(scores, labels[:scores.size(0)])
+
+                    if config.use_ib_negatives:
+                        if config.rank < 1:
+                            print('\t\t\t\t', loss.item(), ib_loss.item())
+
+                        loss += ib_loss
+
+                    loss = loss / config.accumsteps
+
+                if config.rank < 1:
+                    print_progress(scores)
+
+                amp.backward(loss)
+
+                this_batch_loss += loss.item()
+
+            train_loss = this_batch_loss if train_loss is None else train_loss
+            # train_loss = train_loss_mu * train_loss + (1 - train_loss_mu) * this_batch_loss
+
+            amp.step(colbert, optimizer, scheduler)
+
+            if config.rank < 1:
+                print_message(batch_idx, train_loss)
+
+                num_per_epoch = len(reader)
+                epoch_idx = ((batch_idx + 1) * config.bsize * config.nranks) // num_per_epoch - 1
+                try:
+                    exit_queue.get_nowait()
+                    # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
+                    sys.exit(0)
+                except Empty:
+                    # manage_checkpoints(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
+                    manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
     # save last model
     name = os.path.join(path, "colbert-LAST.dnn")

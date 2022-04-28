@@ -90,7 +90,9 @@ class RunSettings:
 @dataclass
 class ResourceSettings:
     checkpoint: str = DefaultVal(None)
+    teacher_checkpoint: str = DefaultVal(None)
     triples: str = DefaultVal(None)
+    teacher_triples: str = DefaultVal(None)
     collection: str = DefaultVal(None)
     queries: str = DefaultVal(None)
     index_name: str = DefaultVal(None)
@@ -155,6 +157,16 @@ class TrainingSettings:
     local_models_repository: str = DefaultVal(None)
     ranks_fn: str = DefaultVal(None)
     topK: int = DefaultVal(100)
+
+    # used in distillation (Student/Teacher) training
+    student_teacher_temperature: float = DefaultVal(1.0)
+    student_teacher_top_loss_weight: float = DefaultVal(0.5)
+    teacher_model_type: str = DefaultVal('xlm-roberta-base')
+    teacher_doc_maxlen: int = DefaultVal(180)
+    distill_query_passage_separately: bool = DefaultVal(False)
+    query_only: bool = DefaultVal(False)
+    loss_function: str = DefaultVal(None)
+    query_weight: float = DefaultVal(0.5)
 
 @dataclass
 class IndexingSettings:

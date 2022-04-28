@@ -17,15 +17,18 @@ from oneqa.ir.dense.colbert_top.colbert.data.examples import Examples
 
 
 class EagerBatcher():
-    def __init__(self, config: ColBERTConfig, triples, rank=0, nranks=1):
+    def __init__(self, config: ColBERTConfig, triples, rank=0, nranks=1, is_teacher=False):
         self.bsize, self.accumsteps = config.bsize, config.accumsteps
         self.rank, self.nranks = rank, nranks
         self.nway = config.nway
 
         # self.query_tokenizer = QueryTokenizer(config)
         # self.doc_tokenizer = DocTokenizer(config)
-        self.query_tokenizer = get_query_tokenizer(config.model_type, config.query_maxlen, config.attend_to_mask_tokens)
-        self.doc_tokenizer = get_doc_tokenizer(config.model_type, config.doc_maxlen)
+        #self.query_tokenizer = get_query_tokenizer(config.model_type, config.query_maxlen, config.attend_to_mask_tokens)
+        #self.doc_tokenizer = get_doc_tokenizer(config.model_type, config.doc_maxlen)
+        self.query_tokenizer = get_query_tokenizer(config.model_type if (not is_teacher or config.teacher_model_type is None) else config.teacher_model_type, config.query_maxlen, config.attend_to_mask_tokens)
+        self.doc_tokenizer = get_doc_tokenizer(config.model_type if (not is_teacher or config.teacher_model_type is None) else config.teacher_model_type, config.doc_maxlen if not is_teacher else config.teacher_doc_maxlen)
+
         self.tensorize_triples = partial(tensorize_triples, self.query_tokenizer, self.doc_tokenizer)
         self.position = 0
 

@@ -58,6 +58,16 @@ class Arguments():
         self.add_argument('--epochs', dest='epochs', default=10, type=int) #,
         #                  help="Training will end at the earlier of the specified epochs or maxsteps.")
 
+        # used in distillation (Student/Teacher) training
+        self.add_argument('--teacher_checkpoint', dest='teacher_checkpoint', default=None, required=False)
+        self.add_argument('--student_teacher_temperature', dest='student_teacher_temperature', default=1.0, type=float)
+        self.add_argument('--student_teacher_top_loss_weight', dest='student_teacher_top_loss_weight', default=0.5, type=float)
+        self.add_argument('--teacher_model_type', dest='teacher_model_type', choices=['bert-base-uncased','bert-large-uncased','roberta-base','roberta-large', 'xlm-roberta-base','xlm-roberta-large','bert-base-multilingual-cased','bert-base-multilingual-uncased'], default=None, required=False )
+        self.add_argument('--teacher_doc_maxlen', dest='teacher_doc_maxlen', default=180, type=int)
+        self.add_argument('--distill_query_passage_separately', dest='distill_query_passage_separately', default=False, required=False, type=bool)
+        self.add_argument('--query_only', dest='query_only', default=False, required=False, type=bool)
+        self.add_argument('--loss_function', dest='loss_function', required=False)
+        self.add_argument('--query_weight', dest='query_weight', default=0.5, type=float)
 
     def add_model_inference_parameters(self):
         self.add_argument('--checkpoint', dest='checkpoint', required=True)
@@ -68,6 +78,8 @@ class Arguments():
         self.add_argument('--triples', dest='triples', required=True)
         self.add_argument('--queries', dest='queries', default=None)
         self.add_argument('--collection', dest='collection', default=None)
+        # used in distillation (Student/Teacher) training
+        self.add_argument('--teacher_triples', dest='teacher_triples', default=None)
 
         def check_training_input(args):
             assert (args.collection is None) == (args.queries is None), \
