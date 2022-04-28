@@ -10,9 +10,5 @@ babel==2.9.0
 records
 jedi==0.17.2
 flask
-#ipython already installed
 cowsay
 sentencepiece
-cmake
-kenlm
-faiss
