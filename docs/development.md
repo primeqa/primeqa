@@ -49,11 +49,11 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 
 ### Folder Structure
 
-TODO pending decision
+TODO pending [decision](https://zenhub.ibm.com/workspaces/oneqa-61eed731a578f53e48934109/issues/ai-foundation/oneqa/165).
 
 ### Design Conventions
 
-TODO pending decision
+TODO pending [decision](https://zenhub.ibm.com/workspaces/oneqa-61eed731a578f53e48934109/issues/ai-foundation/oneqa/165).
 
 Use the standard `logging` library over `print` calls.
 Further, when creating classes whose methods need logging, create a 
