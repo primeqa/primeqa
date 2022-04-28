@@ -3,8 +3,10 @@ EVENTUALLY: Tune the batch sizes selected here for a good balance of speed and g
 """
 
 import os
-import cupy
 import torch
+if torch.cuda.is_available():
+    import cupy
+
 
 from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings import ResidualEmbeddings
