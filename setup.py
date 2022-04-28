@@ -19,7 +19,7 @@ include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"]
 
 keywords = [
     "NLP", "transformers", "QA", "question", "answering", "mrc", "rc", "machine", "reading", "comprehension",
-    "IR", "information", "retrieval", "deep", "learning", "pytorch", "BERT", "RoBERTa"
+    "IR", "information", "retrieval", "deep", "learning", "pytorch", "BERT", "RoBERTa", "T5", "generation", "table"
 ]
 
 authors = [

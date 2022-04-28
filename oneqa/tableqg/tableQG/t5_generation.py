@@ -15,6 +15,8 @@ logging.basicConfig(level=logging.ERROR)
 
 device = 'cuda' if cuda.is_available() else 'cpu'
 
+# make it hyperparameter
+# command line
 MAX_LEN = 100
 SUMMARY_LEN = 50
 TRAIN_BATCH_SIZE = 10
@@ -22,6 +24,7 @@ VALID_BATCH_SIZE = 10
 EPOCHS = 15
 LEARNING_RATE = 1e-3
 
+# model_name as hyperparameter
 tokenizer = T5Tokenizer.from_pretrained("t5-base")
 # config is necessary when loading finetuned T5-model
 config = T5ForConditionalGeneration.from_pretrained('t5-base').config
