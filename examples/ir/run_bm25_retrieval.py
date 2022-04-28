@@ -15,7 +15,7 @@ def handle_args():
 )
     parser.add_argument('--index_path', type=str,required=True,help="Path to a lucene index")
     parser.add_argument('--queries_file', type=str, required=True, help='Path to queries file in ColBERT tsv [id\tquery] format')
-    parser.add_argument('--top_k', type=int, required=False, default=1000, type=int, help='Number of documents/passages to retrieve')
+    parser.add_argument('--top_k', type=int, required=False, default=1000, help='Number of documents/passages to retrieve')
     parser.add_argument('--xorqa_data_file', type=str, required=False, default=None, help="Required to extract language id for XORQA evaluation." )
     parser.add_argument('--max_hits_to_output', type=int, required=False, default=100, help='Number of hits to output for XORQA evaluation.')
     parser.add_argument('--output_dir', type=str, required=True, help='Path to the output directory')
@@ -49,7 +49,7 @@ def write_colbert_ranking_tsv(output_dir: str , id_to_hits: Dict):
         for i, hit in enumerate(id_to_hits[id]):
             result = {
                 "id": id,
-                "docid": hit['passage_id'],
+                "docid": hit['doc_id'],
                 "rank": i+1, 
                 "score": hit['score']
             }
