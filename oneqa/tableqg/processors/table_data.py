@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from datasets import load_dataset
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
@@ -12,7 +13,8 @@ class WikiSqlDataset():
 		except ValueError:
 			return False
 
-	def _execute_sql(self, sql, table):
+	@staticmethod
+	def _execute_sql(sql, table):
 		"""_summary_
 
 		Args:
@@ -76,7 +78,8 @@ class WikiSqlDataset():
 
 		return answer
 
-	def _create_sql_string(self, sql, table, answer, tokenizer='T5'):
+	@staticmethod
+	def _create_sql_string(sql, table, answer, tokenizer='T5'):
 		"""Convert sql in dict format (the way WikiSQL dataset provides) and convert it to string appending
 		answer and column names of tables. Appropriate delimiters are used to demarcate differents parts of SQL
 
@@ -121,8 +124,7 @@ class WikiSqlDataset():
 		data = load_dataset('wikisql', split=data_split)
 		processed_data = []
 
-		for i,d in enumerate(data):
-			print(i)
+		for d in tqdm(data):
 			answer = self._execute_sql(d['sql'], d['table'])[0]
 			sql_str = self._create_sql_string(d['sql'], d['table'], answer)
 			processed_data.append({'question': d['question'], 'sql_str': sql_str})

@@ -29,9 +29,12 @@ tokenizer = T5Tokenizer.from_pretrained("t5-base")
 # config is necessary when loading finetuned T5-model
 config = T5ForConditionalGeneration.from_pretrained('t5-base').config
 
+""""
+class TableQGModel():
+    
+"""
 
 class CustomDataset(Dataset):
-
     def __init__(self, dataframe, tokenizer, source_len, summ_len):
         self.tokenizer = tokenizer
         self.data = dataframe
