@@ -29,8 +29,12 @@ authors = [
 _deps = {
     "bump2version~=1.0.1": ["dev"],
     "datasets~=2.0.0": ["install"],
+    "faiss-cpu~=1.7.2": ["install"],
+    "jsonlines~=3.0.0": ["install"],
     "packaging~=21.3": ["install"],
+    "pandas~=1.3.5": ["install"],
     "pydata-sphinx-theme~=0.8.0": ["docs"],
+    "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
@@ -39,7 +43,7 @@ _deps = {
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
+    "tqdm~=4.64.0": ["install"]
 }
 
 extras_names = ["docs", "dev", "install", "tests"]
