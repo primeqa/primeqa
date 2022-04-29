@@ -23,10 +23,11 @@ A description of the pip extras is as follows:
 ## Versioning
 
 OneQA uses [Semantic Versioning](https://semver.org/). Version can be incremented using `bump2version`.
-Make sure the `dev` extras are installed.  
+Make sure the `dev` extras are installed.
+
+Note: These commands need to be run from the project root.
 
 ```shell
-# cd to project root
 bump2version {patch,minor,major}
 git push  # above command creates a commit so we need to push
 ```
@@ -72,9 +73,11 @@ Documentation is generated using Sphinx based on:
 2. Documentation Pages
 
 Make sure to have the `docs` extras installed before building the documentation.
-The documentation can be built as follows:
+The documentation can be built as shown below.
+
+Note: These commands need to be run from the project root.
+
 ```shell
-# cd to project root
 cd docs
 sphinx-build -b html ./ ./generated/
 ```
