@@ -5,8 +5,9 @@ EVENTUALLY: Tune the batch sizes selected here for a good balance of speed and g
 import os
 import torch
 if torch.cuda.is_available():
-    import cupy
-
+    import cupy as cnupy
+else:
+    import numpy as cnupy
 
 from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings import ResidualEmbeddings
@@ -114,7 +115,8 @@ class ResidualCodec:
         assert self.dim % 8 == 0
         assert self.dim % (self.nbits * 8) == 0, (self.dim, self.nbits)
 
-        residuals_packed = cupy.packbits(cupy.asarray(residuals.contiguous().flatten()))
+        #residuals_packed = cupy.packbits(cupy.asarray(residuals.contiguous().flatten()))
+        residuals_packed = cnupy.packbits(cnupy.asarray(residuals.contiguous().flatten()))
         residuals_packed = torch.as_tensor(residuals_packed, dtype=torch.uint8)
 
         residuals_packed = residuals_packed.reshape(residuals.size(0), self.dim // 8 * self.nbits)
@@ -188,7 +190,7 @@ class ResidualCodec:
         assert binary_residuals.dim() == 2, binary_residuals.size()
         assert binary_residuals.size(1) == self.dim // 8 * self.nbits, binary_residuals.size()
 
-        residuals = cupy.unpackbits(cupy.asarray(binary_residuals.contiguous().flatten()))
+        residuals = cnupy.unpackbits(cnupy.asarray(binary_residuals.contiguous().flatten()))
 
         if torch.cuda.is_available():
             residuals = torch.as_tensor(residuals, dtype=torch.uint8, device='cuda')
