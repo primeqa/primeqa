@@ -36,13 +36,12 @@ class TestBatchers(UnitTest):
         ]
         return [search_results_1, search_results_2, search_results_3]
 
-    def test_eager_batcher(self):
-        t_location = triples_location
+    def test_eager_batcher(self, triples_location):
         #t_location = '/u/franzm/git8/OneQA/tests/resources'
         rank = 0
         nranks = 1
         config = ColBERTConfig()
-        reader = EagerBatcher(config, t_location + "/ColBERT.C3_3_20_biased200_triples_text_head_100.tsv", rank, nranks)
+        reader = EagerBatcher(config, triples_location + "/ColBERT.C3_3_20_biased200_triples_text_head_100.tsv", rank, nranks)
 
 if __name__ == '__main__':
     test = TestBatchers()
