@@ -20,6 +20,7 @@ RUN make html
 FROM alpine:latest as redbean
 
 RUN apk add --update zip bash
+RUN apk --no-cache add curl
 RUN curl https://redbean.dev/redbean-latest.com >redbean.com
 RUN chmod +x redbean.com
 RUN redbean.com -v
