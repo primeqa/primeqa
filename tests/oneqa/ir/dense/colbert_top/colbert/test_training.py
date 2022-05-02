@@ -79,21 +79,30 @@ class TestTraining(UnitTest):
 
         '''
         text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
+        numerical_triples_fn = os.path.join(test_files_location, "xorqa.train_ir_negs_5_poss_1_001pct_at_0pct_num.json")
+        queries_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv")
+        collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
 
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
 
-        model_type = 'xlm-roberta-base'
-        args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 10, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 10, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
+        model_types = ['xlm-roberta-base', 'bert-base-uncased']
+        for model_type in model_types:
+            args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 5, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 10, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
 
-        colBERTConfig = ColBERTConfig(**args_dict)
+            with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
+                colBERTConfig = ColBERTConfig(**args_dict)
+                train(colBERTConfig, text_triples_fn, None, None)
 
-        with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
-            train(colBERTConfig, text_triples_fn, None, None)
-            #trainer = Trainer(text_triples_fn, None, None, colBERTConfig)
-            #trainer.train(args_dict['checkpoint'])
+                args_dict['triples'] = numerical_triples_fn
+                args_dict['queries'] = queries_fn
+                args_dict['collection'] = collection_fn
+                colBERTConfig = ColBERTConfig(**args_dict)
+                train(colBERTConfig, numerical_triples_fn, queries_fn, collection_fn)
 
-        print("")
+        print("ALL DONE")
+
+
 if __name__ == '__main__':
     test = TestTraining()
     #test.test_eager_batcher()
