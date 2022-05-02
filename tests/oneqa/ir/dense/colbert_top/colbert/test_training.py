@@ -88,7 +88,7 @@ class TestTraining(UnitTest):
 
         with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
             trainer = Trainer(text_triples_fn, None, None, colBERTConfig)
-            trainer.train(args_dict['checkpoint'])
+            # trainer.train(args_dict['checkpoint'])
 
         print("")
 if __name__ == '__main__':
