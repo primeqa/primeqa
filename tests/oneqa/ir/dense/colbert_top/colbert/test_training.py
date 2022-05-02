@@ -38,7 +38,8 @@ class TestBatchers(UnitTest):
         return [search_results_1, search_results_2, search_results_3]
     '''
 
-    def test_eager_batcher(self, triples_location):
+    #def test_eager_batcher(self, triples_location):
+    def test_eager_batcher(self):
         #t_location = '/u/franzm/git8/OneQA/tests/resources'
         triples_location = 'tests/resources/ir_dense'
         rank = 0
