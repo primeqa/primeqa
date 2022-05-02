@@ -13,6 +13,7 @@ RUN apt-get update \
 RUN python3 -m pip install --no-cache-dir -U pip
 COPY . .
 RUN python3 -m pip install .[docs]
+WORKDIR docs
 RUN make html
 
 # TODO: second stage nginx server
