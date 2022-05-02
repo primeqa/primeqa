@@ -9,6 +9,7 @@ from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBa
 
 class TestBatchers(UnitTest):
 
+    '''
     @pytest.fixture(scope='session')
     def triples_location(self):
         # The current directory to handle running from IDE or command line
@@ -35,9 +36,11 @@ class TestBatchers(UnitTest):
             (1, '8237529', 2.0999999046325684, 'Idaho State Police')
         ]
         return [search_results_1, search_results_2, search_results_3]
+    '''
 
     def test_eager_batcher(self, triples_location):
         #t_location = '/u/franzm/git8/OneQA/tests/resources'
+        triples_location = 'tests/resources/ir_dense'
         rank = 0
         nranks = 1
         config = ColBERTConfig()
