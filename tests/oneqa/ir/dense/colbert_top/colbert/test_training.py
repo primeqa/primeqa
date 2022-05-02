@@ -6,6 +6,7 @@ from typing import Tuple
 
 from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
+from oneqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher  # support text input
 
 class TestBatchers(UnitTest):
 
@@ -40,13 +41,22 @@ class TestBatchers(UnitTest):
 
     #def test_eager_batcher(self, triples_location):
     def test_eager_batcher(self):
-        #t_location = '/u/franzm/git8/OneQA/tests/resources'
-        triples_location = 'tests/resources/ir_dense'
+        test_files_location = 'tests/resources/ir_dense'
+        if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
+            test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
+
         rank = 0
         nranks = 1
         config = ColBERTConfig()
-        reader = EagerBatcher(config, triples_location + "/ColBERT.C3_3_20_biased200_triples_text_head_100.tsv", rank, nranks)
+        text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
+        reader_eager_batcher = EagerBatcher(config, text_triples_fn, rank, nranks)
 
+        numerical_triples_fn = os.path.join(test_files_location, "xorqa.train_ir_negs_5_poss_1_001pct_at_0pct_num.json")
+        queries_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv")
+        collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
+        reader_lazy_batcher = LazyBatcher(config, numerical_triples_fn, queries_fn, collection_fn, rank, nranks)
+
+        print("")
 if __name__ == '__main__':
     test = TestBatchers()
     test.test_eager_batcher()
