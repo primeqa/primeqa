@@ -69,6 +69,8 @@ class RunSettings:
                     pass
             
 
+            if script_path.endswith('bin/pytest'):
+                script_path = script_path + '.py'
             assert script_path.endswith('.py'), (script_path, cwd)
             script_name = script_path.replace('/', '.').strip('.')[:-3]
 
