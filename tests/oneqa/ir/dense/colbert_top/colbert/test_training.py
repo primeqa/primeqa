@@ -11,6 +11,8 @@ from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBa
 from oneqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher  # support text input
 from oneqa.ir.dense.colbert_top.colbert.trainer import Trainer
 from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+from oneqa.ir.dense.colbert_top.colbert.training.training import train
+
 
 class TestTraining(UnitTest):
 
@@ -82,13 +84,14 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
         model_type = 'xlm-roberta-base'
-        args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 1, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 10, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
+        args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 10, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 10, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
 
         colBERTConfig = ColBERTConfig(**args_dict)
 
         with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
-            trainer = Trainer(text_triples_fn, None, None, colBERTConfig)
-            # trainer.train(args_dict['checkpoint'])
+            train(colBERTConfig, text_triples_fn, None, None)
+            #trainer = Trainer(text_triples_fn, None, None, colBERTConfig)
+            #trainer.train(args_dict['checkpoint'])
 
         print("")
 if __name__ == '__main__':
