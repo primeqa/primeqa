@@ -19,14 +19,15 @@ RUN make html
 
 FROM alpine:latest as redbean
 
+ARG DOWNLOAD_FILENAME=redbean-original-1.4.com
+
 RUN apk add --update zip bash
-RUN apk --no-cache add curl
-RUN curl https://redbean.dev/redbean-latest.com >redbean.com
+RUN wget https://justine.lol/redbean/${DOWNLOAD_FILENAME} -O redbean.com
 RUN chmod +x redbean.com
 
 # This will normalize the binary to ELF
 RUN zip -d redbean.com .ape
-RUN bash redbean.com -h
+RUN bash /redbean.com -h
 
 # Add your files here
 COPY --from=sphinx /docs/docs/_build/html /assets
@@ -34,7 +35,6 @@ WORKDIR /assets
 RUN zip -r /redbean.com *
 
 # just for debugging purposes
-WORKDIR /
 RUN ls -la redbean.com
 RUN zip -sf redbean.com
 
