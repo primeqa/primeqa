@@ -69,7 +69,7 @@ class RunSettings:
                     pass
             
 
-            assert script_path.endswith('.py')
+            assert script_path.endswith('.py'), (script_path, cwd)
             script_name = script_path.replace('/', '.').strip('.')[:-3]
 
             assert len(script_name) > 0, (script_name, script_path, cwd)
