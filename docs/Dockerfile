@@ -35,8 +35,8 @@ WORKDIR /assets
 RUN zip -r /redbean.com *
 
 # just for debugging purposes
-RUN ls -la redbean.com
-RUN zip -sf redbean.com
+RUN ls -la /redbean.com
+RUN zip -sf /redbean.com
 
 
 FROM scratch
