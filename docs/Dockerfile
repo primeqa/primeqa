@@ -10,7 +10,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-USER sphinx
 RUN python3 -m pip install --no-cache-dir -U pip
 COPY . .
 RUN python3 -m pip install .[docs]
