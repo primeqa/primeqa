@@ -13,12 +13,18 @@ def get_metadata_only():
 
     args.hostname = socket.gethostname()
     import os
-    cwd = os.getcwd()
-    print('>>>>>>>>>>>>> CWD: ' + cwd)
 
-    args.git_branch = git.Repo(search_parent_directories=True).active_branch.name
-    args.git_hash = git.Repo(search_parent_directories=True).head.object.hexsha
-    args.git_commit_datetime = str(git.Repo(search_parent_directories=True).head.object.committed_datetime)
+    try:
+        args.git_branch = git.Repo(search_parent_directories=True).active_branch.name
+        args.git_hash = git.Repo(search_parent_directories=True).head.object.hexsha
+        args.git_commit_datetime = str(git.Repo(search_parent_directories=True).head.object.committed_datetime)
+    except:
+        args.git_branch = None
+        args.git_hash = None
+        args.git_commit_datetime = None
+        cwd = os.getcwd()
+        print(f">> WARNING: CWD: {cwd} not in git, git parameters not stored")
+
     args.current_datetime = time.strftime('%b %d, %Y ; %l:%M%p %Z (%z)')
     args.cmd = ' '.join(sys.argv)
 

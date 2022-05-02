@@ -1,14 +1,18 @@
 from tests.oneqa.mrc.common.base import UnitTest
 import pytest
 import os
+import tempfile
 import json
 from typing import Tuple
 
+from oneqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
 from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
 from oneqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher  # support text input
+from oneqa.ir.dense.colbert_top.colbert.trainer import Trainer
+from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
 
-class TestBatchers(UnitTest):
+class TestTraining(UnitTest):
 
     '''
     @pytest.fixture(scope='session')
@@ -56,7 +60,38 @@ class TestBatchers(UnitTest):
         collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
         reader_lazy_batcher = LazyBatcher(config, numerical_triples_fn, queries_fn, collection_fn, rank, nranks)
 
+    def test_trainer(self):
+        test_files_location = 'tests/resources/ir_dense'
+        if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
+            test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
+
+        '''
+        parser = Arguments(description='Training ColBERT with <query, positive passage, negative passage> triples.')
+
+        parser.add_model_parameters()
+        parser.add_model_training_parameters()
+        parser.add_training_input()
+        args = parser.parse()
+        # parser.add_argument('--model_type', dest='model_type', default='bert')
+        # comment out as we define the argument at model training parameters
+
+        '''
+        text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
+
+        with tempfile.TemporaryDirectory() as working_dir:
+            output_dir=os.path.join(working_dir, 'output_dir')
+
+        model_type = 'xlm-roberta-base'
+        args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 10, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 10, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
+
+        colBERTConfig = ColBERTConfig(**args_dict)
+
+        with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
+            trainer = Trainer(text_triples_fn, None, None, colBERTConfig)
+            trainer.train(args_dict['checkpoint'])
+
         print("")
 if __name__ == '__main__':
-    test = TestBatchers()
-    test.test_eager_batcher()
+    test = TestTraining()
+    #test.test_eager_batcher()
+    test.test_trainer()
