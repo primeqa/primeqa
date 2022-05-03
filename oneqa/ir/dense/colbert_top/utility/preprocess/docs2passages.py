@@ -58,7 +58,11 @@ def main(args):
     print_message("#> Starting...")
 
     letter = 'w' if not args.use_wordpiece else 't'
+
     output_path = f'{args.input}.{letter}{args.nwords}_{args.overlap}'
+    if args.output_path is not None:
+        output_path = os.path.join(args.output_path, output_path)
+
     assert not os.path.exists(output_path)
 
     RawCollection = []
@@ -139,6 +143,7 @@ if __name__ == "__main__":
     parser.add_argument('--use-wordpiece', dest='use_wordpiece', default=False, action='store_true')
     parser.add_argument('--nwords', dest='nwords', default=100, type=int)
     parser.add_argument('--overlap', dest='overlap', default=0, type=int)
+    parser.add_argument('--output_path', dest='output_path', default=None)
 
     # Other Arguments.
     parser.add_argument('--nthreads', dest='nthreads', default=28, type=int)
