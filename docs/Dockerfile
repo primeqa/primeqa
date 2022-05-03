@@ -8,7 +8,7 @@ RUN apt-get update \
       graphviz \
       imagemagick \
       make \
-      openjdk-11-jdk\
+      apt-get install openjdk-11-jdk\
  && apt-get autoremove \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
