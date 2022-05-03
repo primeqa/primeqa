@@ -425,7 +425,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         return ckpt_path  # TODO: This should validate and return the best checkpoint, not just the last one.
 
     # just return latest file
-    # return latest_file
+    return latest_file
 
 
 def set_bert_grad(colbert, value):

@@ -33,6 +33,7 @@ class CollectionIndexer():
     def __init__(self, config: ColBERTConfig, collection):
         self.config = config
         self.rank, self.nranks = self.config.rank, self.config.nranks
+        self.num_partitions_max = self.config.num_partitions_max
 
         if self.config.rank == 0:
             self.config.help()
@@ -79,11 +80,11 @@ class CollectionIndexer():
         # 16 --> 4 suggested by @Omar Khattab, reduce the numbers of centroids
         # self.num_partitions = int(2 ** np.floor(np.log2(4 * np.sqrt(self.num_embeddings_est))))
         num_partitions_multiplier = 8
-        print_message(f'>> num_partitions_multiplier = {num_partitions_multiplier}, self.num_partitions = {self.num_partitions}')
         self.num_partitions = int(2 ** np.floor(np.log2(num_partitions_multiplier * np.sqrt(self.num_embeddings_est))))
-        num_partitions_max = 50000
-        if self.num_partitions > num_partitions_max:
-            self.num_partitions = num_partitions_max
+        print_message(f'>> num_partitions_multiplier = {num_partitions_multiplier}, self.num_partitions = {self.num_partitions}')
+        # num_partitions_max = 50000
+        if self.num_partitions > self.num_partitions_max:
+            self.num_partitions = self.num_partitions_max
             print_message(f'>> num_partitions limited to: self.num_partitions = {self.num_partitions}')
 
         Run().print_main(f'Creaing {self.num_partitions:,} partitions.')
@@ -116,7 +117,6 @@ class CollectionIndexer():
         local_sample_embs, doclens = self.encoder.encode_passages(local_sample)
 
         if torch.cuda.is_available():
-
             self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cuda()
             torch.distributed.all_reduce(self.num_sample_embs)
 
@@ -127,17 +127,23 @@ class CollectionIndexer():
             nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cuda()
             torch.distributed.all_reduce(nonzero_ranks)
         else:
-            self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cpu()
-            torch.distributed.all_reduce(self.num_sample_embs)
+            if torch.distributed.is_initialized():
+                self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cpu()
+                torch.distributed.all_reduce(self.num_sample_embs)
 
-            avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
-            avg_doclen_est = torch.tensor([avg_doclen_est]).cpu()
-            torch.distributed.all_reduce(avg_doclen_est)
+                avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
+                avg_doclen_est = torch.tensor([avg_doclen_est]).cpu()
+                torch.distributed.all_reduce(avg_doclen_est)
 
-            nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cpu()
-            torch.distributed.all_reduce(nonzero_ranks)
+                nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cpu()
+                torch.distributed.all_reduce(nonzero_ranks)
+            else:
+                self.num_sample_embs = torch.tensor([local_sample_embs.size(0)]).cpu()
 
+                avg_doclen_est = sum(doclens) / len(doclens) if doclens else 0
+                avg_doclen_est = torch.tensor([avg_doclen_est]).cpu()
 
+                nonzero_ranks = torch.tensor([float(len(local_sample) > 0)]).cpu()
 
         avg_doclen_est = avg_doclen_est.item() / nonzero_ranks.item()
         self.avg_doclen_est = avg_doclen_est
@@ -413,7 +419,7 @@ class CollectionIndexer():
 
 
 def compute_faiss_kmeans(dim, num_partitions, kmeans_niters, shared_lists, return_value_queue=None):
-    kmeans = faiss.Kmeans(dim, num_partitions, niter=kmeans_niters, gpu=True, verbose=True, seed=123)
+    kmeans = faiss.Kmeans(dim, num_partitions, niter=kmeans_niters, gpu=torch.cuda.is_available(), verbose=True, seed=123)
 
     sample = shared_lists[0][0]
     sample = sample.float().numpy()
