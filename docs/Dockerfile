@@ -1,5 +1,6 @@
 FROM python:3.9-slim as sphinx
 
+# Pyserini needs Java
 ENV JAVA_HOME=/usr/local/openjdk-11
 ENV PATH=${PATH}:${JAVA_HOME}/bin
 COPY --from=openjdk:11.0-jdk-slim ${JAVA_HOME} ${JAVA_HOME}
