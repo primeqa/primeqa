@@ -11,7 +11,22 @@ The documentation can then be built with:
 
 ```shell
 cd docs
-sphinx-build -b html ./ ./generated/
+make html
 ```
 
 This will generate the documentation in HTML.
+
+## Docker
+
+The documentation can also be built and served from a Docker container.
+
+```shell
+VERSION=$(cat VERSION)
+cd docs
+
+# build image
+./buildDocker.sh
+
+# run container
+docker run -p 80:80 --rm -d --name oneqa-docs oneqa-docs:${VERSION}
+```

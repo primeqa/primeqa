@@ -1,5 +1,7 @@
 FROM python:3.9-slim as sphinx
 
+# Based on https://github.com/sphinx-doc/docker/blob/master/base/Dockerfile
+# If latex is needed in the future use https://github.com/sphinx-doc/docker/blob/master/latexpdf/Dockerfile instead
 WORKDIR /docs
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
@@ -12,13 +14,14 @@ RUN apt-get update \
 
 RUN python3 -m pip install --no-cache-dir -U pip
 COPY . .
-RUN python3 -m pip install .[docs]
+RUN python3 -m pip install --no-cache-dir .[docs]
 WORKDIR docs
 RUN make html
 
 
 FROM alpine:latest as redbean
 
+# Based on https://github.com/kissgyorgy/redbean-docker
 ARG DOWNLOAD_FILENAME=redbean-original-1.4.com
 
 RUN apk add --update zip bash
