@@ -1,5 +1,10 @@
 FROM python:3.9-slim as sphinx
 
+ENV JAVA_HOME=/usr/local/openjdk-11
+ENV PATH=${PATH}:${JAVA_HOME}/bin
+COPY --from=openjdk:11.0-jdk-slim ${JAVA_HOME} ${JAVA_HOME}
+RUN update-alternatives --install /usr/bin/java java /usr/local/openjdk-11/bin/java
+
 # Based on https://github.com/sphinx-doc/docker/blob/master/base/Dockerfile
 # If latex is needed in the future use https://github.com/sphinx-doc/docker/blob/master/latexpdf/Dockerfile instead
 WORKDIR /docs
