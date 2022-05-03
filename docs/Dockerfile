@@ -22,7 +22,7 @@ RUN python3 -m pip install --no-cache-dir -U pip
 COPY . .
 RUN python3 -m pip install --no-cache-dir .[docs]
 WORKDIR docs
-RUN make html
+RUN make clean html
 
 
 FROM alpine:latest as redbean
