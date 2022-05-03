@@ -8,9 +8,13 @@ RUN apt-get update \
       graphviz \
       imagemagick \
       make \
+      apt-get install openjdk-11-jdk\
  && apt-get autoremove \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/openjdk-11-jdk
+ENV PATH=$PATH:$JAVA_HOME/bin
 
 RUN python3 -m pip install --no-cache-dir -U pip
 COPY . .
