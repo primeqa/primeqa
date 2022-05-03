@@ -32,7 +32,7 @@ class TestOther(UnitTest):
         parser = Arguments(description='')
         parser.add_retrieval_input()
         parser = Arguments(description='')
-        args = parser.parse()
+        #args = parser.parse()
 
         # utility.preprocess.docs2passages
 
