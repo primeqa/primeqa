@@ -198,8 +198,8 @@ def colbert_score_packed(Q, D_packed, D_lengths, config=ColBERTConfig()):
     """
         Works with a single query only.
     """
-
-    Q, D_packed, D_lengths = Q.cuda(), D_packed.cuda(), D_lengths.cuda()
+    if torch.cuda.is_available():
+        Q, D_packed, D_lengths = Q.cuda(), D_packed.cuda(), D_lengths.cuda()
 
     Q = Q.squeeze(0)
 

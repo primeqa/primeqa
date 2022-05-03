@@ -75,8 +75,12 @@ class StridedTensorCore:
 
     # # @profile
     def as_padded_tensor(self):
-        view = _create_view(self.tensor.cuda(), self.max_stride, self.inner_dims)[self.offsets[:-1]]
-        mask = _create_mask(self.lengths.cuda(), self.max_stride, like=view)
+        if torch.cuda.is_available():
+            view = _create_view(self.tensor.cuda(), self.max_stride, self.inner_dims)[self.offsets[:-1]]
+            mask = _create_mask(self.lengths.cuda(), self.max_stride, like=view)
+        else:
+            view = _create_view(self.tensor, self.max_stride, self.inner_dims)[self.offsets[:-1]]
+            mask = _create_mask(self.lengths, self.max_stride, like=view)
 
         return view, mask
 
@@ -108,8 +112,12 @@ def _create_view(tensor, stride, inner_dims):
 
 
 def _create_mask(lengths, stride, like=None):
-    mask = torch.arange(stride).cuda() + 1
-    mask = mask.unsqueeze(0) <= lengths.cuda().unsqueeze(-1)
+    if torch.cuda.is_available():
+        mask = torch.arange(stride).cuda() + 1
+        mask = mask.unsqueeze(0) <= lengths.cuda().unsqueeze(-1)
+    else:
+        mask = torch.arange(stride) + 1
+        mask = mask.unsqueeze(0) <= lengths.unsqueeze(-1)
 
     if like is not None:
         for _ in range(like.dim() - mask.dim()):

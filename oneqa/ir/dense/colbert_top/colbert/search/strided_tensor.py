@@ -43,8 +43,9 @@ class StridedTensor(StridedTensorCore):
 
         assert pids.dim() == 1
 
-        pids = pids.cuda().long()
-        lengths = self.lengths[pids].cuda()
+        has_cuda = torch.cuda.is_available()
+        pids = pids.cuda().long() if has_cuda else pids.long()
+        lengths = self.lengths[pids].cuda() if has_cuda else self.lengths[pids]
         offsets = self.offsets[pids]
 
         return pids, lengths, offsets
@@ -55,7 +56,7 @@ class StridedTensor(StridedTensorCore):
         stride = lengths.max().item()
         stride = next(s for s in self.strides if stride <= s)
 
-        tensor = self.views[stride][offsets].cuda()
+        tensor = self.views[stride][offsets].cuda() if torch.cuda.is_available() else self.views[stride][offsets]
 
         mask = _create_mask(lengths, stride)
 

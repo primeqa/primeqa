@@ -181,7 +181,10 @@ class ResidualCodec:
             residuals_ = self.decompress_residuals(residuals_).to(device=centroids_.device)
 
             centroids_.add_(residuals_)
-            D_ = torch.nn.functional.normalize(centroids_, p=2, dim=-1).half()
+            if torch.cuda.is_available():
+                D_ = torch.nn.functional.normalize(centroids_, p=2, dim=-1).half()
+            else:
+                D_ = torch.nn.functional.normalize(centroids_.float(), p=2, dim=-1).half()
             D.append(D_)
         
         return torch.cat(D)
