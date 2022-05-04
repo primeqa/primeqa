@@ -44,6 +44,7 @@ class TestOther(UnitTest):
 
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
+        os.makedirs(output_dir, exist_ok=True)
 
         Format1 = 'docid,text'  # MS MARCO Passages
         Format2 = 'docid,text,title'   # DPR Wikipedia
