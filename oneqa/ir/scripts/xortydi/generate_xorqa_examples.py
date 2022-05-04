@@ -212,7 +212,6 @@ def run_bm25_retrieval(searcher, answer_checker, qas, question_translations, arg
         json.dump(qas, out_f, indent=4,ensure_ascii=True)
 
 
-
 def main():
     args=handle_args()
 
