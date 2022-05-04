@@ -6,6 +6,7 @@ import tempfile
 from argparse import ArgumentParser
 from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
 from oneqa.ir.dense.colbert_top.utility.preprocess.docs2passages import main as docs2passages_main
+import argparse
 
 class TestOther(UnitTest):
 
@@ -48,22 +49,14 @@ class TestOther(UnitTest):
         Format2 = 'docid,text,title'   # DPR Wikipedia
         Format3 = 'docid,url,title,text'  # MS MARCO Documents
 
-        parser = ArgumentParser(description="docs2passages.")
-
-        parser.add_argument('--input', dest='input', default=collection_fn)
-        parser.add_argument('--format', dest='format', default=Format2, choices=[Format1, Format2, Format3])
-
-        # Output Arguments.
-        parser.add_argument('--use-wordpiece', dest='use_wordpiece', default=True, action='store_true')
-        parser.add_argument('--nwords', dest='nwords', default=10, type=int)
-        parser.add_argument('--overlap', dest='overlap', default=0, type=int)
-
-        # Other Arguments.
-        parser.add_argument('--nthreads', dest='nthreads', default=1, type=int)
-
-        parser.add_argument('--output_path', dest='output_path', default=output_dir)
-
-        args = parser.parse_args()
+        args = argparse.Namespace()
+        args.input = collection_fn
+        args.format = Format2
+        args.use_wordpiece = True
+        args.nwords = 10
+        args.overlap = 0
+        args.nthreads = 1
+        args.output_path = output_dir
 
         docs2passages_main(args)
 
