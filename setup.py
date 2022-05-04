@@ -30,6 +30,8 @@ _deps = {
     "bump2version~=1.0.1": ["dev"],
     "datasets~=2.0.0": ["install"],
     "faiss-cpu~=1.7.2": ["install"],
+    "ipykernel~=6.13.0": ["notebooks"],
+    "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
@@ -46,7 +48,7 @@ _deps = {
     "tqdm~=4.64.0": ["install"]
 }
 
-extras_names = ["docs", "dev", "install", "notebooks", "tests"]  # TODO: notebooks deps ipython[notebook]~=8.2.0 jupyter~=4.9.2
+extras_names = ["docs", "dev", "install", "notebooks", "tests"]
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
