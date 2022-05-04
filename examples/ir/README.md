@@ -54,7 +54,7 @@ Output:
    ```
 
 ### Run BM25 search on XORTyDI DEV set queries 
-1. Download and unzip the English MT translation of XORTyDI DEV queries from here: https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing. 
+1. Download and unzip the English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing). 
 2. Convert to ColBERT tsv format 
 ```shell
    python oneqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file <path-to-xortydi-gmt-queries-jsonl> --output_file <path-to-xortydi-dev-gmt-queries.tsv> 
@@ -116,4 +116,3 @@ performance on ar (309 examples)
 Final macro averaged score: 
 58.72438362740563
 ```
-
