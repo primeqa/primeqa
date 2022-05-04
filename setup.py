@@ -46,7 +46,7 @@ _deps = {
     "tqdm~=4.64.0": ["install"]
 }
 
-extras_names = ["docs", "dev", "install", "tests"]
+extras_names = ["docs", "dev", "install", "notebooks", "tests"]  # TODO: notebooks deps ipython[notebook]~=8.2.0 jupyter~=4.9.2
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
