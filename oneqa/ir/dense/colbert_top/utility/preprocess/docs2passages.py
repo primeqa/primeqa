@@ -61,7 +61,7 @@ def main(args):
 
     output_path = f'{args.input}.{letter}{args.nwords}_{args.overlap}'
     if args.output_path is not None:
-        output_path = os.path.join(args.output_path, output_path)
+        output_path = os.path.join(args.output_path, os.path.basename(output_path))
 
     assert not os.path.exists(output_path)
 
