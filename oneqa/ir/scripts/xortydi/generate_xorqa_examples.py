@@ -21,18 +21,18 @@ from utils import HasAnswerChecker
 def handle_args():
     usage='usage'
     parser=argparse.ArgumentParser(usage)
-    parser.add_argument('--input_file', '-i', required=False, default='/dccstor/jsmc-nmt-01/qa/xor-tydi/train-multilingual-2021-02-25/1/xorqa_dpr_data_query-L_hard_negative-1/dpr_train_data.json')
-    parser.add_argument('--output_dir', '-o', required=False, default='/dccstor/bsiyer6/OneQA/xortydi_bm25_test')
-    parser.add_argument('--question_translations_dir', '-d', required=False,default='/dccstor/colbert-ir/bsiyer/data/xorqa/trans_data_all_langs')
-    parser.add_argument('--index_path', '-u', required=False,default='/dccstor/bsiyer6/OneQA/psgs_w100_index')
-    parser.add_argument('--max_num_ir_based_negatives', type=int, default=300)
-    parser.add_argument('--max_num_ir_based_positives', type=int, default=10)
-    parser.add_argument('--num_rounds', type=int, default=1)
-    parser.add_argument('--max_num_negatives', type=int, default=100)
-    parser.add_argument('--max_num_positives', type=int, default=3)
-    parser.add_argument('--randomize', action="store_true", default=False)
-    parser.add_argument('--add_title_text', action="store_true", default=True)
-    parser.add_argument('--do_not_run_match_in_title', action="store_true", default=False)
+    parser.add_argument('--input_file', type=str, required=True, help='XORQA training data json containing positive_ctxs and negative_ctxs') 
+    parser.add_argument('--output_dir', type=str, required=True, help='output directory') 
+    parser.add_argument('--question_translations_dir', type=str, required=True, help='XORTyDI released human translation of training questions')  
+    parser.add_argument('--index_path', type=str, required=True, help='BM25 (Pyserini) index of wikipedia 100 token passages') 
+    parser.add_argument('--max_num_ir_based_negatives', type=int, default=300, help='num negative bm25 hits')
+    parser.add_argument('--max_num_ir_based_positives', type=int, default=10, help='num positive bm25 hits')
+    parser.add_argument('--num_rounds', type=int, default=1, help='num sets of triples to output')
+    parser.add_argument('--max_num_negatives', type=int, default=100, help='num negative passages to output')
+    parser.add_argument('--max_num_positives', type=int, default=3, help='num positive passages to output')
+    parser.add_argument('--randomize', action="store_true", default=True, help='random shuffle of examples')
+    parser.add_argument('--add_title_text', action="store_true", default=True, help='prepend title to passage')
+    parser.add_argument('--do_not_run_match_in_title', action="store_true", default=False, help='do not match answer in title')
     # parser.add_argument('--do_not_run_ir', '-R', action="store_true", default=False)
     # parser.add_argument('--languages_list', '-l', nargs='+', default=[])
 
@@ -54,9 +54,7 @@ def init_question_translations(question_translations_dir):
         assert(len(en_content) == len(ne_content))
         for ne, en in zip(ne_content, en_content):
             question_translations[ne.strip()] = en.strip()
-
     return question_translations
-
 
 def run_query(query, searcher, max_retrieved):
     return searcher.retrieve(query, max_retrieved)
@@ -79,43 +77,42 @@ def get_text_from_element(el):
         return clean_text(el[0])
 
 def add_ir_positives_negatives(qas, max_num_positives, max_num_negatives, add_title_text):
-        
-        subset_poss = list(range(len(qas)) )
-        num_queries = 0
-        num_records = 0
+    subset_poss = list(range(len(qas)) )
+    num_queries = 0
+    num_records = 0
 
-        for qnum in tqdm(subset_poss):
-            qa = qas[qnum]
-            q=qa['question']
-            q_en=qa['question_en']
-            p=qa['positive_ctxs']
-            n=qa['negative_ctxs']
-            hn=qa['hard_negative_ctxs']
+    for qnum in tqdm(subset_poss):
+        qa = qas[qnum]
+        q=qa['question']
+        q_en=qa['question_en']
+        p=qa['positive_ctxs']
+        n=qa['negative_ctxs']
+        hn=qa['hard_negative_ctxs']
 
-            num_queries += 1
+        num_queries += 1
 
-            p.extend(qa['ir_positive_ctxs'])
-            hn.extend(qa['ir_negative_ctxs'])
+        p.extend(qa['ir_positive_ctxs'])
+        hn.extend(qa['ir_negative_ctxs'])
 
-            for pos_pos in range(len(p)):
-                num_negs_out = 0
-                for neg_pos in numpy.random.permutation(len(hn)):
-                    to_yield = {'question':clean_text(q),
-                                'question_en':clean_text(q_en),
-                                   'np':len(p),
-                                   'nn':len(n),
-                                   'nhn': len(hn),
-                                   'p':get_text_from_element(p[pos_pos]['title']) + ' ' + get_text_from_element(p[pos_pos]['text']) if add_title_text else get_text_from_element(p[pos_pos]['text']),
-                                   'n':get_text_from_element(hn[neg_pos]['title']) + ' ' + get_text_from_element(hn[neg_pos]['text']) if add_title_text else get_text_from_element(hn[neg_pos]['text'])
+        for pos_pos in range(len(p)):
+            num_negs_out = 0
+            for neg_pos in numpy.random.permutation(len(hn)):
+                to_yield = {'question':clean_text(q),
+                            'question_en':clean_text(q_en),
+                            'np':len(p),
+                            'nn':len(n),
+                            'nhn': len(hn),
+                            'p':get_text_from_element(p[pos_pos]['title']) + ' ' + get_text_from_element(p[pos_pos]['text']) if add_title_text else get_text_from_element(p[pos_pos]['text']),
+                            'n':get_text_from_element(hn[neg_pos]['title']) + ' ' + get_text_from_element(hn[neg_pos]['text']) if add_title_text else get_text_from_element(hn[neg_pos]['text'])
                         }
-                    yield to_yield
-                    num_records += 1
-                    num_negs_out += 1
+                yield to_yield
+                num_records += 1
+                num_negs_out += 1
 
-                    if max_num_negatives > 0 and num_negs_out >= max_num_negatives:
-                        break
-                if max_num_positives > 0 and pos_pos >= max_num_positives - 1:
+                if max_num_negatives > 0 and num_negs_out >= max_num_negatives:
                     break
+            if max_num_positives > 0 and pos_pos >= max_num_positives - 1:
+                break
 
 def convert_json_to_df(qas, max_num_positives=3, max_num_negatives=100, add_title_text=True):
     df=pd.DataFrame.from_records(add_ir_positives_negatives(qas, max_num_positives=max_num_positives, max_num_negatives=max_num_negatives, add_title_text=add_title_text))
