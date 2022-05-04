@@ -16,6 +16,7 @@ Here's how to run a search query against an index and retrieve ranked list of do
 
 
 ```
+
 from oneqa.ir.sparse.retriever import PyseriniRetriever
 
 index_path='<path-to-wikipedia-passage-index>
@@ -26,8 +27,9 @@ top_n = 5
 
 hits = searcher.retrieve(query,top_n)
 
-for hit in enumerate(hits):
-   print(f"{hit['rank']} {hit['passage_id']} {hit['score']}  {hit['title']} {hit['text']}")
+for hit in hits:
+   print(f"{hit['rank']} {hit['doc_id']} {hit['score']}  {hit['title']} {hit['text']}")
+
 ```
 
 Output:
@@ -42,7 +44,6 @@ Output:
 
 
 ### Create an Pyserini index of Wikipedia passages for XORTyDI
-
 1. Download the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages 
    wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
 2. Format as JSON
@@ -53,12 +54,15 @@ Output:
    ```
 
 ### Run BM25 search on XORTyDI DEV set queries 
-1. Download the XORTyDI dev set xor_retrieve_eng_span_dev_google_trans_q.jsonl queries file containing quereies translated to English from here: https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing. 
-2. Convert to ColBERT tsv format <id>\t<query>  (TODO: need script)
+1. Download and unzip the English MT translation of XORTyDI DEV queries from here: https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing. 
+2. Convert to ColBERT tsv format 
+```shell
+   python oneqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file <path-to-xortydi-gmt-queries-jsonl> --output_file <path-to-xortydi-dev-gmt-queries.tsv> 
+ ```
 3. Run:
   ```shell
-   python /dccstor/bsiyer6/OneQA/OneQA/examples/ir/run_bm25_retrieval.py \
-   --output_dir <output-dir> --index_path <path-to-en-psgs_w100_index> \
+   python examples/ir/run_bm25_retrieval.py \
+   --output_dir <output-dir> --index_path <path-to-psgs_w100_index> \
    --queries_file <xortydi-dev-gmt-queries.tsv> --top_k 1000 \
    --max_hits_to_output 100 --xorqa_data_file <xortydi-queries-jsonl>
   ```
@@ -74,7 +78,8 @@ Evaluate BM25 ranked results on XORTyDI dev set queries:
    ```shell
    python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-gold-data> --pred_file <path-to-ranking_xortydi_format.json> 
    ```
-4. The eval script output should match the following: 
+Eval script output should match the following: 
+
 ```
 Evaluating R@2kt
 performance on te (238 examples)
