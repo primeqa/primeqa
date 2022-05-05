@@ -26,52 +26,6 @@ authors = [
     "TODO"
 ]
 
-_deps_bak = {
-    "bump2version~=1.0.1": ["dev"],
-    "datasets~=2.0.0": ["install"],
-    "numpy~=1.21.5": ["install"],
-    "packaging~=21.3": ["install"],
-    "pydata-sphinx-theme~=0.8.0": ["docs"],
-    "pytest~=7.1.1": ["tests"],
-    "pytest-cov~=3.0.0": ["tests"],
-    "pytest-mock~=3.7.0": ["tests"],
-    "pytest-rerunfailures~=10.2": ["tests"],
-    "sphinx~=4.4.0": ["docs"],
-    "torch~=1.11.0": ["install"],
-    "tox~=3.24.5": ["tests"],
-    "transformers~=4.17.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
-}
-
-_deps_1 = {
-    "bitarray~=2.3.7": ["install"],
-    "bump2version~=1.0.1": ["dev"],
-    "click~=8.0.4": ["install"],
-    "datasets~=2.0.0": ["install"],
-    "faiss~=1.7.0": ["install"],
-    "faiss-gpu~=1.7.0": ["install"],
-    "jsonlines~=3.0.0": ["install"],
-    "libfaiss~=1.7.0": ["install"],
-    "libfaiss-avx2~=1.7.0": ["install"],
-    "nltk~=3.7": ["install"],
-    "numpy~=1.21.5": ["install"],
-    "numpy~=1.21.5": ["install"],
-    "packaging~=21.3": ["install"],
-    "pandas~=1.3.5": ["install"],
-    "pydata-sphinx-theme~=0.8.0": ["docs"],
-    "pytest~=7.1.1": ["tests"],
-    "pytest-cov~=3.0.0": ["tests"],
-    "pytest-mock~=3.7.0": ["tests"],
-    "pytest-rerunfailures~=10.2": ["tests"],
-    "spacy~=3.2.2": ["install"],
-    "sphinx~=4.4.0": ["docs"],
-    "torch~=1.11.0": ["install"],
-    "tox~=3.24.5": ["tests"],
-    "tqdm~=4.64.0": ["install"],
-    "transformers~=4.17.0": ["install"],
-    "ujson~=5.1.0": ["install"]
-}
-
 _deps = {
     "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
