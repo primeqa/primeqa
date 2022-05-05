@@ -10,6 +10,9 @@ def _is_number(self, s):
 		return False
 
 class WikiSqlDataset():
+	"""
+	Class for wikisql dataset, contains methods to preprocess data execute sql etc.
+	"""
 	def __init__(self):
 		self.dataset = None
 	
