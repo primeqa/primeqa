@@ -3,6 +3,9 @@ from datasets import load_dataset
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
 class WikiSqlDataset():
+	"""
+	Class for wikisql dataset, contains methods to preprocess data execute sql etc.
+	"""
 	def __init__(self):
 		self.dataset = None
 	
