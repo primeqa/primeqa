@@ -1,5 +1,3 @@
-import pytest
-import torch
 from pytest import raises
 from transformers import MODEL_FOR_PRETRAINING_MAPPING
 

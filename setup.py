@@ -32,7 +32,7 @@ _deps = {
     "click~=8.0.4": ["install"],
     "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
-    "faiss-cpu~=1.7.2": ["install"],
+    "faiss-cpu~=1.7.2": ["install"], 
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
     "ipykernel~=6.13.0": ["notebooks"],
@@ -44,6 +44,7 @@ _deps = {
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
     "pydata-sphinx-theme~=0.8.0": ["docs"],
+    "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
@@ -55,7 +56,9 @@ _deps = {
     "tox~=3.24.5": ["tests"],
     "tqdm~=4.64.0": ["install"],
     "transformers~=4.17.0": ["install"],
-    "ujson~=5.1.0": ["install"]
+    "ujson~=5.1.0": ["install"],
+    "transformers~=4.17.0": ["install"],
+    "tqdm~=4.64.0": ["install"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]
