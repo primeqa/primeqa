@@ -3,6 +3,7 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 class TableQG(T5ForConditionalGeneration):
     def __init__(self,model_path):
+        super.__init__()
         self.model = T5ForConditionalGeneration.from_pretrained(model_path)
         self.tokenizer = T5Tokenizer.from_pretrained(model_path)
     
@@ -13,6 +14,7 @@ class TableQG(T5ForConditionalGeneration):
         return self.tokenizer
 
     
+
 
 
         
