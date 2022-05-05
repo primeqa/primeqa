@@ -81,6 +81,8 @@ _deps = {
     "faiss-cpu~=1.7.2": ["install"],
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
+    "ipykernel~=6.13.0": ["notebooks"],
+    "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
@@ -102,7 +104,7 @@ _deps = {
     "ujson~=5.1.0": ["install"]
 }
 
-extras_names = ["docs", "dev", "install", "tests"]
+extras_names = ["docs", "dev", "install", "notebooks", "tests"]
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
