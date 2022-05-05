@@ -37,7 +37,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                  output_confidence_feature: bool = False,
                  confidence_model_path: str = None,
                  **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self._n_best_size = n_best_size
         self._score_calculator = initialize_scorer(scorer_type)
         self._output_confidence_feature = output_confidence_feature
