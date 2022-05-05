@@ -10,7 +10,7 @@ class ExtractiveQAModelOutput(ModelOutput):
     """
     Extractive QA model outputs comprising:
     (loss), start_logits, end_logits, target_type_logits,
-    (start_stdev), (end_stdev), (query_passage_similarity)
+    start_stdev, end_stdev, query_passage_similarity,
     (hidden_states), (attentions).
     """
     loss: Optional[torch.FloatTensor] = None
