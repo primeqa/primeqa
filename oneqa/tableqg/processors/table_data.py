@@ -2,16 +2,17 @@ from tqdm import tqdm
 from datasets import load_dataset
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
+def _is_number(self, s):
+	try:
+		float(s)
+		return True
+	except ValueError:
+		return False
+
 class WikiSqlDataset():
 	def __init__(self):
 		self.dataset = None
 	
-	def _is_number(self, s):
-		try:
-			float(s)
-			return True
-		except ValueError:
-			return False
 
 	@staticmethod
 	def _execute_sql(sql, table):
@@ -41,12 +42,12 @@ class WikiSqlDataset():
 					if str(row[col_id]) != str(const_string):
 						cond_passes = False
 				elif SqlOperants.cond_ops[op_id] == '>':
-					if not self._is_number(row[col_id]) or not self._is_number(const_string):
+					if not _is_number(row[col_id]) or not _is_number(const_string):
 						cond_passes = False
 					elif float(row[col_id]) <= float(const_string):
 						cond_passes = False
 				elif SqlOperants.cond_ops[op_id] == '<':
-					if not self._is_number(row[col_id]) or not self._is_number(const_string):
+					if not _is_number(row[col_id]) or not _is_number(const_string):
 						cond_passes = False
 					elif float(row[col_id]) >= float(const_string):
 						cond_passes = False
