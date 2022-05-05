@@ -56,7 +56,7 @@ _deps = {
     "tox~=3.24.5": ["tests"],
     "tqdm~=4.64.0": ["install"],
     "transformers~=4.17.0": ["install"],
-    "ujson~=5.1.0": ["install"]
+    "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"]
 }
