@@ -21,7 +21,7 @@ from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.processors.postprocessors.confidence_scorer import ConfidenceScorer
+from oneqa.calibration.confidence_scorer import ConfidenceScorer
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ import json
 import joblib
 from joblib import dump, load
 from sklearn.neural_network import MLPClassifier
-from oneqa.mrc.processors.postprocessors.confidence_scorer import ConfidenceScorer
+from oneqa.calibration.confidence_scorer import ConfidenceScorer
 
 import datasets
 from datasets import DatasetDict, load_from_disk
