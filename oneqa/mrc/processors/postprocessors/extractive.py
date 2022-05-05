@@ -2,6 +2,11 @@ from collections import defaultdict
 from itertools import groupby
 from operator import itemgetter
 from typing import List, Dict, Any, Tuple
+import os
+
+import sklearn
+from sklearn.neural_network import MLPClassifier
+import joblib
 
 from datasets import Dataset
 from tqdm import tqdm
@@ -16,6 +21,7 @@ from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
 from oneqa.mrc.data_models.target_type import TargetType
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from oneqa.mrc.processors.postprocessors.confidence_scorer import ConfidenceScorer
 
 logger = logging.getLogger(__name__)
 
@@ -28,17 +34,17 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                  *args,
                  n_best_size: int,
                  scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF,
+                 output_confidence_feature: bool = False,
+                 confidence_model_path: str = None,
                  **kwargs):
-        """
-        Args:
-            *args: Arguments for super class constructor.
-            n_best_size: Max number of start/end logits to consider (max values).
-            scorer_type: Scoring algorithm to use.
-            **kwargs: Keyword Arguments for super class constructor.
-        """
-        super().__init__(*args, **kwargs)
+        super().__init__(k)
         self._n_best_size = n_best_size
         self._score_calculator = initialize_scorer(scorer_type)
+        self._output_confidence_feature = output_confidence_feature
+        if confidence_model_path:
+            self._confidence_scorer = ConfidenceScorer(confidence_model_path)
+        else:
+            self._confidence_scorer = None
 
     def process(self, examples: Dataset, features: Dataset, predictions: Tuple[np.ndarray, np.ndarray, np.ndarray]):
         features_itr = groupby(features, key=itemgetter('example_idx'))
@@ -46,8 +52,15 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 p.shape[0] == predictions[0].shape[0] for p in predictions[1:]):
             raise ValueError(f"Size mismatch withing {len(features)} features and predictions "
                              f"of first dim {[p.shape[0] for p in predictions]}")
-        
-        all_start_logits, all_end_logits, all_targettype_logits = predictions
+
+        if self._output_confidence_feature:
+            all_start_logits, all_end_logits, all_targettype_logits, \
+            all_start_stdev, all_end_stdev, all_query_passage_similarity = predictions
+        else:
+            all_start_logits, all_end_logits, all_targettype_logits = predictions
+            all_start_stdev = None
+            all_end_stdev = None
+            all_query_passage_similarity = None
 
         # The dictionaries we have to fill.
         all_predictions = {}
@@ -63,7 +76,16 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             contexts = example["context"]
             example_start_logits = all_start_logits[start_idx:start_idx+len(example_features)]
             example_end_logits = all_end_logits[start_idx:start_idx+len(example_features)]
-            example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]  
+            example_targettype_preds = all_targettype_logits[start_idx:start_idx+len(example_features)]
+
+            if all_start_stdev is not None and all_end_stdev is not None and all_query_passage_similarity is not None:
+                example_start_stdev = all_start_stdev[start_idx:start_idx+len(example_features)]
+                example_end_stdev = all_end_stdev[start_idx:start_idx+len(example_features)]
+                example_query_passage_similarity = all_query_passage_similarity[start_idx:start_idx+len(example_features)]
+            else:
+                example_start_stdev = None
+                example_end_stdev = None
+                example_query_passage_similarity = None
             start_idx += len(example_features)
 
             min_null_prediction = None
@@ -76,6 +98,16 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 start_logits = example_start_logits[i].tolist()
                 end_logits = example_end_logits[i].tolist()
                 target_type_logits = example_targettype_preds[i].tolist()
+
+                if example_start_stdev is not None and example_end_stdev is not None \
+                        and example_query_passage_similarity is not None:
+                    start_stdev = example_start_stdev[i].tolist()
+                    end_stdev = example_end_stdev[i].tolist()
+                    query_passage_similarity = float(example_query_passage_similarity[i])
+                else:
+                    start_stdev = [0.0] * len(start_logits)
+                    end_stdev = [0.0] * len(end_logits)
+                    query_passage_similarity = 0.0
                 offset_mapping = input_feature["offset_mapping"]
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
@@ -148,7 +180,10 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'passage_index' : context_idx,
                             'target_type_logits': target_type_logits,
                             'span_answer_text': span_answer_text,
-                            'yes_no_answer': int(TargetType.NO_ANSWER)
+                            'yes_no_answer': int(TargetType.NO_ANSWER),
+                            'start_stdev': start_stdev[start_index],
+                            'end_stdev': end_stdev[end_index],
+                            'query_passage_similarity': query_passage_similarity
                         }
                     )
             example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
@@ -170,7 +205,11 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         'start_index': -1,
                         'end_index':   -1,
                         'passage_index' : -1,
-                        'yes_no_answer': int(TargetType.NO_ANSWER)
+                        'target_type_logits' : [0, 0, 0, 0, 0],
+                        'yes_no_answer': int(TargetType.NO_ANSWER),
+                        'start_stdev': 0,
+                        'end_stdev': 0,
+                        'query_passage_similarity': 0
                     })
 
             # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
@@ -182,6 +221,15 @@ class ExtractivePostProcessor(AbstractPostProcessor):
             # Include the probabilities in our predictions.
             for prob, pred in zip(probs, example_predictions):
                 pred["normalized_span_answer_score"] = prob
+
+            # Confidence score
+            if self._confidence_scorer is not None and self._confidence_scorer.model_exists():
+                scores = self._confidence_scorer.predict_scores(example_predictions)
+                for i in range(len(example_predictions)):
+                    example_predictions[i]["confidence_score"] = scores[i]
+            else:
+                for i in range(len(example_predictions)):
+                    example_predictions[i]["confidence_score"] = example_predictions[i]["normalized_span_answer_score"]
 
         return all_predictions
         
