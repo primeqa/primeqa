@@ -17,38 +17,7 @@ from oneqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import encod
 from oneqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 class TestTraining(UnitTest):
-
-    '''
-    @pytest.fixture(scope='session')
-    def triples_location(self):
-        # The current directory to handle running from IDE or command line
-        curdir = os.getcwd()
-        if curdir.endswith('tests'):
-            triples_path = '../tests/resources/sample_wiki_psgs_train_triples'
-        else:
-            triples_path = 'tests/resources/sample_wiki_train_triples'
-        return triples_path
-
-    @pytest.fixture(scope='session')
-    def expected_search_results(self):
-
-        search_results_1 = [
-            (0, '20076582', 17.771099090576172, 'Nerine Desmond'),
-            (1, '19750546',  2.9017999172210693, 'SOS-Hermann Gmeiner International College')
-        ]
-        search_results_2 = [
-            (0, '15415536', 9.206600189208984, 'Mercury regulation in the United States'),
-            (1, '18680280',  2.569499969482422, 'Phonological history of Old English')
-        ]
-        search_results_3 = [
-            (0, '8356488', 5.252799987792969, 'Presanella'),
-            (1, '8237529', 2.0999999046325684, 'Idaho State Police')
-        ]
-        return [search_results_1, search_results_2, search_results_3]
-    '''
-
-    #def test_eager_batcher(self, triples_location):
-    def test_eager_batcher(self):
+    def test_batchers(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
             test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
@@ -69,17 +38,6 @@ class TestTraining(UnitTest):
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
             test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
 
-        '''
-        parser = Arguments(description='Training ColBERT with <query, positive passage, negative passage> triples.')
-
-        parser.add_model_parameters()
-        parser.add_model_training_parameters()
-        parser.add_training_input()
-        args = parser.parse()
-        # parser.add_argument('--model_type', dest='model_type', default='bert')
-        # comment out as we define the argument at model training parameters
-
-        '''
         text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
         numerical_triples_fn = os.path.join(test_files_location, "xorqa.train_ir_negs_5_poss_1_001pct_at_0pct_num.json")
         queries_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv")
@@ -134,12 +92,6 @@ class TestTraining(UnitTest):
 
             print("INDEXING DONE")
 
-
-        '''output_dir = '/dccstor/colbert-ir/franzm/test/tmpw_knaz7n/output_dir'
-        latest_model_fn = '/dccstor/colbert-ir/franzm/test/tmpw_knaz7n/output_dir/test_training/u.franzm.git8.OneQA.tests.oneqa.ir.dense.colbert_top.colbert.test_training/2022-05/03/16.58.17/checkpoints/colbert'
-        model_type = 'xlm-roberta-base'
-        '''
-
         do_search = True
         if do_search:
             ranks_fn = os.path.join(output_dir, 'ranking.tsv')
@@ -156,7 +108,6 @@ class TestTraining(UnitTest):
             print("SEARCH DONE")
 
         print("ALL DONE")
-
 
 
 if __name__ == '__main__':

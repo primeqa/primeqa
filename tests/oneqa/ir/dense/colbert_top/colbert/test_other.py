@@ -10,8 +10,7 @@ import argparse
 
 class TestOther(UnitTest):
 
-    def test_utility(self):
-
+    def test_parser_arguments(self):
         parser = Arguments(description='')
         parser.add_model_parameters()
         parser = Arguments(description='')
@@ -33,10 +32,8 @@ class TestOther(UnitTest):
         parser = Arguments(description='')
         parser.add_retrieval_input()
         parser = Arguments(description='')
-        #args = parser.parse()
 
-        # utility.preprocess.docs2passages
-
+    def test_utility(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
             test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
