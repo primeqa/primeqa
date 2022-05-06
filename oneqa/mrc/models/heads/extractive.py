@@ -9,7 +9,7 @@ from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAtte
 from transformers.models.roberta.modeling_roberta import RobertaClassificationHead
 
 from oneqa.mrc.models.heads.abstract import AbstractTaskHead
-from oneqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
+from oneqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput, ExtractiveQAWithConfidenceModelOutput
 from oneqa.mrc.data_models.target_type import TargetType
 
 
@@ -153,7 +153,7 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
                 start_positions=None,
                 end_positions=None,
                 target_type=None,
-                **kwargs):
+                **kwargs)-> Union[tuple, ExtractiveQAWithConfidenceModelOutput]:
         sequence_output = model_outputs[0]
 
         # Predict target answer type for the whole question answer pair
@@ -250,7 +250,7 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
                 output = (start_logits, end_logits, answer_type_logits) + model_outputs[2:]
             return ((total_loss,) + output) if total_loss is not None else output
 
-        return ExtractiveQAModelOutput(
+        return ExtractiveQAWithConfidenceModelOutput(
             loss=total_loss,
             start_logits=start_logits,
             end_logits=end_logits,
