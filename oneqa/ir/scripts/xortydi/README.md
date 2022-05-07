@@ -34,8 +34,8 @@ The following are steps to create the training data:
    --num_rounds 5 --randomize 
 ```
 4. This will create 3 files in the output directory:
-   - [xortydi_ir_negs_poss.json] contains ["ir_negative_ctxs"] and  ["ir_positive_ctxs"]
-   - [xorqa_triples_3poss_100neg_5ep_randTrue.tsv] (17125570 lines) contains training data formatted for ColBERT. Here the question is in the original language
-   - [xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv] (17125570 lines) contains training data Formatted for ColBERT. Here the question has been translated to English
+   - ```xortydi_ir_negs_poss.json``` contains elements ```"ir_negative_ctxs"``` and  ```"ir_positive_ctxs"```
+   - ```xorqa_triples_3poss_100neg_5ep_randTrue.tsv``` (17125570 lines) contains training data formatted for ColBERT. Here the question is in the original language
+   - ```xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv``` (17125570 lines) contains training data Formatted for ColBERT. Here the question has been translated to English
 
 
