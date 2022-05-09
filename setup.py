@@ -41,6 +41,7 @@ _deps = {
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
+    "tabulate~=0.8.9":["install"]
 }
 
 extras_names = ["docs", "dev", "install", "tests"]
