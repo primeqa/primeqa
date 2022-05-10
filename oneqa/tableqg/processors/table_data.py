@@ -2,7 +2,7 @@ from tqdm import tqdm
 from datasets import load_dataset
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
-def _is_number(self, s):
+def _is_number(s):
 	try:
 		float(s)
 		return True
@@ -14,7 +14,7 @@ class WikiSqlDataset():
 	Class for wikisql dataset, contains methods to preprocess data execute sql etc.
 	"""
 	def __init__(self):
-		self.dataset = None
+		pass
 	
 
 	@staticmethod
@@ -119,7 +119,7 @@ class WikiSqlDataset():
 		sql_str = agg_str + tokens.sep + col_str + tokens.sep + conds_str + tokens.ans + ans_str + tokens.header + header_str
 		return sql_str
 
-	def preprocess_data_for_t5(self, data_split='train'):
+	def preprocess_data_for_qg(self, data_split='train'):
 		"""_summary_
 
 		Args:
@@ -136,3 +136,4 @@ class WikiSqlDataset():
 
 	def load_tables(self):
 		raise NotImplementedError('Will implement for V2')
+
