@@ -4,7 +4,7 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
-
+from oneqa.tableqg.processors.table_data import QGDataLoader
 import torch
 from dataclasses import dataclass,field
 from oneqa.tableqg.models.tableqg_model import TableQG
@@ -99,6 +99,10 @@ class DataTrainingArguments:
     """
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
+
+    dataset_name:Optional[str] = field(
+        default="wikisql", metadata={"help": "Name of the dataset to train the tableqg model"}
+    )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
         metadata={"help": "Path for cached train dataset"},
@@ -161,9 +165,9 @@ def main():
     model = tqg.model
     tokenizer = tqg.tokenizer
 
-    #Load the dataset
-    train_dataset  = torch.load(data_args.train_file_path)
-    valid_dataset = torch.load(data_args.valid_file_path)
+    qgdl = QGDataLoader(tokenizer,data_args)
+    train_dataset = qgdl.create("train")
+    valid_dataset = qgdl.create("val")
 
     trainer = QGTrainer(
         model=model,
