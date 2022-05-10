@@ -5,9 +5,11 @@ from transformers import (
     set_seed,
 )
 
+import torch
 from dataclasses import dataclass,field
 from oneqa.tableqg.models.tableqg_model import TableQG
 from oneqa.tableqg.trainers.qg_trainer import QGTrainer
+from typing import Optional
 
 import logging
 
