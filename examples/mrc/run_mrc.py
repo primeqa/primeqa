@@ -209,7 +209,8 @@ class TaskArguments:
     )
     eval_metrics: str = field(
         default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function.",
+        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
+                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
                   "choices": ["TyDiF1","squad"]
                  }
     )
