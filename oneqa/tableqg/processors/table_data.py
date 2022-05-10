@@ -168,4 +168,7 @@ class QGDataLoader():
 		else:
 			raise NotImplementedError("Only WikiSQL supported for now")
 		processed_data = Dataset.from_dict(processed_data_dict)
-		return processed_data.map(self.convert_to_features, batched=True)
+		tokenized_data =  processed_data.map(self.convert_to_features, batched=True)
+		columns = ['input_ids', 'attention_mask', 'target_ids', 'target_attention_mask']
+		tokenized_data.set_format(type='torch', columns=columns)
+		return tokenized_data
