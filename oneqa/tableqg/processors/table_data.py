@@ -83,7 +83,7 @@ class WikiSqlDataset():
 		return answer
 
 	@staticmethod
-	def _create_sql_string(sql, table, answer, tokenizer='T5'):
+	def _create_sql_string(sql, table, answer, tokenizer_type='T5'):
 		"""Convert sql in dict format (the way WikiSQL dataset provides) and convert it to string appending
 		answer and column names of tables. Appropriate delimiters are used to demarcate differents parts of SQL
 
@@ -96,7 +96,7 @@ class WikiSqlDataset():
 		Returns:
 			str: _description_
 		"""
-		if tokenizer == 'T5':
+		if tokenizer_type == 'T5':
 			tokens = T5SpecialTokens
 		conds = sql['conds']
 		num_conds = len(conds['column_index'])
@@ -119,7 +119,7 @@ class WikiSqlDataset():
 		sql_str = agg_str + tokens.sep + col_str + tokens.sep + conds_str + tokens.ans + ans_str + tokens.header + header_str
 		return sql_str
 
-	def preprocess_data_for_qg(self, data_split='train'):
+	def preprocess_data_for_qg(self, data_split='train', tokenizer_type='T5'):
 		"""_summary_
 
 		Args:
@@ -130,10 +130,18 @@ class WikiSqlDataset():
 
 		for d in tqdm(data):
 			answer = self._execute_sql(d['sql'], d['table'])[0]
-			sql_str = self._create_sql_string(d['sql'], d['table'], answer)
+			sql_str = self._create_sql_string(d['sql'], d['table'], answer, tokenizer_type)
 			processed_data.append({'question': d['question'], 'sql_str': sql_str})
 		return processed_data
 
 	def load_tables(self):
 		raise NotImplementedError('Will implement for V2')
+
+class QGDataLoader():
+	
+	@staticmethod
+	def create(self, dataset_name='WikiSQL', data_split='train', tokenizer=None):
+		processed_data = self.preprocess_data_for_qg(data_split)
+		
+
 
