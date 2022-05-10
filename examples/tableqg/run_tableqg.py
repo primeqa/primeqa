@@ -84,7 +84,7 @@ class TrainingArguments:
     num_train_epochs:int = field(
         default=4, metadata={"help": "Numbers of epochs to train the model"}
     )
-    do_train:bool = field(
+    do_train:Optional[bool] = field(
         default=True, metadata={"help": "Whether to train the model or not"}
     )
     do_eval:Optional[bool] = field(
