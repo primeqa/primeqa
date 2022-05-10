@@ -18,6 +18,8 @@ from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
 
 
@@ -196,19 +198,19 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor]
+                  "choices": [ExtractivePostProcessor, SQUADPostProcessor]
                   }
     )
-    eval_metrics: object_reference = field(
-        default=TyDiF1,
+    eval_metrics: str = field(
+        default="TyDiF1",
         metadata={"help": "The name of the evaluation metric function.",
-                  "choices": [TyDiF1]
+                  "choices": ["TyDiF1","squad"]
                  }
     )
 
@@ -325,7 +327,10 @@ def main():
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
     )
 
-    eval_metrics = task_args.eval_metrics()
+    if task_args.eval_metrics in datasets.list_metrics():
+        eval_metrics = datasets.load_metric(task_args.eval_metrics)
+    else:
+        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
