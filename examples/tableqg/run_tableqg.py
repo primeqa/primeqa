@@ -54,6 +54,44 @@ class ModelArguments:
         default=None, metadata={"help": "Where do we want to store the pretrained models downloaded from s3"}
     )
 
+
+@dataclass
+class TrainingArguments:
+    """
+    Arguments pertraining to model training hyperparameters
+    """
+    num_cores: Optional[int] = field(
+        default=1, metadata={"help":"Number of cpu cores to use"}
+    )
+    n_gpu: Optional[int] = field(
+        default=1, metadata={"help": "Number of gpus to train on"}
+    )
+   
+    per_gpu_train_batch_size: int = field(
+        default=8, metadata={"help": "Train Batch size per gpu"}
+    )
+    per_gpu_eval_batch_size: int = field(
+        default=8, metadata={"help": "Dev batch size per gpu"}
+    ) 
+    gradient_accumulation_steps: Optional[int] = field(
+        default=4, metadata={"help": "Gradient acculation steps "}
+    )
+    learning_rate: Optional[float]= field(
+        default=0.0001, metadata={"help": "Learning rate to be used during training the model"}
+    )
+    num_train_epochs:int = field(
+        default=4, metadata={"help": "Numbers of epochs to train the model"}
+    )
+    do_train:bool = field(
+        default=True, metadata={"help": "Whether to train the model or not"}
+    )
+    do_eval:Optional[bool] = field(
+        default=True,metadata={"help": "run evaluation on dev set"}
+    )
+    do_predict:Optional[bool] = field(
+        default=False, metadata={"help": "Generate model prediction on test set"}
+    )
+
 @dataclass
 class DataTrainingArguments:
     """
@@ -77,12 +115,17 @@ class DataTrainingArguments:
     )
 
 
+
 def main():
 
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
 
     # We need to load the config hyperparameter from args file path
-    model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
+    if os.path.exists(os.path.abspath('args.json')):
+        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
+    else:
+        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    
     if (
         os.path.exists(training_args.output_dir)
         and os.listdir(training_args.output_dir)
