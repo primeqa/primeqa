@@ -6,8 +6,12 @@ from transformers import (
 )
 
 from dataclasses import dataclass,field
+from oneqa.tableqg.models.tableqg_model import TableQG
+from oneqa.tableqg.trainers.qg_trainer import QGTrainer
 
 import logging
+
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +51,45 @@ class ModelArguments:
         default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
     )
     cache_dir: Optional[str] = field(
-        default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
+        default=None, metadata={"help": "Where do we want to store the pretrained models downloaded from s3"}
+    )
+
+
+@dataclass
+class TrainingArguments:
+    """
+    Arguments pertraining to model training hyperparameters
+    """
+    num_cores: Optional[int] = field(
+        default=1, metadata={"help":"Number of cpu cores to use"}
+    )
+    n_gpu: Optional[int] = field(
+        default=1, metadata={"help": "Number of gpus to train on"}
+    )
+   
+    per_gpu_train_batch_size: int = field(
+        default=8, metadata={"help": "Train Batch size per gpu"}
+    )
+    per_gpu_eval_batch_size: int = field(
+        default=8, metadata={"help": "Dev batch size per gpu"}
+    ) 
+    gradient_accumulation_steps: Optional[int] = field(
+        default=4, metadata={"help": "Gradient acculation steps "}
+    )
+    learning_rate: Optional[float]= field(
+        default=0.0001, metadata={"help": "Learning rate to be used during training the model"}
+    )
+    num_train_epochs:int = field(
+        default=4, metadata={"help": "Numbers of epochs to train the model"}
+    )
+    do_train:bool = field(
+        default=True, metadata={"help": "Whether to train the model or not"}
+    )
+    do_eval:Optional[bool] = field(
+        default=True,metadata={"help": "run evaluation on dev set"}
+    )
+    do_predict:Optional[bool] = field(
+        default=False, metadata={"help": "Generate model prediction on test set"}
     )
 
 @dataclass
@@ -73,16 +115,17 @@ class DataTrainingArguments:
     )
 
 
+
 def main():
-    # See all possible arguments in src/transformers/training_args.py
-    # or by passing the --help flag to this script.
-    # We now keep distinct sets of args, for a cleaner separation of concerns.
 
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
 
-    # we will load the arguments from a json file, 
-    #make sure you save the arguments in at ./args.json
-    model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
+    # We need to load the config hyperparameter from args file path
+    if os.path.exists(os.path.abspath('args.json')):
+        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
+    else:
+        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    
     if (
         os.path.exists(training_args.output_dir)
         and os.listdir(training_args.output_dir)
@@ -111,4 +154,50 @@ def main():
 
     # Set seed
     set_seed(training_args.seed)
+
+    tqg = TableQG(model_args.model_name_or_path)
+    model = tqg.model
+    tokenizer = tqg.tokenizer
+
+    #Load the dataset
+    train_dataset  = torch.load(data_args.train_file_path)
+    valid_dataset = torch.load(data_args.valid_file_path)
+
+    trainer = QGTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=valid_dataset,
+        data_collator=T2TDataCollator(),
+        prediction_loss_only=True
+    )
+    if training_args.do_train:
+        trainer.train(
+        model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
+    )
+    trainer.save_model()
+    if trainer.is_world_master():
+        tokenizer.save_pretrained(training_args.output_dir)
+
+    # Evaluation
+    results = {}
+    if training_args.do_eval and training_args.local_rank in [-1, 0]:
+        logger.info("*** Evaluate ***")
+
+        eval_output = trainer.evaluate()
+
+        output_eval_file = os.path.join(training_args.output_dir, "eval_results.txt")
+        with open(output_eval_file, "w") as writer:
+            logger.info("***** Eval results *****")
+            for key in sorted(eval_output.keys()):
+                logger.info("  %s = %s", key, str(eval_output[key]))
+                writer.write("%s = %s\n" % (key, str(eval_output[key])))
+    
+        results.update(eval_output)
+    
+    return results
+
+
+if __name__ == "__main__":
+    main()
 
