@@ -243,7 +243,7 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
         # (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)
         if not return_dict:
-            if start_stdev and end_stdev and query_passage_similarity:
+            if start_stdev is not None and end_stdev is not None and query_passage_similarity is not None:
                 output = (start_logits, end_logits, answer_type_logits, start_stdev, end_stdev,
                           query_passage_similarity) + model_outputs[2:]
             else:
