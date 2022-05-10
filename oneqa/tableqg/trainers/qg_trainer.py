@@ -9,7 +9,7 @@ class QGTrainer(Trainer):
         Args:
             Trainer (_type_)): _description_
         """
-    super().init(*args,train_Dataset=train_dataset,valid_Dataset=valid_dataset,data_collator=data_collator,**kwargs)
+        super().__init__(*args,train_dataset=train_dataset,eval_dataset=valid_dataset,data_collator=data_collator,**kwargs)
 
 
 

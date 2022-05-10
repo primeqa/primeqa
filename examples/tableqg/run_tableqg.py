@@ -1,6 +1,6 @@
 from transformers import (
-    HfArgumentParser,
     DataCollator,
+    HfArgumentParser,
     TrainingArguments,
     set_seed,
 )
@@ -9,7 +9,7 @@ import torch
 from dataclasses import dataclass,field
 from oneqa.tableqg.models.tableqg_model import TableQG
 from oneqa.tableqg.trainers.qg_trainer import QGTrainer
-from typing import Optional
+from typing import Optional, List, Dict
 
 import logging
 
@@ -18,8 +18,8 @@ import os
 logger = logging.getLogger(__name__)
 
 @dataclass
-class T2TDataCollator(DataCollator):
-    def collate_batch(self, batch: List) -> Dict[str, torch.Tensor]:
+class T2TDataCollator:
+    def __call__(self, batch: List) -> Dict[str, torch.Tensor]:
         """
         Take a list of samples from a Dataset and collate them into a batch.
         Returns:
@@ -35,7 +35,7 @@ class T2TDataCollator(DataCollator):
         return {
             'input_ids': input_ids, 
             'attention_mask': attention_mask,
-            'lm_labels': lm_labels, 
+            'labels': lm_labels, 
             'decoder_attention_mask': decoder_attention_mask
         }
 
@@ -47,7 +47,7 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+       default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
     tokenizer_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
@@ -58,7 +58,7 @@ class ModelArguments:
 
 
 @dataclass
-class TrainingArguments:
+class TableQGTrainingArguments(TrainingArguments):
     """
     Arguments pertraining to model training hyperparameters
     """
@@ -68,7 +68,6 @@ class TrainingArguments:
     n_gpu: Optional[int] = field(
         default=1, metadata={"help": "Number of gpus to train on"}
     )
-   
     per_gpu_train_batch_size: int = field(
         default=8, metadata={"help": "Train Batch size per gpu"}
     )
@@ -92,6 +91,15 @@ class TrainingArguments:
     )
     do_predict:Optional[bool] = field(
         default=False, metadata={"help": "Generate model prediction on test set"}
+    )
+    remove_unused_columns:Optional[bool] = field(
+        default=False, metadata={"help": ""}
+    )
+    prediction_loss_only:Optional[bool] = field(
+        default=True, metadata={"help": ""}
+    )
+    output_dir:Optional[str] = field(
+        default='./models/', metadata={"help": "Models and checkpoints will be saved here"}
     )
 
 @dataclass
@@ -124,7 +132,7 @@ class DataTrainingArguments:
 
 def main():
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TableQGTrainingArguments))
 
     # We need to load the config hyperparameter from args file path
     if os.path.exists(os.path.abspath('args.json')):
@@ -167,15 +175,14 @@ def main():
 
     qgdl = QGDataLoader(tokenizer,data_args)
     train_dataset = qgdl.create("train")
-    valid_dataset = qgdl.create("val")
+    valid_dataset = qgdl.create("validation")
 
     trainer = QGTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        eval_dataset=valid_dataset,
-        data_collator=T2TDataCollator(),
-        prediction_loss_only=True
+        valid_dataset=valid_dataset,
+        data_collator=T2TDataCollator()
     )
     if training_args.do_train:
         trainer.train(
