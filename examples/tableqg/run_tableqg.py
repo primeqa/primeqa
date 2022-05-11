@@ -189,8 +189,6 @@ def main():
         model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
     )
     trainer.save_model()
-    if trainer.is_world_master():
-        tokenizer.save_pretrained(training_args.output_dir)
 
     # Evaluation
     results = {}
