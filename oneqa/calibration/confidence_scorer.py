@@ -72,21 +72,22 @@ class ConfidenceScorer(object):
         average_norm_span_answer_score /= len(example_predictions)
         features = []
         for i, pred in enumerate(example_predictions):
-            feat = []
-            feat.append(pred["span_answer_score"])
-            feat.append(pred["cls_score"])
-            feat.append(pred["start_logit"])
-            feat.append(pred["end_logit"])
-            feat.append(pred["target_type_logits"][TargetType.NO_ANSWER])   # no answer
-            feat.append(pred["target_type_logits"][TargetType.SPAN_ANSWER])   # span answer
-            feat.append(have_span_answer[i])
-            feat.append(example_have_span_answer)
-            feat.append(minimum_risk_f1[i])
-            feat.append(pred["normalized_span_answer_score"])
-            feat.append(pred["normalized_span_answer_score"] - average_norm_span_answer_score)
-            feat.append(pred["start_stdev"])
-            feat.append(pred["end_stdev"])
-            feat.append(pred["query_passage_similarity"])
+            feat = [
+                pred["span_answer_score"],
+                pred["cls_score"],
+                pred["start_logit"],
+                pred["end_logit"],
+                pred["target_type_logits"][TargetType.NO_ANSWER],   # no answer
+                pred["target_type_logits"][TargetType.SPAN_ANSWER],   # span answer
+                have_span_answer[i],
+                example_have_span_answer,
+                minimum_risk_f1[i],
+                pred["normalized_span_answer_score"],
+                pred["normalized_span_answer_score"] - average_norm_span_answer_score,
+                pred["start_stdev"],
+                pred["end_stdev"],
+                pred["query_passage_similarity"]
+            ]
             features.append(feat)
         return features
 
