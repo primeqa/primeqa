@@ -56,7 +56,8 @@ class ConfidenceScorer(object):
         for pred in example_predictions:
             if "target_type_logits" not in pred:
                 pred["target_type_logits"] = [0, 0, 0, 0, 0]
-            if pred["target_type_logits"][TargetType.SPAN_ANSWER] == max(pred["target_type_logits"]):
+                have_span_answer.append(0.0)
+            elif pred["target_type_logits"][TargetType.SPAN_ANSWER] == max(pred["target_type_logits"]):
                 have_span_answer.append(1.0)
             else:
                 have_span_answer.append(0.0)
