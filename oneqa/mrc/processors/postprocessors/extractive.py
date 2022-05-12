@@ -37,6 +37,13 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                  output_confidence_feature: bool = False,
                  confidence_model_path: str = None,
                  **kwargs):
+        """
+        Args:
+            *args: Arguments for super class constructor.
+            n_best_size: Max number of start/end logits to consider (max values).
+            scorer_type: Scoring algorithm to use.
+            **kwargs: Keyword Arguments for super class constructor.
+        """
         super().__init__(*args, **kwargs)
         self._n_best_size = n_best_size
         self._score_calculator = initialize_scorer(scorer_type)
