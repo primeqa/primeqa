@@ -28,9 +28,7 @@ class SQUADPostProcessor(ExtractivePostProcessor):
             references.append(label)
         return references
     
-    def process_references_and_predictions(self, examples, features, predictions) -> EvalPredictionWithProcessing:
-        references = self.prepare_examples_as_references(examples)        
-        predictions = self.process(examples, features, predictions)
+    def prepare_predictions_for_squad(self, examples, predictions):
         contexts = {}
         for _, example in enumerate(tqdm(examples)):
             contexts[example["example_id"]] = example["context"]
@@ -44,6 +42,12 @@ class SQUADPostProcessor(ExtractivePostProcessor):
                 'prediction_text': prediction_text
             }
             predictions_for_metric.append(prediction_for_metric)
+        return predictions_for_metric
+    
+    def process_references_and_predictions(self, examples, features, predictions) -> EvalPredictionWithProcessing:
+        references = self.prepare_examples_as_references(examples)        
+        predictions = self.process(examples, features, predictions)
+        predictions_for_metric = self.prepare_predictions_for_squad(examples, predictions)
 
         # noinspection PyTypeChecker
         return EvalPredictionWithProcessing(
@@ -51,3 +55,5 @@ class SQUADPostProcessor(ExtractivePostProcessor):
             predictions=predictions,
             processed_predictions=predictions_for_metric
         )
+
+    
