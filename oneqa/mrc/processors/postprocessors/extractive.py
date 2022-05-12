@@ -187,9 +187,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         
     def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
         references = []
-        n_annotators = len(examples[0]['target']['start_positions'])
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
+            n_annotators = len(example['target']['start_positions'])
             label = {
                 'start_position': example['target']['start_positions'],
                 'end_position': example['target']['end_positions'],
