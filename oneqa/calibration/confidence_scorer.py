@@ -44,9 +44,9 @@ class ConfidenceScorer(object):
                 else:
                     overlap_start_position = max(s1, s2)
                     overlap_end_position = min(e1, e2)
-                    precision = float(overlap_end_position - overlap_start_position + 1) / float(e1 - s1 + 1)
-                    recall = float(overlap_end_position - overlap_start_position + 1) / float(e2 - s2 + 1)
-                    f1 = (2 * precision * recall) / (precision + recall)
+                    precision = (overlap_end_position - overlap_start_position + 1.0) / (e1 - s1 + 1.0)
+                    recall = (overlap_end_position - overlap_start_position + 1.0) / (e2 - s2 + 1.0)
+                    f1 = (2.0 * precision * recall) / (precision + recall)
                     sum += f1
             sum /= len(example_predictions)
             minimum_risk_f1.append(sum)
