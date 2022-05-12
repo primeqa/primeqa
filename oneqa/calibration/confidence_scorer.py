@@ -16,8 +16,8 @@ class ConfidenceScorer(object):
                     self._confidence_model = joblib.load(os.path.join(confidence_model_path, 'confidence_model.bin'))
                 else:
                     self._confidence_model = joblib.load(confidence_model_path)
-            except:
-                raise ValueError("Unable to load confidence model from {}".format(confidence_model_path))
+            except Exception as ex:
+                raise ValueError(f"Unable to load confidence model from {confidence_model_path}") from ex
         else:
             self._confidence_model = None
 
