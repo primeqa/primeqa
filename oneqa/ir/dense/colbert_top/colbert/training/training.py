@@ -312,7 +312,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
                             teacher_queries_toks_masks = (teacher_queries_passages[0][0].repeat_interleave(config.nway, dim=0).contiguous(), teacher_queries_passages[0][1].repeat_interleave(config.nway, dim=0).contiguous())
                             teacher_queries = copy.deepcopy(teacher_queries_toks_masks)
-                            # teacher_queries = copy.deepcopy(teacher_queries_passages[0])
                             maxlen = config.query_maxlen
                             align(maxlen, student_output_q, teacher_output_q, teacher_queries)
                             loss = config.query_weight * student_teacher_loss_fct(student_output_q, teacher_output_q) + (1 - config.query_weight)*student_teacher_loss_fct(student_output_p, teacher_output_p)
