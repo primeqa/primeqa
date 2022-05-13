@@ -455,42 +455,15 @@ def main():
     os.makedirs(confidence_set_prediction_output_dir, exist_ok=True)
 
     if training_args.do_eval:
-        training_args.do_train = False
-        training_args.do_eval = True
-
-        training_args.output_dir = validation_set_prediction_output_dir
-        trainer = MRCTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=None,
-            eval_dataset=eval_dataset,
-            eval_examples=eval_examples,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-            post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-            compute_metrics=compute_metrics,
-        )
         logger.info("*** Evaluate on validation set ***")
-        metrics = trainer.evaluate()
+        metrics = trainer.evaluate(eval_dataset=eval_dataset, eval_examples=eval_examples)
         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
-        training_args.output_dir = confidence_set_prediction_output_dir
-        trainer = MRCTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=None,
-            eval_dataset=conf_dataset,
-            eval_examples=conf_examples,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-            post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-            compute_metrics=compute_metrics,
-        )
         logger.info("*** Evaluate on confidence train set ***")
-        metrics = trainer.evaluate()
+        metrics = trainer.evaluate(eval_dataset=conf_dataset, eval_examples=conf_examples)
         max_conf_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(conf_dataset)
         metrics["confidence_samples"] = min(max_conf_samples, len(conf_dataset))
         trainer.log_metrics("eval", metrics)
