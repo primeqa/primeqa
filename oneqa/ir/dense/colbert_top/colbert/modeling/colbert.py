@@ -35,6 +35,12 @@ class ColBERT(BaseColBERT):
         Q_duplicated = Q.repeat_interleave(self.colbert_config.nway, dim=0).contiguous()
         scores = self.score(Q_duplicated, D, D_mask)
 
+        if self.colbert_config.distill_query_passage_separately :
+            if self.colbert_config.query_only:
+                return Q
+            else :
+                return scores, Q_duplicated, D
+
         if self.colbert_config.use_ib_negatives:
             ib_loss = self.compute_ib_loss(Q, D, D_mask)
             return scores, ib_loss
