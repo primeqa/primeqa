@@ -116,7 +116,15 @@ EXTRACTIVE_HEAD = dict(qa_head=ExtractiveQAHead)
 
 
 class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
+    """
+    Task head for extractive Question Answering supporting confidence calibration.
+    """
     def __init__(self, config: PretrainedConfig, num_labels_override: Optional[int] = None):
+        """
+        Args:
+            config: Language model config.
+            num_labels_override: Set this to override number of answer types from default `len(TargetType)`.
+        """
         super().__init__(config)
         self.num_labels = config.num_labels
         self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
@@ -154,6 +162,21 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
                 end_positions=None,
                 target_type=None,
                 **kwargs)-> Union[tuple, ExtractiveQAWithConfidenceModelOutput]:
+        """
+        Compute the task head's forward pass.
+
+        Args:
+            model_outputs: Language model outputs.
+            input_ids: Indices of input sequence tokens in the vocabulary.
+            attention_mask: Mask to avoid performing attention on padding token indices.
+            token_type_ids: Segment token indices to indicate question and context portions of the inputs.
+            start_positions: (training only) Ground-truth start positions.
+            end_positions: (training only) Ground-truth end positions.
+            target_type: (training only) Ground-truth target type.
+
+        Returns:
+            Extractive QA task head result in data structure corresponding to type of `model_outputs`.
+        """
         sequence_output = model_outputs[0]
 
         # Predict target answer type for the whole question answer pair
