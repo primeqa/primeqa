@@ -34,10 +34,46 @@ from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_c
 from oneqa.ir.dense.colbert_top.colbert.training.utils import print_progress, manage_checkpoints_consumed_all_triples, manage_checkpoints_with_path_save
 
 
+def calculate_distance(student_out, teacher_out):
+    '''calculate the distance between student output tokens and teacher output tokens'''
+    # start = time.time()
+    prod = teacher_out.matmul(student_out.transpose(1, 2))
+    student_out_norm = torch.norm(student_out, p=2, dim=-1)
+    teacher_out_norm = torch.norm(teacher_out, p=2, dim=-1)
+    m = teacher_out_norm.unsqueeze(2) * student_out_norm.unsqueeze(1)
+    esp = torch.ones_like(m) * 10**-8
+    distance = torch.ones_like(m) - prod /(m + esp)
+    # end = time.time()
+    # print("time to calculation distance matrix: ", end - start)
+    return distance
+
+def align(maxlen, student_out, teacher_out, teacher_queries):
+    '''re-order teacher output tokens so that it aligns with
+    student output tokens with greedy search'''
+    batch_distance_array=calculate_distance(student_out, teacher_out)
+    batch_distance_array = batch_distance_array.cpu().detach().numpy()
+    for idx, distance_array in enumerate(batch_distance_array):
+        swaps = []
+        for i in range(maxlen):
+            minValue =np.amin(distance_array)
+            indexs = np.where(distance_array == np.amin(minValue))
+            #get the index of the first min value
+            i, j = indexs[0][0], indexs[1][0]
+            #swap arrary row i and row j
+            distance_array[[i, j]] = distance_array[[j, i]]
+            distance_array[j, :] = 10  #anything larger than 1 to avoid double count
+            distance_array[:, j] = 10
+            swaps.append((i,j))
+        for swap in swaps:
+            teacher_out[idx][[swap[0], swap[1]]] = teacher_out[idx][[swap[1], swap[0]]]
+            teacher_queries[0][idx][[swap[0], swap[1]]] = teacher_queries[0][idx][[swap[1], swap[0]]]
+
 def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     if config.rank < 1:
         config.help()
+
+    assert not ( config.use_ib_negatives and config.distill_query_passage_separately ) , f" Simultaneous use of --use_ib_negatives and --distill_query_passage_separately options is not supported (yet)"
 
     # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
     if config.checkpoint is not None:
@@ -157,10 +193,11 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     if config.teacher_checkpoint is not None:
         teacher_colbert = teacher_colbert.to(DEVICE)
         if config.distill_query_passage_separately:
-            assert False, "distill_query_passage_separately functionality is not supported (yet)"
+            #assert False, "distill_query_passage_separately functionality is not supported (yet)"
+            print_message("distill_query_passage_separately functionality is not supported (yet)")
             if config.loss_function == 'MSE':
                 student_teacher_loss_fct = torch.nn.MSELoss()
-            elif config.loss_function == 'l1':
+            else:
                 student_teacher_loss_fct = torch.nn.L1Loss()
         else:
             student_teacher_loss_fct = torch.nn.KLDivLoss(reduction="batchmean")
@@ -260,44 +297,63 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
 
                 with amp.context():
-                    try:
-                        queries, passages, target_scores = queries_passages
-                        encoding = [queries, passages]
-                    except:
-                        encoding, target_scores = queries_passages
-                        encoding = [encoding.to(DEVICE)]
+                    if config.distill_query_passage_separately :
+                        if config.query_only:
+                            assert False, "Training with --query-only option is not supported (yet)."
+                        else:
+                            queries, passages, target_scores = queries_passages
+                            encoding = [queries, passages]
+                            scores, student_output_q, student_output_p = colbert(*encoding)
 
-                    scores = colbert(*encoding)
+                            with torch.no_grad():
+                                teacher_queries, teacher_passages, teacher_target_scores = teacher_queries_passages
+                                teacher_encoding = [teacher_queries, teacher_passages]
+                                teacher_scores, teacher_output_q, teacher_output_p  = teacher_colbert(*teacher_encoding)
 
-                    if config.use_ib_negatives:
-                        scores, ib_loss = scores
-
-                    scores = scores.view(-1, config.nway)
-
-                    with torch.no_grad():
+                            teacher_queries_toks_masks = (teacher_queries_passages[0][0].repeat_interleave(config.nway, dim=0).contiguous(), teacher_queries_passages[0][1].repeat_interleave(config.nway, dim=0).contiguous())
+                            teacher_queries = copy.deepcopy(teacher_queries_toks_masks)
+                            maxlen = config.query_maxlen
+                            align(maxlen, student_output_q, teacher_output_q, teacher_queries)
+                            loss = config.query_weight * student_teacher_loss_fct(student_output_q, teacher_output_q) + (1 - config.query_weight)*student_teacher_loss_fct(student_output_p, teacher_output_p)
+                    else:
                         try:
-                            teacher_queries, teacher_passages, teacher_target_scores = teacher_queries_passages
-                            teacher_encoding = [teacher_queries, teacher_passages]
+                            queries, passages, target_scores = queries_passages
+                            encoding = [queries, passages]
                         except:
-                            teacher_encoding, teacher_target_scores = teacher_queries_passages
-                            teacher_encoding = [teacher_encoding.to(DEVICE)]
+                            encoding, target_scores = queries_passages
+                            encoding = [encoding.to(DEVICE)]
 
-                        teacher_scores = teacher_colbert(*teacher_encoding)
+                        scores = colbert(*encoding)
 
                         if config.use_ib_negatives:
-                            teacher_scores, teacher_ib_loss = teacher_scores
+                            scores, ib_loss = scores
 
-                        teacher_scores = teacher_scores.view(-1, config.nway)
+                        scores = scores.view(-1, config.nway)
 
-                    loss = student_teacher_loss_fct(
-                                torch.nn.functional.log_softmax(scores / config.student_teacher_temperature, dim=-1),
-                                torch.nn.functional.softmax(teacher_scores / config.student_teacher_temperature, dim=-1),
-                            ) * (config.student_teacher_temperature ** 2)
+                        with torch.no_grad():
+                            try:
+                                teacher_queries, teacher_passages, teacher_target_scores = teacher_queries_passages
+                                teacher_encoding = [teacher_queries, teacher_passages]
+                            except:
+                                teacher_encoding, teacher_target_scores = teacher_queries_passages
+                                teacher_encoding = [teacher_encoding.to(DEVICE)]
+
+                            teacher_scores = teacher_colbert(*teacher_encoding)
+
+                            if config.use_ib_negatives:
+                                teacher_scores, teacher_ib_loss = teacher_scores
+
+                            teacher_scores = teacher_scores.view(-1, config.nway)
+
+                        loss = student_teacher_loss_fct(
+                                    torch.nn.functional.log_softmax(scores / config.student_teacher_temperature, dim=-1),
+                                    torch.nn.functional.softmax(teacher_scores / config.student_teacher_temperature, dim=-1),
+                                ) * (config.student_teacher_temperature ** 2)
 
                     loss = loss / config.accumsteps
 
                 if config.rank < 1:
-                    print_progress(scores)
+                    print_progress(scores.view(-1,2) if config.distill_query_passage_separately else scores)
 
                 amp.backward(loss)
 
@@ -384,7 +440,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 this_batch_loss += loss.item()
 
             train_loss = this_batch_loss if train_loss is None else train_loss
-            # train_loss = train_loss_mu * train_loss + (1 - train_loss_mu) * this_batch_loss
+            train_loss = train_loss_mu * train_loss + (1 - train_loss_mu) * this_batch_loss
 
             amp.step(colbert, optimizer, scheduler)
 
