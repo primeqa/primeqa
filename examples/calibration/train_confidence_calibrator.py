@@ -461,6 +461,11 @@ def main():
         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+        for fn in ["eval_predictions.json", "eval_references.json", "eval_predictions_processed.json"]:
+            if os.path.exists(os.path.join(base_output_dir, fn)):
+                os.replace(os.path.join(base_output_dir, fn), os.path.join(validation_set_prediction_output_dir, fn))
+            else:
+                raise ValueError("Unable to find eval result file {} from {}".format(fn, base_output_dir))
 
         logger.info("*** Evaluate on confidence train set ***")
         metrics = trainer.evaluate(eval_dataset=conf_dataset, eval_examples=conf_examples)
@@ -468,6 +473,11 @@ def main():
         metrics["confidence_samples"] = min(max_conf_samples, len(conf_dataset))
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+        for fn in ["eval_predictions.json", "eval_references.json", "eval_predictions_processed.json"]:
+            if os.path.exists(os.path.join(base_output_dir, fn)):
+                os.replace(os.path.join(base_output_dir, fn), os.path.join(confidence_set_prediction_output_dir, fn))
+            else:
+                raise ValueError("Unable to find eval result file {} from {}".format(fn, base_output_dir))
 
     # confidence model training
     confidence_set_prediction_file = os.path.join(confidence_set_prediction_output_dir, "eval_predictions.json")
