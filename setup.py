@@ -49,6 +49,7 @@ _deps = {
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
     "pytest-rerunfailures~=10.2": ["tests"],
+    "scikit-learn~=1.0.2": ["install"],
     "signals~=0.0.2": ["install"],
     "spacy~=3.2.2": ["install"],
     "sphinx~=4.4.0": ["docs"],

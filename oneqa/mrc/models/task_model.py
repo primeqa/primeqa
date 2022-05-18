@@ -89,7 +89,7 @@ class ModelForDownstreamTasks(PreTrainedModel):
             return_dict=return_dict,
         )
 
-        return self.task_head(outputs, **kwargs)
+        return self.task_head(outputs, input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, **kwargs)
 
     @classmethod
     def model_class_from_config(cls, config: PretrainedConfig) -> Type['ModelForDownstreamTasks']:
