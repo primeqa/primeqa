@@ -35,6 +35,14 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
+For eval with confidence calibration, add the following additional command line arguments:
+```shell
+      --output_dropout_rate 0.25 \
+       --decoding_times_with_dropout 5 \
+       --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
+       --task_heads oneqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+```
+
 For the SQUAD dataset use the folowing additional command line arguments for train + eval :
 ```shell
        --dataset_name squad \
