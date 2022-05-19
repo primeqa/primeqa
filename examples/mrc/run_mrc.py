@@ -337,10 +337,6 @@ def main():
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
-    if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD:
-        output_confidence_feature = True
-    else:
-        output_confidence_feature = False
     postprocessor_class = task_args.postprocessor
 
     # noinspection PyProtectedMember
