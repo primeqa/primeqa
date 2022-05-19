@@ -19,25 +19,25 @@ class TestTyDiF1(UnitTest):
     def references_and_predictions(self, n_annotators):
         references = [
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='a', language='finnish')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='a', language='finnish', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=-1, end_position=-1, passage_index=2,
-                  yes_no_answer=TargetType.YES, example_id='b', language='finnish')] * n_annotators,
+                  yes_no_answer=TargetType.YES, example_id='b', language='finnish', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili')] * 2 +
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili', document_plaintext='', question='')] * 2 +
             [dict(start_position=-1, end_position=-1, passage_index=-1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili')] * (n_annotators - 2),
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='c', language='swahili', document_plaintext='', question='')] * (n_annotators - 2),
             [dict(start_position=-1, end_position=-1, passage_index=-1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='d', language='swahili')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='d', language='swahili', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=-1, end_position=-1, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='e', language='swahili')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='e', language='swahili', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='f', language='thai')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='f', language='thai', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='g', language='thai')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='g', language='thai', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='h', language='korean')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='h', language='korean', document_plaintext='', question='')] * n_annotators,
             [dict(start_position=17, end_position=42, passage_index=1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='i', language='korean')] * n_annotators,
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='i', language='korean', document_plaintext='', question='')] * n_annotators,
 
         ]
         predictions = [

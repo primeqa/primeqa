@@ -244,10 +244,10 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
 
         if not verbose:
             continue
-        if pred is None or len(pred.short_answer_span_list) == 0:
+        if pred is None:
             continue
-        pred_min_start = pred.short_answer_span_list[0].start_byte
-        pred_min_end = pred.short_answer_span_list[0].end_byte
+        pred_min_start = pred.minimal_answer_span.start_byte_offset
+        pred_min_end = pred.minimal_answer_span.end_byte_offset
         gold_min_start = gold[0].minimal_answer_span.start_byte_offset
         gold_min_end = gold[0].minimal_answer_span.end_byte_offset
         if gold_min_start >= 0:
@@ -257,9 +257,9 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
             logging.info('gold offsets %d, %d', gold_min_start, gold_min_end)
             logging.info('pred offsets %d, %d', pred_min_start, pred_min_end)
             logging.info('gold answer: (%s)',
-                         byte_slice(gold[0].plaintext, gold_min_start, gold_min_end))
+                         gold[0].plaintext[gold_min_start:gold_min_end])
             logging.info('pred answer: (%s)',
-                         byte_slice(gold[0].plaintext, pred_min_start, pred_min_end))
+                         gold[0].plaintext[pred_min_start:pred_min_end])
             logging.info('score %.2f', minimal_answer_stats[-1][-1])
             logging.info('f1: %.2f, p: %.2f, r: %.2f',
                          minimal_answer_stats[-1][-2][2],

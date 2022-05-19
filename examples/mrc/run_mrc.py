@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import traceback
+import glob
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
@@ -90,6 +91,15 @@ class DataTrainingArguments:
 
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to train on in tydi google format."}
+    )
+    eval_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to test on in tydi google format."}
+    )
+    data_file_format: Optional[str] = field(
+        default="json", metadata="the format of the local dataset files (json, csv, text, pandas)"
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
@@ -214,6 +224,18 @@ class TaskArguments:
                   "choices": ["TyDiF1","squad"]
                  }
     )
+    passage_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    minimal_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The minimal level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    verbose: bool = field(
+        default=False,
+        metadata={"help": "Prints evaluation output if true"}
+    )
 
     def __post_init__(self):
         if not self.task_heads:
@@ -270,11 +292,29 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset(
-        data_args.dataset_name,
-        data_args.dataset_config_name,
-        cache_dir=model_args.cache_dir,
-    )
+    if data_args.train_file is not None or data_args.eval_file is not None:
+        if data_args.train_file is not None: 
+            train_files = glob.glob(data_args.train_file)   
+        if data_args.eval_file is not None: 
+            eval_files = glob.glob(data_args.eval_file)
+        if data_args.eval_file is None:
+                raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+                data_files={'train':train_files},
+                cache_dir=model_args.cache_dir)
+        elif data_args.train_file is None:
+                raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+                data_files={'validation':eval_files},
+                cache_dir=model_args.cache_dir)
+        else:
+            raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+                data_files={'train':train_files,'validation':eval_files},
+                cache_dir=model_args.cache_dir)
+    else:
+        raw_datasets = datasets.load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            cache_dir=model_args.cache_dir,
+        )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
@@ -334,7 +374,9 @@ def main():
         eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
-        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold, 
+            minimal_non_null_threshold=task_args.minimal_non_null_threshold,verbose=task_args.verbose)
 
     trainer = MRCTrainer(
         model=model,
