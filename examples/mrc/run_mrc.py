@@ -351,7 +351,7 @@ def main():
         scorer_type=SupportedSpanScorers(scorer_type),
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,
-        output_confidence_feature=output_confidence_feature,
+        output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
     if task_args.eval_metrics in datasets.list_metrics():
