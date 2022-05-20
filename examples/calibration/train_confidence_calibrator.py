@@ -6,23 +6,24 @@ from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
 from typing import Optional, Type
+import json
+import joblib
+from joblib import dump, load
+from sklearn.neural_network import MLPClassifier
+from oneqa.calibration.confidence_scorer import ConfidenceScorer
 
 import datasets
+from datasets import DatasetDict, load_from_disk
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.metrics.mlqa.mlqa import MLQA
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
-from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
 
 
@@ -81,10 +82,6 @@ class ModelArguments:
         default=None,
         metadata={"help": "Path to directory to store the pretrained models downloaded from huggingface.co"},
     )
-    confidence_model_path: str = field(
-        default=None,
-        metadata={"help": "Path to the confidence calibration model"}
-    )
 
 
 # modified from
@@ -105,6 +102,14 @@ class DataTrainingArguments:
     )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+    )
+    relative_confidence_train_size: float = field(
+        default=0.1,
+        metadata={"help": "The relative size of confidence train set split from original train set."}
+    )
+    confidence_dataset_dir: str = field(
+        default=None,
+        metadata={"help": "The directory to save the created confidence datasets."}
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
@@ -190,6 +195,9 @@ class TaskArguments:
     """
     Task specific arguments.
     """
+    confidence_model_dir: str = field(
+        metadata={"help": "The directory to save confidence model."}
+    )
     scorer_type: str = field(
         default='weighted_sum_target_type_and_score_diff',
         metadata={"help": "The name of the scorer to compute answer score.",
@@ -205,20 +213,19 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor]
+                  "choices": [TyDiQAPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,SQUADPostProcessor,MLQAPostProcessor]
+                  "choices": [ExtractivePostProcessor]
                   }
     )
-    eval_metrics: str = field(
-        default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
-                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
-                  "choices": ["TyDiF1","squad","MLQA"]
+    eval_metrics: object_reference = field(
+        default=TyDiF1,
+        metadata={"help": "The name of the evaluation metric function.",
+                  "choices": [TyDiF1]
                  }
     )
     output_dropout_rate: float = field(
@@ -233,6 +240,18 @@ class TaskArguments:
                           "calibration features with dropout."
                   },
     )
+    max_iter_of_confidence_model_training: int = field(
+        default=200,
+        metadata={"help": "The maximum number of iterations for confidence model training."}
+    )
+    prediction_reference_overlap_threshold: float = field(
+        default=0.5,
+        metadata={"help": "The threshold to determine if a prediction is accepted as correct. "
+                            "If the overlap score between prediction and reference is greater "
+                            "than this threshold, the prediction is labeled as correct."
+                  },
+    )
+
 
     def __post_init__(self):
         if not self.task_heads:
@@ -291,13 +310,37 @@ def main():
     )
     model.set_task_head(next(iter(task_heads)))
 
-    # load data
-    logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset(
-        data_args.dataset_name,
-        data_args.dataset_config_name,
-        cache_dir=model_args.cache_dir,
-    )
+    confidence_datasets = None
+    if data_args.confidence_dataset_dir:
+        try:
+            logger.info('Loading confidence datasets from disk')
+            confidence_datasets = load_from_disk(data_args.confidence_dataset_dir)
+        except:
+            logger.info('confidence_dataset_dir is neither a dataset directory nor a dataset dict directory')
+    if not confidence_datasets:
+        logger.info('Creating confidence datasets from raw datasets')
+        # load raw dataset
+        logger.info('Loading raw datasets')
+        raw_datasets = datasets.load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            cache_dir=model_args.cache_dir,
+        )
+
+        original_train_set = raw_datasets["train"]
+        split_train_set = original_train_set.train_test_split(test_size=data_args.relative_confidence_train_size)
+        mrc_train_set = split_train_set["train"]
+        confidence_train_set = split_train_set["test"]
+        validation_set = raw_datasets["validation"]
+
+        confidence_datasets = DatasetDict({
+            "mrc_train": mrc_train_set,
+            "confidence_train": confidence_train_set,
+            "validation": validation_set,
+        })
+        # save new datasets
+        if data_args.confidence_dataset_dir:
+            confidence_datasets.save_to_disk(data_args.confidence_dataset_dir)
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
@@ -316,7 +359,7 @@ def main():
 
     # process train data
     if training_args.do_train:
-        train_dataset = raw_datasets["train"]
+        train_dataset = confidence_datasets["mrc_train"]
         max_train_samples = data_args.max_train_samples
         if max_train_samples is not None:
             # We will select sample from whole data if argument is specified
@@ -325,9 +368,9 @@ def main():
         with training_args.main_process_first(desc="train dataset map pre-processing"):
             _, train_dataset = preprocessor.process_train(train_dataset)
 
-    # process val data
+    # process val and confidence data
     if training_args.do_eval:
-        eval_examples = raw_datasets["validation"]
+        eval_examples = confidence_datasets["validation"]
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:
             # We will select sample from whole data if argument is specified
@@ -336,10 +379,23 @@ def main():
         with training_args.main_process_first(desc="validation dataset map pre-processing"):
             eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
+        conf_examples = confidence_datasets["confidence_train"]
+        max_eval_samples = data_args.max_eval_samples
+        if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
+            # We will select sample from whole data
+            conf_examples = conf_examples.select(range(max_eval_samples))
+        # Validation Feature Creation
+        with training_args.main_process_first(desc="confidence dataset map pre-processing"):
+            conf_examples, conf_dataset = preprocessor.process_eval(conf_examples)
+
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
+    if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD:
+        output_confidence_feature = True
+    else:
+        output_confidence_feature = False
     postprocessor_class = task_args.postprocessor
 
     # noinspection PyProtectedMember
@@ -349,14 +405,10 @@ def main():
         max_answer_length=data_args.max_answer_length,
         scorer_type=SupportedSpanScorers(scorer_type),
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
-        confidence_model_path=model_args.confidence_model_path,
-        output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
+        output_confidence_feature = output_confidence_feature,
     )
 
-    if task_args.eval_metrics in datasets.list_metrics():
-        eval_metrics = datasets.load_metric(task_args.eval_metrics)
-    else:
-        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+    eval_metrics = task_args.eval_metrics()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
@@ -394,16 +446,86 @@ def main():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
 
-    # validation
-    if training_args.do_eval:
-        logger.info("*** Evaluate ***")
-        metrics = trainer.evaluate()
+    # write prediction results of confidence train set and validation set
+    # to different directories
+    base_output_dir = training_args.output_dir
+    validation_set_prediction_output_dir = os.path.join(base_output_dir, "validation_set_predictions")
+    os.makedirs(validation_set_prediction_output_dir, exist_ok=True)
+    confidence_set_prediction_output_dir = os.path.join(base_output_dir, "confidence_set_predictions")
+    os.makedirs(confidence_set_prediction_output_dir, exist_ok=True)
 
+    if training_args.do_eval:
+        logger.info("*** Evaluate on validation set ***")
+        metrics = trainer.evaluate(eval_dataset=eval_dataset, eval_examples=eval_examples)
         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
         metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
-
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+        for fn in ["eval_predictions.json", "eval_references.json", "eval_predictions_processed.json"]:
+            if os.path.exists(os.path.join(base_output_dir, fn)):
+                os.replace(os.path.join(base_output_dir, fn), os.path.join(validation_set_prediction_output_dir, fn))
+            else:
+                raise ValueError("Unable to find eval result file {} from {}".format(fn, base_output_dir))
+
+        logger.info("*** Evaluate on confidence train set ***")
+        metrics = trainer.evaluate(eval_dataset=conf_dataset, eval_examples=conf_examples)
+        max_conf_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(conf_dataset)
+        metrics["confidence_samples"] = min(max_conf_samples, len(conf_dataset))
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
+        for fn in ["eval_predictions.json", "eval_references.json", "eval_predictions_processed.json"]:
+            if os.path.exists(os.path.join(base_output_dir, fn)):
+                os.replace(os.path.join(base_output_dir, fn), os.path.join(confidence_set_prediction_output_dir, fn))
+            else:
+                raise ValueError("Unable to find eval result file {} from {}".format(fn, base_output_dir))
+
+    # confidence model training
+    confidence_set_prediction_file = os.path.join(confidence_set_prediction_output_dir, "eval_predictions.json")
+    if not os.path.exists(confidence_set_prediction_file):
+        raise ValueError("Unable to find eval_predictions.json file from {} for confidence model training.".format(confidence_set_prediction_output_dir))
+    confidence_set_reference_file = os.path.join(confidence_set_prediction_output_dir, "eval_references.json")
+    if not os.path.exists(confidence_set_reference_file):
+        raise ValueError("Unable to find eval_references.json file from {} for confidence model training.".format(confidence_set_prediction_output_dir))
+
+    confidence_model = MLPClassifier(random_state = 1, activation = 'tanh',
+                                     hidden_layer_sizes=(100,100),
+                                     max_iter=task_args.max_iter_of_confidence_model_training,
+                                     verbose=1)
+    X, Y = ConfidenceScorer.make_training_data(confidence_set_prediction_file, confidence_set_reference_file,
+                                               task_args.prediction_reference_overlap_threshold)
+
+    logger.info("Training confidence model ...")
+    confidence_model.fit(X, Y)
+
+    confidence_model_file = os.path.join(task_args.confidence_model_dir, 'confidence_model.bin')
+    dump(confidence_model, confidence_model_file)
+    logging.info("Saved confidence model to {}".format(confidence_model_file))
+
+    # confidence model eval on validation set
+    confidence_scorer = ConfidenceScorer(task_args.confidence_model_dir)
+    validation_set_prediction_file = os.path.join(validation_set_prediction_output_dir, "eval_predictions.json")
+    if not os.path.exists(validation_set_prediction_file):
+        raise ValueError("Unable to find eval_predictions.json file from {} for confidence model training.".format(validation_set_prediction_output_dir))
+    try:
+        with open(validation_set_prediction_file, 'r') as f:
+            validation_predictions = json.load(f)
+    except:
+        raise ValueError("Unable to load validation predictions from {}".format(validation_set_prediction_file))
+
+    for example_id in validation_predictions:
+        scores = confidence_scorer.predict_scores(validation_predictions[example_id])
+        for i in range(len(validation_predictions[example_id])):
+            validation_predictions[example_id][i]["confidence_score"] = scores[i]
+
+    rescored_prediction_file = os.path.join(validation_set_prediction_output_dir, "eval_predictions.rescored.json")
+    try:
+        with open(rescored_prediction_file, 'w') as f:
+            json.dump(validation_predictions, f, indent=4)
+        logger.info("Saved rescored validation predictions to {}".format(rescored_prediction_file))
+    except:
+        raise ValueError("Unable to save the rescored validation prediction file to {}".format(rescored_prediction_file))
+
+
 
 
 if __name__ == '__main__':

@@ -220,6 +220,9 @@ class MRCTrainer(Trainer):
                 json.dump(eval_preds.predictions, f, indent=4)
             with open(os.path.join(self.args.output_dir, 'eval_predictions_processed.json'), 'w') as f:
                 json.dump(eval_preds.processed_predictions, f, indent=4)
+            with open(os.path.join(self.args.output_dir, 'eval_references.json'), 'w') as f:
+                json.dump(eval_preds.label_ids, f, indent=4)
+
         if self.post_process_function is not None and self.compute_metrics is not None:
             metrics = self.compute_metrics(eval_preds)
 
