@@ -6,7 +6,8 @@ Before continuing below make sure you have OneQA [installed](../../README.md#Ins
 ## Supported Datasets
 Currently supported datasets include:
 - TyDiQA
-- SQUAD
+- SQuAD 1.1
+- MLQA
 
 ## Example Usage
 An example usage for train + eval command on the TyDiQA dataset (default) is:
@@ -35,13 +36,24 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
-For the SQUAD dataset use the folowing additional command line arguments for train + eval :
+For the SQuAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
        --dataset_name squad \
        --dataset_config_name plain_text \
        --preprocessor oneqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
        --postprocessor oneqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics squad 
+```
+
+For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
+The dataset configurations for all language combinations are supported.
+For the MLQA configuration with context language EN and question language DE use the following command line arguments for eval:
+```shell
+       --dataset_name mlqa \
+       --dataset_config_name mlqa.en.de \
+       --preprocessor oneqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
+       --postprocessor oneqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
+       --eval_metrics MLQA 
 ```
 
 This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
