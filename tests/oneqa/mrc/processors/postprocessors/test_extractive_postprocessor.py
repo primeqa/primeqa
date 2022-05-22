@@ -129,7 +129,7 @@ class TestExtractivePostProcessor(UnitTest):
         postprocessor_class = ExtractivePostProcessor  
         scorer_type='weighted_sum_target_type_and_score_diff'
 
-        expected_start_end_index, predictions = self._start_end_target_type_logits(eval_examples, eval_features,  mock_logits_expected_predictions)
+        expected_start_end_index, predictions = self._start_end_target_type_logits(eval_examples, eval_features, mock_logits_expected_predictions)
         
         postprocessor = postprocessor_class(k=5, n_best_size=3, max_answer_length=30,
                                             scorer_type=SupportedSpanScorers(scorer_type),
