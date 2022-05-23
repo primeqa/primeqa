@@ -15,9 +15,9 @@ class TestPyseriniRetriever(UnitTest):
         # The current directory to handle running from IDE or command line
         curdir = os.getcwd()
         if curdir.endswith('tests'):
-            index_path = '../tests/resources/sample_wiki_psgs_w100_index'
+            index_path = '../tests/resources/ir_sparse/sample_wiki_psgs_w100_index'
         else:
-            index_path = 'tests/resources/sample_wiki_psgs_w100_index'
+            index_path = 'tests/resources/ir_sparse/sample_wiki_psgs_w100_index'
         return index_path
 
     @pytest.fixture(scope='session')
