@@ -1,21 +1,12 @@
-from collections import defaultdict
-from itertools import groupby
-from operator import itemgetter
 from typing import List, Dict, Any
 
 from datasets import Dataset
-from tqdm import tqdm
 import numpy as np
-from datetime import datetime
-import torch
 import logging
 from transformers import EvalPrediction
 
 from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
-from oneqa.mrc.data_models.target_type import TargetType
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 
 logger = logging.getLogger(__name__)
@@ -68,38 +59,33 @@ class NWayClassifierPostProcessor(AbstractPostProcessor):
         print('in process_references_and_predictions')
 #        references = self.prepare_examples_as_references(examples)
         ipredictions=self._get_prediction_from_predict_scores(predict_scores)
-        #predictions = self.process(examples, features, predict_scores)
-        preds_by_id = {}
-        
-
 
         fields = zip(features[self.id_key],
             features["question"],
-            examples['language'],
             ipredictions, 
             predict_scores)
-        for index, (example_id, question, language, item, scores) in enumerate(fields):
-            item_label = self.label_list[item]
-            preds_by_id[example_id] = {}
-            preds_by_id[example_id]["pred"] = str(item_label)
-            preds_by_id[example_id]["conf"] = str(scores[item])
-            preds_by_id[example_id]["question"] = question
-            preds_by_id[example_id]["language"] = language
-            preds_by_id[example_id]["scores"] = { label:float(score) for label,score in zip(self.label_list, scores)}
 
-        predictions_for_metric = list(preds_by_id.values())
-
+        preds_for_metric=[]
         examples_json={}
-        for ex, p in zip(examples, predictions_for_metric):
+        for (ex, (example_id, question, item, scores)) in zip(examples, fields):
+            item_label = self.label_list[item]
+            p = {
+                "pred":str(item_label),
+                "conf":str(scores[item]),
+                "question":question,
+                "language":ex["language"],
+                "scores": { label:float(score) for label,score in zip(self.label_list, scores)}
+            }
+            preds_for_metric.append(p)
+
             ex[self.output_label_prefix+'_pred'] = p['pred']
             ex[self.output_label_prefix+'_scores'] = p['scores']
             ex[self.output_label_prefix+'_conf'] = p['conf']
-            examples_json[ex['example_id']] = [ ex ]
-
+            examples_json[example_id] = [ ex ]
 
         # noinspection PyTypeChecker
         return EvalPredictionWithProcessing(
             label_ids=None,
             predictions=examples_json,
-            processed_predictions=predictions_for_metric,
+            processed_predictions=preds_for_metric,
         )    
