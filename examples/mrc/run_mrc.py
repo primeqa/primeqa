@@ -13,6 +13,7 @@ from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from oneqa.mrc.metrics.mlqa.mlqa import MLQA
 from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -20,6 +21,8 @@ from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
 
 
@@ -202,20 +205,20 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor, SQUADPostProcessor]
+                  "choices": [ExtractivePostProcessor,SQUADPostProcessor,MLQAPostProcessor]
                   }
     )
     eval_metrics: str = field(
         default="TyDiF1",
         metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
                           "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
-                  "choices": ["TyDiF1","squad"]
+                  "choices": ["TyDiF1","squad","MLQA"]
                  }
     )
     output_dropout_rate: float = field(
