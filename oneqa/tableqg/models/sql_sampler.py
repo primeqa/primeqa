@@ -4,14 +4,22 @@ import numpy as np
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
 class SimpleSqlSampler():
+    """ A simple sql sampler to sample sqls based on number of where clause conditions and other parameters
+    """
     def __init__(self, tokenizer_name='T5'):
         if tokenizer_name == 'T5':
             self.tokens = T5SpecialTokens
-
+    
     @staticmethod
-    def add_column_types(table):
-        # adds a type list to the table dict:
-        # type is either 'real' or 'text', the list corresponds to columns in the table
+    def add_column_types(self, table):
+        """Adds a data type list to the table dict based on values in the cells in that column.
+        The data type for a column is either real or text.
+        Args:
+            table ([dict]): [The table Dict containing headers and rows]
+
+        Returns:
+            [Dict]: [Table Dict with  key 'type' containing list of data type for every column]
+        """
 
         header = table['header']
         rows = table['rows']
@@ -39,6 +47,18 @@ class SimpleSqlSampler():
         return table
 
     def sql_execution(self, where_clause, select_column, agg_op, table):
+        """ This function executes the sql on a given table and returns the answer.
+
+        Args:
+            where_clause ([type]): [description]
+            select_column ([type]): [description]
+            agg_op ([type]): [description]
+            table ([type]): [description]
+
+        Returns:
+            [String]: [Answer after executing sql on the given table]
+        """
+        
         selected_cells = []
         for row_id in where_clause['rows']:
             selected_cells.append(table['rows'][row_id][select_column])
@@ -93,6 +113,15 @@ class SimpleSqlSampler():
 
 
     def _get_column_freq(self, table, if_ineq=False):
+        """ Calculates frequency of a column in the table.
+
+        Args:
+            table ([Dict]): [Table Dictionary containing header and rows]
+            if_ineq (bool, optional): [if there are inequality conditions or not]. Defaults to False.
+
+        Returns:
+            [List]: [Column List]
+        """
         rows = table['rows']
         types = table['types']
 
@@ -233,7 +262,21 @@ class SimpleSqlSampler():
             where_dict['nw-4'] = where4_list
         return where_dict
 
-    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False):
+
+    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False, dont_use_col=[]):
+        """ This function samples sqls from a given table based on values for the parameters
+        num_sample -> number of sql queries to sample, num_where -> number of where condtioned desired in every sampled sql Query etc.
+        Args:
+            table ([Dict]): [Table dictionary with header and rows]
+            num_sample ([int]): [Number of sqls to sample]
+            num_where ([int]): [Number of where clause conditions every sampled sql should have]
+            agg_op (int, optional): [Whether to sample aggregate queries or not]. Defaults to 0.
+            if_ineq (bool, optional): [description]. Defaults to False.
+            dont_use_col (list, optional): [description]. Defaults to [].
+
+        Returns:
+            [List,Dict]: [Sampled sql query list in readable string format and dict format]
+        """
         header = table['header']
         types = table['types']
 
@@ -282,6 +325,16 @@ class SimpleSqlSampler():
         return sql_string_list, sql_list
 
     def readable_sql(self, sql, header, answer):
+        """Convert Non-readable SQL to readable SQL dict
+
+        Args:
+            sql ([Dict]): [Sql query]
+            header ([List]): [Headers in table]
+            answer ([String]): [Answer]
+
+        Returns:
+            [Dict]: [Sql Dict in readable format]
+        """
         sql_dict = {}
         sql_dict['col'] = [SqlOperants.agg_ops[sql['agg']], header[sql['sel']]]
         conds = []
@@ -293,6 +346,16 @@ class SimpleSqlSampler():
         return sql_dict
 
     def convert_sql_to_string(self, sql_dict, table=[], tokenizer='T5'):
+        """Convert sql query in Dict format to string
+
+        Args:
+            sql_dict ([Dict]): [Sql Query to convert to string]
+            table (list, optional): [Table]. Defaults to [].
+            tokenizer (str, optional): [description]. Defaults to 'T5'.
+
+        Returns:
+            [String]: [Sql query in string format]
+        """
         if tokenizer == 'T5':
             tokens = T5SpecialTokens
 
