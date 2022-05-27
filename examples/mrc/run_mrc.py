@@ -13,11 +13,16 @@ from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from oneqa.mrc.metrics.mlqa.mlqa import MLQA
+from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from oneqa.mrc.models.task_model import ModelForDownstreamTasks
 from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
 
 
@@ -75,6 +80,10 @@ class ModelArguments:
     cache_dir: Optional[str] = field(
         default=None,
         metadata={"help": "Path to directory to store the pretrained models downloaded from huggingface.co"},
+    )
+    confidence_model_path: str = field(
+        default=None,
+        metadata={"help": "Path to the confidence calibration model"}
     )
 
 
@@ -190,26 +199,39 @@ class TaskArguments:
     task_heads: object_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
-                  "choices": [EXTRACTIVE_HEAD]
+                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD]
                   }
     )
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor]
+                  "choices": [ExtractivePostProcessor,SQUADPostProcessor,MLQAPostProcessor]
                   }
     )
-    eval_metrics: object_reference = field(
-        default=TyDiF1,
-        metadata={"help": "The name of the evaluation metric function.",
-                  "choices": [TyDiF1]
+    eval_metrics: str = field(
+        default="TyDiF1",
+        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
+                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
+                  "choices": ["TyDiF1","squad","MLQA"]
                  }
+    )
+    output_dropout_rate: float = field(
+        default=0.25,
+        metadata={"help": "The dropout probability applied to LM output in "
+                          "order to generate confidence calibration features."
+                  },
+    )
+    decoding_times_with_dropout: int = field(
+        default=5,
+        metadata={"help": "The number of decoding times to generate confidence "
+                          "calibration features with dropout."
+                  },
     )
 
     def __post_init__(self):
@@ -257,6 +279,10 @@ def main():
         use_fast=True,
         config=config,
     )
+
+    config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
+    config.output_dropout_rate = task_args.output_dropout_rate
+    config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
     model = ModelForDownstreamTasks.from_config(
         config,
         model_args.model_name_or_path,
@@ -323,9 +349,14 @@ def main():
         max_answer_length=data_args.max_answer_length,
         scorer_type=SupportedSpanScorers(scorer_type),
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
+        confidence_model_path=model_args.confidence_model_path,
+        output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
-    eval_metrics = task_args.eval_metrics()
+    if task_args.eval_metrics in datasets.list_metrics():
+        eval_metrics = datasets.load_metric(task_args.eval_metrics)
+    else:
+        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
