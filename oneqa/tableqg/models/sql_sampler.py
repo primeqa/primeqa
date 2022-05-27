@@ -386,6 +386,7 @@ class SimpleSqlSampler():
         if num_samples_per_table % sample_batch_size != 0:
             sample_size_list.append(num_samples_per_table % sample_batch_size)
 
+        all_sql_str_list = []
         all_sql_list = []
         # for table in tqdm(table_list):
         for i, table in enumerate(table_list):
@@ -399,12 +400,12 @@ class SimpleSqlSampler():
 
                 # if to use ineq.
                 if_ineq = np.random.choice(2, 1, True, [1-ineq_prob, ineq_prob])[0]
-                sql_list, _ = self.sample_sql(table, num_samples,
+                sql_str_list, sql_list = self.sample_sql(table, num_samples,
                                     num_where, agg_op, if_ineq)
 
                 num_trials = 0
-                while len(sql_list) < num_samples:
-                    diff = num_samples - len(sql_list)
+                while len(sql_str_list) < num_samples:
+                    diff = num_samples - len(sql_str_list)
                     # print('agg =', agg_op, ' and nw=', num_where)
                     # print('diff', diff)
                     if 'real' not in table['types'] and agg_op != 0:
@@ -421,8 +422,10 @@ class SimpleSqlSampler():
                             agg_op = 0
                     elif num_where == 1 and agg_op == 0:
                         agg_op = np.random.choice([1, 2, 3, 4, 5])
-                    diff_sql_list = self.sample_sql(
-                        table, diff, num_where, agg_op, if_ineq)
+                    diff_sql_str_list, diff_sql_list = self.sample_sql(
+                                        table, diff, num_where, agg_op, if_ineq)
+                    
+                    sql_str_list.extend(diff_sql_str_list)
                     sql_list.extend(diff_sql_list)
 
                     num_trials += 1
@@ -430,5 +433,6 @@ class SimpleSqlSampler():
                         print('Unsuccessful.')
                         break
 
+                all_sql_str_list.extend(sql_str_list)
                 all_sql_list.extend(sql_list)
-        return all_sql_list
+        return all_sql_str_list, all_sql_list

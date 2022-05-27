@@ -8,9 +8,11 @@ from oneqa.tableqg.processors.table_data import QGDataLoader
 import torch
 from dataclasses import dataclass,field
 from oneqa.tableqg.models.tableqg_model import TableQG
+from oneqa.tableqg.models.inference import QGGeneration
 from oneqa.tableqg.trainers.qg_trainer import QGTrainer
 from typing import Optional, List, Dict
 
+import json
 import logging
 import os
 logger = logging.getLogger(__name__)
@@ -60,11 +62,44 @@ class TableQGTrainingArguments(TrainingArguments):
     """
     Arguments pertraining to model training hyperparameters
     """
+    num_cores: Optional[int] = field(
+        default=1, metadata={"help":"Number of cpu cores to use"}
+    )
+    n_gpu: Optional[int] = field(
+        default=1, metadata={"help": "Number of gpus to train on"}
+    )
+    per_gpu_train_batch_size: int = field(
+        default=8, metadata={"help": "Train Batch size per gpu"}
+    )
+    per_gpu_eval_batch_size: int = field(
+        default=8, metadata={"help": "Dev batch size per gpu"}
+    ) 
+    gradient_accumulation_steps: Optional[int] = field(
+        default=4, metadata={"help": "Gradient acculation steps "}
+    )
+    learning_rate: Optional[float]= field(
+        default=0.0001, metadata={"help": "Learning rate to be used during training the model"}
+    )
+    num_train_epochs:int = field(
+        default=4, metadata={"help": "Numbers of epochs to train the model"}
+    )
+    do_train:Optional[bool] = field(
+        default=False, metadata={"help": "Whether to train the model or not"}
+    )
+    do_eval:Optional[bool] = field(
+        default=False,metadata={"help": "run evaluation on dev set"}
+    )
+    do_predict:Optional[bool] = field(
+        default=False, metadata={"help": "Generate model prediction on test set"}
+    )
+    remove_unused_columns:Optional[bool] = field(
+        default=False, metadata={"help": ""}
+    )
     prediction_loss_only:Optional[bool] = field(
         default=True, metadata={"help": ""}
     )
     output_dir:Optional[str] = field(
-        default='./models/', metadata={"help": "Models and checkpoints will be saved here"}
+        default='./models/tableqg/sample_run/', metadata={"help": "Models and checkpoints will be saved here"}
     )
 
 @dataclass
@@ -108,23 +143,23 @@ class InferenceArguments:
         default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
     )
     tables_path:str = field(
-        default='', metadata={"help": "Path to JSON file with LIST of tables. Each table \
+        default='examples/tableqg/sample_table.json', metadata={"help": "Path to JSON file with LIST of tables. Each table \
                               should be a dict with keys 'header' and 'rows'."}
     )
-    gen_output_dir: Optional[str] = field(
-        default='./generated_questions/', metadata={"help": "directory where generated questions will be saved"} 
+    gen_output_path: Optional[str] = field(
+        default='./generated_questions/sample_questions.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
     )
     
 
 def main():
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TableQGTrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TableQGTrainingArguments, InferenceArguments))
 
     # We need to load the config hyperparameter from args file path
     if os.path.exists(os.path.abspath('args.json')):
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
+        model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
     
     if (
         os.path.exists(training_args.output_dir)
@@ -174,8 +209,36 @@ def main():
     if training_args.do_train:
         trainer.train(
         model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
-    )
-    trainer.save_model()
+        )
+        trainer.save_model()
+    
+    if inference_args.do_generate:
+        qgen = QGGeneration(model_args.model_name_or_path)
+        num_samples_per_table = inference_args.num_samples_per_table
+        
+        # aggregates
+        agg_prob = [1., 0., 0., 0., 0., 0.]
+        if inference_args.generate_aggregate:
+            agg_prob = [0., 0.2, 0.2, 0.2, 0.2, 0.2]
+        
+        # where clauses
+        where_prob = [0.]*5
+        for i in range(1, 5):
+            if i <= inference_args.max_where_clauses:
+                where_prob [i] = 1.
+        where_prob = [w/sum(where_prob) for w in where_prob]
+
+        with open(inference_args.tables_path) as fp:
+            table_list = json.load(fp)
+        
+        generated_questions = qgen.generate_questions(
+                                table_list,
+                                inference_args.num_samples_per_table,
+                                agg_prob,
+                                where_prob
+                                )
+        with open(inference_args.gen_output_path) as fp:
+            json.dump(generated_questions, fp)
 
     # Evaluation
     results = {}
