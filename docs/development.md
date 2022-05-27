@@ -46,15 +46,29 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 - Method Names and Instance Variables follows the function naming rules: lowercase with words separated by underscores as necessary to improve readability (i.e. snake_case).
 - Use one leading underscore only for non-public methods and instance variables (e.g. _private_attr).
 - Constants are usually defined on a module level and written in all capital letters with underscores separating words. 
-  - Examples include MAX_OVERFLOW and TOTAL. (from [pep8 guidelines](https://peps.python.org/pep-0008/#class-names))
+  - Examples include MAX_OVERFLOW and TOTAL. (find more details from [pep8 guidelines](https://peps.python.org/pep-0008/#class-names))
 
 ### Folder Structure
 
-TODO pending [decision](https://zenhub.ibm.com/workspaces/oneqa-61eed731a578f53e48934109/issues/ai-foundation/oneqa/165).
+Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name is a meaningful presentation of the functionality being added. Foe example: /oneqa/mrc/  , /oneqa/ir and so on.
+before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
+Inside each functional folder, the code should be organized across common folder structure in OneQA as mentioned below:
+data_models: codes relating to I/O format for different tasks/models.
+processors: should have all data pre/post processors needed to convert user I/O to model I/O
+models: modular functions related to model usage across different tasks e.g. using the trainer and/or using the (pre-)trained models.
+trainers: main trainer module to train the functionality.
+metrics: evaluation scripts to add support for different datasets.
+any other helper functions, utilities might come under a /utils folder inside /oneqa/<functional_folder>/ . This is to be done only if the existing common folder structures (as stated above) do not match the purpose of the util functions. 
+In addition to the resspective functional folders, oneqa should have a common folder that hosts functionalities common across all the oneqa contributions such as the base methods in OneQA described next.
+
+### Base methods in OneQA:
+class OneQATrainer(transformers.Trainer)  # subclass HF Trainer
+train: OneQATrainer.train() method which can be extended by individual task trainers.
+evaluate: OneQATrainer.evaluate() method which can be extended by individual task evaluators. 
+Every new OneQA contribution (e.g. QG, Re2G, ListQA etc.) should subclass OneQATrainer for its trainer
+ Common HF interfaces (likes of train(), evaluate() etc. ) should be used through OneQA core classes instead of directly from HF.  
 
 ### Design Conventions
-
-TODO pending [decision](https://zenhub.ibm.com/workspaces/oneqa-61eed731a578f53e48934109/issues/ai-foundation/oneqa/165).
 
 Use the standard `logging` library over `print` calls.
 Further, when creating classes whose methods need logging, create a 
