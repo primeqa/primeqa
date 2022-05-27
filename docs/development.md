@@ -129,4 +129,4 @@ An example for MRC on Tydi is here: https://github.ibm.com/ai-foundation/OneQA/b
 
 #### Documentation Pages
 Documentation pages (such as this one) are generated from a collection of Markdown files located
-in `docs`. It also contains a subfolder calles `img` which contains (legally usable) images (if any) needed for documentation purposes.
+in `docs`. It also contains a subfolder calles `img` which contains (legally usable) images (if any) needed for documentation purposes. 
