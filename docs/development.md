@@ -48,7 +48,7 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 - Constants are usually defined on a module level and written in all capital letters with underscores separating words. 
   - Examples include MAX_OVERFLOW and TOTAL. (find more details from [pep8 guidelines](https://peps.python.org/pep-0008/#class-names))
 
-### Folder Structure
+### Folder Structure 
 
 - Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name should be a meaningful presentation of the functionality being added. For example: /oneqa/mrc/  , /oneqa/ir and so on.
 - Before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
@@ -59,7 +59,11 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
   - trainers: main trainer module to train the functionality.
   - metrics: evaluation scripts to add support for different datasets.
   - any other helper functions, utilities might come under a /utils folder inside /oneqa/<functional_folder>/ . This is to be done only if the existing common folder structures (as stated above) do not match the purpose of the util functions. 
-- In addition to the resspective functional folders, oneqa should have a common folder that hosts functionalities common across all the oneqa contributions such as the base methods in OneQA described next.
+- [ToDo] In addition to the resspective functional folders, oneqa should have a common folder that hosts functionalities common across all the oneqa contributions such as the base methods in OneQA described in the next section.
+- Note: OneQA has some task agnostic folders in its base such as 
+  - /docs: contains the documentations (such as this one).
+  - /examples: Sample commands to run each functionality. 
+  - /notebooks: Example notebook demonstrating the usage of each functionality. 
 
 ### Base methods in OneQA:
 - class OneQATrainer(transformers.Trainer)  # subclass HF Trainer
@@ -100,8 +104,13 @@ sphinx-build -b html ./ ./generated/
 Docstrings are used to generate the API reference. 
 OneQA Docstrings follow the Google convention. 
 See [Sec. 3.8](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) for more details.
+Such doctrings can be used to auto-generate code comments using Sphinx tool (Example: https://www.sphinx-doc.org/en/master/usage/extensions/example_google.html)
 
 If you are using PyCharm, this docstring style can be selected from: `File --> Settings --> Tools --> Python Integrated Tools`.
+
+#### Notebooks: 
+Each contribution should have an easy to use notebook that exemplifiess how to instantiate and use the functionality. 
+An example for MRC on Tydi is here: https://github.ibm.com/ai-foundation/OneQA/blob/master/notebooks/mrc/tydiqa.ipynb
 
 #### Documentation Pages
 Documentation pages (such as this one) are generated from a collection of Markdown files located
