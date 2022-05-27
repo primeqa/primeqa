@@ -1,6 +1,6 @@
 import logging
 import torch
-from oneqa.util.transformers.hypers_base import HypersBase
+from oneqa.util.transformers_utils.hypers_base import HypersBase
 
 logger = logging.getLogger(__name__)
 

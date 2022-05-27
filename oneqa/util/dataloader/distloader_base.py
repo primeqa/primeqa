@@ -3,8 +3,8 @@ import random
 import os
 import glob
 import torch
-from oneqa.util.transformers.hypers_base import HypersBase
-from oneqa.util.line_corpus import jsonl_lines, read_open
+from oneqa.util.transformers_utils.hypers_base import HypersBase
+from oneqa.util.file_utils import jsonl_lines, read_open
 from typing import Iterable
 import ujson as json
 from typing import List

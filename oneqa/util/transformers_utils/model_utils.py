@@ -2,7 +2,7 @@ import logging
 import torch
 import os
 from transformers import PreTrainedTokenizer
-from oneqa.util.transformers.hypers_base import HypersBase
+from oneqa.util.transformers_utils.hypers_base import HypersBase
 
 logger = logging.getLogger(__name__)
 

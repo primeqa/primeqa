@@ -2,9 +2,9 @@ import logging
 import torch
 import numpy as np
 import ujson as json
-from oneqa.util.line_corpus import jsonl_lines
+from oneqa.util.file_utils import jsonl_lines
 from oneqa.util.dataloader.distloader_base import MultiFileLoader, DistBatchesBase, sentence_to_inputs
-from oneqa.util.transformers.hypers_base import HypersBase
+from oneqa.util.transformers_utils.hypers_base import HypersBase
 from typing import List
 import traceback
 

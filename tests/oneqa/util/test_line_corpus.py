@@ -1,4 +1,4 @@
-from oneqa.util.line_corpus import expand_files, block_shuffle, np2str, str2np, gzip_str, gunzip_str, \
+from oneqa.util.file_utils import expand_files, block_shuffle, np2str, str2np, gzip_str, gunzip_str, \
     read_lines, read_open, write_open, ShuffledWriter, shuffled_writer, jsonl_lines
 import numpy as np
 import os

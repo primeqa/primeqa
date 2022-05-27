@@ -5,13 +5,13 @@ try:
     from apex import amp
 except ModuleNotFoundError:
     pass
-from oneqa.util.transformers.hypers_base import HypersBase
+from oneqa.util.transformers_utils.hypers_base import HypersBase
 from oneqa.util.reporting import Reporting
 from transformers import (
     AdamW,
     get_linear_schedule_with_warmup,
 )
-from oneqa.util.transformers.distributed import reduce
+from oneqa.util.transformers_utils.torch_utils import reduce
 
 logger = logging.getLogger(__name__)
 
