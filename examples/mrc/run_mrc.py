@@ -98,8 +98,8 @@ class DataTrainingArguments:
     eval_file: Optional[str] = field(
         default=None, metadata={"help": "local file(s) to test on in tydi google format."}
     )
-    data_file_format: Optional[str] = field(
-        default="json", metadata="the format of the local dataset files (json, csv, text, pandas)"
+    data_file_format: str = field(
+        default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
@@ -293,22 +293,18 @@ def main():
     # load data
     logger.info('Loading dataset')
     if data_args.train_file is not None or data_args.eval_file is not None:
+        data_files = {}
+
         if data_args.train_file is not None: 
-            train_files = glob.glob(data_args.train_file)   
+            train_files = glob.glob(data_args.train_file)
+            data_files['train'] = train_files 
         if data_args.eval_file is not None: 
             eval_files = glob.glob(data_args.eval_file)
-        if data_args.eval_file is None:
-                raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-                data_files={'train':train_files},
-                cache_dir=model_args.cache_dir)
-        elif data_args.train_file is None:
-                raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-                data_files={'validation':eval_files},
-                cache_dir=model_args.cache_dir)
-        else:
-            raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-                data_files={'train':train_files,'validation':eval_files},
-                cache_dir=model_args.cache_dir)
+            data_files['validation'] = eval_files
+
+        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+            data_files=data_files,
+            cache_dir=model_args.cache_dir)
     else:
         raw_datasets = datasets.load_dataset(
             data_args.dataset_name,
