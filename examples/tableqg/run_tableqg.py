@@ -147,7 +147,7 @@ class InferenceArguments:
                               should be a dict with keys 'header' and 'rows'."}
     )
     gen_output_path: Optional[str] = field(
-        default='./generated_questions/sample_questions.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
+        default='examples/tableqg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
     )
     
 
@@ -194,18 +194,19 @@ def main():
     model = tqg.model
     tokenizer = tqg.tokenizer
 
-    qgdl = QGDataLoader(tokenizer,data_args)
-    train_dataset = qgdl.create("train")
-    valid_dataset = qgdl.create("validation")
+    if training_args.do_train or training_args.do_eval:
+        qgdl = QGDataLoader(tokenizer,data_args)
+        train_dataset = qgdl.create("train")
+        valid_dataset = qgdl.create("validation")
+        trainer = QGTrainer(
+            model=model,
+            tokenizer = tokenizer,
+            args=training_args,
+            train_dataset=train_dataset,
+            valid_dataset=valid_dataset,
+            data_collator=T2TDataCollator()
+        )
 
-    trainer = QGTrainer(
-        model=model,
-        tokenizer = tokenizer,
-        args=training_args,
-        train_dataset=train_dataset,
-        valid_dataset=valid_dataset,
-        data_collator=T2TDataCollator()
-    )
     if training_args.do_train:
         trainer.train(
         model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
@@ -214,7 +215,6 @@ def main():
     
     if inference_args.do_generate:
         qgen = QGGeneration(model_args.model_name_or_path)
-        num_samples_per_table = inference_args.num_samples_per_table
         
         # aggregates
         agg_prob = [1., 0., 0., 0., 0., 0.]
@@ -237,7 +237,7 @@ def main():
                                 agg_prob,
                                 where_prob
                                 )
-        with open(inference_args.gen_output_path) as fp:
+        with open(inference_args.gen_output_path, 'w') as fp:
             json.dump(generated_questions, fp)
 
     # Evaluation
