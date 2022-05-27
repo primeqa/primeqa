@@ -1,6 +1,6 @@
-import numpy as np
-from copy import deepcopy
 import math
+from copy import deepcopy
+import numpy as np
 from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
 
 class SimpleSqlSampler():
@@ -8,7 +8,8 @@ class SimpleSqlSampler():
         if tokenizer_name == 'T5':
             self.tokens = T5SpecialTokens
 
-    def add_column_types(self, table):
+    @staticmethod
+    def add_column_types(table):
         # adds a type list to the table dict:
         # type is either 'real' or 'text', the list corresponds to columns in the table
 
@@ -25,7 +26,7 @@ class SimpleSqlSampler():
                 except ValueError:
                     # if not able to convert string to float in any cell the whole column is 'text'
                     types[i] = 'text'
-        
+
         # converting str to float for real columns
         for r in range(len(rows)):
             for i in range(len(header)):
@@ -38,7 +39,6 @@ class SimpleSqlSampler():
         return table
 
     def sql_execution(self, where_clause, select_column, agg_op, table):
-        
         selected_cells = []
         for row_id in where_clause['rows']:
             selected_cells.append(table['rows'][row_id][select_column])
@@ -63,8 +63,9 @@ class SimpleSqlSampler():
             answer = [sum(selected_cells)/len(selected_cells)]
         
         return answer
-
-    def _get_inequality_conds(self, col, num_conditions=5):
+    
+    @staticmethod
+    def _get_inequality_conds(col, num_conditions=5):
         unique_set = np.unique(col)
         conds_list = []
 
@@ -81,8 +82,9 @@ class SimpleSqlSampler():
             if len(greater_id_list) > 0:
                 conds_list.append([str(val), 1, greater_id_list])
 
-        # Many inequality conditions can be generated for a real column. This makes it computationally expensive
-        # later when creating multiple where clauses. We will sample inequalities here for that reason.
+        # Many inequality conditions can be generated for a real column. This makes
+        # it computationally expensive later when creating multiple where clauses. 
+        # We will sample inequalities here for that reason.
         sampled_idx = np.random.choice(len(conds_list), min(
             num_conditions, len(conds_list)), replace=False)
         sampled_conds_list = [conds_list[i] for i in sampled_idx]
@@ -124,7 +126,7 @@ class SimpleSqlSampler():
             cols_list.append(clist)
         return cols_list
 
-
+    
     def _check_condition(self, conds, cols_list):
         all_rows = []
         for c in conds:
@@ -146,7 +148,6 @@ class SimpleSqlSampler():
                 return False
         return True
 
-
     def _get_unique_conditions(self, wlist):
         wdict = {}
         for wc in wlist:
@@ -156,7 +157,6 @@ class SimpleSqlSampler():
         for key in wdict:
             wlist.append(wdict[key])
         return wlist
-
 
     def get_where_clauses(self, table, num_where=2, if_ineq=False):
         cols_list = self._get_column_freq(table, if_ineq)
@@ -233,8 +233,7 @@ class SimpleSqlSampler():
             where_dict['nw-4'] = where4_list
         return where_dict
 
-
-    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False, dont_use_col=[]):
+    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False):
         header = table['header']
         types = table['types']
 
