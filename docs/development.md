@@ -50,6 +50,7 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 
 ### Folder Structure
 
+<<<<<<< HEAD
 - Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name should be a meaningful presentation of the functionality being added. For example: /oneqa/mrc/  , /oneqa/ir and so on.
 - Before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
 - Inside each functional folder, the code should be organized across common folder structure in OneQA as mentioned below:
@@ -67,6 +68,25 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
 - evaluate: OneQATrainer.evaluate() method which can be extended by individual task evaluators. 
 - Every new OneQA contribution (e.g. QG, Re2G, ListQA etc.) should subclass OneQATrainer for its trainer
 - Common HF interfaces (likes of train(), evaluate() etc. ) should be used through OneQA core classes instead of directly from HF.  
+=======
+Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name is a meaningful presentation of the functionality being added. Foe example: /oneqa/mrc/  , /oneqa/ir and so on.
+before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
+Inside each functional folder, the code should be organized across common folder structure in OneQA as mentioned below:
+data_models: codes relating to I/O format for different tasks/models.
+processors: should have all data pre/post processors needed to convert user I/O to model I/O
+models: modular functions related to model usage across different tasks e.g. using the trainer and/or using the (pre-)trained models.
+trainers: main trainer module to train the functionality.
+metrics: evaluation scripts to add support for different datasets.
+any other helper functions, utilities might come under a /utils folder inside /oneqa/<functional_folder>/ . This is to be done only if the existing common folder structures (as stated above) do not match the purpose of the util functions. 
+In addition to the resspective functional folders, oneqa should have a common folder that hosts functionalities common across all the oneqa contributions such as the base methods in OneQA described next.
+
+### Base methods in OneQA:
+class OneQATrainer(transformers.Trainer)  # subclass HF Trainer
+train: OneQATrainer.train() method which can be extended by individual task trainers.
+evaluate: OneQATrainer.evaluate() method which can be extended by individual task evaluators. 
+Every new OneQA contribution (e.g. QG, Re2G, ListQA etc.) should subclass OneQATrainer for its trainer
+ Common HF interfaces (likes of train(), evaluate() etc. ) should be used through OneQA core classes instead of directly from HF.  
+>>>>>>> a7fce7c5e9b1b2284e5542878a7a9c97fc11b2eb
 
 ### Design Conventions
 
