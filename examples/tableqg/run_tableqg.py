@@ -12,9 +12,7 @@ from oneqa.tableqg.trainers.qg_trainer import QGTrainer
 from typing import Optional, List, Dict
 
 import logging
-
 import os
-
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -62,39 +60,6 @@ class TableQGTrainingArguments(TrainingArguments):
     """
     Arguments pertraining to model training hyperparameters
     """
-    num_cores: Optional[int] = field(
-        default=1, metadata={"help":"Number of cpu cores to use"}
-    )
-    n_gpu: Optional[int] = field(
-        default=1, metadata={"help": "Number of gpus to train on"}
-    )
-    per_gpu_train_batch_size: int = field(
-        default=8, metadata={"help": "Train Batch size per gpu"}
-    )
-    per_gpu_eval_batch_size: int = field(
-        default=8, metadata={"help": "Dev batch size per gpu"}
-    ) 
-    gradient_accumulation_steps: Optional[int] = field(
-        default=4, metadata={"help": "Gradient acculation steps "}
-    )
-    learning_rate: Optional[float]= field(
-        default=0.0001, metadata={"help": "Learning rate to be used during training the model"}
-    )
-    num_train_epochs:int = field(
-        default=4, metadata={"help": "Numbers of epochs to train the model"}
-    )
-    do_train:Optional[bool] = field(
-        default=True, metadata={"help": "Whether to train the model or not"}
-    )
-    do_eval:Optional[bool] = field(
-        default=True,metadata={"help": "run evaluation on dev set"}
-    )
-    do_predict:Optional[bool] = field(
-        default=False, metadata={"help": "Generate model prediction on test set"}
-    )
-    remove_unused_columns:Optional[bool] = field(
-        default=False, metadata={"help": ""}
-    )
     prediction_loss_only:Optional[bool] = field(
         default=True, metadata={"help": ""}
     )
@@ -128,7 +93,28 @@ class DataTrainingArguments:
         metadata={"help": "Max input length for the target text"},
     )
 
-
+@dataclass
+class InferenceArguments:
+    do_generate: Optional[bool] = field(
+        default=False, metadata={"help": "Whether to generate."}
+    )
+    num_samples_per_table: Optional[int] = field(
+        default=5, metadata={"help": "Number of questions to generate per table"}
+    )
+    max_where_clauses: Optional[int] = field(
+        default=1, metadata={"help": "Max number of filters in generated question"}
+    )
+    generate_aggregate: Optional[bool] = field(
+        default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
+    )
+    tables_path:str = field(
+        default='', metadata={"help": "Path to JSON file with LIST of tables. Each table \
+                              should be a dict with keys 'header' and 'rows'."}
+    )
+    gen_output_dir: Optional[str] = field(
+        default='./generated_questions/', metadata={"help": "directory where generated questions will be saved"} 
+    )
+    
 
 def main():
 
@@ -179,6 +165,7 @@ def main():
 
     trainer = QGTrainer(
         model=model,
+        tokenizer = tokenizer,
         args=training_args,
         train_dataset=train_dataset,
         valid_dataset=valid_dataset,
