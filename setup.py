@@ -32,6 +32,7 @@ _deps = {
     "click~=8.0.4": ["install"],
     "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
+    "myst-parser~=0.17.2": ["docs"],
     "faiss-cpu~=1.7.2": ["install"], 
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],

@@ -49,7 +49,8 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
   - Examples include MAX_OVERFLOW and TOTAL. (find more details from [pep8 guidelines](https://peps.python.org/pep-0008/#class-names))
 
 
-### Folder Structure
+### Folder Structure 
+
 - Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name should be a meaningful presentation of the functionality being added. For example: /oneqa/mrc/  , /oneqa/ir and so on.
 - Before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
 - Inside each functional folder, the code should be organized across common folder structure in OneQA as mentioned below:
