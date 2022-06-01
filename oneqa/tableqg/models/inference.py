@@ -14,7 +14,7 @@ class QGGeneration:
 		
 		input_ids = self.tqg.tokenizer(sql_string_list, 
 			return_tensors='pt', 
-			pad_to_max_length=True, 
+			padding='max_length', 
 			truncation=True).input_ids
 
 		generated_ids = self.tqg.model.generate(input_ids,
