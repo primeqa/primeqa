@@ -7,7 +7,7 @@ from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
 
 class SQUADPreprocessor(BasePreProcessor):
     """
-    Preprocessor for TyDi QA data.
+    Preprocessor for the SQuAD 1.1 data.
     Note this preprocessor only supports `single_context_multiple_passages=True` and will
     override the value accordingly.
     """
@@ -27,8 +27,7 @@ class SQUADPreprocessor(BasePreProcessor):
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         dataset = dataset.map(self._augment_examples,
-                              #load_from_cache_file=self._load_from_cache_file,
-                              load_from_cache_file=False,
+                              load_from_cache_file=self._load_from_cache_file,
                               num_proc=self._num_workers
                               )
         dataset = super().adapt_dataset(dataset, is_train)
@@ -39,7 +38,6 @@ class SQUADPreprocessor(BasePreProcessor):
         """Rename examples from SQUAD schema to `BasePreProcessor` schema."""
         
         example["example_id"] = example.pop("id")
-        example["language"] = "english"
         
         target = example.pop('answers')
         target["start_positions"] = target.pop("answer_start")

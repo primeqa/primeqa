@@ -39,6 +39,7 @@ Download Java 11 package from https://jdk.java.net/archive/ and uncompress
 Set JAVA_HOME:
 ```shell
 export JAVA_HOME=<jdk-dir>
+export PATH=$JAVA_HOME/bin:$PATH
 ```
 
 ## Unit Tests
