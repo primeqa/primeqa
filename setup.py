@@ -9,7 +9,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-
+    
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
@@ -27,24 +27,44 @@ authors = [
 ]
 
 _deps = {
+    "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
+    "click~=8.0.4": ["install"],
+    "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
+    "faiss-cpu~=1.7.2": ["install"], 
+    "faiss-gpu~=1.7.2": ["install"],
+    "gitpython~=3.1.27": ["install"],
+    "ipykernel~=6.13.0": ["notebooks"],
+    "ipywidgets~=7.7.0": ["notebooks"],
+    "jsonlines~=3.0.0": ["install"],
+    "nltk~=3.7": ["install"],
+    "numpy~=1.21.5": ["install"],
     "packaging~=21.3": ["install"],
+    "pandas~=1.3.5": ["install"],
+    "psutil~=5.9.0": ["install"],
     "pydata-sphinx-theme~=0.8.0": ["docs"],
+    "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
     "pytest-rerunfailures~=10.2": ["tests"],
+    "scikit-learn~=1.0.2": ["install"],
+    "signals~=0.0.2": ["install"],
+    "spacy~=3.2.2": ["install"],
     "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
+    "tqdm~=4.64.0": ["install"],
+    "transformers~=4.17.0": ["install"],
+    "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"]
 }
 
-extras_names = ["docs", "dev", "install", "tests"]
+extras_names = ["docs", "dev", "install", "notebooks", "tests"]
 extras = {extra_name: [] for extra_name in extras_names}
 for package_name, package_required_by in _deps.items():
     if not package_required_by:
