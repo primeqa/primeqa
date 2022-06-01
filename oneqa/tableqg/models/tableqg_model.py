@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer,AutoModelWithLMHead
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 class TableQG():
     def __init__(self,model_path):
@@ -8,7 +8,7 @@ class TableQG():
         Args:
             model_path (String): Either Name of the model or the path to the pre-trained model
         """        
-        self._model = AutoModelWithLMHead.from_pretrained(model_path)
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
     
     @property

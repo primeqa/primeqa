@@ -392,7 +392,6 @@ class SimpleSqlSampler():
         for i, table in enumerate(table_list):
             if 'types' not in table:
                 table = self.add_column_types(table)
-            print(i, len(table['rows']), '\n'+str(table['types']))
             for num_samples in sample_size_list:
                 agg_op = np.random.choice(len(agg_prob), 1, True, agg_prob)[0]
                 num_where = np.random.choice(
@@ -406,8 +405,6 @@ class SimpleSqlSampler():
                 num_trials = 0
                 while len(sql_str_list) < num_samples:
                     diff = num_samples - len(sql_str_list)
-                    # print('agg =', agg_op, ' and nw=', num_where)
-                    # print('diff', diff)
                     if 'real' not in table['types'] and agg_op != 0:
                         agg_op = 0
                     elif num_where > 1:
