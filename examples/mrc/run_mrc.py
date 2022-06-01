@@ -93,10 +93,10 @@ class DataTrainingArguments:
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
     train_file: Optional[str] = field(
-        default=None, metadata={"help": "local file(s) to train on in tydi google format."}
+        default=None, metadata={"help": "local file(s) to train on."}
     )
     eval_file: Optional[str] = field(
-        default=None, metadata={"help": "local file(s) to test on in tydi google format."}
+        default=None, metadata={"help": "local file(s) to test on."}
     )
     data_file_format: str = field(
         default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
