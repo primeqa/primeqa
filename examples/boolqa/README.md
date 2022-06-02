@@ -7,6 +7,7 @@ As a single command line argument in `run_mrc.py` to run all steps:
 python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
        --do_boolean \
+       --boolean_config ${BOOLEAN_CONFIG_FILE} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 or step-by-step.
