@@ -12,10 +12,15 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
 or step-by-step.
 The output of each individual step is analyzed in more detail [here](../../notebooks/boolqa/eval_predictions.ipynb)
 
-## MRC
+## Machine Reading Comprehension
+
+The machine reading comprehension differs from the default invocation of `run_mrc.py` (see [readme](../mrc/README.md))
+in two ways.  First we provide a pretrained model that has been exposed to passage answer spans for boolean questions (the TydiQA
+dataset does not provide short answers).  Second, the postprocessor provides additional information (language, question)
+needed by the downstream components
 
 ```shell
-            python examples/mrc/run_mrc.py --model_name_or_path {mrcmodel} \
+python examples/mrc/run_mrc.py --model_name_or_path {mrcmodel} \
         --output_dir {ws}/mrc/ --fp16 --learning_rate 4e-5 \
         --do_eval --per_device_train_batch_size 16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
@@ -24,7 +29,10 @@ The output of each individual step is analyzed in more detail [here](../../noteb
         --postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 ```
 
-## QTC
+## Question type classification
+
+Given a question (obtained from the `eval_predictions.json` file created in the previous step, predict
+whether the question is `boolean` or `short_answer`.
 
 ```shell
     python examples/boolqa/run_nway_classifier_1qa.py \
@@ -35,6 +43,10 @@ The output of each individual step is analyzed in more detail [here](../../noteb
     --output_dir {ws}/qtc
 ```
 ## EVC
+
+Given a question and the span predicted by the first step, predict whether the span supports
+a `yes` or `no` answer to question.  Both question and span are passed through the `eval_predictions.json`
+file output by the previous step.
 
 ```shell
     python examples/boolqa/run_nway_classifier_1qa.py \
