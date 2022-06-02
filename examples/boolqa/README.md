@@ -11,10 +11,10 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
 ```
 or step-by-step.
 There are four stages in the process:
-MRC (machine reading comprehension) - given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
-QTC (question type classifier) - given the question, decide if it is boolean or short_answer
-EVC (evidence classifier) - given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
-Score normalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
+- **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
+- **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
+- **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
+- **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
 The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb)
 
 ## Machine Reading Comprehension
