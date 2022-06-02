@@ -35,6 +35,16 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
+For eval-only with support for boolean questions (for [details](../boolqa/README.md)):
+```shell
+python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
+       --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
+       --do_boolean \
+       --per_device_eval_batch_size 128 --overwrite_output_dir
+```
+
+
+
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
       --output_dropout_rate 0.25 \
