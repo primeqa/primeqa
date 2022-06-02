@@ -14,7 +14,7 @@ There are four stages in the process:
 - **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
 - **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
-- **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
+- **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb)
 
 ## Machine Reading Comprehension
@@ -65,7 +65,7 @@ file output by the previous step.  The details of this process are analyzed in t
 
 ## Score normalization
 
-Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
+Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 and output a file suitable for the tydi evaluation script.
 
 ```shell
