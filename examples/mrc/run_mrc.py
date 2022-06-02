@@ -241,7 +241,8 @@ class TaskArguments:
     )
     verbose: bool = field(
         default=False,
-        metadata={"help": "Prints evaluation output if true"}
+        metadata={"help": "Prints logging info if true (including evaluation output)"}
+    )
     output_dropout_rate: float = field(
         default=0.25,
         metadata={"help": "The dropout probability applied to LM output in "
@@ -271,6 +272,8 @@ def main():
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
     logger = logging.getLogger(__name__)
+    if task_args.verbose:
+        logging.basicConfig(level = logging.INFO)
     scorer_type = task_args.scorer_type
     set_seed(training_args.seed)
 
