@@ -18,6 +18,37 @@ There are four stages in the process:
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb)
 
+## Configuration file
+
+The configuration file contains the parameters for each of the post-MRC steps
+```
+{
+    "qtc": {
+        "task_name": "qtc",
+        "overwrite_cache": true,
+        "model_name_or_path": ${QTC_MODEL_LOCATION},
+        "test_file": "${MRC_OUTPUT_DIR}/eval_predictions.json",
+        "output_dir": "${QTC_OUTPUT_DIR}"
+    },
+    "esc": {
+        "task_name": "evc",
+        "overwrite_cache": true,
+        "max_seq_length": 500,
+        "drop_label": "NONE",
+        "model_name_or_path": ${EVC_MODEL_LOCATION},
+        "test_file": "${QTC_OUTPUT_DIR}/eval_predictions.json",
+        "output_dir": "${EVC_OUTPUT_DIR}
+    },
+    "sn": {
+        "model_name_or_path": "${SN_MODEL_LOCATION}",
+        "test_file": "${EVC_OUTPUT_DIR}/eval_predictions.json",
+        "output_dir": "${SN_OUTPUT_DIR}"
+    }
+```
+and consists of blocks that correspond to command line arguments of the individual steps (see below.)
+
+
+
 ## Machine Reading Comprehension
 
 The machine reading comprehension differs from the default invocation of `run_mrc.py` (see [readme](../mrc/README.md))
