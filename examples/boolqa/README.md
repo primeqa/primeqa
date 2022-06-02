@@ -18,6 +18,9 @@ There are four stages in the process:
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb)
 
+Some of this system has been described in ["Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
+and TODO
+
 ## Configuration file
 
 The configuration file contains the parameters for each of the post-MRC steps
