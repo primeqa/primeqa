@@ -10,6 +10,11 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 or step-by-step.
+There are four stages in the process:
+MRC (machine reading comprehension) - given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
+QTC (question type classifier) - given the question, decide if it is boolean or short_answer
+EVC (evidence classifier) - given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
+Score normalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
 The output of each individual step is analyzed in more detail [here](../../notebooks/boolqa/eval_predictions.ipynb)
 
 ## Machine Reading Comprehension
@@ -42,7 +47,7 @@ whether the question is `boolean` or `short_answer`.
     --test_file {mrcfile} \
     --output_dir {ws}/qtc
 ```
-## EVC
+## Evidence classification
 
 Given a question and the span predicted by the first step, predict whether the span supports
 a `yes` or `no` answer to question.  Both question and span are passed through the `eval_predictions.json`
@@ -58,7 +63,10 @@ file output by the previous step.
     --output_dir {ws}/evc
 ```
 
-## SN
+## Score normalization
+
+Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to $[0,1]$.
+and output a file suitable for the tydi evaluation script.
 
 ```shell
     python examples/boolqa/merger_simple.py \
