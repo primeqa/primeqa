@@ -81,9 +81,9 @@ def main():
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
         --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
         --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no \
-        --max_eval_samples 100 \
         --postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
         '''
+#        --max_eval_samples 100 \
         systemx(cmd)
         #print(cmd)
 
@@ -107,8 +107,7 @@ def main():
     python examples/boolqa/run_nway_classifier_1qa.py \
     --task_name evc \
     --overwrite_cache \
-    --max_seq_length 500 \
-    --drop_label NONE \
+    --drop_label no_answer \
     --model_name_or_path {evcmodel} \
     --test_file {ws}/qtc/eval_predictions.json \
     --output_dir {ws}/evc
@@ -134,7 +133,7 @@ def main():
     
     if force_eval or not Path(eval_file).is_file():
         cmd=f'''
-        python ./oneqa/mrc/tydi_eval.py \
+        python  ../OneQA.bool_framewok/oneqa/mrc/tydi_eval.py \
             --qa_predictions_file {merge_prediction_file}
         '''
         eval=systemx(cmd).stdout
