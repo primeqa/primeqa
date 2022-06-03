@@ -51,12 +51,12 @@ def main():
            'yes_no_answer': qa_pred['yes_no_answer']
         }
         cnt += 1
-        question_label = 1 if qa_pred['question_type_pred'] == "YN" else 0
+        question_label = 1 if qa_pred['question_type_pred'] == "boolean" else 0
         # Update the prediction to be YES/NO
         if question_label == 1:
             bq += 1
             yes_answer = qa_pred['boolean_answer_pred']
-            if yes_answer == 'True': 
+            if yes_answer == 'yes': 
                 yq += 1
                 m['yes_no_answer'] = 3
             else: 

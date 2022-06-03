@@ -215,19 +215,16 @@ def main(raw_args):
 
     # TODO - externalize the labels, column names...
     if data_args.task_name=='qtc':
-        #datasets = load_dataset("csv", data_files=data_files, cache_dir=None, delimiter="\t")
-
         id_key='example_id'
         sentence1_key='sentence1'
         sentence2_key=None
-        label_list=['NONE','YN']
+        label_list=['short_answer','boolean']
         output_label_prefix='question_type'
     elif data_args.task_name=='evc':
-        #datasets = load_dataset("json", data_files=data_files, cache_dir=None)
         id_key='example_id'
         sentence1_key='question'
         sentence2_key='passage'
-        label_list=['False', 'NONE', 'True']
+        label_list=['no', 'no_answer', 'yes']
         output_label_prefix='boolean_answer'
     else:
         logger.warning('invalid task_name')
@@ -281,7 +278,7 @@ def main(raw_args):
     raw_datasets={}
     raw_datasets['validation']=create_dataset_from_run_mrc_output(data_args.test_file, unpack=False)
 
-    max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
+    #max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
     # load preprocessor
     preprocessor_class = NWayPreProcessor # TODO task_args.preprocessor
     preprocessor = preprocessor_class(
@@ -289,7 +286,7 @@ def main(raw_args):
         sentence2_key='span_answer_text' if sentence2_key else None,
         tokenizer=tokenizer,
         load_from_cache_file=not data_args.overwrite_cache,
-        max_seq_len=data_args.max_seq_length,
+        max_seq_len=tokenizer.model_max_length,
         padding=padding
     )
 

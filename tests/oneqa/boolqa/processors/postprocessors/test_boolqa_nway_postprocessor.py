@@ -1,11 +1,6 @@
 from datasets import Dataset
 import pytest
-import sys
 from pytest import raises
-from transformers import AutoTokenizer
-from itertools import groupby
-from operator import itemgetter
-from oneqa.mrc.data_models.target_type import TargetType
 import json
 
 import numpy as np
@@ -26,14 +21,15 @@ class TestExtractivePostProcessor(UnitTest):
     _features = Dataset.from_json('tests/resources/boolqa/processors/postprocessors/features.json')
     _expected_predictions=json.load(open('tests/resources/boolqa/processors/postprocessors/expected_predictions.json'))    
     _expected_processed_predictions=json.load(open('tests/resources/boolqa/processors/postprocessors/expected_processed_predictions.json'))
+    #------------------------------------------------------
     # sample data obtained with this embedded in process_references_and_predictions()
-    # Dataset.from_dict(examples[[0,5,-2]]).to_json('examples.json')
-    # Dataset.from_dict(features[[0,5,-2]]).to_json('features.json')
-    
+    # # Dataset.from_dict(examples[[0,5,-2]]).to_json('examples.json')
+    # # Dataset.from_dict(features[[0,5,-2]]).to_json('features.json')
+    #------------------------------------------------------
 
 
     def test_get_prediction_from_predict_scores_no_drop(self):
-        postprocessor_class = NWayClassifierPostProcessor  # TODO # taskargs.
+        postprocessor_class = NWayClassifierPostProcessor
         postprocessor = postprocessor_class(
             k=10, 
             drop_label=None,
@@ -45,7 +41,7 @@ class TestExtractivePostProcessor(UnitTest):
         assert(np.all(predictions==self._expected_predictions0))
 
     def test_get_prediction_from_predict_scores_drop(self):
-        postprocessor_class = NWayClassifierPostProcessor  # TODO # taskargs.
+        postprocessor_class = NWayClassifierPostProcessor 
         postprocessor = postprocessor_class(
             k=10, 
             drop_label='NONE',
@@ -58,7 +54,7 @@ class TestExtractivePostProcessor(UnitTest):
 
 
     def test_process_references_and_predictions(self):
-        postprocessor_class = NWayClassifierPostProcessor  # TODO # taskargs.
+        postprocessor_class = NWayClassifierPostProcessor
         postprocessor = postprocessor_class(
             k=10, 
             drop_label='NONE',

@@ -75,10 +75,22 @@ def create_dataset_from_run_mrc_output(mrcfn: str, unpack: bool) -> Dataset:
     """    
     with open(mrcfn) as mrcin:
         mrc=json.load(mrcin)
+    return create_dataset_from_json_str(mrc, unpack)
+
+def create_dataset_from_json_str(json_str: str, unpack: bool) -> Dataset:
+    """Converts the output of run_mrc.py (eval_predictions.json, not eval_predictions_processed.json)
+    into a Dataset for use with the classifiers
+
+    Args:
+        json_str (str): json encoding of the current state of eval_predictions
+
+    Returns:
+        Dataset : a dataset containing all of the fields in mrcfn as features, for the top-ranked answer
+    """    
 
     # python dict class preserves order >3.6 - assuming it still works inside json
     def read_mrc_inner():
-        for order, (key,vals) in enumerate(mrc.items()):
+        for order, (key,vals) in enumerate(json_str.items()):
             for rank,val in enumerate(vals):
                 if unpack:
                     val = unpack_target_type(val)
