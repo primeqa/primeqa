@@ -235,9 +235,9 @@ class TaskArguments:
         default=2,
         metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
     )
-    minimal_non_null_threshold: int = field(
+    span_non_null_threshold: int = field(
         default=2,
-        metadata={"help": "The minimal level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+        metadata={"help": "The span level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
     )
     verbose: bool = field(
         default=False,
@@ -399,7 +399,7 @@ def main():
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
             passage_non_null_threshold=task_args.passage_non_null_threshold, 
-            minimal_non_null_threshold=task_args.minimal_non_null_threshold,verbose=task_args.verbose)
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose)
 
     trainer = MRCTrainer(
         model=model,

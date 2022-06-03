@@ -19,6 +19,9 @@ _KWARGS_DESCRIPTION = """
 Args:
     predictions: Predicted labels.
     references: Ground truth labels.
+    passage_non_null_threshold: threshold for number of null annotations annotations to consider the passage answer as null (default=2)
+    span_non_null_threshold: threshold for number of null annotations annotations to consider the span answer as null (default=2)
+    verbose: dump reference and prediction for debugging purposes
     
 Returns: metrics dict comprising:
 
@@ -72,7 +75,7 @@ class TyDiF1(datasets.Metric):
             reference_urls=["https://github.com/google-research-datasets/tydiqa/blob/master/tydi_eval.py"],
         )
 
-    def _compute(self, *, predictions=None, references=None, passage_non_null_threshold=2, minimal_non_null_threshold=2, verbose=False, **kwargs) -> Dict[str, Any]:
+    def _compute(self, *, predictions=None, references=None, passage_non_null_threshold=2, span_non_null_threshold=2, verbose=False, **kwargs) -> Dict[str, Any]:
         if kwargs:
             raise ValueError(f"Unexpected kwargs: {kwargs}")
         elif not predictions:
@@ -83,7 +86,7 @@ class TyDiF1(datasets.Metric):
         predictions = dict(map(self._convert_pred_to_entry, predictions))
         references = dict(map(self._convert_ref_to_entry, references))
 
-        metrics = pretty_print(references, predictions, passage_non_null_threshold=passage_non_null_threshold, minimal_non_null_threshold=minimal_non_null_threshold, verbose=verbose)
+        metrics = pretty_print(references, predictions, passage_non_null_threshold=passage_non_null_threshold, span_non_null_threshold=span_non_null_threshold, verbose=verbose)
         return metrics
 
     def _convert_ref_to_entry(self, ref: dict) -> Tuple[str, List[TyDiLabel]]:
