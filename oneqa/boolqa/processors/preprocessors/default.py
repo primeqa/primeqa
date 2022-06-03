@@ -67,10 +67,20 @@ class NWayPreProcessor:
     def _process(self, examples: Dataset, is_train: bool) -> Tuple[Dataset, Dataset]:
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
+        if not 'question' in examples.column_names:
+            msg="""
+The eval_predictions.json file must contain a field 'question'.  This can be created by running the machine
+reading comprehension step in "run_mrc.py" with the option
+--postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+rather than the default tydi postprocessor.
+            """
+            print(msg)
+            raise ValueError("incorrectly formatted eval_predictions.json file")
+
 
         input_features = Dataset.from_dict(
             {'example_id': examples['example_id'],
-             'language': ['english'] * examples.num_rows,  # TODO
+             'language': ['english'] * examples.num_rows,  # TODO english->none?
              self._sentence1_key: examples[self._sentence1_key],
              'label': [0] * examples.num_rows
             })

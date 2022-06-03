@@ -4,26 +4,6 @@ from oneqa.boolqa.processors.preprocessors.default import NWayPreProcessor
 from examples.boolqa.mrc2dataset  import create_dataset_from_run_mrc_output
 from tests.oneqa.mrc.common.base import UnitTest
 
-# def in_ipython():
-
-#     input_file="/dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b19/qtc/eval_predictions.json"
-#     preprocessor_class = NWayPreProcessor # TODO task_args.preprocessor
-#     from transformers import AutoTokenizer
-#     tokenizer=AutoTokenizer.from_pretrained('/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5', use_fast=True)
-#     preprocessor = preprocessor_class(
-#         sentence1_key='question',
-#         sentence2_key='span_answer_text',
-#         tokenizer=tokenizer,
-#         load_from_cache_file=False,
-#         max_seq_len=500,
-#         padding=False
-#     )
-#     examples=create_dataset_from_run_mrc_output(input_file, unpack=False)
-#     examples=examples.filter(lambda x:x['language']=='english' and x['question_type_pred']=='boolean')
-#     eval_examples, eval_dataset = preprocessor.process_eval(examples)
-
-
-
 
 
 class TestNWayPreProcessor(UnitTest):
