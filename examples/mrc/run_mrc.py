@@ -321,8 +321,7 @@ def main():
         data_files = {}
 
         if data_args.train_file is not None: 
-            train_files = glob.glob(data_args.train_file)
-            data_files['train'] = train_files 
+            data_files['train'] = glob.glob(data_args.train_file)
         if data_args.eval_file is not None: 
             eval_files = glob.glob(data_args.eval_file)
             data_files['validation'] = eval_files
