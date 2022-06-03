@@ -45,7 +45,7 @@ from transformers.trainer_utils import is_main_process
 
 from oneqa.boolqa.processors.postprocessors.nway import NWayClassifierPostProcessor
 from oneqa.boolqa.processors.preprocessors.default import NWayPreProcessor
-from mrc2dataset import create_dataset_from_run_mrc_output
+from examples.boolqa.mrc2dataset import create_dataset_from_run_mrc_output
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 #check_min_version("4.6.0")
@@ -178,15 +178,17 @@ def save_to_json_file(obj_to_save, out_file_path, with_backup=True, indent=4, so
         json.dump(obj_to_save, outfile, indent=indent, sort_keys=sort_keys)
 
 
-def main():
+def main(raw_args):
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
-    if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+    if len(raw_args) == 2 and raw_args[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(raw_args[1]))
+    elif len(raw_args) == 1:
+        model_args, data_args, training_args = parser.parse_dict(raw_args[0])
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
@@ -357,4 +359,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)

@@ -2,6 +2,9 @@ import logging
 import os
 import sys
 import traceback
+import json
+import torch
+import gc
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
@@ -20,6 +23,8 @@ from oneqa.boolqa.processors.postprocessors.extractive import ExtractivePipeline
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
+from examples.boolqa.run_nway_classifier_1qa import main as cls_main
+from oneqa.boolqa.score_normalizer.score_normalizer import main as sn_main
 
 
 def class_reference(class_reference_as_str: str) -> Type:
@@ -197,6 +202,12 @@ class TaskArguments:
                   "choices": [TyDiF1]
                  }
     )
+    do_boolean: bool = field(
+        default=False, metadata={"help": "Enable processing of boolean questions"}
+    )
+    boolean_config: str = field(
+        default=None, metadata={"help": "The configuration name file for the boolean task in json format"}
+    )
 
     def __post_init__(self):
         if not self.task_heads:
@@ -351,6 +362,40 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
+    if task_args.do_boolean:
+        logger.info("Processing of bollean questions")
+        if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
+            raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
+        with open(task_args.boolean_config, 'r') as f:
+            boolean_config = json.load(f)
+            
+        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
+        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
+        boolean_config['esc']['output_dir'] = training_args.output_dir+"/esc"
+        boolean_config['esc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
+        boolean_config['sn']['test_file'] = training_args.output_dir + "/esc/eval_predictions.json"
+        
+        if model: del model
+        gc.collect()
+        torch.cuda.empty_cache()
+        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+            max memory {torch.cuda.max_memory_allocated()}")
+        
+        cls_main([boolean_config['qtc']])
+        cls_main([boolean_config['esc']])
+        sn_main([boolean_config['sn']])
+        
+        if not 'eval_examples' in locals():
+            logger.info("Processing the eval examples for the metric computation")
+            eval_examples = raw_datasets['validation']
+            eval_examples,_ = preprocessor.process_eval(eval_examples)
+        
+        with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
+            processed_predictions = json.load(f)
+        references = postprocessor.prepare_examples_as_references(eval_examples)
+        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+        print(boolean_eval_metric)
 
 if __name__ == '__main__':
     main()
