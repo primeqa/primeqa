@@ -323,8 +323,7 @@ def main():
         if data_args.train_file is not None: 
             data_files['train'] = glob.glob(data_args.train_file)
         if data_args.eval_file is not None: 
-            eval_files = glob.glob(data_args.eval_file)
-            data_files['validation'] = eval_files
+            data_files['validation'] = glob.glob(data_args.eval_file)
 
         raw_datasets = datasets.load_dataset(data_args.data_file_format, 
             data_files=data_files,
