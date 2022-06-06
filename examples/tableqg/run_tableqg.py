@@ -95,12 +95,16 @@ class TableQGTrainingArguments(TrainingArguments):
     remove_unused_columns:Optional[bool] = field(
         default=False, metadata={"help": ""}
     )
-    prediction_loss_only:Optional[bool] = field(
-        default=True, metadata={"help": ""}
-    )
     output_dir:Optional[str] = field(
         default='./models/tableqg/sample_run/', metadata={"help": "Models and checkpoints will be saved here"}
     )
+    args_file_path:Optional[str] = field(
+        default='', metadata={"help": "Path to JSON file with all arguments needed"}
+    )
+    prediction_loss_only:Optional[bool] = field(
+        default=True, metadata={"help": ""}
+    )
+
 
 @dataclass
 class DataTrainingArguments:
@@ -155,11 +159,9 @@ def main():
 
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TableQGTrainingArguments, InferenceArguments))
 
-    # We need to load the config hyperparameter from args file path
-    if os.path.exists(os.path.abspath('args.json')):
-        model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=os.path.abspath('args.json'))
-    else:
-        model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
+    model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
+    if training_args.args_file_path != '':
+        model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=training_args.args_file_path)
     
     if (
         os.path.exists(training_args.output_dir)
