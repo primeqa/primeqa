@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from datasets import load_dataset
-from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
+from oneqa.tableqg.utils.constants import SqlOperants, SQLSpecialTokens
 from datasets import Dataset
 
 def _is_number(s):
@@ -84,7 +84,7 @@ class WikiSqlDataset():
 		return answer
 
 	@staticmethod
-	def _create_sql_string(sql, table, answer, tokenizer_type='T5'):
+	def _create_sql_string(sql, table, answer):
 		"""Convert sql in dict format (the way WikiSQL dataset provides) and convert it to string appending
 		answer and column names of tables. Appropriate delimiters are used to demarcate differents parts of SQL
 
@@ -97,8 +97,7 @@ class WikiSqlDataset():
 		Returns:
 			str: _description_
 		"""
-		if tokenizer_type == 'T5':
-			tokens = T5SpecialTokens
+		tokens = SQLSpecialTokens
 		conds = sql['conds']
 		num_conds = len(conds['column_index'])
 
@@ -110,17 +109,18 @@ class WikiSqlDataset():
 			where_col = table['header'][conds['column_index'][i]].replace('/', ' ')
 			where_op = SqlOperants.cond_ops_string[conds['operator_index'][i]]
 			where_const = conds['condition'][i].replace('/', ' ')
-			conds_str_list.append(tokens.cond.join([where_col, where_op, where_const]))
-		conds_str = tokens.sep.join(conds_str_list)
+			conds_str_list.append((' '+tokens.cond+' ').join([where_col, where_op, where_const]))
+		conds_str = (' '+tokens.sep+' ').join(conds_str_list)
 
 		ans_str = str(answer)
 
-		header_str = tokens.hsep.join(table['header'])
+		header_str = (' '+tokens.hsep+' ').join(table['header'])
 
-		sql_str = agg_str + tokens.sep + col_str + tokens.sep + conds_str + tokens.ans + ans_str + tokens.header + header_str
+		sql_str = agg_str + ' '+tokens.sep+' ' + col_str + ' '+tokens.sep+' ' + conds_str + \
+				' '+tokens.ans+' ' + ans_str + ' '+tokens.header+' ' + header_str
 		return sql_str
 
-	def preprocess_data_for_qg(self, data_split='train', tokenizer_type='T5'):
+	def preprocess_data_for_qg(self, data_split='train'):
 		"""_summary_
 
 		Args:
@@ -131,7 +131,7 @@ class WikiSqlDataset():
 
 		for d in tqdm(data):
 			answer = self._execute_sql(d['sql'], d['table'])[0]
-			sql_str = self._create_sql_string(d['sql'], d['table'], answer, tokenizer_type)
+			sql_str = self._create_sql_string(d['sql'], d['table'], answer)
 			
 			processed_data_dict['question'].append(d['question'])
 			processed_data_dict['sql_str'].append(sql_str)

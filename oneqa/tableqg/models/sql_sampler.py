@@ -1,15 +1,14 @@
 import math
 from copy import deepcopy
 import numpy as np
-from oneqa.tableqg.utils.constants import SqlOperants, T5SpecialTokens
+from oneqa.tableqg.utils.constants import SqlOperants, SQLSpecialTokens
 
 class SimpleSqlSampler():
     """ A simple sql sampler to sample sqls based on number of where clause conditions and other parameters
     """
-    def __init__(self, tokenizer_name='T5'):
-        if tokenizer_name == 'T5':
-            self.tokens = T5SpecialTokens
-    
+    def __init__(self):
+        self.sql_tokens = SQLSpecialTokens
+
     @staticmethod
     def add_column_types(self, table):
         """Adds a data type list to the table dict based on values in the cells in that column.
@@ -352,21 +351,19 @@ class SimpleSqlSampler():
             sql_dict ([Dict]): [Sql Query to convert to string]
             table (list, optional): [Table]. Defaults to [].
             tokenizer (str, optional): [description]. Defaults to 'T5'.
-
         Returns:
             [String]: [Sql query in string format]
         """
-        if tokenizer == 'T5':
-            tokens = T5SpecialTokens
+        tokens = self.sql_tokens
 
-        sql_str =  str(sql_dict['col'][0]) + tokens.sep + str(sql_dict['col'][1])
+        sql_str =  str(sql_dict['col'][0]) + ' '+tokens.sep+' ' + str(sql_dict['col'][1])
         for cond in sql_dict['conds']:
-            sql_str += tokens.sep
-            sql_str += tokens.cond.join([str(c) for c in cond])
-        sql_str += tokens.ans + str(sql_dict['answer'])
+            sql_str += ' '+tokens.sep+' '
+            sql_str += (' '+tokens.cond+' ').join([str(c) for c in cond])
+        sql_str += ' '+tokens.ans+' ' + str(sql_dict['answer'])
 
         table['header'] = [str(h) for h in table['header']]
-        sql_str += tokens.header + tokens.hsep.join(table['header'])
+        sql_str += ' '+tokens.header+' ' + (' '+tokens.hsep+' ').join(table['header'])
 
         return sql_str
 

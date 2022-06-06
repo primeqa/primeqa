@@ -9,9 +9,9 @@ class SqlOperants:
 	cond_ops_string = ['equal', 'greater', 'lesser', 'OP']
 
 @dataclass
-class T5SpecialTokens:
-	sep = ' <extra_id_0> '
-	cond = ' <extra_id_1> '
-	ans = ' <extra_id_2> '
-	header = ' <extra_id_3> '
-	hsep = ' <extra_id_4> '
+class SQLSpecialTokens:
+	sep = '<<sep>>'
+	cond = '<<cond>>'
+	ans = '<<answer>>'
+	header = '<<header>>'
+	hsep = '<<hsep>>'
