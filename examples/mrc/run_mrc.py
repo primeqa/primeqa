@@ -23,7 +23,7 @@ from oneqa.boolqa.processors.postprocessors.extractive import ExtractivePipeline
 from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
-from examples.boolqa.run_nway_classifier_1qa import main as cls_main
+from examples.boolqa.run_boolqa_classifier import main as cls_main
 from oneqa.boolqa.score_normalizer.score_normalizer import main as sn_main
 
 
@@ -371,10 +371,10 @@ def main():
             
         boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
         boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
-        boolean_config['esc']['output_dir'] = training_args.output_dir+"/esc"
-        boolean_config['esc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
+        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
         boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-        boolean_config['sn']['test_file'] = training_args.output_dir + "/esc/eval_predictions.json"
+        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
         
         if model: del model
         gc.collect()
@@ -383,7 +383,7 @@ def main():
             max memory {torch.cuda.max_memory_allocated()}")
         
         cls_main([boolean_config['qtc']])
-        cls_main([boolean_config['esc']])
+        cls_main([boolean_config['evc']])
         sn_main([boolean_config['sn']])
         
         if not 'eval_examples' in locals():

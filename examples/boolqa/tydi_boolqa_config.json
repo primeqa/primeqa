@@ -1,0 +1,26 @@
+{
+    "qtc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": null,
+        "label_list": ["short_answer","boolean"],
+        "output_label_prefix": "question_type",
+        "overwrite_cache": true,
+        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/output-yn"
+    },
+    "evc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": "passage_answer_text",
+        "label_list": ["no", "no_answer", "yes"],
+        "output_label_prefix": "boolean_answer",
+        "overwrite_cache": true,
+        "drop_label": "no_answer",
+        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5/"
+    },
+    "sn": {
+        "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
+        "qtc_is_boolean_label": "boolen",
+        "evc_no_answer_class": "no_answer"
+    }
+}

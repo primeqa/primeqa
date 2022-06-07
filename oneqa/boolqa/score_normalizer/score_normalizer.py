@@ -24,7 +24,9 @@ class ScoreNormalizer(object):
         except Exception as ex:
             raise ValueError(f"Unable to load confidence model from {model_file_path}")
     
-    def normalize_scores(self,input_file, output_dir):
+    def normalize_scores(self,input_file : str, output_dir : str,
+                        qtc_is_boolean_label : str = 'boolean',
+                        evc_no_answer_class : str = 'no_answer'):
         qa_pred_data = create_dataset_from_run_mrc_output(input_file, unpack=True)
         
         normalized_predictions=[]
@@ -38,11 +40,11 @@ class ScoreNormalizer(object):
         
             # Apply the score normalizer
             qa_conf_score = qa_pred['span_answer_score']
-            evc_conf_score = float(qa_pred['boolean_answer_scores']['NONE'])
+            evc_conf_score = float(qa_pred['boolean_answer_scores'][evc_no_answer_class])
             b_score = qa_pred['start_logit']
             e_score = qa_pred['end_logit']
             na_score = qa_pred['target_type_logits'][0] if 'target_type_logits' in  qa_pred else 0.0
-            question_label = 1 if qa_pred['question_type_pred'] == "YN" else 0
+            question_label = 1 if qa_pred['question_type_pred'] == qtc_is_boolean_label else 0
             feature_list = [question_label,b_score,e_score,na_score]
             features = numpy.array(feature_list).reshape(1, -1)
             new_score = self._model.predict_proba(features)[0][1]
@@ -75,8 +77,9 @@ def main(args):
         args = parse_arguments()
         #args = args[0]
     sn = ScoreNormalizer(args.model_name_or_path)
-    sn.normalize_scores(args.test_file, args.output_dir)
-  
+    sn.normalize_scores(args.test_file, args.output_dir,
+                        args.qtc_is_boolean_label, args.evc_no_answer_class)
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Assigns YES/NO answers to the QA prediction file based on the question boolean classifier')
     parser.add_argument('--test_file',  
@@ -88,6 +91,11 @@ def parse_arguments():
     parser.add_argument('--output_dir',  
                     help='the output prediction files with YES/NO normalized answers',
                     type=str)  
+    parser.add_argument('--qtc_is_boolean_label', type=str, default='boolean',
+                    help='the value assigned to the question_type_pred field for boolean questions')
+    parser.add_argument('--evc_no_answer_class', type=str, default='no_answer',
+                    help='the class label in the boolean_answer_scores field for no_answer questions')
+    
     args = parser.parse_args()
     return args
   

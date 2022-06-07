@@ -21,7 +21,7 @@ import os
 import sys
 from dataclasses import dataclass, field
 from sysconfig import is_python_build
-from typing import Optional
+from typing import Optional, List
 import json
 from shutil import move
 from os import path
@@ -63,14 +63,7 @@ class DataTrainingArguments:
     the command line.
     """
 
-    task_name: str = field(
-        default=None,
-        metadata={"help": "The name of the task to train on: "},
-    )
-    drop_label: str = field(
-        default=False,
-        metadata={"help": "dropping label NONE converts ternary classifier into binary"}  
-    )
+
     max_seq_length: int = field(
         default=128,
         metadata={
@@ -134,6 +127,30 @@ class ModelArguments:
 
     model_name_or_path: str = field(
         metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+    )
+    sentence2_key: str = field(
+        default=None,
+        metadata={"help": "the field in the input dataset to use as sentence2" }
+    )        
+    drop_label: str = field(
+        default=None,
+        metadata={"help": "dropping label 'no_answer' converts ternary classifier into binary"}  
+    )
+    sentence1_key: str = field(
+        default="question",
+        metadata={"help": "the field in the input dataset to use as sentence1" }
+    )
+    id_key: str = field(
+        default="example_id",
+        metadata={"help": "a field that can be used as a unique identifier of input records"}
+    )
+    label_list: List[str] = field(
+        default=None,
+        metadata={"help": "the labels used by the classifier (order is significant)"}
+    )
+    output_label_prefix: str = field(
+        default=None,
+        metadata={"help": "a prefix used in the output file eval_predictions.json to distinguish fields created by this invocation of the classifier"}
     )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
@@ -212,28 +229,9 @@ def main(raw_args):
         transformers.utils.logging.enable_explicit_format()
     logger.info(f"Training/evaluation parameters {training_args}")
 
-
-    # TODO - externalize the labels, column names...
-    if data_args.task_name=='qtc':
-        id_key='example_id'
-        sentence1_key='sentence1'
-        sentence2_key=None
-        label_list=['short_answer','boolean']
-        output_label_prefix='question_type'
-    elif data_args.task_name=='evc':
-        id_key='example_id'
-        sentence1_key='question'
-        sentence2_key='passage_answer_text'  # or was span_answer_text
-        label_list=['no', 'no_answer', 'yes']
-        output_label_prefix='boolean_answer'
-    else:
-        logger.warning('invalid task_name')
-        sys.exit(1)
-
-    num_labels = len(label_list)        
-
+    num_labels = len(model_args.label_list)        
     logger.info("The following labels are being used, all other instances will be discarded.")
-    logger.info(label_list)
+    logger.info(model_args.label_list)
 
 
 
@@ -245,7 +243,7 @@ def main(raw_args):
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
         num_labels=num_labels,
-        finetuning_task=data_args.task_name,
+        finetuning_task=model_args.output_label_prefix,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
@@ -282,8 +280,8 @@ def main(raw_args):
     # load preprocessor
     preprocessor_class = NWayPreProcessor # TODO task_args.preprocessor
     preprocessor = preprocessor_class(
-        sentence1_key='question',
-        sentence2_key=sentence2_key,
+        sentence1_key=model_args.sentence1_key,
+        sentence2_key=model_args.sentence2_key,
         tokenizer=tokenizer,
         load_from_cache_file=not data_args.overwrite_cache,
         max_seq_len=tokenizer.model_max_length,
@@ -320,13 +318,11 @@ def main(raw_args):
     
     postprocessor_class = NWayClassifierPostProcessor  # TODO # taskargs.
     postprocessor = postprocessor_class(
-        k=10,    #data_args.n_best_logits
-        #n_best_size=20, #data_args.n_best_size,
-        #max_answer_length=100, #data_args.max_answer_length,        
-        drop_label=data_args.drop_label,
-        label_list = label_list,
-        id_key=id_key,
-        output_label_prefix=output_label_prefix
+        k=10, 
+        drop_label=model_args.drop_label,
+        label_list = model_args.label_list,
+        id_key=model_args.id_key,
+        output_label_prefix=model_args.output_label_prefix
     )
 
 
