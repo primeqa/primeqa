@@ -7,6 +7,7 @@ Before continuing below make sure you have OneQA [installed](../../README.md#Ins
 Currently supported datasets include:
 - TyDiQA
 - SQuAD 1.1
+- XQuAD
 - MLQA
 
 ## Example Usage
@@ -48,6 +49,17 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
 ```shell
        --dataset_name squad \
        --dataset_config_name plain_text \
+       --preprocessor oneqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor oneqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --eval_metrics squad 
+```
+
+For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
+The dataset configurations for all languages are supported.
+For the XQuAD in ZH use the following command line arguments for eval:
+```shell
+       --dataset_name xquad \
+       --dataset_config_name xquad.zh \
        --preprocessor oneqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
        --postprocessor oneqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics squad 
