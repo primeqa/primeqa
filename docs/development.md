@@ -20,12 +20,15 @@ A description of the pip extras is as follows:
 - `install`: for installing and running OneQA
 - `tests`: for running unit tests
 
+<<<<<<< HEAD
 A description of the pip extras is as follows:
 - `docs`: for building documentation
 - `dev`: for OneQA software development
 - `install`: for installing and running OneQA
 - `tests`: for running unit tests
 
+=======
+>>>>>>> 68ba3eca04e2723cf783b7cb1a8d8c1a820dc1fe
 ## Versioning
 
 OneQA uses [Semantic Versioning](https://semver.org/). Version can be incremented using `bump2version`.
@@ -55,7 +58,12 @@ a version matching the new [VERSION](https://github.ibm.com/ai-foundation/OneQA/
   - Examples include MAX_OVERFLOW and TOTAL. (find more details from [pep8 guidelines](https://peps.python.org/pep-0008/#class-names))
 
 
+<<<<<<< HEAD
 ### Folder Structure
+=======
+### Folder Structure 
+
+>>>>>>> 68ba3eca04e2723cf783b7cb1a8d8c1a820dc1fe
 - Any new contribution to OneQA should have its own folder under /oneqa/<functional_folder> where the folder name should be a meaningful presentation of the functionality being added. For example: /oneqa/mrc/  , /oneqa/ir and so on.
 - Before adding a new folder, please check if the broad functionality already exists in OneQA and if so, it can come under that folder. e.g. dense retriever and sparse retriever both comes under /oneqa/ir/
 - Inside each functional folder, the code should be organized across common folder structure in OneQA as mentioned below:
@@ -89,6 +97,7 @@ self._logger = logging.getLogger(self.__class__.__name__)  # create logger
 self._logger.info("Log message")
 ```
 
+<<<<<<< HEAD
 Use the standard `logging` library over `print` calls.
 Further, when creating classes whose methods need logging, create a 
 `_logger` instance attribute and use that for logging.
@@ -98,6 +107,8 @@ self._logger = logging.getLogger(self.__class__.__name__)  # create logger
 self._logger.info("Log message")
 ```
 
+=======
+>>>>>>> 68ba3eca04e2723cf783b7cb1a8d8c1a820dc1fe
 ### Documentation
 
 Documentation is generated using Sphinx based on:
