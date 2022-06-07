@@ -20,12 +20,6 @@ A description of the pip extras is as follows:
 - `install`: for installing and running OneQA
 - `tests`: for running unit tests
 
-A description of the pip extras is as follows:
-- `docs`: for building documentation
-- `dev`: for OneQA software development
-- `install`: for installing and running OneQA
-- `tests`: for running unit tests
-
 ## Versioning
 
 OneQA uses [Semantic Versioning](https://semver.org/). Version can be incremented using `bump2version`.
