@@ -27,26 +27,30 @@ The configuration file contains the parameters for each of the post-MRC steps
 ```
 {
     "qtc": {
-        "task_name": "qtc",
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": null,
+        "label_list": ["short_answer","boolean"],
+        "output_label_prefix": "question_type",
         "overwrite_cache": true,
-        "model_name_or_path": ${QTC_MODEL_LOCATION},
-        "test_file": "${MRC_OUTPUT_DIR}/eval_predictions.json",
-        "output_dir": "${QTC_OUTPUT_DIR}"
+        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/output-yn"
     },
-    "esc": {
-        "task_name": "evc",
+    "evc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": "passage_answer_text",
+        "label_list": ["no", "no_answer", "yes"],
+        "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
-        "max_seq_length": 500,
-        "drop_label": "NONE",
-        "model_name_or_path": ${EVC_MODEL_LOCATION},
-        "test_file": "${QTC_OUTPUT_DIR}/eval_predictions.json",
-        "output_dir": "${EVC_OUTPUT_DIR}
+        "drop_label": "no_answer",
+        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5/"
     },
     "sn": {
-        "model_name_or_path": "${SN_MODEL_LOCATION}",
-        "test_file": "${EVC_OUTPUT_DIR}/eval_predictions.json",
-        "output_dir": "${SN_OUTPUT_DIR}"
+        "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
+        "qtc_is_boolean_label": "boolen",
+        "evc_no_answer_class": "no_answer"
     }
+}
 ```
 and consists of blocks that correspond to command line arguments of the individual steps (see below.)
 
@@ -75,12 +79,15 @@ Given a question (obtained from the `eval_predictions.json` file created in the 
 whether the question is `boolean` or `short_answer`.
 
 ```shell
-    python examples/boolqa/run_nway_classifier_1qa.py \
-    --task_name qtc \
+    python examples/boolqa/run_boolqa_classifier.py \
     --overwrite_cache \
-    --model_name_or_path {qtcmodel} \
-    --test_file {mrcfile} \
-    --output_dir {ws}/qtc
+    --id_key example_id \
+    --sentence1_key question \
+    --label_list short_answer boolean \
+    --output_label_prefix question_type \
+    --model_name_or_path /dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/output-yn \
+    --test_file /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/mrc/eval_predictions.json \
+    --output_dir /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/qtc
 ```
 ## Evidence classification
 
@@ -89,13 +96,17 @@ a `yes` or `no` answer to question.  Both question and span are passed through t
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
 
 ```shell
-    python examples/boolqa/run_nway_classifier_1qa.py \
-    --task_name evc \
-    --overwrite_cache \
+    python examples/boolqa/run_boolqa_classifier.py \
+    --overwrite_cache  \
+    --id_key example_id \
+    --sentence1_key question \
+    --sentence2_key passage_answer_text \
+    --label_list no no_answer yes \
+    --output_label_prefix boolean_answer \
     --drop_label no_answer \
-    --model_name_or_path {evcmodel} \
-    --test_file {ws}/qtc/eval_predictions.json \
-    --output_dir {ws}/evc
+    --model_name_or_path /dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5/ \
+    --test_file /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/qtc/eval_predictions.json \
+    --output_dir /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/evc
 ```
 
 ## Score normalization
