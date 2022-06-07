@@ -223,7 +223,7 @@ def main(raw_args):
     elif data_args.task_name=='evc':
         id_key='example_id'
         sentence1_key='question'
-        sentence2_key='passage'
+        sentence2_key='passage_answer_text'  # or was span_answer_text
         label_list=['no', 'no_answer', 'yes']
         output_label_prefix='boolean_answer'
     else:
@@ -283,7 +283,7 @@ def main(raw_args):
     preprocessor_class = NWayPreProcessor # TODO task_args.preprocessor
     preprocessor = preprocessor_class(
         sentence1_key='question',
-        sentence2_key='span_answer_text' if sentence2_key else None,
+        sentence2_key=sentence2_key,
         tokenizer=tokenizer,
         load_from_cache_file=not data_args.overwrite_cache,
         max_seq_len=tokenizer.model_max_length,

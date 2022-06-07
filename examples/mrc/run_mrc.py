@@ -363,7 +363,7 @@ def main():
         trainer.save_metrics("eval", metrics)
 
     if task_args.do_boolean:
-        logger.info("Processing of bollean questions")
+        logger.info("Processing of boolean questions")
         if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
             raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
         with open(task_args.boolean_config, 'r') as f:
