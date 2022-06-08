@@ -39,9 +39,9 @@ For eval-only TyDiQA with support for boolean questions (for [details](../boolqa
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ${BOOLEAN_MODEL_NAME} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
-       --do_boolean \
-       --boolean_config ${BOOLEAN_CONFIG_FILE} \
-       --per_device_eval_batch_size 128 --overwrite_output_dir
+       --per_device_eval_batch_size 128 --overwrite_output_dir \
+       --postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor \
+       --do_boolean --boolean_config ${BOOLEAN_CONFIG_FILE}
 ```
 
 
