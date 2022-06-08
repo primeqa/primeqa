@@ -24,7 +24,7 @@ from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from oneqa.mrc.trainers.mrc import MRCTrainer
 from examples.boolqa.run_boolqa_classifier import main as cls_main
-from oneqa.boolqa.score_normalizer.score_normalizer import main as sn_main
+from examples.boolqa.run_score_normalizer import main as sn_main
 
 
 def class_reference(class_reference_as_str: str) -> Type:

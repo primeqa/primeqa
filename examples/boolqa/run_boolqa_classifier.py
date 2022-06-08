@@ -45,7 +45,7 @@ from transformers.trainer_utils import is_main_process
 
 from oneqa.boolqa.processors.postprocessors.nway import NWayClassifierPostProcessor
 from oneqa.boolqa.processors.preprocessors.default import NWayPreProcessor
-from examples.boolqa.mrc2dataset import create_dataset_from_run_mrc_output
+from oneqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 #check_min_version("4.6.0")

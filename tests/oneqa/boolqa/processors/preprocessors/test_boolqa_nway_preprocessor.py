@@ -1,7 +1,7 @@
 from transformers import AutoTokenizer
 from oneqa.mrc.data_models.target_type import TargetType
 from oneqa.boolqa.processors.preprocessors.default import NWayPreProcessor
-from examples.boolqa.mrc2dataset  import create_dataset_from_run_mrc_output
+from oneqa.boolqa.processors.dataset.mrc2dataset  import create_dataset_from_run_mrc_output
 from tests.oneqa.mrc.common.base import UnitTest
 
 
