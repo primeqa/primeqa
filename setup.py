@@ -9,7 +9,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-
+    
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
@@ -63,6 +63,10 @@ _deps = {
     "tqdm~=4.64.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "ujson~=5.1.0": ["install"],
+    "transformers~=4.17.0": ["install"],
+    "sentencepiece~=0.1.96": ["install"],
+    "protobuf~=3.20.0": ["install"],
+    "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"]
 }

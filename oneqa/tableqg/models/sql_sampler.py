@@ -10,7 +10,7 @@ class SimpleSqlSampler():
         self.sql_tokens = SQLSpecialTokens
 
     @staticmethod
-    def add_column_types(self, table):
+    def add_column_types(table):
         """Adds a data type list to the table dict based on values in the cells in that column.
         The data type for a column is either real or text.
         Args:
@@ -262,7 +262,7 @@ class SimpleSqlSampler():
         return where_dict
 
 
-    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False, dont_use_col=[]):
+    def sample_sql(self, table, num_sample, num_where, agg_op=0, if_ineq=False):
         """ This function samples sqls from a given table based on values for the parameters
         num_sample -> number of sql queries to sample, num_where -> number of where condtioned desired in every sampled sql Query etc.
         Args:
@@ -271,8 +271,7 @@ class SimpleSqlSampler():
             num_where ([int]): [Number of where clause conditions every sampled sql should have]
             agg_op (int, optional): [Whether to sample aggregate queries or not]. Defaults to 0.
             if_ineq (bool, optional): [description]. Defaults to False.
-            dont_use_col (list, optional): [description]. Defaults to [].
-
+            
         Returns:
             [List,Dict]: [Sampled sql query list in readable string format and dict format]
         """
