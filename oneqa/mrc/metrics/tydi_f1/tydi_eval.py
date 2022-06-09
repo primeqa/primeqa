@@ -121,20 +121,20 @@ def score_passage_answer(gold_label_list, pred_label,
 
 
 def score_minimal_answer(gold_label_list, pred_label,
-                         minimal_non_null_threshold):
+                         span_non_null_threshold):
     """Scores a minimal answer.
 
     Outputs score against gold label that gives max F1.
 
     First decide if there is a gold minimal answer with
-    FLAGS.minimal_non_null_threshold.
+    FLAGS.span_non_null_threshold.
     If any of the gold label has "yes", or "no", and pred label predicted it
     correctly, than precision, recall, f1 is all 1.0.
 
     Args:
       gold_label_list: A list of TyDiLabel.
       pred_label: A single TyDiLabel.
-      minimal_non_null_threshold: See FLAGS.minimal_non_null_threshold.
+      span_non_null_threshold: See FLAGS.span_non_null_threshold.
 
     Returns:
       gold_has_answer, pred_has_answer, (precision, recall, f1), score
@@ -143,7 +143,7 @@ def score_minimal_answer(gold_label_list, pred_label,
     # There is a gold minimal answer if gold_label_list not empty and non null
     # answers is over the threshold (sum over annotators).
     gold_has_answer = eval_utils.gold_has_minimal_answer(
-        gold_label_list, minimal_non_null_threshold)
+        gold_label_list, span_non_null_threshold)
 
     if pred_label is None:
         return gold_has_answer, not gold_has_answer, (0, 0, 0), 0
@@ -192,7 +192,7 @@ def byte_slice(text, start, end):
     return str(byte_str[start:end])
 
 
-def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, minimal_non_null_threshold, verbose,
+def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, span_non_null_threshold, verbose,
                   skip_missing_example_ids=True, minimal_offsets_per_passage=False):
     """Scores all answers for all documents.
 
@@ -200,7 +200,7 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
       gold_annotation_dict: a dict from example id to list of `TyDiLabel`s.
       pred_dict: a dict from example id to list of `TyDiLabel`s.
       passage_non_null_threshold:
-      minimal_non_null_threshold: minimal number of non-null annotations per example to be considered non-null
+      span_non_null_threshold: minimal number of non-null annotations per example to be considered non-null
       verbose: whether to enable verbose logging
       skip_missing_example_ids: skip missing examples
       minimal_offsets_per_passage: whether minimal answer offsets are per passage (as opposed to per document)
@@ -233,7 +233,7 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
         gold = gold_annotation_dict[example_id]
         pred = pred_dict.get(example_id)
         passage_stats = score_passage_answer(gold, pred, passage_non_null_threshold)
-        minimal_stats = score_minimal_answer(gold, pred, minimal_non_null_threshold)
+        minimal_stats = score_minimal_answer(gold, pred, span_non_null_threshold)
 
         # fix stats for predictions in incorrect passages
         if minimal_offsets_per_passage and not passage_stats[2] and minimal_stats[1]:
@@ -244,10 +244,10 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
 
         if not verbose:
             continue
-        if pred is None or len(pred.short_answer_span_list) == 0:
+        if pred is None:
             continue
-        pred_min_start = pred.short_answer_span_list[0].start_byte
-        pred_min_end = pred.short_answer_span_list[0].end_byte
+        pred_min_start = pred.minimal_answer_span.start_byte_offset
+        pred_min_end = pred.minimal_answer_span.end_byte_offset
         gold_min_start = gold[0].minimal_answer_span.start_byte_offset
         gold_min_end = gold[0].minimal_answer_span.end_byte_offset
         if gold_min_start >= 0:
@@ -257,9 +257,9 @@ def score_answers(gold_annotation_dict, pred_dict, passage_non_null_threshold, m
             logging.info('gold offsets %d, %d', gold_min_start, gold_min_end)
             logging.info('pred offsets %d, %d', pred_min_start, pred_min_end)
             logging.info('gold answer: (%s)',
-                         byte_slice(gold[0].plaintext, gold_min_start, gold_min_end))
+                         gold[0].plaintext[gold_min_start:gold_min_end])
             logging.info('pred answer: (%s)',
-                         byte_slice(gold[0].plaintext, pred_min_start, pred_min_end))
+                         gold[0].plaintext[pred_min_start:pred_min_end])
             logging.info('score %.2f', minimal_answer_stats[-1][-1])
             logging.info('f1: %.2f, p: %.2f, r: %.2f',
                          minimal_answer_stats[-1][-2][2],
@@ -441,7 +441,7 @@ def get_latex_str(f1, precision, recall):
             '%.1f' % (precision * 100)) + '}{' + ('%.1f' % (recall * 100)) + '}'
 
 
-def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, minimal_non_null_threshold=2,
+def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, span_non_null_threshold=2,
                  verbose=False, skip_missing_example_ids=False):
     if any(map(not_, tydi_gold_dict.values())) or any(
             annotations[0].minimal_answer_span is None for annotations in tydi_gold_dict.values()):
@@ -489,7 +489,7 @@ def pretty_print(tydi_gold_dict, tydi_pred_dict, passage_non_null_threshold=2, m
         if lang in per_lang_pred:
             passage_answer_stats, minimal_answer_stats = score_answers(
                 per_lang_gold.get(lang, {}), per_lang_pred[lang],
-                passage_non_null_threshold, minimal_non_null_threshold, verbose)
+                passage_non_null_threshold, span_non_null_threshold, verbose)
 
             # Passage selection task
             opt_result, _ = compute_pr_curves(passage_answer_stats, targets=[0.5])
