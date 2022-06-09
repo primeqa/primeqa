@@ -395,7 +395,9 @@ def main():
             processed_predictions = json.load(f)
         references = postprocessor.prepare_examples_as_references(eval_examples)
         boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
-        print(boolean_eval_metric)
+        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+        with open(path, "w") as f:
+            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)
 
 if __name__ == '__main__':
     main()

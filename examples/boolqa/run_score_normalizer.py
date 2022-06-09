@@ -9,8 +9,11 @@ def main(args):
         args = parse_arguments()
         #args = args[0]
     sn = ScoreNormalizer(args.model_name_or_path)
-    sn.normalize_scores(args.test_file, args.output_dir,
-                        args.qtc_is_boolean_label, args.evc_no_answer_class)
+    sn.load_model()
+    sn.normalize_scores(args.test_file, 
+                        args.output_dir,
+                        args.qtc_is_boolean_label, 
+                        args.evc_no_answer_class)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Assigns YES/NO answers to the QA prediction file based on the question boolean classifier')
