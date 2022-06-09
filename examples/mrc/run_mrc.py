@@ -203,16 +203,18 @@ class TaskArguments:
                  }
     )
     do_boolean: bool = field(
-        default=False, metadata={"help": "Enable processing of boolean questions"}
+        default=False, metadata={"help": "Enable processing of boolean questions.  If activated,"
+                                        "--do_eval will be forced also, and --postprocessor will be "
+                                        "defaulted to ExtractivePipelinePostProcessor unless overridden"
+                                        "by a postprocessor that subclasses ExtractivePipelinePostProcessor"}
     )
     boolean_config: str = field(
         default=None, metadata={"help": "The configuration name file for the boolean task in json format"}
-    )
+    )    
 
     def __post_init__(self):
         if not self.task_heads:
             self.task_heads = EXTRACTIVE_HEAD  # cannot directly set mutable value as default
-
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
@@ -223,6 +225,17 @@ def main():
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
+
+    # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF 
+    # dataset) might have changed
+    # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
+    # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
+    # do_eval is in TrainingArguments
+    if task_args.do_boolean:
+        if task_args.do_boolean:
+            training_args.do_eval = True
+        if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
+                task_args.postprocessor = ExtractivePipelinePostProcessor
 
     logger = logging.getLogger(__name__)
     scorer_type = task_args.scorer_type
