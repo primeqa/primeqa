@@ -5,13 +5,13 @@ As a single command line argument in `run_mrc.py` to run all steps:
 
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ${BOOLEAN_MODEL_NAME} \
-       --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
+       --output_dir ${OUTPUT_DIR} --fp16 \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
-       --postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor \
-       --do_boolean --boolean_config ${BOOLEAN_CONFIG_FILE}
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
 or step-by-step.
-There are four stages in the process:
+The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
+
 - **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
 - **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
