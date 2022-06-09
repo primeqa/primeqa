@@ -232,10 +232,9 @@ def main():
     # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
     # do_eval is in TrainingArguments
     if task_args.do_boolean:
-        if task_args.do_boolean:
-            training_args.do_eval = True
+        training_args.do_eval = True
         if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
-                task_args.postprocessor = ExtractivePipelinePostProcessor
+            task_args.postprocessor = ExtractivePipelinePostProcessor
 
     logger = logging.getLogger(__name__)
     scorer_type = task_args.scorer_type
@@ -398,11 +397,6 @@ def main():
         cls_main([boolean_config['qtc']])
         cls_main([boolean_config['evc']])
         sn_main([boolean_config['sn']])
-        
-        if not 'eval_examples' in locals():
-            logger.info("Processing the eval examples for the metric computation")
-            eval_examples = raw_datasets['validation']
-            eval_examples,_ = preprocessor.process_eval(eval_examples)
         
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)
