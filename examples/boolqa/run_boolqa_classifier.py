@@ -43,8 +43,8 @@ from transformers import (
 )
 from transformers.trainer_utils import is_main_process
 
-from oneqa.boolqa.processors.postprocessors.nway import NWayClassifierPostProcessor
-from oneqa.boolqa.processors.preprocessors.default import NWayPreProcessor
+from oneqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
+from oneqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
 from oneqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -278,7 +278,7 @@ def main(raw_args):
 
     #max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
     # load preprocessor
-    preprocessor_class = NWayPreProcessor # TODO task_args.preprocessor
+    preprocessor_class = BoolQAClassifierPreProcessor # TODO task_args.preprocessor
     preprocessor = preprocessor_class(
         sentence1_key=model_args.sentence1_key,
         sentence2_key=model_args.sentence2_key,
@@ -316,7 +316,7 @@ def main(raw_args):
 
 
     
-    postprocessor_class = NWayClassifierPostProcessor  # TODO # taskargs.
+    postprocessor_class = BoolQAClassifierPostProcessor  # TODO # taskargs.
     postprocessor = postprocessor_class(
         k=10, 
         drop_label=model_args.drop_label,
