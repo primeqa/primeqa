@@ -33,7 +33,8 @@ The configuration file contains the parameters for each of the post-MRC steps
         "label_list": ["short_answer","boolean"],
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
-        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/output-yn"
+        "use_auth_token": true,
+        "model_name_or_path": "ibm/qtc_bert_pretrained_model"
     },
     "evc": {
         "id_key": "example_id",
@@ -43,11 +44,12 @@ The configuration file contains the parameters for each of the post-MRC steps
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
         "drop_label": "no_answer",
-        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5/"
+        "use_auth_token": true,
+        "model_name_or_path": "ibm/evc_xlm_roberta_large"
     },
     "sn": {
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
-        "qtc_is_boolean_label": "boolen",
+        "qtc_is_boolean_label": "boolean",
         "evc_no_answer_class": "no_answer"
     }
 }
