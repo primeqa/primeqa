@@ -1,9 +1,8 @@
-![OneQA Logo](logo.png)
+# PrimeQA
+The prime repository for Question Answering research and development.
 
-# OneQA
-OneQA to rule them all
 
-[![Build Status](https://travis.ibm.com/ai-foundation/OneQA.svg?token=XcbF7zxMKHD12hqZiBwc&branch=master)](https://travis.ibm.com/ai-foundation/OneQA)
+[![Build Status](https://travis.ibm.com/ai-foundation/PrimeQA.svg?token=XcbF7zxMKHD12hqZiBwc&branch=master)](https://travis.ibm.com/ai-foundation/PrimeQA)
 
 
 ## Getting Started
@@ -44,20 +43,15 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 ## Unit Tests
 
-To run the unit tests you first need to [install OneQA](#Installation).
+To run the unit tests you first need to [install PrimeQA](#Installation).
 Make sure to install with the `[tests]` or `[all]` extras from pip.
 
 From there you can run the tests via pytest, for example:
 ```shell
-pytest --cov oneqa --cov-config .coveragerc tests/
+pytest --cov PrimeQA --cov-config .coveragerc tests/
 ```
 
 For more information, see:
 - Our [tox.ini](./tox.ini)
 - The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation
 
-
-Our logo is adapted from [this](https://commons.wikimedia.org/wiki/File:One_Ring_Blender_Render.png)
-image from Wikipedia under the
-[Creative Commons Attribution-Share Alike 4.0 International](https://en.wikipedia.org/wiki/en:Creative_Commons) 
-license.  It is shared under the same license.
