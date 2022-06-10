@@ -16,7 +16,11 @@ The option `--do_boolean` supercedes the `--do_eval` option, and runs the follow
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
 - **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
-The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb)
+
+### Jupyter notebooks
+The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb).
+
+The inner details of the evidence classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
 
 Some of this system has been described in ["Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
 and TODO
