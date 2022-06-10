@@ -16,9 +16,20 @@ limitations under the License.
 
 # PrimeQA
 <h3 align="center">
-    <p>The prime repository for state-of-the-art Question Answering research and development.</p>
+    <p>The prime repository for state-of-the-art Multilingual Question Answering research and development.</p>
 </h3>
 
+PrimeQA is a public open source repository that provides researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher would be able to replicate the experiments outlined in a paper published in a latest NLP conference while also enjoying the capability to download the trained models (from an online repository) and run them on their own custom data. 
+
+The models within PrimeQA supports End-to-end Question Answering. These answering questions via 
+- Information Retrieval: Retrieving documents and passages using both traditional (e.g. BM25) and neural (e.g. ColBERT) models
+- Machine Reading Comprehension: Extract/ or generate answers given the source document or passage.
+- Question Generation: Supports generation of questions for effective domain adaptation.
+
+Some examples of models (on datasets) supported are :
+- [Traditional IR with BM25] Pyserini
+- [Neural IR with ColBERT, DPR (coming soon)]: PrimeQA will allow you to replicate the experiments that Dr. Decr (Li et. al, 2022) performed to reach the top of the XOR TyDI leaderboard.
+- [Machine Reading Comprehension with XLM-R]: PrimeQA lets one replicate experiments to get to the top of the TyDI leaderboard similar to the performance of IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
 
 
 [![Build Status](https://travis.ibm.com/ai-foundation/PrimeQA.svg?token=XcbF7zxMKHD12hqZiBwc&branch=master)](https://travis.ibm.com/ai-foundation/PrimeQA)
