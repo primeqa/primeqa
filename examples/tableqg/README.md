@@ -13,7 +13,7 @@ Inference can be done on any table in particular dict format. Check this [notebo
 An example for training the model on WikiSQL dataset:
 
 ```bash
-python examples/mrc/run_mrc.py \
+python examples/tableqg/run_tableqg.py \
     --model_name_or_path t5-base \
     --dataset_name wikisql \
     --do_train \

@@ -251,7 +251,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'passage_index': example['target']['passage_indices'],
                 'yes_no_answer': list(map(TargetType.from_bool_label, example['target']['yes_no_answer'])),  # TODO: decide on schema type for bool ans
                 'example_id': [example['example_id']] * n_annotators,
-                'language': [example['language']] * n_annotators
+                'language': [example['language']] * n_annotators,
+                'document_plaintext': [example['document_plaintext']] * n_annotators,
+                'question': [example['question']]  * n_annotators
             }
             references.append(label)
         return references
