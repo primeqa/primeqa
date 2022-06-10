@@ -12,19 +12,19 @@ import datasets
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.metrics.mlqa.mlqa import MLQA
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
-from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
-from oneqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.metrics.mlqa.mlqa import MLQA
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
+from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 def object_reference(reference_as_str: str) -> object:
