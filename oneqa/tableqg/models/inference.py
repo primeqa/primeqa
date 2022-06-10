@@ -14,11 +14,11 @@ class QGGeneration:
 		
 		input_ids = self.tqg.tokenizer(sql_string_list, 
 			return_tensors='pt', 
-			padding='max_length', 
+			padding=True,
 			truncation=True).input_ids
 
 		generated_ids = self.tqg.model.generate(input_ids,
-		        max_length=60,
+		        max_length=60, # should go as an argument in this function and run_tableqg.py TODO
 				num_beams=10,
 				repetition_penalty=2.5,
 				length_penalty=1.0,

@@ -127,14 +127,14 @@ class WikiSqlDataset():
 			data_split (str, optional): _description_. Defaults to 'train'.
 		"""
 		data = load_dataset('wikisql', split=data_split)
-		processed_data_dict = {'question': [], 'sql_str': []}
+		processed_data_dict = {'question': [], 'input': []}
 
 		for d in tqdm(data):
 			answer = self._execute_sql(d['sql'], d['table'])[0]
 			sql_str = self._create_sql_string(d['sql'], d['table'], answer)
 			
 			processed_data_dict['question'].append(d['question'])
-			processed_data_dict['sql_str'].append(sql_str)
+			processed_data_dict['input'].append(sql_str)
 		return processed_data_dict
 
 	def load_tables(self):
@@ -147,7 +147,7 @@ class QGDataLoader():
 		self.dataset_name = args.dataset_name
 		
 	def convert_to_features(self, example_batch):
-		input_encodings = self.tokenizer.batch_encode_plus(example_batch['sql_str'], 
+		input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
 										pad_to_max_length=True, max_length=self.args.max_len)
 		target_encodings = self.tokenizer.batch_encode_plus(example_batch['question'], 
 										pad_to_max_length=True, max_length=self.args.target_max_len)
