@@ -76,7 +76,7 @@ python examples/mrc/run_mrc.py --model_name_or_path {mrcmodel} \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
         --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
         --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no \
-        --postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+        --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 ```
 
 ## Question type classification
@@ -85,15 +85,16 @@ Given a question (obtained from the `eval_predictions.json` file created in the 
 whether the question is `boolean` or `short_answer`.
 
 ```shell
-    python examples/boolqa/run_boolqa_classifier.py \
+python examples/boolqa/run_boolqa_classifier.py \
     --overwrite_cache \
     --id_key example_id \
     --sentence1_key question \
     --label_list short_answer boolean \
     --output_label_prefix question_type \
-    --model_name_or_path /dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/output-yn \
-    --test_file /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/mrc/eval_predictions.json \
-    --output_dir /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/qtc
+    --model_name_or_path ibm/qtc_bert_pretrained_model \
+    --test_file ${BASE}/eval_predictions.json \
+    --output_dir ${OUTDIR}/qtc \
+    --use_auth_token
 ```
 ## Evidence classification
 
@@ -102,7 +103,7 @@ a `yes` or `no` answer to question.  Both question and span are passed through t
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
 
 ```shell
-    python examples/boolqa/run_boolqa_classifier.py \
+python examples/boolqa/run_boolqa_classifier.py \
     --overwrite_cache  \
     --id_key example_id \
     --sentence1_key question \
@@ -110,9 +111,10 @@ file output by the previous step.  The details of this process are analyzed in t
     --label_list no no_answer yes \
     --output_label_prefix boolean_answer \
     --drop_label no_answer \
-    --model_name_or_path /dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5/ \
-    --test_file /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/qtc/eval_predictions.json \
-    --output_dir /dccstor/jsmc-nmt-01/bool/expts/toolkit/b/b20/evc
+    --model_name_or_path ibm/evc_xlm_roberta_large \
+    --test_file ${BASE}/qtc/eval_predictions.json \
+    --output_dir ${OUTDIR}/evc \
+    --use_auth_token
 ```
 
 ## Score normalization
@@ -121,8 +123,8 @@ Span scores may have different dynamic ranges according as whether the question 
 and output a file suitable for the tydi evaluation script.
 
 ```shell
-    python examples/boolqa/merger_simple.py \
-    --answer_predictions_file {ws}/evc/eval_predictions.json \
-    --sn_model_file {sn_model_file} \
-    --output_predictions_file {merge_prediction_file}
+python examples/boolqa/run_score_normalizer.py \
+    --test_file ${BASE}/evc/eval_predictions.json \
+    --model_name_or_path tests/resources/boolqa/score_normalizer_model/sn.pickle \
+    --output_dir ${OUTDIR}/sn
 ```
