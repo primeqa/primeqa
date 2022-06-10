@@ -1,7 +1,6 @@
 from tqdm import tqdm
-from datasets import load_dataset
-from oneqa.tableqg.utils.constants import SqlOperants, SQLSpecialTokens
-from datasets import Dataset
+from datasets import load_dataset, Dataset
+from oneqa.tableqg.utils.constants import SqlOperants, QGSpecialTokens
 
 def _is_number(s):
 	try:
@@ -97,7 +96,7 @@ class WikiSqlDataset():
 		Returns:
 			str: _description_
 		"""
-		tokens = SQLSpecialTokens
+		tokens = QGSpecialTokens
 		conds = sql['conds']
 		num_conds = len(conds['column_index'])
 
@@ -140,6 +139,21 @@ class WikiSqlDataset():
 	def load_tables(self):
 		raise NotImplementedError('Will implement for V2')
 
+class PassageQGDataset():
+	def __init__(self, dataset_name):
+		self.dataset_name = dataset_name
+
+	def preprocess_data_for_qg(self, data_split='train'):
+		data = load_dataset(self.dataset_name, split=data_split)
+		processed_data_dict = {'question':[], 'input':[]}
+		
+		for d in tqdm(data):
+			input = d['answers']['text'][0] +' '+QGSpecialTokens.sep+' ' + d['context']
+			
+			processed_data_dict['input'].append(input)
+			processed_data_dict['question'].append(d['question'])
+		return processed_data_dict
+		
 class QGDataLoader():
 	def __init__(self, tokenizer, args):
 		self.args = args
@@ -164,9 +178,11 @@ class QGDataLoader():
 	def create(self, data_split='train'):
 		if self.dataset_name == 'wikisql':
 			data = WikiSqlDataset()
-			processed_data_dict = data.preprocess_data_for_qg(data_split) # list of dict
+		elif self.dataset_name in ['squad', 'squad_v2']:
+			data = PassageQGDataset(self.dataset_name)		
 		else:
-			raise NotImplementedError("Only WikiSQL supported for now")
+			raise NotImplementedError("this data not supported")
+		processed_data_dict = data.preprocess_data_for_qg(data_split) # list of dict
 		processed_data = Dataset.from_dict(processed_data_dict)
 		tokenized_data =  processed_data.map(self.convert_to_features, batched=True)
 		columns = ['input_ids', 'attention_mask', 'target_ids', 'target_attention_mask']

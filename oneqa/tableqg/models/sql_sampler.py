@@ -1,13 +1,13 @@
 import math
 from copy import deepcopy
 import numpy as np
-from oneqa.tableqg.utils.constants import SqlOperants, SQLSpecialTokens
+from oneqa.tableqg.utils.constants import SqlOperants, QGSpecialTokens
 
 class SimpleSqlSampler():
     """ A simple sql sampler to sample sqls based on number of where clause conditions and other parameters
     """
     def __init__(self):
-        self.sql_tokens = SQLSpecialTokens
+        self.sql_tokens = QGSpecialTokens
 
     @staticmethod
     def add_column_types(table):

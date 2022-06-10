@@ -1,5 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from oneqa.tableqg.utils.constants import SQLSpecialTokens
+from oneqa.tableqg.utils.constants import QGSpecialTokens
 
 class TableQG():
     def __init__(self,model_path):
@@ -15,8 +15,8 @@ class TableQG():
         # adding special tokens to tokenizer which is needed to create SQL
         # expanding token embeddings in model
         
-        sql_tokens_list = [SQLSpecialTokens.sep, SQLSpecialTokens.cond, SQLSpecialTokens.ans,
-                        SQLSpecialTokens.header, SQLSpecialTokens.hsep]
+        sql_tokens_list = [QGSpecialTokens.sep, QGSpecialTokens.cond, QGSpecialTokens.ans,
+                        QGSpecialTokens.header, QGSpecialTokens.hsep]
         for sql_token in sql_tokens_list:
             if sql_token not in self._tokenizer.vocab: # add when special-tokens aren't already there
                 self._tokenizer.add_tokens([sql_token])

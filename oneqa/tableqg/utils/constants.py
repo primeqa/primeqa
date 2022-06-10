@@ -9,7 +9,7 @@ class SqlOperants:
 	cond_ops_string = ['equal', 'greater', 'lesser', 'OP']
 
 @dataclass
-class SQLSpecialTokens:
+class QGSpecialTokens:
 	sep = '<<sep>>'
 	cond = '<<cond>>'
 	ans = '<<answer>>'
