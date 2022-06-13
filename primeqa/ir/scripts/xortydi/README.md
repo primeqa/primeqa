@@ -11,7 +11,7 @@
    python -m pyserini.index.lucene --collection JsonCollection --input <psgs_w100_jsonl-dir> --generator DefaultLuceneDocumentGenerator --threads 1 --storePositions --storeDocvectors --storeRaw --index <index-dir>
    ```
 ### Generate additional training examples
-The script [oneqa/ir/scripts/xortydi/generate_xorqa_examples.py] will generate additional positive and negative examples for XORTyDI using BM25 search over a Wikipedia psssage index.
+The script [primeqa/ir/scripts/xortydi/generate_xorqa_examples.py] will generate additional positive and negative examples for XORTyDI using BM25 search over a Wikipedia psssage index.
 
 Positive passages are those containing the answer text and negative passages are those where there 
 was no string matching the answer text. 
@@ -29,7 +29,7 @@ The following are steps to create the training data:
    - https://nlp.cs.washington.edu/xorqa/XORQA_site/data/te-en.zip
 3. Run command:
 ```shell
-   python oneqa/ir/scripts/xortydi/generate_xorqa_examples.py --input_file <training-data-json>
+   python primeqa/ir/scripts/xortydi/generate_xorqa_examples.py --input_file <training-data-json>
    --index_path <wiki_psgs_w100_index_path> --question_translations_dir <question_translation_dir>
    --num_rounds 5 --randomize 
 ```

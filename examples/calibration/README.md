@@ -51,7 +51,7 @@ python examples/calibration/train_confidence_calibrator.py \
        --confidence_model_dir ${CONFIDENCE_MODEL_DIR} \
        --max_iter_of_confidence_model_training 200 \
        --prediction_reference_overlap_threshold 0.5 \
-       --task_heads oneqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
 ### Output
 - Confidence calibration model file "confidence.bin" saved in the 

@@ -34,7 +34,7 @@ def object_reference(reference_as_str: str) -> object:
 
     Args:
         reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
+                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
     Returns:
         reference to path given by input
@@ -226,7 +226,7 @@ class TaskArguments:
     )
     eval_metrics: str = field(
         default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
+        metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1)," 
                           "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
                   "choices": ["TyDiF1","squad","MLQA"]
                  }

@@ -36,7 +36,7 @@ class TestOther(UnitTest):
     def test_utility(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
-            test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
+            test_files_location = '/u/franzm/git8/PrimeQA/tests/resources/ir_dense'
         collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
 
         with tempfile.TemporaryDirectory() as working_dir:

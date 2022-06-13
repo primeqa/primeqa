@@ -34,7 +34,7 @@ def object_reference(reference_as_str: str) -> object:
 
     Args:
         reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
+                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
     Returns:
         reference to path given by input
