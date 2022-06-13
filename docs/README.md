@@ -1,6 +1,6 @@
-# OneQA Documentation
+# PrimeQA Documentation
 
-OneQA uses Sphinx for documentation.  Before continuing make sure you have installed OneQA
+PrimeQA uses Sphinx for documentation.  Before continuing make sure you have installed PrimeQA
 with `docs` extras.  For example, from the top level of the project:
 
 ```shell
@@ -28,5 +28,5 @@ cd docs
 ./buildDocker.sh
 
 # run container
-docker run -p 80:80 --rm -d --name oneqa-docs oneqa-docs:${VERSION}
+docker run -p 80:80 --rm -d --name primeqa-docs primeqa-docs:${VERSION}
 ```
