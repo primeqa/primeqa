@@ -15,6 +15,7 @@ from transformers.trainer_utils import get_last_checkpoint, set_seed
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from primeqa.mrc.metrics.mlqa.mlqa import MLQA
+from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -226,9 +227,8 @@ class TaskArguments:
     )
     eval_metrics: str = field(
         default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
-                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
-                  "choices": ["TyDiF1","squad","MLQA"]
+        metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
+                  "choices": ["TyDiF1","SQUAD","MLQA"]
                  }
     )
     passage_non_null_threshold: int = field(
@@ -389,10 +389,7 @@ def main():
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
-    if task_args.eval_metrics in datasets.list_metrics():
-        eval_metrics = datasets.load_metric(task_args.eval_metrics)
-    else:
-        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,

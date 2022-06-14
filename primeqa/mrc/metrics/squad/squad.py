@@ -1,31 +1,42 @@
-""" MLQA metric. """
+# Copyright 2020 The HuggingFace Datasets Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+""" SQuAD metric. """
 
 import datasets
-from typing import Dict, Any
-from primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1 import evaluate
+
+from .evaluate import evaluate
 
 
 _CITATION = """\
-@article{lewis2019mlqa,
-  title={MLQA: Evaluating Cross-lingual Extractive Question Answering},
-  author={Lewis, Patrick and Oguz, Barlas and Rinott, Ruty and Riedel, Sebastian and Schwenk, Holger},
-  journal={arXiv preprint arXiv:1910.07475},
-  year={2019}
+@inproceedings{Rajpurkar2016SQuAD10,
+  title={SQuAD: 100, 000+ Questions for Machine Comprehension of Text},
+  author={Pranav Rajpurkar and Jian Zhang and Konstantin Lopyrev and Percy Liang},
+  booktitle={EMNLP},
+  year={2016}
 }
 """
 
 _DESCRIPTION = """
-This metric wrap the official scoring script for version 1 of the MultiLingual Question Answering (MLQA).
+This metric wrap the official scoring script for version 1 of the Stanford Question Answering Dataset (SQuAD).
 
-
-MLQA (MultiLingual Question Answering) is a benchmark dataset for evaluating cross-lingual question 
-answering performance. MLQA consists of over 5K extractive QA instances (12K in English) in SQuAD 
-format in seven languages - English, Arabic, German, Spanish, Hindi, Vietnamese and Simplified Chinese. 
-MLQA is highly parallel, with QA instances parallel between 4 different languages on average.
+Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, consisting of questions posed by
+crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span,
+from the corresponding reading passage, or the question might be unanswerable.
 """
 
 _KWARGS_DESCRIPTION = """
-Computes MLQA SQuAD scores (F1 and EM).
+Computes SQuAD scores (F1 and EM).
 Args:
     predictions: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair as given in the references (see below)
@@ -36,17 +47,24 @@ Args:
             {
                 'text': list of possible texts for the answer, as a list of strings
                 'answer_start': list of start positions for the answer, as a list of ints
-            },
-        - 'answer_language' the language of the answer
+            }
             Note that answer_start values are not taken into account to compute the metric.
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
+Examples:
+
+    >>> predictions = [{'prediction_text': '1976', 'id': '56e10a3be3433e1400422b22'}]
+    >>> references = [{'answers': {'answer_start': [97], 'text': ['1976']}, 'id': '56e10a3be3433e1400422b22'}]
+    >>> squad_metric = datasets.load_metric("squad")
+    >>> results = squad_metric.compute(predictions=predictions, references=references)
+    >>> print(results)
+    {'exact_match': 100.0, 'f1': 100.0}
 """
 
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
-class MLQA(datasets.Metric):
+class SQUAD(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
@@ -63,15 +81,14 @@ class MLQA(datasets.Metric):
                                 "answer_start": datasets.Value("int32"),
                             }
                         ),
-                        "answer_language": datasets.Value("string")
                     },
                 }
             ),
-            codebase_urls=["https://github.com/facebookresearch/MLQA"],
-            reference_urls=["https://github.com/facebookresearch/MLQA"],
+            codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
+            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
         )
 
-    def _compute(self, *, predictions, references, **kwargs) -> Dict[str, Any]:
+    def _compute(self, *, predictions, references, **kwargs):
         pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
         dataset = [
             {
@@ -88,6 +105,5 @@ class MLQA(datasets.Metric):
                 ]
             }
         ]
-        answer_language = references[0]['answer_language']
-        score = evaluate(dataset=dataset, predictions=pred_dict, lang=answer_language)
+        score = evaluate(dataset=dataset, predictions=pred_dict)
         return score
