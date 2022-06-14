@@ -20,7 +20,7 @@ limitations under the License.
 </h3>
 
 [![Build Status](https://travis.ibm.com/ai-foundation/PrimeQA.svg?token=XcbF7zxMKHD12hqZiBwc&branch=master)](https://travis.ibm.com/ai-foundation/PrimeQA)
-
+[![LICENSE|Apache2.0](https://img.shields.io/github/license/saltstack/salt?color=blue)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 PrimeQA is a public open source repository that provides researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher would be able to replicate the experiments outlined in a paper published in a latest NLP conference while also enjoying the capability to download the trained models (from an online repository) and run them on their own custom data. 
 
 The models within PrimeQA supports End-to-end Question Answering. These answering questions via 
@@ -84,4 +84,3 @@ pytest --cov PrimeQA --cov-config .coveragerc tests/
 For more information, see:
 - Our [tox.ini](./tox.ini)
 - The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation
-
