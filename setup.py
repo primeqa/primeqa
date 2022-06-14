@@ -81,7 +81,7 @@ extras["all"] = list(_deps)
 install_requires = extras["install"]
 
 setup(
-    name="one-qa",
+    name="prime-qa",
     version=version,
     author=", ".join(authors),
     author_email="TODO",
