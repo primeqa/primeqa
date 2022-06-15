@@ -5,11 +5,11 @@ import __main__
 import traceback
 # import mlflow
 
-import oneqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
+import primeqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
 
 from contextlib import contextmanager
-from oneqa.ir.dense.colbert_top.colbert.utils.logging import Logger
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import timestamp, create_directory, print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.logging import Logger
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import timestamp, create_directory, print_message
 
 
 class _RunManager():

@@ -2,8 +2,8 @@ import logging
 import os
 import random
 import numpy as np
-from oneqa.util.file_utils import jsonl_lines, write_open
-from oneqa.util.args_helper import fill_from_args
+from primeqa.util.file_utils import jsonl_lines, write_open
+from primeqa.util.args_helper import fill_from_args
 import ujson as json
 
 logging.basicConfig(format='%(filename)s:%(lineno)d - %(message)s',

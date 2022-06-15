@@ -10,9 +10,9 @@ from transformers import BatchEncoding
 from datasets import Dataset
 from datasets.features.features import Sequence, Value
 
-from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
-from oneqa.mrc.data_models.subsample_type import SubsampleType
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
+from primeqa.mrc.data_models.subsample_type import SubsampleType
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 class BasePreProcessor(AbstractPreProcessor):

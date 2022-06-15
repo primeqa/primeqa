@@ -1,10 +1,10 @@
 
-from tests.oneqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.base import UnitTest
 import pytest
 import os
 import json
 from typing import Tuple
-from oneqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 
 class TestPyseriniRetriever(UnitTest):

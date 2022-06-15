@@ -11,12 +11,12 @@ try:
 except RuntimeError:
     pass
 
-import oneqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
+import primeqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
 
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.infra.config import BaseConfig, RunConfig, RunSettings
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.config import BaseConfig, RunConfig, RunSettings
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 
 class Launcher:

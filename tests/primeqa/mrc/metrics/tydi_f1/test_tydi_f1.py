@@ -1,9 +1,9 @@
 import datasets
 import pytest
 
-from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestTyDiF1(UnitTest):
@@ -66,7 +66,7 @@ class TestTyDiF1(UnitTest):
         _ = metric
 
     def test_instantiate_metric_from_load_metric(self):
-        from oneqa.mrc.metrics.tydi_f1 import tydi_f1
+        from primeqa.mrc.metrics.tydi_f1 import tydi_f1
         _ = datasets.load_metric(tydi_f1.__file__)
 
     def test_compute_metric(self, metric, references_and_predictions):

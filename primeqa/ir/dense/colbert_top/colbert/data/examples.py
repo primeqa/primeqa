@@ -1,10 +1,10 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 import os
 import ujson
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
-from oneqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
-from oneqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
+from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
 
 
 class Examples:

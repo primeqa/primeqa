@@ -3,13 +3,13 @@ import ujson
 
 from collections import defaultdict
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, zipstar
-from oneqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, zipstar
+from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
 
-from oneqa.ir.dense.colbert_top.colbert.infra import Run
-from oneqa.ir.dense.colbert_top.colbert.data import Ranking
-from oneqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
-from oneqa.ir.dense.colbert_top.colbert.distillation.scorer import Scorer
+from primeqa.ir.dense.colbert_top.colbert.infra import Run
+from primeqa.ir.dense.colbert_top.colbert.data import Ranking
+from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
+from primeqa.ir.dense.colbert_top.colbert.distillation.scorer import Scorer
 
 
 class RankingScorer:

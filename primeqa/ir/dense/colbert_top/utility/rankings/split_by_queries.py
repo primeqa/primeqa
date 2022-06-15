@@ -6,7 +6,7 @@ import random
 
 from argparse import ArgumentParser
 from collections import OrderedDict
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, file_tqdm
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, file_tqdm
 
 
 def main(args):

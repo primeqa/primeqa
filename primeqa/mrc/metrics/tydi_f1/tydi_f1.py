@@ -2,9 +2,9 @@ from typing import Dict, Any, Tuple, List
 
 import datasets
 
-from oneqa.mrc.metrics.tydi_f1.eval_utils import Span, TyDiLabel
-from oneqa.mrc.metrics.tydi_f1.tydi_eval import pretty_print
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.metrics.tydi_f1.eval_utils import Span, TyDiLabel
+from primeqa.mrc.metrics.tydi_f1.tydi_eval import pretty_print
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 _DESCRIPTION = """

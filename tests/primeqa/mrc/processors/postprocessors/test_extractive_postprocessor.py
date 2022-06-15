@@ -9,11 +9,11 @@ from operator import itemgetter
 
 import numpy as np
 
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.base import UnitTest
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
 
 
 class TestExtractivePostProcessor(UnitTest):

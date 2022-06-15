@@ -3,11 +3,11 @@ import torch
 from datasets import Dataset
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.parameterization import parameterize_fixture_with_model_name
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.parameterization import parameterize_fixture_with_model_name
 
 
 class UnitTest:

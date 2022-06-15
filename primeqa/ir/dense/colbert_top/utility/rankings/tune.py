@@ -3,8 +3,8 @@ import ujson
 import random
 
 from argparse import ArgumentParser
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory
-from oneqa.ir.dense.colbert_top.utility.utils.save_metadata import save_metadata
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory
+from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import save_metadata
 
 
 def main(args):

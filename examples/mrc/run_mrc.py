@@ -15,23 +15,23 @@ import datasets
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.metrics.mlqa.mlqa import MLQA
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
-from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
-from oneqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.metrics.mlqa.mlqa import MLQA
+from primeqa.mrc.metrics.squad.squad import SQUAD
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
+from primeqa.mrc.trainers.mrc import MRCTrainer
 from examples.boolqa.run_boolqa_classifier import main as cls_main
 from examples.boolqa.run_score_normalizer import main as sn_main
-
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -40,7 +40,7 @@ def object_reference(reference_as_str: str) -> object:
 
     Args:
         reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
+                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
     Returns:
         reference to path given by input
@@ -232,9 +232,8 @@ class TaskArguments:
     )
     eval_metrics: str = field(
         default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
-                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
-                  "choices": ["TyDiF1","squad","MLQA"]
+        metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
+                  "choices": ["TyDiF1","SQUAD","MLQA"]
                  }
     )
     do_boolean: bool = field(
@@ -415,10 +414,7 @@ def main():
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
-    if task_args.eval_metrics in datasets.list_metrics():
-        eval_metrics = datasets.load_metric(task_args.eval_metrics)
-    else:
-        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,

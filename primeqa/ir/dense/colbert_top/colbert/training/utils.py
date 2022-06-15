@@ -2,9 +2,9 @@ import os
 import torch
 
 # from colbert.utils.runs import Run
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_checkpoint
-from oneqa.ir.dense.colbert_top.colbert.parameters import SAVED_CHECKPOINTS
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_checkpoint
+from primeqa.ir.dense.colbert_top.colbert.parameters import SAVED_CHECKPOINTS
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 
 
 def print_progress(scores):

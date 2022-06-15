@@ -14,24 +14,24 @@ from collections import OrderedDict
 
 from queue import Empty
 
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 
 from transformers import AdamW, get_linear_schedule_with_warmup
-from oneqa.ir.dense.colbert_top.colbert.infra import ColBERTConfig
-from oneqa.ir.dense.colbert_top.colbert.training.rerank_batcher import RerankBatcher
-from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
+from primeqa.ir.dense.colbert_top.colbert.infra import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.training.rerank_batcher import RerankBatcher
+from primeqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
 
-from oneqa.ir.dense.colbert_top.colbert.utils.amp import MixedPrecisionManager
-from oneqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher
-from oneqa.ir.dense.colbert_top.colbert.parameters import DEVICE
+from primeqa.ir.dense.colbert_top.colbert.utils.amp import MixedPrecisionManager
+from primeqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher
+from primeqa.ir.dense.colbert_top.colbert.parameters import DEVICE
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
-from oneqa.ir.dense.colbert_top.colbert.modeling.reranker.electra import ElectraReranker
+from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
+from primeqa.ir.dense.colbert_top.colbert.modeling.reranker.electra import ElectraReranker
 
-from oneqa.ir.dense.colbert_top.colbert.utils import signals
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_checkpoint
-from oneqa.ir.dense.colbert_top.colbert.training.utils import print_progress, manage_checkpoints_consumed_all_triples, manage_checkpoints_with_path_save
+from primeqa.ir.dense.colbert_top.colbert.utils import signals
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_checkpoint
+from primeqa.ir.dense.colbert_top.colbert.training.utils import print_progress, manage_checkpoints_consumed_all_triples, manage_checkpoints_with_path_save
 
 
 def calculate_distance(student_out, teacher_out):

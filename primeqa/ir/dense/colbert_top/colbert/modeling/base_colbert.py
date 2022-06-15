@@ -3,12 +3,12 @@ import torch
 
 from transformers import AutoTokenizer
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.factory import get_colbert_from_pretrained
-from oneqa.ir.dense.colbert_top.colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
+from primeqa.ir.dense.colbert_top.colbert.modeling.factory import get_colbert_from_pretrained
+from primeqa.ir.dense.colbert_top.colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
 
 class BaseColBERT(torch.nn.Module):
     """

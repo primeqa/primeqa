@@ -1,4 +1,4 @@
-from oneqa.util.reporting import Reporting
+from primeqa.util.reporting import Reporting
 
 
 class Tester:

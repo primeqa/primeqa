@@ -10,21 +10,21 @@ import json
 import joblib
 from joblib import dump, load
 from sklearn.neural_network import MLPClassifier
-from oneqa.calibration.confidence_scorer import ConfidenceScorer
+from primeqa.calibration.confidence_scorer import ConfidenceScorer
 
 import datasets
 from datasets import DatasetDict, load_from_disk
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 def object_reference(reference_as_str: str) -> object:
@@ -34,7 +34,7 @@ def object_reference(reference_as_str: str) -> object:
 
     Args:
         reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
+                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
     Returns:
         reference to path given by input

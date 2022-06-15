@@ -2,10 +2,10 @@ import pytest
 import torch
 from transformers import MODEL_MAPPING
 
-from oneqa.mrc.models.heads.extractive import ExtractiveQAHead
-from oneqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.models.heads.extractive import ExtractiveQAHead
+from primeqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestExtractiveQAHead(UnitTest):

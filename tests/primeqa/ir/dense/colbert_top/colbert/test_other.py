@@ -1,11 +1,11 @@
-from tests.oneqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.base import UnitTest
 import pytest
 import os
 import tempfile
 
 from argparse import ArgumentParser
-from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-from oneqa.ir.dense.colbert_top.utility.preprocess.docs2passages import main as docs2passages_main
+from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+from primeqa.ir.dense.colbert_top.utility.preprocess.docs2passages import main as docs2passages_main
 import argparse
 
 class TestOther(UnitTest):
@@ -36,7 +36,7 @@ class TestOther(UnitTest):
     def test_utility(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
-            test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
+            test_files_location = 'PrimeQA/tests/resources/ir_dense'
         collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
 
         with tempfile.TemporaryDirectory() as working_dir:

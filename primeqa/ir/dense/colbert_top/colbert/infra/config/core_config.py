@@ -6,9 +6,9 @@ import dataclasses
 from typing import Any
 from collections import defaultdict
 from dataclasses import dataclass, fields
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import timestamp, torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import timestamp, torch_load_dnn
 
-from oneqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
+from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
 
 
 @dataclass

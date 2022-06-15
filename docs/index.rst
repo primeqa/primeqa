@@ -1,4 +1,4 @@
-Welcome to OneQA's documentation!
+Welcome to PrimeQA's documentation!
 =================================
 
 
@@ -10,7 +10,7 @@ Welcome to OneQA's documentation!
   testing
 
 
-OneQA API Reference
+PrimeQA API Reference
 ===================
 
 .. autosummary::
@@ -18,7 +18,7 @@ OneQA API Reference
    :template: custom-module-template.rst
    :recursive:
 
-   oneqa
+   primeqa
 
 
 

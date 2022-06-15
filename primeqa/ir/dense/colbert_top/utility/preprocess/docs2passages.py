@@ -9,7 +9,7 @@ import random
 
 from multiprocessing import Pool
 from argparse import ArgumentParser
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 Format1 = 'docid,text'  # MS MARCO Passages
 Format2 = 'docid,text,title'   # DPR Wikipedia

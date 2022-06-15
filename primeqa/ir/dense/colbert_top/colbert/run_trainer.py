@@ -1,8 +1,8 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
-from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-from oneqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.trainer import Trainer
+from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.trainer import Trainer
 
 def main():
     parser = Arguments(description='Training ColBERT with <query, positive passage, negative passage> triples.')

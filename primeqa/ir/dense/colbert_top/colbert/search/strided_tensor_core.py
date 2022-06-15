@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten
 
 
 """

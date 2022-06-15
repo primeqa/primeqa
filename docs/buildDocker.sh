@@ -12,4 +12,4 @@ trap popd EXIT
 
 VERSION=$(cat VERSION)
 
-docker build -f docs/Dockerfile -t "oneqa-docs:${VERSION}" .
+docker build -f docs/Dockerfile -t "primeqa-docs:${VERSION}" .

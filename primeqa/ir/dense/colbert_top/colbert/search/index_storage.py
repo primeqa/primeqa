@@ -1,15 +1,15 @@
 import torch
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.loaders import load_doclens
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings_strided import ResidualEmbeddingsStrided
+from primeqa.ir.dense.colbert_top.colbert.indexing.loaders import load_doclens
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings_strided import ResidualEmbeddingsStrided
 
-from oneqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
-from oneqa.ir.dense.colbert_top.colbert.search.candidate_generation import CandidateGeneration
+from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.colbert_top.colbert.search.candidate_generation import CandidateGeneration
 
 from .index_loader import IndexLoader
-from oneqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed
+from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed
 
 
 class IndexScorer(IndexLoader, CandidateGeneration):

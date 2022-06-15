@@ -8,20 +8,20 @@ import random
 
 import numpy as np
 import torch.multiprocessing as mp
-from oneqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
 
-import oneqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
+import primeqa.ir.dense.colbert_top.colbert.utils.distributed as distributed
 
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
-from oneqa.ir.dense.colbert_top.colbert.modeling.checkpoint import Checkpoint
-from oneqa.ir.dense.colbert_top.colbert.data.collection import Collection
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
+from primeqa.ir.dense.colbert_top.colbert.modeling.checkpoint import Checkpoint
+from primeqa.ir.dense.colbert_top.colbert.data.collection import Collection
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.collection_encoder import CollectionEncoder
-from oneqa.ir.dense.colbert_top.colbert.indexing.index_saver import IndexSaver
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message
+from primeqa.ir.dense.colbert_top.colbert.indexing.collection_encoder import CollectionEncoder
+from primeqa.ir.dense.colbert_top.colbert.indexing.index_saver import IndexSaver
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
 
 
 def encode(config, collection, shared_lists, shared_queues):

@@ -3,9 +3,9 @@ import ujson
 import torch
 import numpy as np
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import lengths2offsets, print_message, dotdict, flatten
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
-from oneqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import lengths2offsets, print_message, dotdict, flatten
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
+from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
 
 
 class IndexLoader:

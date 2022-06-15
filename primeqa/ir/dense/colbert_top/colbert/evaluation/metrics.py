@@ -1,7 +1,7 @@
 import ujson
 
 from collections import defaultdict
-from oneqa.ir.dense.colbert_top.colbert.utils.runs import Run
+from primeqa.ir.dense.colbert_top.colbert.utils.runs import Run
 
 
 class Metrics:

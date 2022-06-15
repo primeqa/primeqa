@@ -1,9 +1,9 @@
 import torch
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
 from transformers import XLMRobertaTokenizer # there's no Fast version
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 # only the following official escape sequences are available
 # 0            0     <s>

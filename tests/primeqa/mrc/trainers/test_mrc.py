@@ -4,8 +4,8 @@ import tempfile
 import pytest
 from transformers import TrainingArguments, DataCollatorWithPadding
 
-from oneqa.mrc.trainers.mrc import MRCTrainer
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.trainers.mrc import MRCTrainer
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestMRCTrainer(UnitTest):

@@ -5,9 +5,9 @@ import random
 
 from collections import defaultdict, OrderedDict
 
-from oneqa.ir.dense.colbert_top.colbert.parameters import DEVICE
-from oneqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, load_checkpoint
+from primeqa.ir.dense.colbert_top.colbert.parameters import DEVICE
+from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, load_checkpoint
 
 
 def load_model(args, do_print=True):

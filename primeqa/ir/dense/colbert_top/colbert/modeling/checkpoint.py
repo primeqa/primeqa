@@ -2,13 +2,13 @@ import torch
 
 from tqdm import tqdm
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
-from oneqa.ir.dense.colbert_top.colbert.utils.amp import MixedPrecisionManager
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
+from primeqa.ir.dense.colbert_top.colbert.utils.amp import MixedPrecisionManager
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
-from oneqa.ir.dense.colbert_top.colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 class Checkpoint(ColBERT):
     """

@@ -2,13 +2,13 @@ import os
 import ujson
 
 from functools import partial
-from oneqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message, zipstar
-from oneqa.ir.dense.colbert_top.colbert.modeling.reranker.tokenizer import RerankerTokenizer
+from primeqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message, zipstar
+from primeqa.ir.dense.colbert_top.colbert.modeling.reranker.tokenizer import RerankerTokenizer
 
-from oneqa.ir.dense.colbert_top.colbert.data.collection import Collection
-from oneqa.ir.dense.colbert_top.colbert.data.queries import Queries
-from oneqa.ir.dense.colbert_top.colbert.data.examples import Examples
+from primeqa.ir.dense.colbert_top.colbert.data.collection import Collection
+from primeqa.ir.dense.colbert_top.colbert.data.queries import Queries
+from primeqa.ir.dense.colbert_top.colbert.data.examples import Examples
 
 # from colbert.utils.runs import Run
 

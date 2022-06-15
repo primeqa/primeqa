@@ -4,8 +4,8 @@ import random
 
 from argparse import ArgumentParser
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory, load_ranking, groupby_first_item
-from oneqa.ir.dense.colbert_top.utility.utils.qa_loaders import load_qas_
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory, load_ranking, groupby_first_item
+from primeqa.ir.dense.colbert_top.utility.utils.qa_loaders import load_qas_
 
 
 def main(args):

@@ -2,7 +2,7 @@ from struct import pack
 import torch
 from torch._C import device
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten
 
 from .strided_tensor_core import StridedTensorCore, _create_mask, _create_view
 

@@ -7,7 +7,7 @@ import json
 import jsonlines
 import numpy.random
 from tqdm import tqdm
-from oneqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 import unicodedata
 import pandas as pd
 import os

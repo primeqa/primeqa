@@ -7,13 +7,13 @@ import numpy as np
 
 import torch.multiprocessing as mp
 
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import encode
+from primeqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import encode
 
 
 class Indexer:

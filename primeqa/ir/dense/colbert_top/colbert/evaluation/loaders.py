@@ -5,11 +5,11 @@ import random
 
 from collections import defaultdict, OrderedDict
 
-from oneqa.ir.dense.colbert_top.colbert.parameters import DEVICE
-from oneqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, load_checkpoint, remove_first_and_last_quote
-from oneqa.ir.dense.colbert_top.colbert.evaluation.load_model import load_model
-from oneqa.ir.dense.colbert_top.colbert.utils.runs import Run
+from primeqa.ir.dense.colbert_top.colbert.parameters import DEVICE
+from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import ColBERT
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, load_checkpoint, remove_first_and_last_quote
+from primeqa.ir.dense.colbert_top.colbert.evaluation.load_model import load_model
+from primeqa.ir.dense.colbert_top.colbert.utils.runs import Run
 
 
 def load_queries(queries_path):
