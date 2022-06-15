@@ -3,7 +3,7 @@ import argparse
 import csv
 import json
 from typing import List, Dict
-from oneqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 import logging
 
 logger = logging.getLogger(__name__)
