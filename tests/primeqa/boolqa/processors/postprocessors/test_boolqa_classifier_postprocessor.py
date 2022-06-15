@@ -5,9 +5,9 @@ import json
 
 import numpy as np
 
-from oneqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
+from primeqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
 
-from tests.oneqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestExtractivePostProcessor(UnitTest):

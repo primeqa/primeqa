@@ -12,9 +12,9 @@ from datasets.features.features import Sequence, Value
 from transformers import PreTrainedTokenizerFast, BatchEncoding
 
 
-from oneqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
-from oneqa.mrc.data_models.subsample_type import SubsampleType
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
+from primeqa.mrc.data_models.subsample_type import SubsampleType
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 # TODO type signatures for all methods
@@ -71,7 +71,7 @@ class BoolQAClassifierPreProcessor:
             msg="""
 The eval_predictions.json file must contain a field 'question'.  This can be created by running the machine
 reading comprehension step in "run_mrc.py" with the option
---postprocessor oneqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+--postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 rather than the default tydi postprocessor.
             """
             print(msg)

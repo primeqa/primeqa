@@ -1,8 +1,8 @@
 from transformers import AutoTokenizer
-from oneqa.mrc.data_models.target_type import TargetType
-from oneqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
-from oneqa.boolqa.processors.dataset.mrc2dataset  import create_dataset_from_run_mrc_output
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.data_models.target_type import TargetType
+from primeqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
+from primeqa.boolqa.processors.dataset.mrc2dataset  import create_dataset_from_run_mrc_output
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 

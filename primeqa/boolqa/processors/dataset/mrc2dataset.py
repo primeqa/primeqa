@@ -1,19 +1,3 @@
-"""
-BEGIN_COPYRIGHT
-
-IBM Confidential
-OCO Source Materials
-
-5727-I17
-(C) Copyright IBM Corp. 2020 All Rights Reserved.
- 
-The source code for this program is not published or otherwise
-divested of its trade secrets, irrespective of what has been
-deposited with the U.S. Copyright Office.
-
-END_COPYRIGHT
-"""
-
 import json
 import argparse
 import pandas as pd 
@@ -35,7 +19,7 @@ def handle_args():
     return args
 
 
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.data_models.target_type import TargetType
 from datasets import Dataset
 
 def unpack_target_type(row):

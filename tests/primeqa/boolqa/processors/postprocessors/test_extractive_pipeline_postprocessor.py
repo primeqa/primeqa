@@ -5,11 +5,11 @@ from pytest import raises
 from itertools import groupby
 from operator import itemgetter
 import numpy as np
-from oneqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.base import UnitTest
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
+from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
 
 
 class TestExtractivePipelinePostProcessor(UnitTest):
@@ -75,7 +75,7 @@ class TestExtractivePipelinePostProcessor(UnitTest):
         
     
     # TODO this is the same code as 
-    # tests.oneqa.mrc.processors.postprocessors.test_extractive_postprocessor.TestExtractivePostProcessor    
+    # tests.primeqa.mrc.processors.postprocessors.test_extractive_postprocessor.TestExtractivePostProcessor    
     # but pytest doesn't seem to like using inheritance to de-duplicate code - it gives extra logging messages
     # and appararently runs everything twice!?
     def _start_end_target_type_logits(self, examples, features, mock_logits_expected_predictions):

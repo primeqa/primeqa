@@ -43,9 +43,9 @@ from transformers import (
 )
 from transformers.trainer_utils import is_main_process
 
-from oneqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
-from oneqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
-from oneqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
+from primeqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
+from primeqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
+from primeqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 #check_min_version("4.6.0")

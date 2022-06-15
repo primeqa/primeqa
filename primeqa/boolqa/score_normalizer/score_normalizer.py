@@ -3,7 +3,7 @@ import numpy
 import os
 import json
 import importlib
-from oneqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
+from primeqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 import argparse
 import sys
 

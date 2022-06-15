@@ -1,4 +1,4 @@
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from datasets import Dataset
 import numpy as np
 from typing import Tuple

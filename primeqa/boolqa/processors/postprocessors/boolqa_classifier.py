@@ -5,8 +5,8 @@ import numpy as np
 import logging
 from transformers import EvalPrediction
 
-from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 
 
 logger = logging.getLogger(__name__)

@@ -1,7 +1,7 @@
 import pytest
 from pytest import raises
-from tests.oneqa.mrc.common.base import UnitTest
-from oneqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
+from tests.primeqa.mrc.common.base import UnitTest
+from primeqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
 import numpy as np
 
 class TestScoreNormalizer(UnitTest):

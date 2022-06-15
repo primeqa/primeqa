@@ -1,4 +1,4 @@
-from oneqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
+from primeqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
 import argparse
 import sys
 
