@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# based loosely on https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py
+#
+#
 # coding=utf-8
 # Copyright 2020 The HuggingFace Inc. team. All rights reserved.
 #
