@@ -14,11 +14,16 @@ The option `--do_boolean` supercedes the `--do_eval` option, and runs the follow
 
 - **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
-- **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. This is analyzed in more detail in evc.ipynb.
+- **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. 
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 
-### Jupyter notebooks
+We provide pretrained models for each of these downstream components.
+
+### Jupyter notebooks and further details
+
 The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb).
+
+The inner details of the machine reading comprehension for TydiQA are analyzed in more detail in [notebook](../../notebooks/mrc/tydiqa.ipynb).
 
 The inner details of the evidence classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
 
@@ -58,15 +63,14 @@ The configuration file contains the parameters for each of the post-MRC steps
     }
 }
 ```
-and consists of blocks that correspond to command line arguments of the individual steps (see below.)
+and consists of blocks for each of the downstream components.  The individual arguments correspond to command line arguments of the individual steps (see below.)
 
 
 
 ## Machine Reading Comprehension
 
 The machine reading comprehension differs from the default invocation of `run_mrc.py` (see [readme](../mrc/README.md))
-in two ways.  First we provide a pretrained model that has been exposed to passage answer spans for boolean questions (the TydiQA
-dataset does not provide short answers).  Second, the postprocessor provides additional information (language, question)
+as follows: the postprocessor provides additional information (language, question)
 needed by the downstream components
 
 ```shell
