@@ -41,7 +41,7 @@ class ExtractivePipelinePostProcessor(ExtractivePostProcessor):
     """
         PostProcessor that is just like ExtractivePostProcssor, but provides additional fields
         needed for downstream boolean pipeline classifiers:
-            language, question, passage_answer_text
+        new fields:   language, question, passage_answer_text
     """ 
     def process(self, examples: Dataset, features: Dataset, predictions: Tuple[np.ndarray, np.ndarray, np.ndarray]):
         predictions=super().process(examples, features, predictions)

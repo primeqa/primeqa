@@ -13,12 +13,26 @@ logger = logging.getLogger(__name__)
 
 
 class BoolQAClassifierPostProcessor(AbstractPostProcessor):
+    """
+    Post processor for use with the classifier components of the Tydi-Boolqa pipeline
+    so that additional fields can be added to the eval_predictions.json files
+    """    
     def __init__(self, 
                 drop_label: str,
                 id_key: str,
                 label_list: List[str],
                 output_label_prefix: str,
                 *args, **kwargs):
+        """
+        Args:
+            drop_label: if specified, ignore this category for classifier output,
+                     e.g. "no_answer" converts a ("yes","no_answer","no") classifier into a ("yes", "no") classifier
+            id_key: unique identifier field of examples to be classified
+            label_list: the (human-readable) labels produced by the classifier
+            output_label_prefix: prefix for new output fields in eval_predictions.json
+            *args: Arguments for super class constructor.
+            **kwargs: Keyword Arguments for super class constructor.
+        """                
         super().__init__(1, 1)
         self.id_key=id_key
         self.drop_label = drop_label

@@ -17,9 +17,12 @@ from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
 
 
-# TODO type signatures for all methods
-# TODO AbstractPreProcessor is way too specific to extractive qa
+# AbstractPreProcessor is too specific to extractive, we can't inherit from it here
 class BoolQAClassifierPreProcessor:
+    """
+    Preprocessor for TyDi-BoolQA pipeline classifiers that receive upstream input from
+    an eval_predictions.json file
+    """    
     def __init__(self,
                 sentence1_key: str,
                 sentence2_key: str,
@@ -27,7 +30,23 @@ class BoolQAClassifierPreProcessor:
                 max_seq_len: int,
                 padding: bool,
                 load_from_cache_file: bool = True):
-
+        """
+        Args:
+            sentence1_key:
+                the key for the first input field, typically "question"
+            sentence2_key:
+                the key for the second input field which is used as a passage
+            tokenizer:
+                Tokenizer used to prepare model inputs.             
+                Step size to move sliding window across context.
+            max_seq_len:
+                Maximum length of question and context inputs to the model (in word pieces/bpes).
+                Uses tokenizer default if not given.
+            padding:
+                padding argument for tokenizer
+            load_from_cache_file:
+                load_from_cache argument of dataset mapper
+        """                
         self._sentence1_key=sentence1_key
         self._sentence2_key=sentence2_key
         self._tokenizer=tokenizer
