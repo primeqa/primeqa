@@ -14,7 +14,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
 
-include_package_roots = ["oneqa"]  # only include these packages and their subpackages
+include_package_roots = ["primeqa"]  # only include these packages and their subpackages
 include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"], include_package_roots)))
 
 keywords = [
@@ -32,6 +32,7 @@ _deps = {
     "click~=8.0.4": ["install"],
     "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
+    "myst-parser~=0.17.2": ["docs"],
     "faiss-cpu~=1.7.2": ["install"], 
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
@@ -40,6 +41,7 @@ _deps = {
     "jsonlines~=3.0.0": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
+    "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
@@ -79,7 +81,7 @@ extras["all"] = list(_deps)
 install_requires = extras["install"]
 
 setup(
-    name="one-qa",
+    name="prime-qa",
     version=version,
     author=", ".join(authors),
     author_email="TODO",

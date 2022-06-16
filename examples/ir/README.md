@@ -17,7 +17,7 @@ Here's how to run a search query against an index and retrieve ranked list of do
 
 ```
 
-from oneqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 index_path='<path-to-wikipedia-passage-index>
 searcher = PyseriniRetriever(index_path, use_bm25=True, k1=0.9, b=0.4)
@@ -57,7 +57,7 @@ Output:
 1. Download and unzip the English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing). 
 2. Convert to ColBERT tsv format 
 ```shell
-   python oneqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file <path-to-xortydi-gmt-queries-jsonl> --output_file <path-to-xortydi-dev-gmt-queries.tsv> 
+   python primeqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file <path-to-xortydi-gmt-queries-jsonl> --output_file <path-to-xortydi-dev-gmt-queries.tsv> 
  ```
 3. Run:
   ```shell

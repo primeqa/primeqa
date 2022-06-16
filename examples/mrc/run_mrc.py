@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import traceback
+import glob
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
@@ -11,19 +12,20 @@ import datasets
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
-from oneqa.mrc.metrics.mlqa.mlqa import MLQA
-from oneqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
-from oneqa.mrc.models.task_model import ModelForDownstreamTasks
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
-from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
-from oneqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.metrics.mlqa.mlqa import MLQA
+from primeqa.mrc.metrics.squad.squad import SQUAD
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
+from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 def object_reference(reference_as_str: str) -> object:
@@ -33,7 +35,7 @@ def object_reference(reference_as_str: str) -> object:
 
     Args:
         reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
+                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
 
     Returns:
         reference to path given by input
@@ -97,6 +99,15 @@ class DataTrainingArguments:
 
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to train on."}
+    )
+    eval_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to test on."}
+    )
+    data_file_format: str = field(
+        default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
@@ -216,10 +227,21 @@ class TaskArguments:
     )
     eval_metrics: str = field(
         default="TyDiF1",
-        metadata={"help": "The name of the evaluation metric function implemented in oneqa (e.g. TyDiF1)," 
-                          "or the name of a metric as defined in datasets.list_metrics() (e.g. squad)",
-                  "choices": ["TyDiF1","squad","MLQA"]
+        metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
+                  "choices": ["TyDiF1","SQUAD","MLQA"]
                  }
+    )
+    passage_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    span_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The span level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    verbose: bool = field(
+        default=False,
+        metadata={"help": "Prints logging info if true (including evaluation output)"}
     )
     output_dropout_rate: float = field(
         default=0.25,
@@ -250,6 +272,8 @@ def main():
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
     logger = logging.getLogger(__name__)
+    if task_args.verbose:
+        logging.basicConfig(level = logging.INFO)
     scorer_type = task_args.scorer_type
     set_seed(training_args.seed)
 
@@ -293,11 +317,23 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    raw_datasets = datasets.load_dataset(
-        data_args.dataset_name,
-        data_args.dataset_config_name,
-        cache_dir=model_args.cache_dir,
-    )
+    if data_args.train_file is not None or data_args.eval_file is not None:
+        data_files = {}
+
+        if data_args.train_file is not None: 
+            data_files['train'] = glob.glob(data_args.train_file)
+        if data_args.eval_file is not None: 
+            data_files['validation'] = glob.glob(data_args.eval_file)
+
+        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+            data_files=data_files,
+            cache_dir=model_args.cache_dir)
+    else:
+        raw_datasets = datasets.load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            cache_dir=model_args.cache_dir,
+        )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
@@ -353,13 +389,12 @@ def main():
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
-    if task_args.eval_metrics in datasets.list_metrics():
-        eval_metrics = datasets.load_metric(task_args.eval_metrics)
-    else:
-        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
-        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold, 
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose)
 
     trainer = MRCTrainer(
         model=model,

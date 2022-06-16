@@ -1,12 +1,24 @@
-Welcome to OneQA's documentation!
+Welcome to PrimeQA's documentation!
 =================================
+
+
+.. toctree::
+   :maxdepth: 2
+
+  development
+  installation
+  testing
+
+
+PrimeQA API Reference
+===================
 
 .. autosummary::
    :toctree: _autosummary
    :template: custom-module-template.rst
    :recursive:
 
-   oneqa
+   primeqa
 
 
 
