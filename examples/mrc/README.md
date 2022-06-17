@@ -1,7 +1,7 @@
 # Machine Reading Comprehension (MRC)
 
 The primary script is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
-Before continuing below make sure you have OneQA [installed](../../README.md#Installation).
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported Datasets
 Currently supported datasets include:
@@ -42,15 +42,15 @@ For eval with confidence calibration, add the following additional command line 
       --output_dropout_rate 0.25 \
        --decoding_times_with_dropout 5 \
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
-       --task_heads oneqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
        --dataset_name squad \
        --dataset_config_name plain_text \
-       --preprocessor oneqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-       --postprocessor oneqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics squad 
 ```
 
@@ -71,8 +71,8 @@ For the MLQA configuration with context language EN and question language DE use
 ```shell
        --dataset_name mlqa \
        --dataset_config_name mlqa.en.de \
-       --preprocessor oneqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
-       --postprocessor oneqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
        --eval_metrics MLQA 
 ```
 
@@ -86,7 +86,7 @@ The dataset name and config are currently omitted as only TyDi is supported at t
 
 Some task arguments take references which allow for dynamic imports of existing or
 user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor oneqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
+`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
 Alternatively, a new postprocessor could be written and selected with 
 `--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
 

@@ -18,6 +18,6 @@ pip install .
 pip install -e .[all]
 ```
 
-Please note that dependencies (specified in [setup.py](https://github.ibm.com/ai-foundation/OneQA/blob/master/setup.py))
+Please note that dependencies (specified in [setup.py](https://github.ibm.com/ai-foundation/PrimeQA/blob/master/setup.py))
 are pinned to provide a stable experience. When installing from source these can be modified, 
 however this is not officially supported. See the development guide for more on dependency management.
