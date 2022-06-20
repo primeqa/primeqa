@@ -35,5 +35,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: Test with pytest
         run: |
-          pytest tests/primeqa/mrc/
+          pytest -v -s tests/primeqa/mrc/
       - run: echo "🍏 This job's status is ${{ job.status }}."
