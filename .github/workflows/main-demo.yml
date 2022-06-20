@@ -1,8 +1,19 @@
 name: Linux CI
-on: [push]
+on:
+  push:
+    branches: [ "main", 'bhavani105-patch-1' ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9"]
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
