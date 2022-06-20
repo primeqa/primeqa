@@ -24,5 +24,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: Test with pytest
         run: |
-          pytest --cov primeqa --cov-config .coveragerc --cov-fail-under=60 tests/primeqa/ir/sparse
+          pytest  tests/primeqa/ir/sparse
       - run: echo "🍏 This job's status is ${{ job.status }}."
