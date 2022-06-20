@@ -60,9 +60,9 @@ For the XQuAD in ZH use the following command line arguments for eval:
 ```shell
        --dataset_name xquad \
        --dataset_config_name xquad.zh \
-       --preprocessor oneqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-       --postprocessor oneqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-       --eval_metrics squad 
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --eval_metrics SQUAD 
 ```
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
