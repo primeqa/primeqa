@@ -1,7 +1,7 @@
 name: Linux CI
 on:
   push:
-    branches: [ "main", 'bhavani105-patch-1' ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -36,5 +36,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: Test with pytest
         run: |
-          pytest -n auto tests/primeqa/mrc/
+          pytest -v -n auto tests/primeqa/mrc/
       - run: echo "🍏 This job's status is ${{ job.status }}."
