@@ -4,6 +4,7 @@ import random
 import uuid
 from operator import sub
 from typing import List, Iterable, Tuple, Any, Dict, Union
+import logging
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
@@ -15,6 +16,8 @@ from transformers import PreTrainedTokenizerFast, BatchEncoding
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
+
+logger = logging.getLogger(__name__)
 
 
 # AbstractPreProcessor is too specific to extractive, we can't inherit from it here
@@ -93,7 +96,7 @@ reading comprehension step in "run_mrc.py" with the option
 --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 rather than the default tydi postprocessor.
             """
-            print(msg)
+            logger.error(msg)
             raise ValueError("incorrectly formatted eval_predictions.json file")
 
 

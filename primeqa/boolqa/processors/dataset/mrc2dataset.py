@@ -2,23 +2,6 @@ import json
 import argparse
 import pandas as pd 
 import sys
-
-#---------------------------------------------------------------
-def handle_args():
-    usage='usage'
-    parser=argparse.ArgumentParser(usage)
-    parser.add_argument('-mrc_file','-m', required=True, type=str,
-        help='output json file from the mrc system')  
-    parser.add_argument('-qtype_file','-q',required=True, type=str,
-        help='output csv file from the question type classifier')
-    parser.add_argument('-output_file','-o', required=True, type=str,
-        help='output file name (csv)')
-
-    args=parser.parse_args()
-
-    return args
-
-
 from primeqa.mrc.data_models.target_type import TargetType
 from datasets import Dataset
 
@@ -86,16 +69,3 @@ def create_dataset_from_json_str(json_str: str, unpack: bool) -> Dataset:
     df0=df.query('rank==0') # TODO danger - assumes upstream results are correctly ordered
     ds=Dataset.from_pandas(df0, preserve_index=False)
     return ds
-
-#----------------------------------------------------------------
-def main():
-#    args=handle_args()
-    #mrcfn=args.mrc_file
-    mrcfn='/dccstor/jsmc-nmt-01/bool/expts/toolkit/c/c1/mrc/eval_predictions.json'
-    ds=create_dataset_from_run_mrc_output(mrcfn)
-
-
-
-# do main
-if __name__=='__main__':
-   main()

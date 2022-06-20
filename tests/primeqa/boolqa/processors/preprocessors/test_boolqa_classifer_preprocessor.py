@@ -16,7 +16,7 @@ class TestNWayPreProcessor(UnitTest):
                               'input_ids': [0, 984, 116232, 2270, 17007, 765, 43613, 90, 32, 2, 2, 8622, 621, 6626, 1614, 16711, 3387, 111, 70, 116232, 2270, 206, 12, 2],
                               'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
                               }
-    _evc_model_path='/dccstor/jsmc-nmt-01/bool/git/IOTA-boolean-challenge/model/evc-c5'
+    _evc_model_path='xlm-roberta-large'
     
 
 
