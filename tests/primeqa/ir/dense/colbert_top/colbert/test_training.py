@@ -54,6 +54,7 @@ class TestTraining(UnitTest):
 
 
         model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        model_types = ['xlm-roberta-base']
        
         print("test_trainer 1") 
         
@@ -73,11 +74,14 @@ class TestTraining(UnitTest):
                         # additional modalities done for 'xlm-roberta-base' only
 
                         # reading numerical training triples
+                        print("test_trainer 4") 
                         args_dict['triples'] = numerical_triples_fn
                         args_dict['queries'] = queries_fn
                         args_dict['collection'] = collection_fn
                         colBERTConfig = ColBERTConfig(**args_dict)
                         train(colBERTConfig, numerical_triples_fn, queries_fn, collection_fn)
+                        
+                        print("test_trainer 5") 
 
                         # student/teacher training, top level
                         args_dict['teacher_checkpoint'] = model_type
@@ -87,6 +91,8 @@ class TestTraining(UnitTest):
                         args_dict['collection'] = None
                         colBERTConfig = ColBERTConfig(**args_dict)
                         train(colBERTConfig, text_triples_fn, None, None)
+                        
+                        print("test_trainer 6") 
 
                         # student/teacher model, token level
                         args_dict['distill_query_passage_separately'] = True
@@ -96,6 +102,8 @@ class TestTraining(UnitTest):
                         args_dict['teacher_triples'] = parallel_en_fn
                         args_dict['queries'] = None
                         args_dict['collection'] = None
+                        
+                        print("test_trainer 7") 
 
                         colBERTConfig = ColBERTConfig(**args_dict)
                         train(colBERTConfig, parallel_en_fn, None, None)
