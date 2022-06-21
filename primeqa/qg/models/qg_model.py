@@ -1,6 +1,6 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from oneqa.qg.utils.constants import QGSpecialTokens
-from oneqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
+from primeqa.qg.utils.constants import QGSpecialTokens
+from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
 
 
 class QGModel():

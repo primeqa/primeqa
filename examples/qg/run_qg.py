@@ -4,11 +4,11 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
-from oneqa.qg.processors.data_loader import QGDataLoader
+from primeqa.qg.processors.data_loader import QGDataLoader
 import torch
 from dataclasses import dataclass,field
-from oneqa.qg.models.qg_model import QGModel
-from oneqa.qg.trainers.qg_trainer import QGTrainer
+from primeqa.qg.models.qg_model import QGModel
+from primeqa.qg.trainers.qg_trainer import QGTrainer
 from typing import Optional, List, Dict
 
 import json

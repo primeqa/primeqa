@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from datasets import load_dataset
-from oneqa.qg.utils.constants import QGSpecialTokens
+from primeqa.qg.utils.constants import QGSpecialTokens
 
 class SquadDataset():
 	def __init__(self, dataset_name='squad'):

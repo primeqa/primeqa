@@ -1,5 +1,5 @@
 import pytest
-from oneqa.qg.models.qg_model import QGModel
+from primeqa.qg.models.qg_model import QGModel
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 

@@ -14,7 +14,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
 
-include_package_roots = ["oneqa"]  # only include these packages and their subpackages
+include_package_roots = ["primeqa"]  # only include these packages and their subpackages
 include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"], include_package_roots)))
 
 keywords = [

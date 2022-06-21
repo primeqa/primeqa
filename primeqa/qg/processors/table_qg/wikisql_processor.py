@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from datasets import load_dataset
-from oneqa.qg.utils.constants import SqlOperants, QGSpecialTokens
+from primeqa.qg.utils.constants import SqlOperants, QGSpecialTokens
 
 def _is_number(s):
 	try:

@@ -1,5 +1,5 @@
 import pytest
-from oneqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
+from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
 
 class TestSQLSampler():
 

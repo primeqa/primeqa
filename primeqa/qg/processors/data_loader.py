@@ -1,6 +1,6 @@
 from datasets import Dataset
-from oneqa.qg.processors.passage_qg.squad_processor import SquadDataset
-from oneqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
+from primeqa.qg.processors.passage_qg.squad_processor import SquadDataset
+from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
 
 class QGDataLoader():
 	def __init__(self, tokenizer, args):
