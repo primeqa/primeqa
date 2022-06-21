@@ -53,7 +53,8 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
 
-        model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        model_types = ['xlm-roberta-base']
        
         print("test_trainer 1") 
         
@@ -68,7 +69,7 @@ class TestTraining(UnitTest):
                     print("test_trainer 2") 
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
                     print("test_trainer 3") 
-                    assert False
+                    
                     if model_type == 'xlm-roberta-base':
                         # additional modalities done for 'xlm-roberta-base' only
 
@@ -135,7 +136,7 @@ class TestTraining(UnitTest):
                 rankings.save(out_fn)
 
             print("SEARCH DONE")
-
+       
         print("ALL DONE")
 
 
