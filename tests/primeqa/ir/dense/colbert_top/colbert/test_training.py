@@ -18,6 +18,7 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 class TestTraining(UnitTest):
     def test_batchers(self):
+        print("entering test_batchers")
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
             test_files_location = 'PrimeQA/tests/resources/ir_dense'
@@ -32,8 +33,10 @@ class TestTraining(UnitTest):
         queries_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv")
         collection_fn = os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv")
         reader_lazy_batcher = LazyBatcher(config, numerical_triples_fn, queries_fn, collection_fn, rank, nranks)
+        print("exiting test_batchers")
 
     def test_trainer(self):
+        print("entering test_trainer")
         test_files_location = 'tests/resources/ir_dense'
         if 'DATA_FILES_FOR_DENSE_IR_TESTS_PATH' in os.environ:
             test_files_location = os.environ['DATA_FILES_FOR_DENSE_IR_TESTS_PATH']
@@ -50,8 +53,11 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
 
-        model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        #model_types = ['xlm-roberta-base']
+        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        model_types = ['bert-base-uncased']
+       
+        print("test_trainer 1") 
+        
 
         do_training = True
         if do_training:
@@ -61,8 +67,9 @@ class TestTraining(UnitTest):
                 with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                     # reading text training triples
                     colBERTConfig = ColBERTConfig(**args_dict)
+                    print("test_trainer 2") 
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
-
+                    print("test_trainer 3") 
                     if model_type == 'xlm-roberta-base':
                         # additional modalities done for 'xlm-roberta-base' only
 
