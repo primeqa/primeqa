@@ -53,8 +53,8 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
 
-        model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        model_types = ['xlm-roberta-base']
+        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        model_types = ['bert-base-uncased']
        
         print("test_trainer 1") 
         
@@ -110,8 +110,9 @@ class TestTraining(UnitTest):
 
             print("TRAINING DONE")
 
-        do_indexing = False
+        do_indexing = True
         if do_indexing:
+            print("test_trainer do_indexing start") 
             args_dict = {'root': os.path.join(output_dir, 'test_indexing'), 'experiment': 'test_indexing', 'rank': 0, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 256, 'amp': True, 'collection': collection_fn, 'index_root': os.path.join(output_dir, 'test_indexing', 'indexes'), 'index_name': 'index_name', 'num_partitions_max': 2, 'kmeans_niters': 1, 'nway': 1, 'nranks': 1}
             with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                     colBERTConfig = ColBERTConfig(**args_dict)
@@ -120,8 +121,9 @@ class TestTraining(UnitTest):
 
             print("INDEXING DONE")
 
-        do_search = False
+        do_search = True
         if do_search:
+            print("test_trainer do_search start") 
             ranks_fn = os.path.join(output_dir, 'ranking.tsv')
             args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nprobe': 1, 'nranks': 1, 'model_type': model_type,}
 
