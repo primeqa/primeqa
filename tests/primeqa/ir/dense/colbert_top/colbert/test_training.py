@@ -53,12 +53,10 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
 
-        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        model_types = ['xlm-roberta-base']
+        model_types = ['bert-base-uncased', 'xlm-roberta-base']
        
         print("test_trainer 1") 
         
-
         do_training = True
         if do_training:
             for model_type in model_types:
@@ -70,7 +68,7 @@ class TestTraining(UnitTest):
                     print("test_trainer 2") 
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
                     print("test_trainer 3") 
-                    if False and model_type == 'xlm-roberta-base':
+                    if model_type == 'xlm-roberta-base':
                         # additional modalities done for 'xlm-roberta-base' only
 
                         # reading numerical training triples
