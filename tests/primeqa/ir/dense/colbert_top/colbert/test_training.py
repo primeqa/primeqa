@@ -103,7 +103,7 @@ class TestTraining(UnitTest):
 
             print("TRAINING DONE")
 
-        do_indexing = True
+        do_indexing = False
         if do_indexing:
             args_dict = {'root': os.path.join(output_dir, 'test_indexing'), 'experiment': 'test_indexing', 'rank': 0, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 256, 'amp': True, 'collection': collection_fn, 'index_root': os.path.join(output_dir, 'test_indexing', 'indexes'), 'index_name': 'index_name', 'num_partitions_max': 2, 'kmeans_niters': 1, 'nway': 1, 'nranks': 1}
             with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
@@ -113,7 +113,7 @@ class TestTraining(UnitTest):
 
             print("INDEXING DONE")
 
-        do_search = True
+        do_search = False
         if do_search:
             ranks_fn = os.path.join(output_dir, 'ranking.tsv')
             args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nprobe': 1, 'nranks': 1, 'model_type': model_type,}
