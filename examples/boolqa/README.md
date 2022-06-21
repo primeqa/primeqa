@@ -28,7 +28,7 @@ The inner details of the machine reading comprehension for TydiQA are analyzed i
 The inner details of the evidence classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
 
 Some of this system has been described in the papers [Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
-and [GAAMA 2.0: An Integrated System that Answers Boolean and Extractive Question](https://arxiv.org/abs/2206.08441)
+and [GAAMA 2.0: An Integrated System that Answers Boolean and Extractive Questions](https://arxiv.org/abs/2206.08441)
 
 ## Configuration file
 
