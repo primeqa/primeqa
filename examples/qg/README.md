@@ -1,11 +1,12 @@
 # Table Question Generation (TableQG)
 
-The primary script is [run_tableqg.py](./run_tableqg.py).  This runs a transformer-based sequence generation pipeline.
+The primary script is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline.
 Before continuing below make sure you have OneQA [installed](../../README.md#Installation).
 
 ## Supported datasets
 Currently supported datasets for training include:
-- WikiSQL
+- WikiSQL (TableQA)
+- SQuAD, SQuAD_v2 (TableQA)
 
 Inference can be done on any table in particular dict format. Check this [notebook](../../notebooks/tableqg/tableqg_inference.ipynb) for more information.
 
@@ -13,13 +14,14 @@ Inference can be done on any table in particular dict format. Check this [notebo
 An example for training the model on WikiSQL dataset:
 
 ```bash
-python examples/tableqg/run_tableqg.py \
+python examples/tableqg/qg.py \
     --model_name_or_path t5-base \
+    --modality table \
     --dataset_name wikisql \
     --do_train \
     --max_len 200 \
     --target_max_len 40 \
-    --output_dir  models/tableqg/$DIR_NAME \
+    --output_dir  models/qg/$DIR_NAME \
     --learning_rate 0.0001 \
     --num_train_epochs 4\
     --per_device_train_batch_size 32

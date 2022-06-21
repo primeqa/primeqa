@@ -1,7 +1,7 @@
 import math
 from copy import deepcopy
 import numpy as np
-from oneqa.tableqg.utils.constants import SqlOperants, QGSpecialTokens
+from oneqa.qg.utils.constants import SqlOperants, QGSpecialTokens
 
 class SimpleSqlSampler():
     """ A simple sql sampler to sample sqls based on number of where clause conditions and other parameters

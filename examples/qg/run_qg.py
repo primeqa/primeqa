@@ -4,12 +4,11 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
-from oneqa.tableqg.processors.table_data import QGDataLoader
+from oneqa.qg.processors.data_loader import QGDataLoader
 import torch
 from dataclasses import dataclass,field
-from oneqa.tableqg.models.tableqg_model import TableQG
-from oneqa.tableqg.models.inference import QGGeneration
-from oneqa.tableqg.trainers.qg_trainer import QGTrainer
+from oneqa.qg.models.qg_model import QGModel
+from oneqa.qg.trainers.qg_trainer import QGTrainer
 from typing import Optional, List, Dict
 
 import json
@@ -49,6 +48,10 @@ class ModelArguments:
     model_name_or_path: str = field(
        default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
+    modality: str = field(
+       default='table', metadata={"help": "If to work on tables or passages",
+                                  "choices":["table", "passage"]}
+    )
     tokenizer_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
     )
@@ -58,7 +61,7 @@ class ModelArguments:
 
 
 @dataclass
-class TableQGTrainingArguments(TrainingArguments):
+class QGTrainingArguments(TrainingArguments):
     """
     Arguments pertraining to model training hyperparameters
     """
@@ -96,7 +99,7 @@ class TableQGTrainingArguments(TrainingArguments):
         default=False, metadata={"help": ""}
     )
     output_dir:Optional[str] = field(
-        default='./models/tableqg/sample_run/', metadata={"help": "Models and checkpoints will be saved here"}
+        default='./models/qg/sample_run/', metadata={"help": "Models and checkpoints will be saved here"}
     )
     args_file_path:Optional[str] = field(
         default='', metadata={"help": "Path to JSON file with all arguments needed"}
@@ -113,7 +116,8 @@ class DataTrainingArguments:
     """
 
     dataset_name:Optional[str] = field(
-        default="wikisql", metadata={"help": "Name of the dataset to train the tableqg model"}
+        default="wikisql", metadata={"help": "Name of the dataset to train the qg model",
+                                     "choices": ["wikisql", "squad", "squad_v2"]}
     )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
@@ -137,27 +141,27 @@ class InferenceArguments:
     do_generate: Optional[bool] = field(
         default=False, metadata={"help": "Whether to generate."}
     )
-    num_samples_per_table: Optional[int] = field(
-        default=5, metadata={"help": "Number of questions to generate per table"}
+    num_questions_per_instance: Optional[int] = field(
+        default=5, metadata={"help": "Number of questions to generate per table/passage"}
     )
     max_where_clauses: Optional[int] = field(
         default=1, metadata={"help": "Max number of filters in generated question"}
     )
+    data_path:str = field(
+        default='examples/qg/sample_table.json', metadata={"help": "Path to JSON file with LIST of tables/passages. Each table \
+                              should be a dict with keys 'header' and 'rows', and passages should be str"}
+    )
     generate_aggregate: Optional[bool] = field(
         default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
     )
-    tables_path:str = field(
-        default='examples/tableqg/sample_table.json', metadata={"help": "Path to JSON file with LIST of tables. Each table \
-                              should be a dict with keys 'header' and 'rows'."}
-    )
     gen_output_path: Optional[str] = field(
-        default='examples/tableqg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
+        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
     )
     
 
 def main():
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TableQGTrainingArguments, InferenceArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, QGTrainingArguments, InferenceArguments))
 
     model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
     if training_args.args_file_path != '':
@@ -192,7 +196,7 @@ def main():
     # Set seed
     set_seed(training_args.seed)
 
-    tqg = TableQG(model_args.model_name_or_path)
+    tqg = QGModel(model_args.model_name_or_path, modality=model_args.modality)
     model = tqg.model
     tokenizer = tqg.tokenizer
 
@@ -215,9 +219,7 @@ def main():
         )
         trainer.save_model()
     
-    if inference_args.do_generate:
-        qgen = QGGeneration(model_args.model_name_or_path)
-        
+    if inference_args.do_generate:        
         # aggregates
         agg_prob = [1., 0., 0., 0., 0., 0.]
         if inference_args.generate_aggregate:
@@ -230,12 +232,12 @@ def main():
                 where_prob [i] = 1.
         where_prob = [w/sum(where_prob) for w in where_prob]
 
-        with open(inference_args.tables_path) as fp:
-            table_list = json.load(fp)
+        with open(inference_args.data_path) as fp:
+            data_list = json.load(fp)
         
-        generated_questions = qgen.generate_questions(
-                                table_list,
-                                inference_args.num_samples_per_table,
+        generated_questions = tqg.generate_questions(
+                                data_list,
+                                inference_args.num_questions_per_instance,
                                 agg_prob,
                                 where_prob
                                 )
