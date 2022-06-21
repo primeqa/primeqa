@@ -68,6 +68,7 @@ class TestTraining(UnitTest):
                     print("test_trainer 2") 
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
                     print("test_trainer 3") 
+                    assert False
                     if model_type == 'xlm-roberta-base':
                         # additional modalities done for 'xlm-roberta-base' only
 
