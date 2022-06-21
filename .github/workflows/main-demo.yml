@@ -36,5 +36,5 @@ jobs:
           ls ${{ github.workspace }}
       - name: Test with pytest
         run: |
-          pytest -v -n auto tests/primeqa/mrc/models/test_task_model.py
+          pytest -v -n auto --max-worker-restart 0. tests/primeqa/mrc/models/test_task_model.py
       - run: echo "🍏 This job's status is ${{ job.status }}."
