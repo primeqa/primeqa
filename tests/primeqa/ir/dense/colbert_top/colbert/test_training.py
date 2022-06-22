@@ -95,18 +95,18 @@ class TestTraining(UnitTest):
                         print("test_trainer 6") 
 
                         # student/teacher model, token level
-                        args_dict['distill_query_passage_separately'] = True
-                        args_dict['teacher_checkpoint'] = model_type
-                        args_dict['teacher_model_type'] = model_type
-                        args_dict['triples'] = parallel_non_en_fn
-                        args_dict['teacher_triples'] = parallel_en_fn
-                        args_dict['queries'] = None
-                        args_dict['collection'] = None
+                        # args_dict['distill_query_passage_separately'] = True
+                        # args_dict['teacher_checkpoint'] = model_type
+                        # args_dict['teacher_model_type'] = model_type
+                        # args_dict['triples'] = parallel_non_en_fn
+                        # args_dict['teacher_triples'] = parallel_en_fn
+                        # args_dict['queries'] = None
+                        # args_dict['collection'] = None
                         
-                        print("test_trainer 7") 
+                        # print("test_trainer 7") 
 
-                        colBERTConfig = ColBERTConfig(**args_dict)
-                        train(colBERTConfig, parallel_en_fn, None, None)
+                        # colBERTConfig = ColBERTConfig(**args_dict)
+                        # train(colBERTConfig, parallel_en_fn, None, None)
 
             print("TRAINING DONE")
 
