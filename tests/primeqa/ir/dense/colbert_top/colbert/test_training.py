@@ -53,8 +53,8 @@ class TestTraining(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
 
 
-        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        model_types = ['xlm-roberta-base']
+        model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        #model_types = ['xlm-roberta-base']
        
         print("test_trainer 1") 
         
