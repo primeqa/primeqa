@@ -38,5 +38,5 @@ jobs:
         run: echo '${{ toJSON(steps) }}'
       - name: Test with pytest
         run: |
-          pytest -v -s -n 1 --max-worker-restart 0 tests/primeqa/mrc/
+          pytest -v -s -n 1 --max-worker-restart 0 tests/
       - run: echo "🍏 This job's status is ${{ job.status }}."
