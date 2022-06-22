@@ -137,14 +137,7 @@ class ListNQSubset:
             if is_list and len(annotation['short_answers']) == 0:
                 start_byte, end_byte = self.drop_html_tokens_from_span(annotation['long_answer'],text_tokens)
             else:
-                continue
-
-            start_byte, end_byte = self.drop_html_tokens_from_span(annotation['long_answer'],text_tokens)
-
-            if end_byte < start_byte:
-                logging.Error("error! end < start " + str(start_byte) + "," + str(end_byte))
-                
-            
+                continue            
             minimal_answer = {"plaintext_start_byte":start_byte,"plaintext_end_byte":end_byte}
             passage_answer = {"candidate_index":updated_indices[annotation['long_answer']['candidate_index']]}
 
@@ -188,7 +181,7 @@ class ListNQSubset:
 
         tydi_format = {}                            
         # cleanup html
-        text_tokens, document_plaintext = self.drop_html_tokens(example['document_tokens'], example['document_html'])
+        text_tokens, document_plaintext = self.drop_html_tokens(example['document_tokens'])
         tydi_format['document_plaintext'] = document_plaintext
         tydi_format['document_title'] = example['document_title']
         tydi_format['document_url'] = example['document_url']
