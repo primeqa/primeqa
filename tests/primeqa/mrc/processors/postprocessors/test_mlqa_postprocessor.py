@@ -29,16 +29,16 @@ class TestMLQAPostProcessor(UnitTest):
     def mlqa_eval_examples_and_features(self, mlqa_eval_examples, mlqa_preprocessor):
         return mlqa_preprocessor.process_eval(mlqa_eval_examples)
    
-    def test_post_processor_has_examples_and_features(self, mlqa_eval_examples_and_features):
-        eval_examples, _ = mlqa_eval_examples_and_features
-        postprocessor_class = MLQAPostProcessor
-        scorer_type='weighted_sum_target_type_and_score_diff'
-        postprocessor = postprocessor_class(k=20, n_best_size=20, max_answer_length=32,
-                                            scorer_type=SupportedSpanScorers(scorer_type),
-                                            single_context_multiple_passages=True)
-        references = postprocessor.prepare_examples_as_references(eval_examples)
-        for reference in references:
-            assert reference['answer_language'] == 'zh'
+    # def test_post_processor_has_examples_and_features(self, mlqa_eval_examples_and_features):
+    #     eval_examples, _ = mlqa_eval_examples_and_features
+    #     postprocessor_class = MLQAPostProcessor
+    #     scorer_type='weighted_sum_target_type_and_score_diff'
+    #     postprocessor = postprocessor_class(k=20, n_best_size=20, max_answer_length=32,
+    #                                         scorer_type=SupportedSpanScorers(scorer_type),
+    #                                         single_context_multiple_passages=True)
+    #     references = postprocessor.prepare_examples_as_references(eval_examples)
+    #     for reference in references:
+    #         assert reference['answer_language'] == 'zh'
             
                     
 
