@@ -59,8 +59,8 @@ For the MLQA configuration with context language EN and question language DE use
 ```shell
        --dataset_name mlqa \
        --dataset_config_name mlqa.en.de \
-       --preprocessor primeqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
-       --postprocessor primeqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
 
