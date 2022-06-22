@@ -36,7 +36,10 @@ jobs:
           ls ${{ github.workspace }}
       - name: Dump steps context
         run: echo '${{ toJSON(steps) }}'
-      - name: Test with pytest tests/
+      - name: Test with MRC pytest
         run: |
-          pytest -v -s -n 1 --max-worker-restart 0 tests/primeqa 2> errors.txt
+          pytest -v -s -n auto --max-worker-restart 0 tests/primeqa/mrc
+      - name: Test with IR pytest
+        run: |
+          pytest -v -s -n auto --max-worker-restart 0 tests/primeqa/ir
       - run: echo "🍏 This job's status is ${{ job.status }}."
