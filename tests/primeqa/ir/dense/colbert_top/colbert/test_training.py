@@ -54,7 +54,6 @@ class TestTraining(UnitTest):
 
 
         model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        #model_types = ['xlm-roberta-base']
        
         print("test_trainer 1") 
         
