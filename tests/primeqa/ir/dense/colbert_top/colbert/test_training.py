@@ -84,13 +84,13 @@ class TestTraining(UnitTest):
                         print("test_trainer 5") 
 
                         # student/teacher training, top level
-                        args_dict['teacher_checkpoint'] = model_type
-                        args_dict['teacher_model_type'] = model_type
-                        args_dict['teacher_triples'] = text_triples_en_fn
-                        args_dict['queries'] = None
-                        args_dict['collection'] = None
-                        colBERTConfig = ColBERTConfig(**args_dict)
-                        train(colBERTConfig, text_triples_fn, None, None)
+                        # args_dict['teacher_checkpoint'] = model_type
+                        # args_dict['teacher_model_type'] = model_type
+                        # args_dict['teacher_triples'] = text_triples_en_fn
+                        # args_dict['queries'] = None
+                        # args_dict['collection'] = None
+                        # colBERTConfig = ColBERTConfig(**args_dict)
+                        # train(colBERTConfig, text_triples_fn, None, None)
                         
                         print("test_trainer 6") 
 
