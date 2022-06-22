@@ -89,6 +89,12 @@ class SQUAD(datasets.Metric):
         )
 
     def _compute(self, *, predictions, references, **kwargs):
+        
+        if not predictions:
+            raise ValueError("No predictions provided")
+        elif not references:
+            raise ValueError("No references provided")
+        
         pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
         dataset = [
             {
