@@ -27,8 +27,6 @@ from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from examples.boolqa.run_boolqa_classifier import main as cls_main
 from examples.boolqa.run_score_normalizer import main as sn_main
@@ -221,13 +219,13 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor,MLQAPostProcessor]
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor]
                   }
     )
     eval_metrics: str = field(
@@ -419,7 +417,8 @@ def main():
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
             passage_non_null_threshold=task_args.passage_non_null_threshold, 
-            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose)
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+            dataset_config_name = eval_dataset.config_name)
 
     trainer = MRCTrainer(
         model=model,
