@@ -25,6 +25,10 @@ This will detect a GPU if present as well as multiple CPU cores for accelerating
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
 depending on your hardware configuration.
 
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
+
 For just training:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
@@ -49,6 +53,9 @@ For eval with confidence calibration, add the following additional command line 
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
 
  - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
@@ -59,6 +66,9 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics squad 
+```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
 ```
 
  - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
@@ -73,10 +83,9 @@ For the MLQA configuration with context language EN and question language DE use
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
-
-This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
-Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
-depending on your hardware configuration.
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
 
 
 ### Task Arguments
