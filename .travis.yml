@@ -5,6 +5,8 @@ python:
   - "3.8"
   - "3.9"
 cache: pip
+before_install:
+  - pip install --upgrade pip
 install: 
   - python3 -V
   - pip install tox-travis
