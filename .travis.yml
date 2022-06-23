@@ -4,7 +4,7 @@ python:
   - "3.8"
   - "3.9"
 cache: pip
-install: pip install tox-travis
+install: pip3 install tox-travis
 script:
   - tox -r
   - >
