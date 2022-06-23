@@ -28,7 +28,7 @@ authors = [
 
 _deps = {
     "docutils>=0.14,<0.18": ["tests"],
-    "typing-extensions<4.2.0,>=3.7.4.1": ["tests"],
+    "typing-extensions<4.0.0,>=3.7.4.1": ["tests"],
     "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install"],
