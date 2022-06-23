@@ -1,5 +1,7 @@
 dist: focal
 language: python
+vm:
+  size: large
 python:
   - "3.7"
   - "3.8"
