@@ -10,6 +10,8 @@ Currently supported datasets include:
 - MLQA
 
 ## Example Usage
+ - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
+
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
@@ -19,6 +21,9 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
        --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
 ```
+This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
+Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
+depending on your hardware configuration.
 
 For just training:
 ```shell
@@ -35,6 +40,7 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
+- if you want to do [calbrate the confidence](https://arxiv.org/abs/2101.07942) estimate of your fine-tuned model use the following:
 
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
@@ -43,6 +49,8 @@ For eval with confidence calibration, add the following additional command line 
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
+
+ - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
@@ -53,6 +61,8 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --eval_metrics squad 
 ```
 
+ - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
+ 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all language combinations are supported.
 For the MLQA configuration with context language EN and question language DE use the following command line arguments for eval:
@@ -68,7 +78,6 @@ This will detect a GPU if present as well as multiple CPU cores for accelerating
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
 depending on your hardware configuration.
 
-The dataset name and config are currently omitted as only TyDi is supported at the moment.
 
 ### Task Arguments
 
