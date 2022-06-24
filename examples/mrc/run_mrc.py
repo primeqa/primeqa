@@ -2,6 +2,9 @@ import logging
 import os
 import sys
 import traceback
+import json
+import torch
+import gc
 import glob
 from dataclasses import dataclass, field
 from importlib import import_module
@@ -19,12 +22,14 @@ from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
-
+from examples.boolqa.run_boolqa_classifier import main as cls_main
+from examples.boolqa.run_score_normalizer import main as sn_main
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -220,7 +225,7 @@ class TaskArguments:
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,SQUADPostProcessor]
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor]
                   }
     )
     eval_metrics: str = field(
@@ -229,6 +234,15 @@ class TaskArguments:
                   "choices": ["TyDiF1","SQUAD","MLQA"]
                  }
     )
+    do_boolean: bool = field(
+        default=False, metadata={"help": "Enable processing of boolean questions.  If activated,"
+                                        "--do_eval will be forced also, and --postprocessor will be "
+                                        "defaulted to ExtractivePipelinePostProcessor unless overridden"
+                                        "by a postprocessor that subclasses ExtractivePipelinePostProcessor"}
+    )
+    boolean_config: str = field(
+        default=None, metadata={"help": "The configuration name file for the boolean task in json format"}
+    )    
     passage_non_null_threshold: int = field(
         default=2,
         metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
@@ -268,6 +282,17 @@ def main():
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
+
+    # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
+    # dataset) might have changed
+    # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
+    # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
+    # do_eval is in TrainingArguments
+    if task_args.do_boolean:
+        training_args.do_eval = True
+        if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
+            task_args.postprocessor = ExtractivePipelinePostProcessor
+
 
     logger = logging.getLogger(__name__)
     if task_args.verbose:
@@ -438,6 +463,38 @@ def main():
 
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+
+    if task_args.do_boolean:
+        logger.info("Processing of boolean questions")
+        if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
+            raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
+        with open(task_args.boolean_config, 'r') as f:
+            boolean_config = json.load(f)
+
+        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
+        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
+        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
+        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
+        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
+
+        if model: del model
+        gc.collect()
+        torch.cuda.empty_cache()
+        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+            max memory {torch.cuda.max_memory_allocated()}")
+
+        cls_main([boolean_config['qtc']])
+        cls_main([boolean_config['evc']])
+        sn_main([boolean_config['sn']])
+
+        with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
+            processed_predictions = json.load(f)
+        references = postprocessor.prepare_examples_as_references(eval_examples)
+        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+        with open(path, "w") as f:
+            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
 
 
 if __name__ == '__main__':
