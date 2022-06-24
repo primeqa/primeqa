@@ -14,7 +14,7 @@ Inference can be done on any table in particular dict format. Check this [notebo
 An example for training the model on WikiSQL dataset:
 
 ```bash
-python examples/tableqg/qg.py \
+python examples/qg/run_qg.py \
     --model_name_or_path t5-base \
     --modality table \
     --dataset_name wikisql \
