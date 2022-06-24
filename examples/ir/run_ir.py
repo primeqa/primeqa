@@ -11,6 +11,7 @@ import logging
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
+from primeqa.ir.sparse.bm25_engine import BM25Engine
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -136,34 +137,16 @@ def main():
         pass
     elif process_args.engine_type == 'BM25':
         logger.info(f"Running BM25")
-        
-        from primeqa.ir.sparse.retriever import PyseriniRetriever
-        from primeqa.ir.sparse.indexer import PyseriniIndexer
-        from primeqa.ir.sparse.utils import load_queries, write_colbert_ranking_tsv
 
+        engine = BM25Engine(bm25_args)
+        
         if hasattr(process_args, 'do_index') and process_args.do_index:
-            logger.info("Running BM25 indexing")
-            indexer = PyseriniIndexer()
-            rc = indexer.index_collection(bm25_args.corpus_path, bm25_args.index_path, 
-                    bm25_args.fieldnames, bm25_args.overwrite, 
-                    bm25_args.threads, bm25_args.additional_indexing_args )
-            logger.info(f"BM25 Indexing finished with rc: {rc}")
+            engine.do_index()
 
         if hasattr(process_args, 'do_search') and process_args.do_search:
             logger.info("Running BM25 search")
-            queries = load_queries(bm25_args.queries_path)
-            logger.info(f"Loaded queries num {len(queries)}")
-            logger.info(f"Loaded index from {bm25_args.index_path}")
-            searcher = PyseriniRetriever(bm25_args.index_path,use_bm25=bm25_args.use_bm25,k1=bm25_args.k1,b=bm25_args.b)
-            logger.info(f"Running search num queries: {len(queries)} top_k: {bm25_args.nhits} threads: {bm25_args.threads}")
-            search_results = searcher.batch_retrieve(list(queries.values()),list(queries.keys()),
-                        top_k=bm25_args.nhits,threads=bm25_args.threads)
+            engine.do_search()
 
-            if bm25_args.output_dir != None:
-                logger.info(f"Writing ranked results to {bm25_args.output_dir}")
-                if not os.path.exists(bm25_args.output_dir):
-                    os.makedirs(bm25_args.output_dir)
-                write_colbert_ranking_tsv(bm25_args.output_dir, search_results)
             logger.info("BM25 Search finished")
     else:
         raise NotImplementedError()
