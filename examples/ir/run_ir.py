@@ -54,6 +54,7 @@ def main():
         (process_args, bm25_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
     if process_args.engine_type == 'ColBERT':
+        logger.info(f"Running ColBERT")
         from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
         from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
@@ -141,7 +142,9 @@ def main():
         engine = BM25Engine(bm25_args)
         
         if hasattr(process_args, 'do_index') and process_args.do_index:
+            logger.info("Running BM25 indexing")
             engine.do_index()
+            logger.info(f"BM25 indexing finished")
 
         if hasattr(process_args, 'do_search') and process_args.do_search:
             logger.info("Running BM25 search")
