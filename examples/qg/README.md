@@ -5,8 +5,8 @@ Before continuing below make sure you have OneQA [installed](../../README.md#Ins
 
 ## Supported datasets
 Currently supported datasets for training include:
-- WikiSQL (TableQA)
-- SQuAD, SQuAD_v2 (TableQA)
+- WikiSQL (QG for TableQA)
+- SQuAD, SQuAD_v2 (QG for PassageQA i.e. MRC)
 
 Inference can be done on any table in particular dict format. Check this [notebook](../../notebooks/tableqg/tableqg_inference.ipynb) for more information.
 
