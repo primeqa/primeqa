@@ -16,10 +16,10 @@ limitations under the License.
 
 # PrimeQA
 <h3 align="center">
-    <p>The prime repository for state-of-the-art Multilingual Question Answering research and development.</p>
+    <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
 
-[![Build Status](https://travis.ibm.com/ai-foundation/PrimeQA.svg?token=XcbF7zxMKHD12hqZiBwc&branch=master)](https://travis.ibm.com/ai-foundation/PrimeQA)
+[![Build Status](https://app.travis-ci.com/primeqa/primeqa.svg?branch=main)](https://app.travis-ci.com/primeqa/primeqa)
 [![LICENSE|Apache2.0](https://img.shields.io/github/license/saltstack/salt?color=blue)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 
 PrimeQA is a public open source repository that enables researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher can replicate the experiments outlined in a paper published in the latest NLP conference while also enjoying the capability to download pre-trained models (from an online repository) and run them on their own custom data.
@@ -32,8 +32,9 @@ The models within PrimeQA supports End-to-end Question Answering. PrimeQA answer
 
 Some examples of models (applicable on benchmark datasets) supported are :
 - [Traditional IR with BM25] Pyserini
-- [Neural IR with ColBERT, DPR (coming soon)]: to replicate the experiments that Dr. Decr (Li et. al, 2022) performed to reach the top of the XOR TyDI leaderboard.
+- [Neural IR with ColBERT, DPR (coming soon)]: to replicate the experiments that Dr. Decr (Li et. al, 2022) performed to reach the top of the XOR TyDI leaderboard. Collaboration with [Stanford NLP](https://nlp.stanford.edu/) IR led by [Chris Potts](https://web.stanford.edu/~cgpotts/) & [Matei Zaharia](https://cs.stanford.edu/~matei/).
 - [Machine Reading Comprehension with XLM-R]: to replicate the experiments to get to the top of the TyDI leaderboard similar to the performance of the IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
+- [Multimedia QA over news & movies]: coming soon! to replicate the experiments run over multi-hop QA over images, text over variety of domains. Collaboration with [UIUC Blender lab](https://blender.cs.illinois.edu/).
 
 
 

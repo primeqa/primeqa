@@ -37,6 +37,16 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
+For eval-only TyDiQA with support for boolean questions (for [details](../boolqa/README.md)):
+```shell
+python examples/mrc/run_mrc.py --model_name_or_path ${BOOLEAN_MODEL_NAME} \
+       --output_dir ${OUTPUT_DIR} --fp16 \
+       --per_device_eval_batch_size 128 --overwrite_output_dir \
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+```
+
+
+
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
       --output_dropout_rate 0.25 \
@@ -71,8 +81,8 @@ For the MLQA configuration with context language EN and question language DE use
 ```shell
        --dataset_name mlqa \
        --dataset_config_name mlqa.en.de \
-       --preprocessor primeqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
-       --postprocessor primeqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
 
