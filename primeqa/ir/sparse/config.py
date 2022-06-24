@@ -33,6 +33,9 @@ class SearchArguments():
 
     output_dir: str = field(default=None, metadata={"help":"Output directory to write out search results"})
 
+<<<<<<< HEAD
 @dataclass
 class BM25Config(SearchArguments, IndexingArguments):
     pass
+=======
+>>>>>>> ab1cc1d5a7911a085039c67f77ce09781aac6bda
