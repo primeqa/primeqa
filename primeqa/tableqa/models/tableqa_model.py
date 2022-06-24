@@ -1,9 +1,9 @@
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
 
-class TableQA():
-    def __init__(self,model_name,config):
-        self.model = TapasForQuestionAnswering.from_pretrained(model_name,config)
+class TableQAModel():
+    def __init__(self,model_name,config=None):
+        self.model = TapasForQuestionAnswering.from_pretrained(model_name)
         self.config = config
         self.tokenizer = TapasTokenizer.from_pretrained(model_name)
         
@@ -12,6 +12,7 @@ class TableQA():
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self.tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
         outputs = self.model(**inputs)
+        print(outputs)
         predicted_answer_coordinates, predicted_aggregation_indices = self.tokenizer.convert_logits_to_predictions(inputs,
                                                                                                             outputs.logits.detach(),
                                                                                                             outputs.logits_aggregation.detach())

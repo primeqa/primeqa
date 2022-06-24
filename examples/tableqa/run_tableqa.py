@@ -1,10 +1,12 @@
 #from transformers import TapasConfig, TapasForQuestionAnswering, AdamW
-from primeqa.tableqa.models.tableqa_model import TableqaModel
+from primeqa.tableqa.models.tableqa_model import TableQAModel
+from transformers import TapasConfig
 
 
 def main():
     print("Main function for training and testing tapas based tableqa")
-    model = TableqaModel("google/tapas-base")
+    
+    model = TableQAModel("google/tapas-base-finetuned-wtq")
     data = {"Actors": ["Brad Pitt", "Leonardo Di Caprio",
                        "George Clooney"], "Number of movies": ["87", "53", "69"]}
     queries = ["What is the name of the first actor?",
@@ -12,6 +14,17 @@ def main():
                "What is the total number of movies?", ]
     print(model.predict_from_dict(data,queries))
 
+    config = TapasConfig(
+    num_aggregation_labels=4,
+    use_answer_as_supervision=True,
+    answer_loss_cutoff=0.664694,
+    cell_selection_preference=0.207951,
+    huber_loss_delta=0.121194,
+    init_cell_selection_weights_to_zero=True,
+    select_one_column=True,
+    allow_empty_column_selection=False,
+    temperature=0.0352513,
+    )
 if __name__ == '__main__':
        main()
 
