@@ -6,11 +6,14 @@ from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
 from typing import Optional, Type
+import logging
 
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
+from primeqa.ir.sparse.config import BM25Config
 
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 @dataclass
 class ProcessArguments:
     """
@@ -37,17 +40,9 @@ class DPRConfig:
     '''
     pass
 
-@dataclass
-class BM25Config:
-    '''
-    to be imported from the BM25 implementation
-    '''
-    pass
-
-
 def main():
-    #parser = HfArgumentParser((ProcessArguments, ColBERTConfig, DPRConfig, BM25Config))
-    parser = HfArgumentParser((ProcessArguments))
+
+    parser = HfArgumentParser([ProcessArguments, BM25Config])
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
@@ -55,7 +50,7 @@ def main():
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         #process_args, colbert_args, dpr_args, bm25_args = parser.parse_args_into_dataclasses()
-        (process_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+        (process_args, bm25_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
     if process_args.engine_type == 'ColBERT':
         from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
@@ -140,7 +135,36 @@ def main():
     elif process_args.engine_type == 'DPR':
         pass
     elif process_args.engine_type == 'BM25':
-        pass
+        logger.info(f"Running BM25")
+        
+        from primeqa.ir.sparse.retriever import PyseriniRetriever
+        from primeqa.ir.sparse.indexer import PyseriniIndexer
+        from primeqa.ir.sparse.utils import load_queries, write_colbert_ranking_tsv
+
+        if hasattr(process_args, 'do_index') and process_args.do_index:
+            logger.info("Running BM25 indexing")
+            indexer = PyseriniIndexer()
+            rc = indexer.index_collection(bm25_args.corpus_path, bm25_args.index_path, 
+                    bm25_args.fieldnames, bm25_args.overwrite, 
+                    bm25_args.threads, bm25_args.additional_indexing_args )
+            logger.info(f"BM25 Indexing finished with rc: {rc}")
+
+        if hasattr(process_args, 'do_search') and process_args.do_search:
+            logger.info("Running BM25 search")
+            queries = load_queries(bm25_args.queries_path)
+            logger.info(f"Loaded queries num {len(queries)}")
+            logger.info(f"Loaded index from {bm25_args.index_path}")
+            searcher = PyseriniRetriever(bm25_args.index_path,use_bm25=bm25_args.use_bm25,k1=bm25_args.k1,b=bm25_args.b)
+            logger.info(f"Running search num queries: {len(queries)} top_k: {bm25_args.nhits} threads: {bm25_args.threads}")
+            search_results = searcher.batch_retrieve(list(queries.values()),list(queries.keys()),
+                        top_k=bm25_args.nhits,threads=bm25_args.threads)
+
+            if bm25_args.output_dir != None:
+                logger.info(f"Writing ranked results to {bm25_args.output_dir}")
+                if not os.path.exists(bm25_args.output_dir):
+                    os.makedirs(bm25_args.output_dir)
+                write_colbert_ranking_tsv(bm25_args.output_dir, search_results)
+            logger.info("BM25 Search finished")
     else:
         raise NotImplementedError()
 
