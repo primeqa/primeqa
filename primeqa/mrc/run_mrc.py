@@ -25,6 +25,7 @@ from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProce
 from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
@@ -232,7 +233,11 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
+<<<<<<< HEAD:primeqa/mrc/run_mrc.py
                   "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor]
+=======
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor,TyDiQAGooglePreprocessor]
+>>>>>>> c616d6e... full training experiment:examples/mrc/run_mrc.py
                   }
     )
     postprocessor: object_reference = field(

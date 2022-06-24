@@ -137,7 +137,20 @@ class ListNQSubset:
             if is_list and len(annotation['short_answers']) == 0:
                 start_byte, end_byte = self.drop_html_tokens_from_span(annotation['long_answer'],text_tokens)
             else:
-                continue            
+                continue    
+            ## non-lists start
+            # if is_list:
+            #     continue
+
+            # if len(annotation['short_answers']) == 0:
+            #     start_byte = end_byte = -1
+            # else:
+            #     start_byte, end_byte = self.drop_html_tokens_from_span(annotation['short_answers'][0],text_tokens)
+
+            # if end_byte < start_byte:
+            #     logging.Error("error! end < start " + str(start_byte) + "," + str(end_byte))
+            ## non-lists end
+                    
             minimal_answer = {"plaintext_start_byte":start_byte,"plaintext_end_byte":end_byte}
             passage_answer = {"candidate_index":updated_indices[annotation['long_answer']['candidate_index']]}
 
