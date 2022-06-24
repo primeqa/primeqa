@@ -5,7 +5,7 @@ import ujson
 import traceback
 
 # from torch.utils.tensorboard import SummaryWriter
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, create_directory
 
 
 class Logger():

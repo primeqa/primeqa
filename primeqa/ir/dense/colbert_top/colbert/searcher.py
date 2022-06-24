@@ -4,15 +4,15 @@ import torch
 from tqdm import tqdm
 from typing import Union
 
-from oneqa.ir.dense.colbert_top.colbert.data import Collection, Queries, Ranking
+from primeqa.ir.dense.colbert_top.colbert.data import Collection, Queries, Ranking
 
-from oneqa.ir.dense.colbert_top.colbert.modeling.checkpoint import Checkpoint
-from oneqa.ir.dense.colbert_top.colbert.search.index_storage import IndexScorer
+from primeqa.ir.dense.colbert_top.colbert.modeling.checkpoint import Checkpoint
+from primeqa.ir.dense.colbert_top.colbert.search.index_storage import IndexScorer
 
-from oneqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
+from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
 
 TextQueries = Union[str, 'list[str]', 'dict[int, str]', Queries]
 

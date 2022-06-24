@@ -2,7 +2,7 @@ import os
 import ujson
 
 from collections import defaultdict
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, file_tqdm
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, file_tqdm
 
 
 def load_collection_(path, retain_titles):

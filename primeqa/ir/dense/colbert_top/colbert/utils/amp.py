@@ -1,7 +1,7 @@
 import torch
 
 from contextlib import contextmanager
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import NullContextManager
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import NullContextManager
 
 
 class MixedPrecisionManager():

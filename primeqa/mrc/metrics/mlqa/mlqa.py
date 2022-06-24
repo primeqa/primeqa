@@ -1,8 +1,8 @@
 """ MLQA metric. """
 
 import datasets
-
-from oneqa.mrc.metrics.mlqa.mlqa_evaluation_v1 import evaluate
+from typing import Dict, Any
+from primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1 import evaluate
 
 
 _CITATION = """\
@@ -71,7 +71,7 @@ class MLQA(datasets.Metric):
             reference_urls=["https://github.com/facebookresearch/MLQA"],
         )
 
-    def _compute(self, predictions, references):
+    def _compute(self, *, predictions, references, **kwargs) -> Dict[str, Any]:
         pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
         dataset = [
             {

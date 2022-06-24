@@ -2,7 +2,7 @@ import os
 import torch
 import ujson
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings_strided import ResidualEmbeddingsStrided
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings_strided import ResidualEmbeddingsStrided
 
 
 class ResidualEmbeddings:

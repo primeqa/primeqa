@@ -5,9 +5,9 @@ import threading
 
 from contextlib import contextmanager
 
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 
 class IndexSaver():

@@ -1,18 +1,18 @@
 # bert imports
 # from colbert.modeling.colbert import ColBERT
-from oneqa.ir.dense.colbert_top.colbert.modeling.hf_colbert import HF_ColBERT
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert import HF_ColBERT
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 
 # xlmr imports
-from oneqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
 
 import os
 import json
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 
 # Based on model type to associate to a proper model and tokennizers(query, doc)
 #----------------------------------------------------------------

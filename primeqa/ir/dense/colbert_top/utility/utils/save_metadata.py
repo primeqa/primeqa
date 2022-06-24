@@ -1,4 +1,4 @@
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import dotdict
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import dotdict
 import os
 import sys
 import git

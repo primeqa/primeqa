@@ -1,11 +1,11 @@
 import random
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
-from oneqa.ir.dense.colbert_top.utility.utils.save_metadata import save_metadata
-from oneqa.ir.dense.colbert_top.utility.supervision.triples import sample_for_query
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import save_metadata
+from primeqa.ir.dense.colbert_top.utility.supervision.triples import sample_for_query
 
-from oneqa.ir.dense.colbert_top.colbert.data.ranking import Ranking
-from oneqa.ir.dense.colbert_top.colbert.data.examples import Examples
+from primeqa.ir.dense.colbert_top.colbert.data.ranking import Ranking
+from primeqa.ir.dense.colbert_top.colbert.data.examples import Examples
 
 MAX_NUM_TRIPLES = 40_000_000
 

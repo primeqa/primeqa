@@ -1,8 +1,8 @@
 import datasets
 import pytest
 
-from tests.oneqa.mrc.common.base import UnitTest
-from oneqa.mrc.metrics.mlqa.mlqa import MLQA
+from tests.primeqa.mrc.common.base import UnitTest
+from primeqa.mrc.metrics.mlqa.mlqa import MLQA
 
 
 class TestMLQA(UnitTest):
@@ -42,7 +42,7 @@ class TestMLQA(UnitTest):
         _ = metric
 
     def test_instantiate_metric_from_load_metric(self):
-        from oneqa.mrc.metrics.mlqa import mlqa
+        from primeqa.mrc.metrics.mlqa import mlqa
         _ = datasets.load_metric(mlqa.__file__)
 
     def test_compute_metric(self, metric, references_and_predictions):

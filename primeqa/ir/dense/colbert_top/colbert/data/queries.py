@@ -1,8 +1,8 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 import os
 import ujson
 
-from oneqa.ir.dense.colbert_top.colbert.evaluation.loaders import load_queries
+from primeqa.ir.dense.colbert_top.colbert.evaluation.loaders import load_queries
 
 # TODO: Look up path in some global [per-thread or thread-safe] list.
 # TODO: path could be a list of paths...? But then how can we tell it's not a list of queries..

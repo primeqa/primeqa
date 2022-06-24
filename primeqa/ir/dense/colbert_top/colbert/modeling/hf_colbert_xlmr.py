@@ -2,7 +2,7 @@ import torch.nn as nn
 
 from transformers import BertPreTrainedModel, BertModel, AutoTokenizer
 from transformers import AutoModel
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 from transformers import PreTrainedModel
 from transformers import XLMRobertaModel
 

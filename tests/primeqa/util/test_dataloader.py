@@ -1,7 +1,7 @@
-from oneqa.util.dataloader.distloader_seq_pair import SeqPairLoader
-from oneqa.util.transformers_utils.hypers_base import HypersBase
+from primeqa.util.dataloader.distloader_seq_pair import SeqPairLoader
+from primeqa.util.transformers_utils.hypers_base import HypersBase
 from transformers import AutoTokenizer
-from oneqa.util.file_utils import write_open
+from primeqa.util.file_utils import write_open
 import os
 import ujson as json
 

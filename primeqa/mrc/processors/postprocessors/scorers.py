@@ -4,7 +4,7 @@ from functools import partial
 from typing import List, Optional, Callable, Union
 from enum import Enum
 
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 class SupportedSpanScorers(Enum):

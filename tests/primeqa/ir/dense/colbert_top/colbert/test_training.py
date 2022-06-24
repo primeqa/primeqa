@@ -1,26 +1,26 @@
-from tests.oneqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.base import UnitTest
 import pytest
 import os
 import tempfile
 import json
 from typing import Tuple
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message
-from oneqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
-from oneqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
-from oneqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher  # support text input
-from oneqa.ir.dense.colbert_top.colbert.trainer import Trainer
-from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-from oneqa.ir.dense.colbert_top.colbert.training.training import train
-from oneqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import encode
-from oneqa.ir.dense.colbert_top.colbert.searcher import Searcher
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message
+from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2 import EagerBatcher  # support text input
+from primeqa.ir.dense.colbert_top.colbert.training.lazy_batcher import LazyBatcher  # support text input
+from primeqa.ir.dense.colbert_top.colbert.trainer import Trainer
+from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+from primeqa.ir.dense.colbert_top.colbert.training.training import train
+from primeqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import encode
+from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 class TestTraining(UnitTest):
     def test_batchers(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
-            test_files_location = '/u/franzm/git8/OneQA/tests/resources/ir_dense'
+            test_files_location = 'PrimeQA/tests/resources/ir_dense'
 
         rank = 0
         nranks = 1

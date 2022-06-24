@@ -2,7 +2,7 @@ from datasets import Dataset
 from datasets.arrow_dataset import Example
 from datasets.features.features import Sequence, Value
 
-from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 
 
 class TyDiQAPreprocessor(BasePreProcessor):

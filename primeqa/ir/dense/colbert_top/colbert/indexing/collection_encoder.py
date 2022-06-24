@@ -1,7 +1,7 @@
 import torch
 
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, batch
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, batch
 
 
 class CollectionEncoder():

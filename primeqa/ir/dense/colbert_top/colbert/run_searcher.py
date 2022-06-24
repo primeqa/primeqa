@@ -1,8 +1,8 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 
-from oneqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-from oneqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.searcher import Searcher
+from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 def main():
     parser = Arguments(description='run ')

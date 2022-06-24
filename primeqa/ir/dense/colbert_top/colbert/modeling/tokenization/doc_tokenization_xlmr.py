@@ -1,9 +1,9 @@
 import torch
 
 from transformers import XLMRobertaTokenizer # there's no Fast version
-from oneqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
-from oneqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_length
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_length
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 class DocTokenizerXLMR():
     def __init__(self, doc_maxlen, model_type):

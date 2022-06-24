@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'OneQA'
+project = 'PrimeQA'
 copyright = '2022, IBM Research AI'
 author = 'IBM Research AI'
 

@@ -1,4 +1,4 @@
-from oneqa.util.transformers_utils.hypers_base import HypersBase
+from primeqa.util.transformers_utils.hypers_base import HypersBase
 
 
 class Tester:

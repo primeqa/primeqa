@@ -1,7 +1,7 @@
 # from colbert.indexing.codecs.residual import ResidualCodec
-import oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings as residual_embeddings
+import primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings as residual_embeddings
 
-from oneqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
 
 """
 import line_profiler

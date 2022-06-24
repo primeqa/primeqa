@@ -1,6 +1,6 @@
 from datasets import Dataset
 
-from oneqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 
 
 class MLQAPreprocessor(SQUADPreprocessor):

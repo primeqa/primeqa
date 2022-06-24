@@ -1,4 +1,4 @@
-from oneqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 
 from datasets import Dataset
 

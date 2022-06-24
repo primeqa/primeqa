@@ -1,7 +1,7 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
-from oneqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import print_message, flatten
-from oneqa.ir.dense.colbert_top.colbert.modeling.base_colbert import BaseColBERT
+from primeqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, flatten
+from primeqa.ir.dense.colbert_top.colbert.modeling.base_colbert import BaseColBERT
 
 import torch
 import string

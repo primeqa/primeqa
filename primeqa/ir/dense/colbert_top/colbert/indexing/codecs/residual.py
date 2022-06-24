@@ -9,8 +9,8 @@ if torch.cuda.is_available():
 else:
     import numpy as cnupy
 
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
-from oneqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings import ResidualEmbeddings
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings import ResidualEmbeddings
 
 
 class ResidualCodec:

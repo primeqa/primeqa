@@ -7,8 +7,8 @@
 import os
 import itertools
 
-from oneqa.ir.dense.colbert_top.colbert.evaluation.loaders import load_collection
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.evaluation.loaders import load_collection
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 
 
 class Collection:

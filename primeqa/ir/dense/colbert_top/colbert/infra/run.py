@@ -1,10 +1,10 @@
 import os
 import atexit
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message, timestamp
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message, timestamp
 from contextlib import contextmanager
 
-from oneqa.ir.dense.colbert_top.colbert.infra.config import RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import RunConfig
 
 
 class Run(object):

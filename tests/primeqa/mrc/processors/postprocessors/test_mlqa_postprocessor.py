@@ -2,10 +2,10 @@ import datasets
 import pytest
 from pytest import raises
 
-from oneqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestMLQAPostProcessor(UnitTest):

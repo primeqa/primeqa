@@ -3,10 +3,10 @@ import pytest
 from pytest import raises
 from transformers import AutoTokenizer
 
-from oneqa.mrc.processors.preprocessors.base import BasePreProcessor
-from oneqa.mrc.data_models.target_type import TargetType
-from tests.oneqa.mrc.common.base import UnitTest
-from tests.oneqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
+from primeqa.mrc.data_models.target_type import TargetType
+from tests.primeqa.mrc.common.base import UnitTest
+from tests.primeqa.mrc.common.parameterization import PARAMETERIZE_INVALID_SUBSAMPLING_PROBABILITIES
 
 
 class TestDefaultPreProcessor(UnitTest):

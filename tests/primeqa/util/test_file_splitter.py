@@ -1,4 +1,4 @@
-from oneqa.util.dataloader.file_splitter import main, Options
+from primeqa.util.dataloader.file_splitter import main, Options
 import os
 import pytest
 

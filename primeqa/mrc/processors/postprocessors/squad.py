@@ -1,5 +1,5 @@
-from oneqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 
 from datasets import Dataset
 from tqdm import tqdm

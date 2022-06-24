@@ -16,12 +16,12 @@ import torch
 import logging
 from transformers import EvalPrediction
 
-from oneqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
-from oneqa.mrc.processors.postprocessors.scorers import initialize_scorer
-from oneqa.mrc.data_models.target_type import TargetType
-from oneqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
-from oneqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from oneqa.calibration.confidence_scorer import ConfidenceScorer
+from primeqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
+from primeqa.mrc.processors.postprocessors.scorers import initialize_scorer
+from primeqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.calibration.confidence_scorer import ConfidenceScorer
 
 logger = logging.getLogger(__name__)
 

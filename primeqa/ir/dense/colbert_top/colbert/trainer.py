@@ -1,8 +1,8 @@
-from oneqa.ir.dense.colbert_top.colbert.infra.run import Run
-from oneqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
-from oneqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
+from primeqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 
-from oneqa.ir.dense.colbert_top.colbert.training.training import train
+from primeqa.ir.dense.colbert_top.colbert.training.training import train
 
 
 class Trainer:

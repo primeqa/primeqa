@@ -1,4 +1,4 @@
-from oneqa.util.transformers_utils.optimizer_utils import LossHistory
+from primeqa.util.transformers_utils.optimizer_utils import LossHistory
 
 
 class Tester:

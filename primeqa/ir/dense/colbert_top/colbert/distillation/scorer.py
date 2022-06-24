@@ -3,10 +3,10 @@ import tqdm
 
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-from oneqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
-from oneqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-from oneqa.ir.dense.colbert_top.colbert.modeling.reranker.electra import ElectraReranker
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import flatten
+from primeqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
+from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.modeling.reranker.electra import ElectraReranker
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten
 
 
 DEFAULT_MODEL = 'cross-encoder/ms-marco-MiniLM-L-6-v2'

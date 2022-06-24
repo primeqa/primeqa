@@ -1,6 +1,6 @@
 import torch
 
-from oneqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
 from .strided_tensor_core import _create_mask, _create_view
 
 

@@ -3,8 +3,8 @@ import pytest
 from datasets import Dataset
 from transformers import AutoTokenizer
 
-from oneqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
-from tests.oneqa.mrc.common.base import UnitTest
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from tests.primeqa.mrc.common.base import UnitTest
 
 
 class TestMLQAPreprocessor(UnitTest):

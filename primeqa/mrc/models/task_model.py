@@ -4,7 +4,7 @@ from typing import Dict, Type
 import torch
 from transformers import PretrainedConfig, PreTrainedModel, MODEL_FOR_PRETRAINING_MAPPING, MODEL_MAPPING
 
-from oneqa.mrc.models.heads.abstract import AbstractTaskHead
+from primeqa.mrc.models.heads.abstract import AbstractTaskHead
 
 
 class ModelForDownstreamTasks(PreTrainedModel):

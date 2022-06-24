@@ -72,7 +72,7 @@ import json
 import logging
 from operator import not_, itemgetter
 
-from oneqa.mrc.metrics.tydi_f1 import eval_utils
+from primeqa.mrc.metrics.tydi_f1 import eval_utils
 
 
 def score_passage_answer(gold_label_list, pred_label,

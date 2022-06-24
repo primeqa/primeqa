@@ -5,7 +5,7 @@ import joblib
 from joblib import dump, load
 import sklearn
 from sklearn.neural_network import MLPClassifier
-from oneqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 class ConfidenceScorer(object):

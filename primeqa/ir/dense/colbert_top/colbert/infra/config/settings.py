@@ -3,7 +3,7 @@ import torch
 
 import __main__
 from dataclasses import dataclass
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import timestamp
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import timestamp
 
 from .core_config import DefaultVal
 

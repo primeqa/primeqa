@@ -1,11 +1,11 @@
 import os
 import random
 
-from oneqa.ir.dense.colbert_top.colbert.utils.utils import create_directory
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import create_directory
 
-from oneqa.ir.dense.colbert_top.colbert.data.collection import Collection
-from oneqa.ir.dense.colbert_top.colbert.data.queries import Queries
-from oneqa.ir.dense.colbert_top.colbert.data.ranking import Ranking
+from primeqa.ir.dense.colbert_top.colbert.data.collection import Collection
+from primeqa.ir.dense.colbert_top.colbert.data.queries import Queries
+from primeqa.ir.dense.colbert_top.colbert.data.ranking import Ranking
 
 
 def sample_minicorpus(name, factor, topk=30, maxdev=3000):
