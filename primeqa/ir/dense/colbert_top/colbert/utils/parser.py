@@ -129,7 +129,10 @@ class Arguments():
             check(args)
 
     def parse(self):
-        args = self.parser.parse_args()
+        (args, remaining_args) = self.parser.parse_known_args()
+        if len(remaining_args):
+            print_message(f'arguments not used by ColBERT engine: {remaining_args}')
+
         self.check_arguments(args)
 
         args.input_arguments = copy.deepcopy(args)
