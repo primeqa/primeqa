@@ -119,8 +119,10 @@ def main(raw_args):
         model_args, data_args, training_args = parser.parse_dict(raw_args[0])
     else:
         model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
-    training_args.prediction_loss_only  = True # this needs to be hardcoded
-    training_args.remove_unused_columns=False
+    
+    # These two arguments has to be hardcoded in order for Trainer to work
+    training_args.prediction_loss_only  = True 
+    training_args.remove_unused_columns = False
     
     if (
         os.path.exists(training_args.output_dir)
@@ -195,7 +197,7 @@ def main(raw_args):
         with open(inference_args.data_path) as fp:
             data_list = json.load(fp)
         
-        generated_questions = tqg.generate_questions(
+        generated_questions = qg_model.generate_questions(
                                 data_list,
                                 inference_args.num_questions_per_instance,
                                 agg_prob,
