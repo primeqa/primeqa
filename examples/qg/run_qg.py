@@ -14,6 +14,7 @@ from typing import Optional, List, Dict
 import json
 import logging
 import os
+import sys
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -38,7 +39,6 @@ class T2TDataCollator:
             'decoder_attention_mask': decoder_attention_mask
         }
 
-
 @dataclass
 class ModelArguments:
     """
@@ -58,56 +58,6 @@ class ModelArguments:
     cache_dir: Optional[str] = field(
         default=None, metadata={"help": "Where do we want to store the pretrained models downloaded from s3"}
     )
-
-
-@dataclass
-class QGTrainingArguments(TrainingArguments):
-    """
-    Arguments pertraining to model training hyperparameters
-    """
-    num_cores: Optional[int] = field(
-        default=1, metadata={"help":"Number of cpu cores to use"}
-    )
-    n_gpu: Optional[int] = field(
-        default=1, metadata={"help": "Number of gpus to train on"}
-    )
-    per_gpu_train_batch_size: int = field(
-        default=8, metadata={"help": "Train Batch size per gpu"}
-    )
-    per_gpu_eval_batch_size: int = field(
-        default=8, metadata={"help": "Dev batch size per gpu"}
-    ) 
-    gradient_accumulation_steps: Optional[int] = field(
-        default=4, metadata={"help": "Gradient acculation steps "}
-    )
-    learning_rate: Optional[float]= field(
-        default=0.0001, metadata={"help": "Learning rate to be used during training the model"}
-    )
-    num_train_epochs:int = field(
-        default=4, metadata={"help": "Numbers of epochs to train the model"}
-    )
-    do_train:Optional[bool] = field(
-        default=False, metadata={"help": "Whether to train the model or not"}
-    )
-    do_eval:Optional[bool] = field(
-        default=False,metadata={"help": "run evaluation on dev set"}
-    )
-    do_predict:Optional[bool] = field(
-        default=False, metadata={"help": "Generate model prediction on test set"}
-    )
-    remove_unused_columns:Optional[bool] = field(
-        default=False, metadata={"help": ""}
-    )
-    output_dir:Optional[str] = field(
-        default='./models/qg/sample_run/', metadata={"help": "Models and checkpoints will be saved here"}
-    )
-    args_file_path:Optional[str] = field(
-        default='', metadata={"help": "Path to JSON file with all arguments needed"}
-    )
-    prediction_loss_only:Optional[bool] = field(
-        default=True, metadata={"help": ""}
-    )
-
 
 @dataclass
 class DataTrainingArguments:
@@ -159,13 +109,17 @@ class InferenceArguments:
     )
     
 
-def main():
+def main(raw_args):
+    print(raw_args)
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, InferenceArguments))
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, QGTrainingArguments, InferenceArguments))
-
-    model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
-    if training_args.args_file_path != '':
-        model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=training_args.args_file_path)
+    if len(raw_args) == 2 and raw_args[1].endswith(".json"):
+        model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=raw_args[1])
+    elif len(raw_args) == 1:
+        model_args, data_args, training_args = parser.parse_dict(raw_args[0])
+    else:
+        model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
+    training_args.prediction_loss_only  = True # this needs to be hardcoded
     
     if (
         os.path.exists(training_args.output_dir)
@@ -196,17 +150,22 @@ def main():
     # Set seed
     set_seed(training_args.seed)
 
-    tqg = QGModel(model_args.model_name_or_path, modality=model_args.modality)
-    model = tqg.model
-    tokenizer = tqg.tokenizer
+    qg_model = QGModel(model_args.model_name_or_path, modality=model_args.modality)
 
     if training_args.do_train or training_args.do_eval:
-        qgdl = QGDataLoader(tokenizer,data_args)
+        qgdl = QGDataLoader(
+            tokenizer=qg_model.tokenizer,
+            dataset_name=data_args.dataset_name,
+            input_max_len=data_args.max_len,
+            target_max_len=data_args.target_max_len
+            )
+        
         train_dataset = qgdl.create("train")
         valid_dataset = qgdl.create("validation")
+        
         trainer = QGTrainer(
-            model=model,
-            tokenizer = tokenizer,
+            model=qg_model.model,
+            tokenizer = qg_model.tokenizer,
             args=training_args,
             train_dataset=train_dataset,
             valid_dataset=valid_dataset,
@@ -264,5 +223,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
+    main(sys.argv)
