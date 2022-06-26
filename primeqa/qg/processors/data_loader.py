@@ -3,16 +3,22 @@ from primeqa.qg.processors.passage_qg.squad_processor import SquadDataset
 from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
 
 class QGDataLoader():
-	def __init__(self, tokenizer, args):
-		self.args = args
+	def __init__(self, 
+				tokenizer,
+				dataset_name='wikisql', 
+				input_max_len=512,
+				target_max_len=32
+				):
 		self.tokenizer = tokenizer
-		self.dataset_name = args.dataset_name
+		self.dataset_name = dataset_name
+		self.input_max_len = input_max_len
+		self.target_max_len = target_max_len
 		
 	def convert_to_features(self, example_batch):
 		input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
-										pad_to_max_length=True, max_length=self.args.max_len)
+										pad_to_max_length=True, max_length=self.input_max_len)
 		target_encodings = self.tokenizer.batch_encode_plus(example_batch['question'], 
-										pad_to_max_length=True, max_length=self.args.target_max_len)
+										pad_to_max_length=True, max_length=self.target_max_len)
 		encodings = {
 			'input_ids': input_encodings['input_ids'], 
 			'attention_mask': input_encodings['attention_mask'],
