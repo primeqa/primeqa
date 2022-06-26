@@ -22,7 +22,7 @@ class AnswerSampler():
             all_answers = list(set(noun_chunks) | set(named_entities)) # taking union to remove repetition
             all_answers = self._remove_stop_word_answers(all_answers)
 
-            if num_questions_per_instance < all_answers:
+            if num_questions_per_instance < len(all_answers):
                 answers = np.random.choice(all_answers, num_questions_per_instance, replace=False)
             else:
                 answers = all_answers
