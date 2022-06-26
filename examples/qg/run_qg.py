@@ -120,6 +120,7 @@ def main(raw_args):
     else:
         model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
     training_args.prediction_loss_only  = True # this needs to be hardcoded
+    training_args.remove_unused_columns=False
     
     if (
         os.path.exists(training_args.output_dir)

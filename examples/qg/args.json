@@ -1,16 +1,16 @@
 {
     "do_train": true,
-    "model_name_or_path": "t5-base",
+    "model_name_or_path": "t5-small",
     "dataset_name": "wikisql",
     "modality": "table",
     "max_len": 200,
     "target_max_len": 40,
     "output_dir": "models/qg/sample/",
     "overwrite_output_dir": true,
-    "per_gpu_train_batch_size": 8,
-    "per_gpu_eval_batch_size": 8,
+    "per_device_train_batch_size": 8,
+    "per_device_eval_batch_size": 8,
     "gradient_accumulation_steps": 4,
     "learning_rate": 0.0001,
     "tpu_num_cores": 8,
-    "num_train_epochs": 4
+    "num_train_epochs": 1
 }
