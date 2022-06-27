@@ -9,6 +9,7 @@ import torch
 from dataclasses import dataclass,field
 from primeqa.qg.models.qg_model import QGModel
 from primeqa.qg.trainers.qg_trainer import QGTrainer
+from primeqa.qg.metrics.generation_metrics import RougeMetrics
 from typing import Optional, List, Dict
 
 import json
@@ -166,13 +167,16 @@ def main(raw_args):
         train_dataset = qgdl.create("train")
         valid_dataset = qgdl.create("validation")
         
+        compute_metrics = RougeMetrics(qg_model.tokenizer)
+
         trainer = QGTrainer(
             model=qg_model.model,
             tokenizer = qg_model.tokenizer,
             args=training_args,
             train_dataset=train_dataset,
             valid_dataset=valid_dataset,
-            data_collator=T2TDataCollator()
+            data_collator=T2TDataCollator(),
+            compute_metrics=compute_metrics
         )
 
     if training_args.do_train:

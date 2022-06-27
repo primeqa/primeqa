@@ -1,4 +1,4 @@
-from OneQA.primeqa.qg.processors.passage_qg.tydiqa_processor import TydiQADataset
+from primeqa.qg.processors.passage_qg.tydiqa_processor import TydiQADataset
 from datasets import Dataset
 from primeqa.qg.processors.passage_qg.squad_processor import SquadDataset
 from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
