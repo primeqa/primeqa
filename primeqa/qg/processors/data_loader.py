@@ -1,3 +1,4 @@
+from OneQA.primeqa.qg.processors.passage_qg.tydiqa_processor import TydiQADataset
 from datasets import Dataset
 from primeqa.qg.processors.passage_qg.squad_processor import SquadDataset
 from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
@@ -32,7 +33,9 @@ class QGDataLoader():
 		if self.dataset_name == 'wikisql':
 			data = WikiSqlDataset()
 		elif self.dataset_name in ['squad', 'squad_v2']:
-			data = SquadDataset(self.dataset_name)		
+			data = SquadDataset(self.dataset_name)	
+		elif self.dataset_name in ['tydi', 'tydiqa']:	
+			data = TydiQADataset(self.dataset_name)
 		else:
 			raise NotImplementedError("this data not supported")
 		processed_data_dict = data.preprocess_data_for_qg(data_split) # list of dict
