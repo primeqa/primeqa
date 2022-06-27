@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.7"]
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -28,7 +28,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .[all]
-          pip install pytest-xdist[psutil]
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: List files in the repository
@@ -38,9 +37,9 @@ jobs:
         run: echo '${{ toJSON(steps) }}'
       - name: Run IR pytest
         run: |
-          pytest -v -s -n 1 --max-worker-restart 0  tests/primeqa/ir
+          pytest -s tests/primeqa/ir
       - name: Run MRC pytest
         run: |
-          pytest -v -s -n 1 --max-worker-restart 0  tests/primeqa/mrc
+          pytest -s tests/primeqa/mrc
 
       - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -63,7 +63,7 @@ class TestTraining(UnitTest):
                     colBERTConfig = ColBERTConfig(**args_dict)
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
 
-                    if model_type == 'xlm-roberta-base':
+                    if model_type == 'bert-base-uncased':
                         # additional modalities done for 'xlm-roberta-base' only
 
                         # reading numerical training triples
