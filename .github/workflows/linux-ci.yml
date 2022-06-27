@@ -37,9 +37,9 @@ jobs:
         run: echo '${{ toJSON(steps) }}'
       - name: Run IR pytest
         run: |
-          pytest --cov PrimeQA --cov-config .coveragerc  tests/primeqa/ir
+          pytest -s  tests/primeqa/ir
       - name: Run MRC pytest
         run: |
-          pytest --cov PrimeQA --cov-config .coveragerc  tests/primeqa/mrc
+          pytest -s  tests/primeqa/mrc
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
