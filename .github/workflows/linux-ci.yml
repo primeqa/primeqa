@@ -33,17 +33,14 @@ jobs:
       - name: List files in the repository
         run: |
           ls ${{ github.workspace }}
-      - name: Run Coverage report
-        run: |
-          pytest -s --cov primeqa --cov-config .coveragerc 
       - name: Run IR tests
         run: |
-          pytest -s  tests/primeqa/ir
+          pytest -s --cov primeqa --cov-config .coveragerc  tests/primeqa/ir
       - name: Run MRC tests Part 1 (processors)
         run: |
-          pytest -s  tests/primeqa/mrc/processors
+          pytest -s --cov primeqa --cov-config .coveragerc  tests/primeqa/mrc/processors
       - name: Run MRC tests Part 2 (all except processors)
         run: |
-          pytest -s  --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
+          pytest -s --cov primeqa --cov-config .coveragerc  --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
