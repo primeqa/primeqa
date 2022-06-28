@@ -36,6 +36,16 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
+For eval-only TyDiQA with support for boolean questions (for [details](../boolqa/README.md)):
+```shell
+python examples/mrc/run_mrc.py --model_name_or_path ${BOOLEAN_MODEL_NAME} \
+       --output_dir ${OUTPUT_DIR} --fp16 \
+       --per_device_eval_batch_size 128 --overwrite_output_dir \
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+```
+
+
+
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
       --output_dropout_rate 0.25 \
@@ -59,9 +69,18 @@ For the MLQA configuration with context language EN and question language DE use
 ```shell
        --dataset_name mlqa \
        --dataset_config_name mlqa.en.de \
-       --preprocessor primeqa.mrc.processors.preprocessors.squad.MLQAPreprocessor \
-       --postprocessor primeqa.mrc.processors.postprocessors.squad.MLQAPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
+```
+
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1. See `examples/listqa/README.md` for more information and a use case using NQ list data:
+```
+       --max_seq_length 512 \
+       --learning_rate 5e-05 \
+       --max_answer_length 1000 \
+       --passage_non_null_threshold 1 \
+       --minimal_non_null_threshold 1 \
 ```
 
 This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.

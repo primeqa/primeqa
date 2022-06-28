@@ -76,9 +76,8 @@ class TyDiF1(datasets.Metric):
         )
 
     def _compute(self, *, predictions=None, references=None, passage_non_null_threshold=2, span_non_null_threshold=2, verbose=False, **kwargs) -> Dict[str, Any]:
-        if kwargs:
-            raise ValueError(f"Unexpected kwargs: {kwargs}")
-        elif not predictions:
+        
+        if not predictions:
             raise ValueError("No predictions provided")
         elif not references:
             raise ValueError("No references provided")
