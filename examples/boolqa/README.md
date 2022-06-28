@@ -1,6 +1,6 @@
-# TydiQA with support for Boolean questions
+# TyDiQA with support for Boolean questions
 
-The TydiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways.
+The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways.
 As a single command line argument in `run_mrc.py` to run all steps:
 
 ```shell
@@ -124,7 +124,7 @@ python examples/boolqa/run_boolqa_classifier.py \
 ## Score normalization
 
 Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
-and output a file suitable for the tydi evaluation script.
+and output a file suitable for the TyDiQA evaluation script.
 
 ```shell
 python examples/boolqa/run_score_normalizer.py \
