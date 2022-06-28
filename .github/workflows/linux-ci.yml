@@ -38,7 +38,7 @@ jobs:
           pytest -s --cov primeqa --cov-config .coveragerc  tests/primeqa/ir
       - name: Run MRC tests Part 1 (processors)
         run: |
-          pytest -s --cov primeqa --cov-config .coveragerc  tests/primeqa/mrc/processors
+          pytest -s --cov primeqa --cov-config .coveragerc  tests/primeqa/mrc
       - name: Run MRC tests Part 2 (all except processors)
         run: |
           pytest -s --cov primeqa --cov-config .coveragerc  --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
