@@ -34,7 +34,7 @@ class QGDataLoader():
 			data = WikiSqlDataset()
 		elif self.dataset_name in ['squad', 'squad_v2']:
 			data = SquadDataset(self.dataset_name)	
-		elif self.dataset_name in ['tydi', 'tydiqa']:	
+		elif self.dataset_name in ['tydiqa']:	
 			data = TydiQADataset(self.dataset_name)
 		else:
 			raise NotImplementedError("this data not supported")

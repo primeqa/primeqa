@@ -26,7 +26,6 @@ def rouge_metrics(input_tokenizer):
 
 	# rouge metrics taken from: https://huggingface.co/course/chapter7/5
 	def compute_metrics(eval_pred):
-		print(eval_pred)
 		predictions, labels = eval_pred
 		# Decode generated summaries into text
 		decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=True)
