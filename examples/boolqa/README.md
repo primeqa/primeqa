@@ -14,7 +14,7 @@ The option `--do_boolean` supercedes the `--do_eval` option, and runs the follow
 
 - **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
-- **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. 
+- Answer classification (or **Ev**idence **C**lassification): given a question and an answer span, decide whether the span supports yes or no. 
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 
 We provide pretrained models for each of these downstream components.
@@ -25,7 +25,7 @@ The output of each individual step is analyzed in more detail this jupyter [note
 
 The inner details of the machine reading comprehension for TydiQA are analyzed in more detail in [notebook](../../notebooks/mrc/tydiqa.ipynb).
 
-The inner details of the evidence classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
+The inner details of the answer classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
 
 Some of this system has been described in the papers [Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
 and [GAAMA 2.0: An Integrated System that Answers Boolean and Extractive Questions](https://arxiv.org/abs/2206.08441)
@@ -100,9 +100,9 @@ python examples/boolqa/run_boolqa_classifier.py \
     --output_dir ${OUTDIR}/qtc \
     --use_auth_token
 ```
-## Evidence classification
+## Answer classification
 
-Given a question and the span predicted by the first step, predict whether the span supports
+Given a question and the passage predicted by the first step, predict whether the span supports
 a `yes` or `no` answer to question.  Both question and span are passed through the `eval_predictions.json`
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
 
