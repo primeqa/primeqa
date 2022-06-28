@@ -19,7 +19,7 @@ from typer import Option
 from primeqa.lfqa_kb.trainers.seq2seq_trainer import QuestionAnsweringSeq2SeqTrainer, FidDataCollator
 from primeqa.lfqa_kb.metrics.utils import compute_metrics
 from primeqa.lfqa_kb.processors.preprocessors.eli5 import preprocess_eli5_function_fid, preprocess_eli5_validation_function_fid
-from primeqa.lfqa_kb.processors.postprocessors.eli5 import post_processing_function
+from primeqa.lfqa_kb.processors.postprocessors.eli5 import postprocess_eli5_function
 from primeqa.lfqa_kb.models.fid import FiDBART
 from transformers import (
     AutoConfig,
@@ -578,7 +578,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
-        post_process_function=post_processing_function,
+        post_process_function=postprocess_eli5_function,
     )
 
     # Training
