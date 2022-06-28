@@ -22,8 +22,6 @@ def test_create_sql_string(sql,table,answer,sql_string):
 def test_preprocess_data_for_qg():
     wd = WikiSqlDataset()
     data = wd.preprocess_data_for_qg("validation")
-    print("here3")
     assert data!=None
-    # assert len(data['question']) == len(data['sql_str']) #'sql_str' has changed to 'input' ?
     assert len(data['question']) == len(data['input'])
     
