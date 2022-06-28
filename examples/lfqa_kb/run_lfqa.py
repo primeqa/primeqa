@@ -18,7 +18,9 @@ import transformers
 from primeqa.lfqa_kb.trainers.seq2seq_trainer import QuestionAnsweringSeq2SeqTrainer
 from primeqa.lfqa_kb.metrics.utils import compute_metrics
 from primeqa.lfqa_kb.processors.preprocessors.eli5 import preprocess_eli5_function, preprocess_eli5_validation_function
-from primeqa.lfqa_kb.processors.postprocessors.eli5 import post_processing_function
+from primeqa.lfqa_kb.processors.preprocessors.asqa import preprocess_asqa_function, preprocess_asqa_validation_function
+from primeqa.lfqa_kb.processors.postprocessors.eli5 import postprocess_eli5_function
+from primeqa.lfqa_kb.processors.postprocessors.asqa import postprocess_asqa_function
 from transformers import (
     AutoConfig,
     AutoModelForSeq2SeqLM,
@@ -292,7 +294,9 @@ class LFQATrainingArguments(Seq2SeqTrainingArguments):
 
 question_answering_column_name_mapping = {
     "squad_v2": ("question", "context", "answer"),
-    "kilt_tasks": ("input", "output")
+    "eli5": ("input", "output"),
+    "asqa": ("ambiguous_question", "annotations")
+
 }
 
 
@@ -358,22 +362,16 @@ def main():
     #
     # In distributed training, the load_dataset function guarantee that only one local process can concurrently
     # download the dataset.
-    if data_args.dataset_name is not None:
-        # Downloading and loading a dataset from the hub.
-        raw_datasets = load_dataset(
-            data_args.dataset_name, data_args.dataset_config_name, cache_dir=model_args.cache_dir
-        )
-    else:
-        raw_datasets = {}
-        if data_args.train_file is not None:
-            extension = data_args.train_file.split(".")[-1]
-            raw_datasets["train"] = load_dataset(extension, data_files={"train": data_args.train_file}, split="train")
-        if data_args.validation_file is not None:
-            extension = data_args.validation_file.split(".")[-1]
-            raw_datasets["validation"] = load_dataset(extension, data_files={"validation": data_args.validation_file}, split="validation")
-        if data_args.test_file is not None:
-            extension = data_args.test_file.split(".")[-1]
-            raw_datasets["test"] = load_dataset(extension, data_files={"test": data_args.test_file}, split="validation")
+    raw_datasets = {}
+    if data_args.train_file is not None:
+        extension = data_args.train_file.split(".")[-1]
+        raw_datasets["train"] = load_dataset(extension, data_files={"train": data_args.train_file}, split="train")
+    if data_args.validation_file is not None:
+        extension = data_args.validation_file.split(".")[-1]
+        raw_datasets["validation"] = load_dataset(extension, data_files={"validation": data_args.validation_file}, split="validation")
+    if data_args.test_file is not None:
+        extension = data_args.test_file.split(".")[-1]
+        raw_datasets["test"] = load_dataset(extension, data_files={"test": data_args.test_file}, split="validation")
 
             # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
     # https://huggingface.co/docs/datasets/loading_datasets.html.
@@ -409,6 +407,12 @@ def main():
 
     if model.config.decoder_start_token_id is None:
         raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
+
+    # Specify the dataset process function
+    preprocess_func_dict = {"eli5": preprocess_eli5_function, "asqa": preprocess_asqa_function}
+    preprocess_val_func_dict = {"eli5": preprocess_eli5_validation_function, "asqa": preprocess_asqa_validation_function}
+    postprocess_func_dict = {"eli5": postprocess_eli5_function, "asqa": postprocess_asqa_function}
+
 
     # Preprocessing the datasets.
     # We need to generate and tokenize inputs and targets.
@@ -448,7 +452,6 @@ def main():
             raise ValueError(
                 f"--answer_column' value '{data_args.answer_column}' needs to be one of: {', '.join(column_names)}"
             )
-    # TODO test this and update this to run_fid code
     if not ((data_args.context_column is not None and data_args.n_context > 0) or (data_args.context_column is None and data_args.n_context == 0)):
         raise ValueError(
             f"--context_column and --n_context should both be provided for generation with contexts."
@@ -489,10 +492,9 @@ def main():
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
 
-
         with training_args.main_process_first(desc="train dataset map pre-processing"):
             train_dataset = train_dataset.map(
-                preprocess_eli5_function,
+                preprocess_func_dict[data_args.dataset_name],
                 fn_kwargs=args_for_preprocess,
                 batched=True,
                 num_proc=data_args.preprocessing_num_workers,
@@ -516,7 +518,7 @@ def main():
         # Validation Feature Creation
         with training_args.main_process_first(desc="validation dataset map pre-processing"):
             eval_dataset = eval_examples.map(
-                preprocess_eli5_validation_function,
+                preprocess_val_func_dict[data_args.dataet_name],
                 fn_kwargs=args_for_preprocess,
                 batched=True,
                 num_proc=data_args.preprocessing_num_workers,
@@ -539,7 +541,7 @@ def main():
         # Predict Feature Creation
         with training_args.main_process_first(desc="prediction dataset map pre-processing"):
             predict_dataset = predict_examples.map(
-                preprocess_eli5_validation_function,
+                preprocess_val_func_dict[data_args.dataet_name],
                 fn_kwargs=args_for_preprocess,
                 batched=True,
                 num_proc=data_args.preprocessing_num_workers,
@@ -572,7 +574,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
-        post_process_function=post_processing_function,
+        post_process_function=postprocess_func_dict[data_args.dataset_name],
     )
 
     # Training
