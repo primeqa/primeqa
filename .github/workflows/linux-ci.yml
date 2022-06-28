@@ -36,7 +36,7 @@ jobs:
           free
       - name: Run tests
         run: |
-          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=60 tests/primeqa/ir
+          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=60 tests/primeqa/ir
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=60 tests/primeqa/mrc/processors 
           pytest -s --cov primeqa/mrc --cov-config .coveragerc --cov-fail-under=35 --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
 
