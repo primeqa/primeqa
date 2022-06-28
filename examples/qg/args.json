@@ -1,11 +1,12 @@
 {
     "do_train": true,
+    "do_eval":true,
     "model_name_or_path": "t5-small",
     "dataset_name": "wikisql",
     "modality": "table",
     "max_len": 200,
     "target_max_len": 40,
-    "output_dir": "models/qg/sample/",
+    "output_dir": "models/tableqg/wikisql_small",
     "overwrite_output_dir": true,
     "per_device_train_batch_size": 8,
     "per_device_eval_batch_size": 8,

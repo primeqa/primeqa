@@ -69,7 +69,8 @@ _deps = {
     "protobuf~=3.20.0": ["install"],
     "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
-    "tabulate~=0.8.9":["install"]
+    "tabulate~=0.8.9":["install"],
+    "rouge_score":["install"]
 
 }
 
