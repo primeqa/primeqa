@@ -1,43 +1,21 @@
 from transformers import (
-    DataCollator,
     HfArgumentParser,
     Seq2SeqTrainingArguments,
     set_seed,
 )
 from primeqa.qg.processors.data_loader import QGDataLoader
-import torch
 from dataclasses import dataclass,field
 from primeqa.qg.models.qg_model import QGModel
 from primeqa.qg.trainers.qg_trainer import QGTrainer
 from primeqa.qg.metrics.generation_metrics import rouge_metrics
-from typing import Optional, List, Dict
+from primeqa.qg.utils.data_collator import T2TDataCollator
+from typing import Optional
+
 import json
 import logging
 import os
 import sys
 logger = logging.getLogger(__name__)
-
-@dataclass
-class T2TDataCollator:
-    def __call__(self, batch: List) -> Dict[str, torch.Tensor]:
-        """
-        Take a list of samples from a Dataset and collate them into a batch.
-        Returns:
-            A dictionary of tensors
-        """
-        input_ids = torch.stack([example['input_ids'] for example in batch])
-        lm_labels = torch.stack([example['target_ids'] for example in batch])
-        lm_labels[lm_labels[:, :] == 0] = -100
-        attention_mask = torch.stack([example['attention_mask'] for example in batch])
-        decoder_attention_mask = torch.stack([example['target_attention_mask'] for example in batch])
-        
-
-        return {
-            'input_ids': input_ids, 
-            'attention_mask': attention_mask,
-            'labels': lm_labels, 
-            'decoder_attention_mask': decoder_attention_mask
-        }
 
 @dataclass
 class ModelArguments:
@@ -66,8 +44,7 @@ class DataTrainingArguments:
     """
 
     dataset_name:Optional[str] = field(
-        default="wikisql", metadata={"help": "Name of the dataset to train the qg model",
-                                     "choices": ["wikisql", "squad", "squad_v2"]}
+        default="wikisql", metadata={"help": "Name of the dataset to train the qg model"}
     )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
@@ -122,6 +99,7 @@ def main(raw_args):
     # These rguments has to be hardcoded in order for Trainer to work
     training_args.predict_with_generate=True
     training_args.remove_unused_columns = False
+    training_args.prediction_loss_only = False
     
     if (
         os.path.exists(training_args.output_dir)
