@@ -1,7 +1,7 @@
 from transformers import (
     DataCollator,
     HfArgumentParser,
-    TrainingArguments,
+    Seq2SeqTrainingArguments,
     set_seed,
 )
 from primeqa.qg.processors.data_loader import QGDataLoader
@@ -9,8 +9,8 @@ import torch
 from dataclasses import dataclass,field
 from primeqa.qg.models.qg_model import QGModel
 from primeqa.qg.trainers.qg_trainer import QGTrainer
+from primeqa.qg.metrics.generation_metrics import rouge_metrics
 from typing import Optional, List, Dict
-
 import json
 import logging
 import os
@@ -111,7 +111,7 @@ class InferenceArguments:
 
 def main(raw_args):
     print(raw_args)
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, InferenceArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments, InferenceArguments))
 
     if len(raw_args) == 2 and raw_args[1].endswith(".json"):
         model_args, data_args, training_args, inference_args = parser.parse_json_file(json_file=raw_args[1])
@@ -119,8 +119,10 @@ def main(raw_args):
         model_args, data_args, training_args = parser.parse_dict(raw_args[0])
     else:
         model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
-    training_args.prediction_loss_only  = True # this needs to be hardcoded
-    training_args.remove_unused_columns=False
+    
+    # These rguments has to be hardcoded in order for Trainer to work
+    training_args.predict_with_generate=True
+    training_args.remove_unused_columns = False
     
     if (
         os.path.exists(training_args.output_dir)
@@ -163,6 +165,8 @@ def main(raw_args):
         
         train_dataset = qgdl.create("train")
         valid_dataset = qgdl.create("validation")
+
+        compute_metrics = rouge_metrics(qg_model.tokenizer)
         
         trainer = QGTrainer(
             model=qg_model.model,
@@ -170,7 +174,8 @@ def main(raw_args):
             args=training_args,
             train_dataset=train_dataset,
             valid_dataset=valid_dataset,
-            data_collator=T2TDataCollator()
+            data_collator=T2TDataCollator(),
+            compute_metrics=compute_metrics
         )
 
     if training_args.do_train:
