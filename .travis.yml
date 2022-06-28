@@ -1,10 +1,17 @@
+dist: focal
 language: python
+vm:
+  size: large
 python:
   - "3.7"
   - "3.8"
   - "3.9"
 cache: pip
-install: pip install tox-travis
+before_install:
+  - pip install --upgrade pip
+install: 
+  - python3 -V
+  - pip install tox-travis
 script:
   - tox -r
   - >
