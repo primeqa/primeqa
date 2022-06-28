@@ -1,4 +1,4 @@
-name: Linux CI MRC
+name: Linux CI ALL
 on:
   push:
     branches: [ "main" ]
@@ -36,6 +36,7 @@ jobs:
           free
       - name: Run tests
         run: |
+          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers/test_mrc.py  tests/primeqa/mrc
           pytest -s --cov primeqa/mrc/trainers --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/trainers/test_mrc.py 
 
