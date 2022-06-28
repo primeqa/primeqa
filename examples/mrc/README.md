@@ -86,6 +86,15 @@ For the MLQA configuration with context language EN and question language DE use
        --eval_metrics MLQA 
 ```
 
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1. See `examples/listqa/README.md` for more information and a use case using NQ list data:
+```
+       --max_seq_length 512 \
+       --learning_rate 5e-05 \
+       --max_answer_length 1000 \
+       --passage_non_null_threshold 1 \
+       --minimal_non_null_threshold 1 \
+```
+
 This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
 depending on your hardware configuration.
