@@ -7,7 +7,7 @@ class TydiQADataset():
 		self.dataset_name = dataset_name
 
 	def preprocess_data_for_qg(self, data_split='train'):
-		data = load_dataset(self.dataset_name, 'secondary_task')
+		data = load_dataset(self.dataset_name, 'secondary_task', split=data_split)
 		processed_data_dict = {'question':[], 'input':[]}
 		
 		for d in tqdm(data):
