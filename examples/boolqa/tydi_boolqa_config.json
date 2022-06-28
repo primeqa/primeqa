@@ -7,7 +7,7 @@
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "ibm/qtc_bert_pretrained_model"
+        "model_name_or_path": "ibm/tydiqa-boolean-question_classifier"
     },
     "evc": {
         "id_key": "example_id",
@@ -18,7 +18,7 @@
         "overwrite_cache": true,
         "drop_label": "no_answer",
         "use_auth_token": true,
-        "model_name_or_path": "ibm/evc_xlm_roberta_large"
+        "model_name_or_path": "ibm/tydiqa-boolean-answer-classifier"
     },
     "sn": {
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
