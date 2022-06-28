@@ -518,7 +518,7 @@ def main():
         # Validation Feature Creation
         with training_args.main_process_first(desc="validation dataset map pre-processing"):
             eval_dataset = eval_examples.map(
-                preprocess_val_func_dict[data_args.dataet_name],
+                preprocess_val_func_dict[data_args.dataset_name],
                 fn_kwargs=args_for_preprocess,
                 batched=True,
                 num_proc=data_args.preprocessing_num_workers,

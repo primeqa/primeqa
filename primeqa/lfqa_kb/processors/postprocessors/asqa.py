@@ -1,10 +1,10 @@
 import datasets
 from transformers.trainer_utils import EvalPrediction, EvalLoopOutput
 
-# Post-processing: get multiple references for each answer
-def postprocess_eli5_function(
+def postprocess_asqa_function(
     examples: datasets.Dataset, features: datasets.Dataset, outputs: EvalLoopOutput,  tokenizer, data_args
 ):
+
     # Decode the predicted tokens.
     preds = outputs.predictions
     if isinstance(preds, tuple):
@@ -23,8 +23,8 @@ def postprocess_eli5_function(
         # This is the index of the feature associated to the current example.
         feature_index = feature_per_example[example_index]
         predictions[example["id"]] = decoded_preds[feature_index]
-
+    
     formatted_predictions = [{"id": k, "prediction_text": v} for k, v in predictions.items()]
-    references = [{"id": ex["id"], "answers": [x["answer"] for x in ex[data_args.answer_column] if x["answer"] is not None]} for ex in examples] # muli references
-
+    references = [{"id": ex["id"], "answers": [x["long_answer"] for x in ex[data_args.answer_column] if x["long_answer"] is not None]} for ex in examples] # muli references
+    
     return EvalPrediction(predictions=formatted_predictions, label_ids=references)

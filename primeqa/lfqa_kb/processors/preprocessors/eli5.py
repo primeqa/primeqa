@@ -2,6 +2,9 @@ from json import encoder
 from typing import List, Tuple
 from numpy import append
 import torch
+
+
+#### For FiD ####
 # from 
 # https://github.com/facebookresearch/FiD/blob/25ed1ff0fe0288b80fb5e9e5de8d6346b94b8d48/src/data.py#L73
 def encode_passages(batch_text_passages, tokenizer, max_length):
@@ -10,7 +13,6 @@ def encode_passages(batch_text_passages, tokenizer, max_length):
         # p = tokenizer.batch_encode_plus(
         p = tokenizer(
             text_passages,
-            max_length=max_length,
             padding='max_length',
             max_length=max_length,
             return_tensors='pt',
@@ -21,42 +23,7 @@ def encode_passages(batch_text_passages, tokenizer, max_length):
 
     passage_ids = torch.cat(passage_ids, dim=0)
     passage_masks = torch.cat(passage_masks, dim=0)
-    return passage_ids.tolist(), passage_masks.tolist() # TODO verify this. the original version is boolx
-
-
-''' The old FiD collator
-class Collator(object):
-    def __init__(self, text_maxlength, tokenizer, answer_maxlength=20):
-        self.tokenizer = tokenizer
-        self.text_maxlength = text_maxlength
-        self.answer_maxlength = answer_maxlength
-
-    def __call__(self, batch):
-        assert(batch[0]['target'] != None)
-        index = torch.tensor([ex['index'] for ex in batch])
-        target = [ex['target'] for ex in batch]
-        target = self.tokenizer.batch_encode_plus(
-            target,
-            max_length=self.answer_maxlength if self.answer_maxlength > 0 else None,
-            pad_to_max_length=True,
-            return_tensors='pt',
-            truncation=True if self.answer_maxlength > 0 else False,
-        )
-        target_ids = target["input_ids"]
-        target_mask = target["attention_mask"].bool()
-        target_ids = target_ids.masked_fill(~target_mask, -100)
-
-        def append_question(example):
-            if example['passages'] is None:
-                return [example['question']]
-            return [example['question'] + " " + t for t in example['passages']]
-        text_passages = [append_question(example) for example in batch]
-        passage_ids, passage_masks = encode_passages(text_passages,
-                                                     self.tokenizer,
-                                                     self.text_maxlength)
-
-        return (index, target_ids, target_mask, passage_ids, passage_masks)
-'''
+    return passage_ids.tolist(), passage_masks.tolist()
 
 def preprocess_eli5_function_fid(examples, data_args, tokenizer, max_seq_length, max_answer_length, padding):
     indexes, inputs, targets = preprocess_eli5_batch_fid(examples, data_args, mode="train")
@@ -93,60 +60,6 @@ def preprocess_eli5_validation_function_fid(examples, data_args, tokenizer, max_
         model_inputs["example_id"].append(examples["id"][i])
 
     return model_inputs
-
-
-def preprocess_eli5_validation_function(examples, data_args, tokenizer, max_seq_length, max_answer_length, padding):
-    inputs, targets = preprocess_eli5_batch(examples, data_args, mode="eval")
-
-    model_inputs = tokenizer(
-        inputs,
-        max_length=max_seq_length,
-        padding=padding,
-        truncation=True,
-        # return_overflowing_tokens=True, # See this issue https://github.com/huggingface/transformers/issues/15398#issuecomment-1072714545
-        return_offsets_mapping=True,
-    )
-    # Setup the tokenizer for targets
-    with tokenizer.as_target_tokenizer():
-        labels = tokenizer(targets, max_length=max_answer_length, padding=padding, truncation=True)
-
-    model_inputs["example_id"] = []
-
-    for i in range(len(model_inputs["input_ids"])):
-        model_inputs["example_id"].append(examples["id"][i])
-
-    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
-    # padding in the loss.
-    if padding == "max_length" and data_args.ignore_pad_token_for_loss:
-        labels["input_ids"] = [
-            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
-        ]
-
-    model_inputs["labels"] = labels["input_ids"]
-    return model_inputs
-
-# for Train set. tokenize.
-def preprocess_eli5_function(examples, tokenizer, max_seq_length, max_answer_length, padding, data_args):
-    # if data_args.n_context > 1 and data_args.train_passage_file is not None:
-    #     inputs, targets, passages = preprocess_eli5_batch(examples, question_column, answer_column, mode="train", passage_file=data_args.train_passage_file, n_doc=data_args.n_context)
-    # else:
-    inputs, targets = preprocess_eli5_batch(examples, data_args, mode="train")
-    model_inputs = tokenizer(inputs, max_length=max_seq_length, padding=padding, truncation=True)
-    # Setup the tokenizer for targets
-    with tokenizer.as_target_tokenizer():
-        labels = tokenizer(targets, max_length=max_answer_length, padding=padding, truncation=True)
-
-    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
-    # padding in the loss.
-    if padding == "max_length" and data_args.ignore_pad_token_for_loss:
-        labels["input_ids"] = [
-            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
-        ]
-    
-    model_inputs["labels"] = labels["input_ids"]
-    return model_inputs # "labels", "input_ids", "attention_mask".
-
-
 
 def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[str], List[str]]:
     indices = examples["id"]
@@ -191,6 +104,61 @@ def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[s
 
     return indices, inputs, targets # inputs is a list of a list of question+passage, targets is a list of answers
 
+
+
+#### For BART ####
+
+
+def preprocess_eli5_validation_function(examples, data_args, tokenizer, max_seq_length, max_answer_length, padding):
+    inputs, targets = preprocess_eli5_batch(examples, data_args, mode="eval")
+
+    model_inputs = tokenizer(
+        inputs,
+        max_length=max_seq_length,
+        padding=padding,
+        truncation=True,
+        # return_overflowing_tokens=True, # See this issue https://github.com/huggingface/transformers/issues/15398#issuecomment-1072714545
+        return_offsets_mapping=True,
+    )
+    # Setup the tokenizer for targets
+    with tokenizer.as_target_tokenizer():
+        labels = tokenizer(targets, max_length=max_answer_length, padding=padding, truncation=True)
+
+    model_inputs["example_id"] = []
+
+    for i in range(len(model_inputs["input_ids"])):
+        model_inputs["example_id"].append(examples["id"][i])
+
+    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
+    # padding in the loss.
+    if padding == "max_length" and data_args.ignore_pad_token_for_loss:
+        labels["input_ids"] = [
+            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+        ]
+
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs
+
+# for Train set. tokenize.
+def preprocess_eli5_function(examples, data_args, tokenizer, max_seq_length, max_answer_length, padding):
+    # if data_args.n_context > 1 and data_args.train_passage_file is not None:
+    #     inputs, targets, passages = preprocess_eli5_batch(examples, question_column, answer_column, mode="train", passage_file=data_args.train_passage_file, n_doc=data_args.n_context)
+    # else:
+    inputs, targets = preprocess_eli5_batch(examples, data_args, mode="train")
+    model_inputs = tokenizer(inputs, max_length=max_seq_length, padding=padding, truncation=True)
+    # Setup the tokenizer for targets
+    with tokenizer.as_target_tokenizer():
+        labels = tokenizer(targets, max_length=max_answer_length, padding=padding, truncation=True)
+
+    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
+    # padding in the loss.
+    if padding == "max_length" and data_args.ignore_pad_token_for_loss:
+        labels["input_ids"] = [
+            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+        ]
+    
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs # "labels", "input_ids", "attention_mask".
 
 
 def preprocess_eli5_batch(examples, data_args, mode="train") -> Tuple[List[str], List[str]]:
