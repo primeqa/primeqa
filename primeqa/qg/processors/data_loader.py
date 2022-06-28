@@ -11,9 +11,17 @@ class QGDataLoader():
 				target_max_len=32
 				):
 		self.tokenizer = tokenizer
-		self.dataset_name = dataset_name
 		self.input_max_len = input_max_len
 		self.target_max_len = target_max_len
+
+		if dataset_name == 'wikisql':
+			self.dataset = WikiSqlDataset()
+		elif dataset_name in ['squad', 'squad_v2']:
+			self.dataset = SquadDataset(dataset_name)	
+		elif dataset_name in ['tydiqa']:	
+			self.dataset = TydiQADataset(dataset_name)
+		else:
+			raise NotImplementedError("this data not supported")
 		
 	def convert_to_features(self, example_batch):
 		input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
@@ -26,19 +34,10 @@ class QGDataLoader():
 			'target_ids': target_encodings['input_ids'],
 			'target_attention_mask': target_encodings['attention_mask']
 		}
-
 		return encodings
 
 	def create(self, data_split='train'):
-		if self.dataset_name == 'wikisql':
-			data = WikiSqlDataset()
-		elif self.dataset_name in ['squad', 'squad_v2']:
-			data = SquadDataset(self.dataset_name)	
-		elif self.dataset_name in ['tydiqa']:	
-			data = TydiQADataset(self.dataset_name)
-		else:
-			raise NotImplementedError("this data not supported")
-		processed_data_dict = data.preprocess_data_for_qg(data_split) # list of dict
+		processed_data_dict = self.dataset.preprocess_data_for_qg(data_split) # list of dict
 
 		processed_data = Dataset.from_dict(processed_data_dict)
 		tokenized_data =  processed_data.map(self.convert_to_features, batched=True)
