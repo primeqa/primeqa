@@ -6,11 +6,15 @@ from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
 from typing import Optional, Type
+import logging
 
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
+from primeqa.ir.sparse.config import BM25Config
+from primeqa.ir.sparse.bm25_engine import BM25Engine
 
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 @dataclass
 class ProcessArguments:
     """
@@ -37,17 +41,9 @@ class DPRConfig:
     '''
     pass
 
-@dataclass
-class BM25Config:
-    '''
-    to be imported from the BM25 implementation
-    '''
-    pass
-
-
 def main():
-    #parser = HfArgumentParser((ProcessArguments, ColBERTConfig, DPRConfig, BM25Config))
-    parser = HfArgumentParser((ProcessArguments))
+
+    parser = HfArgumentParser([ProcessArguments, BM25Config])
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
@@ -55,9 +51,10 @@ def main():
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
         #process_args, colbert_args, dpr_args, bm25_args = parser.parse_args_into_dataclasses()
-        (process_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+        (process_args, bm25_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
     if process_args.engine_type == 'ColBERT':
+        logger.info(f"Running ColBERT")
         from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
         from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
@@ -140,7 +137,20 @@ def main():
     elif process_args.engine_type == 'DPR':
         pass
     elif process_args.engine_type == 'BM25':
-        pass
+        logger.info(f"Running BM25")
+
+        engine = BM25Engine(bm25_args)
+        
+        if hasattr(process_args, 'do_index') and process_args.do_index:
+            logger.info("Running BM25 indexing")
+            engine.do_index()
+            logger.info(f"BM25 indexing finished")
+
+        if hasattr(process_args, 'do_search') and process_args.do_search:
+            logger.info("Running BM25 search")
+            engine.do_search()
+
+            logger.info("BM25 Search finished")
     else:
         raise NotImplementedError()
 
