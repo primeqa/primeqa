@@ -10,7 +10,7 @@ import pytest
 #         'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
 # ]
 _MODEL_NAMES = [
-        'roberta-base', 'bert-base-uncased',
+        'roberta-base'
 ]
 
 
