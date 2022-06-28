@@ -6,12 +6,10 @@ from typing import Callable
 
 import pytest
 
-# _MODEL_NAMES = [
-#         'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
-# ]
 _MODEL_NAMES = [
-        'roberta-base'
+        'roberta-base', 'xlm-roberta-base', #'bert-base-uncased', 'albert-base-v2',
 ]
+
 
 
 # Cannot be rewritten as constant parametrize(fixture)
