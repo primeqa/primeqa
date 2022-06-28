@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9"]
+        python-version: ["3.7", "3.8"]
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -38,6 +38,6 @@ jobs:
         run: |
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/processors 
-          pytest -s --cov primeqa/mrc --cov-config .coveragerc --cov-fail-under=35 --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
+          pytest -s --cov primeqa/mrc --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
