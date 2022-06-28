@@ -38,7 +38,7 @@ jobs:
         run: |
           pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc tests 
           pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=9 tests/primeqa/mrc/processors 
-          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=13 --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
+          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=12 --ignore tests/primeqa/mrc/processors tests/primeqa/mrc
           df -h
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
