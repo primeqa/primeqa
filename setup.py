@@ -33,7 +33,7 @@ _deps = {
     "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
     "myst-parser~=0.17.2": ["docs"],
-    "faiss-cpu~=1.7.2": ["install"], 
+    "faiss-cpu~=1.7.2": ["install"],
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
     "ipykernel~=6.13.0": ["notebooks"],
@@ -54,6 +54,7 @@ _deps = {
     "scikit-learn~=1.0.2": ["install"],
     "signals~=0.0.2": ["install"],
     "spacy~=3.2.2": ["install"],
+    "en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.2.0/en_core_web_sm-3.2.0.tar.gz":["install"],
     "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
@@ -68,7 +69,9 @@ _deps = {
     "protobuf~=3.20.0": ["install"],
     "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
-    "tabulate~=0.8.9":["install"]
+    "tabulate~=0.8.9":["install"],
+    "rouge_score":["install"]
+
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]

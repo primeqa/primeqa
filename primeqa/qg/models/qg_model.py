@@ -1,6 +1,8 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from primeqa.qg.utils.constants import QGSpecialTokens
 from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
+from primeqa.qg.models.passage_qg.answer_sampler import AnswerSampler
+
 
 
 class QGModel():
@@ -49,9 +51,13 @@ class QGModel():
 
         if self.modality == 'table':
             sql_sampler = SimpleSqlSampler()
-            sql_string_list, sql_list = sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob)
+            input_str_list, sql_list = sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob)
+            answer_list = [s['answer'] for s in sql_list]
+        elif self.modality == 'passage':
+            ans_sampler = AnswerSampler()
+            input_str_list, answer_list = ans_sampler.create_qg_input(data_list, num_questions_per_instance)
 
-        input_ids = self._tokenizer(sql_string_list, 
+        input_ids = self._tokenizer(input_str_list, 
             return_tensors='pt', 
             padding=True,
             truncation=True).input_ids
@@ -65,6 +71,6 @@ class QGModel():
 
         questions = [self._tokenizer.decode(g, skip_special_tokens=True,
                             clean_up_tokenization_spaces=True) for g in generated_ids]
-        questions_dict = [{'question': questions[i], 'answer': sql_list[i]['answer']} for i in range(len(questions))]
+        questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
 
         return questions_dict

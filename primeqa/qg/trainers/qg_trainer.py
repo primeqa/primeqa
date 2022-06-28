@@ -16,7 +16,3 @@ class QGTrainer(Seq2SeqTrainer):
                 eval_dataset=valid_dataset,
                 data_collator=data_collator,
                 **kwargs)
-
-
-
-

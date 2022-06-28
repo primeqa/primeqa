@@ -107,7 +107,6 @@ class InferenceArguments:
     gen_output_path: Optional[str] = field(
         default='examples/qg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
     )
-    
 
 def main(raw_args):
     print(raw_args)
@@ -168,6 +167,8 @@ def main(raw_args):
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)
         
+        compute_metrics = rouge_metrics(qg_model.tokenizer)
+
         trainer = QGTrainer(
             model=qg_model.model,
             tokenizer = qg_model.tokenizer,
@@ -200,7 +201,7 @@ def main(raw_args):
         with open(inference_args.data_path) as fp:
             data_list = json.load(fp)
         
-        generated_questions = tqg.generate_questions(
+        generated_questions = qg_model.generate_questions(
                                 data_list,
                                 inference_args.num_questions_per_instance,
                                 agg_prob,
@@ -215,7 +216,6 @@ def main(raw_args):
         logger.info("*** Evaluate ***")
 
         eval_output = trainer.evaluate()
-
         output_eval_file = os.path.join(training_args.output_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
             logger.info("***** Eval results *****")
