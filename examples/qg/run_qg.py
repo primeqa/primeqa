@@ -27,7 +27,7 @@ class ModelArguments:
        default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
     modality: str = field(
-       default='table', metadata={"help": "If to work on tables or passages",
+       default='table', metadata={"help": "Whether to generate questions from tables or passages",
                                   "choices":["table", "passage"]}
     )
     tokenizer_name: Optional[str] = field(
@@ -44,7 +44,8 @@ class DataTrainingArguments:
     """
 
     dataset_name:Optional[str] = field(
-        default="wikisql", metadata={"help": "Name of the dataset to train the qg model"}
+        default="wikisql", metadata={"help": "Name of the dataset to train the qg model", 
+                                    "choices": ["wikisql", "squad", "squad_v2", "tydiqa"]}
     )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
@@ -66,7 +67,7 @@ class DataTrainingArguments:
 @dataclass
 class InferenceArguments:
     do_generate: Optional[bool] = field(
-        default=False, metadata={"help": "Whether to generate."}
+        default=False, metadata={"help": "Whether to generate questions"}
     )
     num_questions_per_instance: Optional[int] = field(
         default=5, metadata={"help": "Number of questions to generate per table/passage"}
@@ -82,7 +83,7 @@ class InferenceArguments:
         default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
     )
     gen_output_path: Optional[str] = field(
-        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
+        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON file where generated questions will be saved"} 
     )
 
 def main(raw_args):
