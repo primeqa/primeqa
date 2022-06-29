@@ -12,10 +12,10 @@ python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-
 ```
 The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
 
-- **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
+- **M**achine **R**eading **C**omprehension: given a question and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
 - Answer classification (or **Ev**idence **C**lassification): given a question and an answer span, decide whether the span supports yes or no. 
-- **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
+- **S**core **N**ormalization - span scores may have different dynamic ranges according to whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 
 The final evaluation of results after these four steps is in `${OUTPUT_DIR}/sn/all_results.json`.  The evaluation after only the MRC step is in `${OUTPUT_DIR}/eval_results.json`.
 
