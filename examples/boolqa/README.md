@@ -17,6 +17,8 @@ The option `--do_boolean` supercedes the `--do_eval` option, and runs the follow
 - Answer classification (or **Ev**idence **C**lassification): given a question and an answer span, decide whether the span supports yes or no. 
 - **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 
+The final evaluation of results after these four steps is in `${OUTPUT_DIR}/sn/all_results.json`.  The evaluation after only the MRC step is in `${OUTPUT_DIR}/eval_results.json`.
+
 We provide pretrained models for each of these downstream components.
 
 ### Jupyter notebooks and further details
