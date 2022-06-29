@@ -63,7 +63,7 @@ class QGModel():
             truncation=True).input_ids
 
         generated_ids = self._model.generate(input_ids,
-            max_length=60, # should go as an argument in this function and run_tableqg.py TODO
+            max_length=60, 
             num_beams=10,
             repetition_penalty=2.5,
             length_penalty=1.0,

@@ -1,6 +1,9 @@
 # Table Question Generation (TableQG)
+The task of TableQG can be summarized as given a table, generate <question, answer> pairs such that the answer for that question can be deduced from the table.  
+The primary script for TableQG is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline as shown below:
+## Pipeline
+<img src="../../docs/img/tableqg_pipeline.png" width="500" class="center">
 
-The primary script is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline.
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported datasets
@@ -8,7 +11,7 @@ Currently supported datasets for training include:
 - WikiSQL (QG for TableQA)
 - SQuAD, SQuAD_v2 (QG for PassageQA i.e. MRC)
 
-Inference can be done on any table in particular dict format. Check this [notebook](../../notebooks/tableqg/tableqg_inference.ipynb) for more information.
+Inference can be done on any table in particular dict format. Check this [notebook](../../notebooks/qg/tableqg_inference.ipynb) for more information.
 
 ## Example Usage
 An example for training the model on WikiSQL dataset:

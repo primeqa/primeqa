@@ -24,10 +24,11 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-       default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+       default='t5-base', metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models" ,
+                                    "choices":["t5-base", "t5-small", "google/mt5-small","google/mt5-base"]}
     )
     modality: str = field(
-       default='table', metadata={"help": "If to work on tables or passages",
+       default='table', metadata={"help": "Whether to generate questions from tables or passages",
                                   "choices":["table", "passage"]}
     )
     tokenizer_name: Optional[str] = field(
@@ -44,7 +45,8 @@ class DataTrainingArguments:
     """
 
     dataset_name:Optional[str] = field(
-        default="wikisql", metadata={"help": "Name of the dataset to train the qg model"}
+        default="wikisql", metadata={"help": "Name of the dataset to train the qg model", 
+                                    "choices": ["wikisql", "squad", "squad_v2", "tydiqa"]}
     )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
@@ -66,7 +68,7 @@ class DataTrainingArguments:
 @dataclass
 class InferenceArguments:
     do_generate: Optional[bool] = field(
-        default=False, metadata={"help": "Whether to generate."}
+        default=False, metadata={"help": "Whether to generate questions"}
     )
     num_questions_per_instance: Optional[int] = field(
         default=5, metadata={"help": "Number of questions to generate per table/passage"}
@@ -82,7 +84,7 @@ class InferenceArguments:
         default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
     )
     gen_output_path: Optional[str] = field(
-        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON fiel where generated questions will be saved"} 
+        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON file where generated questions will be saved"} 
     )
 
 def main(raw_args):
@@ -168,8 +170,12 @@ def main(raw_args):
         trainer.save_state()
     
     # Inference
-    if inference_args.do_generate:        
-        # aggregates
+    if inference_args.do_generate:     
+        # There are some arguments to control the type of questions generated such as probability of aggregations, number of where clauses etc. (contd.)
+        # These arguments can optionally be provided by the user as inference arguments. 
+        # Check out the notebook at primeqa/notebooks/qg/tableqginference.ipynb for more details.    
+        
+        # aggregation proobablities
         agg_prob = [1., 0., 0., 0., 0., 0.]
         if inference_args.generate_aggregate:
             agg_prob = [0., 0.2, 0.2, 0.2, 0.2, 0.2]
