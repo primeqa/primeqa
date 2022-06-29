@@ -1,15 +1,15 @@
 # TyDiQA with support for Boolean questions
 
-The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways.
-As a single command line argument in `run_mrc.py` to run all steps:
-
+The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways:
+First, as a single command line argument in `run_mrc.py` to run all steps, and secondly, as a step-by-step process detailed in the 
+later sections of this README.  
+The single command line argument is:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
-or step-by-step.
 The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
 
 - **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
