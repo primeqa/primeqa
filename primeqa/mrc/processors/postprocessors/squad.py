@@ -17,8 +17,7 @@ class SQUADPostProcessor(ExtractivePostProcessor):
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
             #doc_text = example["context"][0]
-            #answers_text = [doc_text[s:e] for s,e in zip(example['target']['start_positions'],example['target']['end_positions'])]
-            #answers_start = example['target']['start_positions'] 
+['end_positions'])]
             answers = {"text": example["answer_text"], 
                        "answer_start": example['target']['start_positions'] }
             label = {
