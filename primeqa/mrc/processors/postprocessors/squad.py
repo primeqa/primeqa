@@ -16,8 +16,6 @@ class SQUADPostProcessor(ExtractivePostProcessor):
         references = []
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
-            #doc_text = example["context"][0]
-['end_positions'])]
             answers = {"text": example["answer_text"], 
                        "answer_start": example['target']['start_positions'] }
             label = {
