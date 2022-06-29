@@ -158,8 +158,14 @@ def main(raw_args):
         trainer.train(
         model_path=model_args.model_name_or_path if os.path.isdir(model_args.model_name_or_path) else None
         )
-        trainer.save_model()
+        train_result = trainer.save_model()
+
+        metrics = train_result.metrics
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
     
+    # Inference
     if inference_args.do_generate:        
         # aggregates
         agg_prob = [1., 0., 0., 0., 0., 0.]
@@ -186,22 +192,19 @@ def main(raw_args):
             json.dump(generated_questions, fp)
 
     # Evaluation
-    results = {}
     if training_args.do_eval and training_args.local_rank in [-1, 0]:
         logger.info("*** Evaluate ***")
 
-        eval_output = trainer.evaluate()
+        metrics = trainer.evaluate()
         output_eval_file = os.path.join(training_args.output_dir, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
             logger.info("***** Eval results *****")
-            for key in sorted(eval_output.keys()):
-                logger.info("  %s = %s", key, str(eval_output[key]))
-                writer.write("%s = %s\n" % (key, str(eval_output[key])))
-    
-        results.update(eval_output)
-    
-    return results
-
+            for key in sorted(metrics.keys()):
+                logger.info("  %s = %s", key, str(metrics[key]))
+                writer.write("%s = %s\n" % (key, str(metrics[key])))
+        
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
 
 if __name__ == "__main__":
     main(sys.argv)

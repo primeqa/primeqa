@@ -3,11 +3,11 @@ from datasets import load_dataset
 from primeqa.qg.utils.constants import QGSpecialTokens
 
 class TydiQADataset():
-	def __init__(self, dataset_name='tydiqa'):
-		self.dataset_name = dataset_name
+	def __init__(self):
+		pass
 
 	def preprocess_data_for_qg(self, data_split='train'):
-		data = load_dataset(self.dataset_name, 'secondary_task', split=data_split)
+		data = load_dataset('tydiqa', 'secondary_task', split=data_split)
 		processed_data_dict = {'question':[], 'input':[]}
 		
 		for d in tqdm(data):
