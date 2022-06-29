@@ -19,7 +19,7 @@ class QGDataLoader():
 		elif dataset_name in ['squad', 'squad_v2']:
 			self.dataset = SquadDataset(dataset_name)	
 		elif dataset_name in ['tydiqa']:	
-			self.dataset = TydiQADataset(dataset_name)
+			self.dataset = TydiQADataset()
 		else:
 			raise NotImplementedError("this data not supported")
 		

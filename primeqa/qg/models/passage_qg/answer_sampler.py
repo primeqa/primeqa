@@ -5,7 +5,7 @@ import numpy as np
 class AnswerSampler():
 
     def __init__(self):
-        self.nlp = spacy.load('en_core_web_sm')
+        self.nlp = spacy.load('xx_ent_wiki_sm')
         self.stopwords = self.nlp.Defaults.stop_words
 
     def _remove_stop_word_answers(self, text_list):
@@ -16,16 +16,14 @@ class AnswerSampler():
         answer_list = []
         for data in data_list:
             doc = self.nlp(data)
-            noun_chunks = [n.text for n in doc.noun_chunks]
-            named_entities = [n.text for n in doc.ents]
+            answers = [n.text for n in doc.ents]
+            if self.nlp.lang == 'en':
+                noun_chunks = [n.text for n in doc.noun_chunks]
+                answers = list(set(noun_chunks) | set(answers)) # taking union to remove repetition
+            answers = self._remove_stop_word_answers(answers)
             
-            all_answers = list(set(noun_chunks) | set(named_entities)) # taking union to remove repetition
-            all_answers = self._remove_stop_word_answers(all_answers)
-
-            if num_questions_per_instance < len(all_answers):
-                answers = np.random.choice(all_answers, num_questions_per_instance, replace=False)
-            else:
-                answers = all_answers
+            if num_questions_per_instance < len(answers):
+                answers = np.random.choice(answers, num_questions_per_instance, replace=False)
             
             for ans in answers:
                 text = ans + ' '+QGSpecialTokens.sep+' ' + data        
