@@ -145,7 +145,6 @@ def main(raw_args):
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)
         
-        compute_metrics = rouge_metrics(qg_model.tokenizer)
 
         trainer = QGTrainer(
             model=qg_model.model,

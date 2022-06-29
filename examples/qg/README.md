@@ -1,7 +1,7 @@
 # Table Question Generation (TableQG)
 
 The primary script is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline.
-Before continuing below make sure you have OneQA [installed](../../README.md#Installation).
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported datasets
 Currently supported datasets for training include:
