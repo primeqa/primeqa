@@ -1,21 +1,23 @@
-# TydiQA with support for Boolean questions
+# TyDiQA with support for Boolean questions
 
-The TydiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways.
-As a single command line argument in `run_mrc.py` to run all steps:
-
+The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways:
+First, as a single command line argument in `run_mrc.py` to run all steps, and secondly, as a step-by-step process detailed in the 
+later sections of this README.  
+The single command line argument is:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path ${BOOLEAN_MODEL_NAME} \
+python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
-or step-by-step.
 The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
 
-- **M**achine **R**eading **C**omprehension: given a question and and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
+- **M**achine **R**eading **C**omprehension: given a question and answer, find a representative span that may contain a short answer. This is analyzed in detail in the tydiqa.ipynb
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
-- **Ev**idence **C**lassification: given a question and a short answer span, decide the short answer span supports yes or no. 
-- **S**core **N**ormalization - span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
+- Answer classification (or **Ev**idence **C**lassification): given a question and an answer span, decide whether the span supports yes or no. 
+- **S**core **N**ormalization - span scores may have different dynamic ranges according to whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
+
+The final evaluation of results after these four steps is in `${OUTPUT_DIR}/sn/all_results.json`.  The evaluation after only the MRC step is in `${OUTPUT_DIR}/eval_results.json`.
 
 We provide pretrained models for each of these downstream components.
 
@@ -25,7 +27,7 @@ The output of each individual step is analyzed in more detail this jupyter [note
 
 The inner details of the machine reading comprehension for TydiQA are analyzed in more detail in [notebook](../../notebooks/mrc/tydiqa.ipynb).
 
-The inner details of the evidence classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
+The inner details of the answer classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
 
 Some of this system has been described in the papers [Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
 and [GAAMA 2.0: An Integrated System that Answers Boolean and Extractive Questions](https://arxiv.org/abs/2206.08441)
@@ -43,7 +45,7 @@ The configuration file contains the parameters for each of the post-MRC steps
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "ibm/qtc_bert_pretrained_model"
+        "model_name_or_path": "ibm/tydiqa-boolean-question-classifier"
     },
     "evc": {
         "id_key": "example_id",
@@ -54,7 +56,7 @@ The configuration file contains the parameters for each of the post-MRC steps
         "overwrite_cache": true,
         "drop_label": "no_answer",
         "use_auth_token": true,
-        "model_name_or_path": "ibm/evc_xlm_roberta_large"
+        "model_name_or_path": "ibm/tydiqa-boolean-answer-classifier"
     },
     "sn": {
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
@@ -74,7 +76,7 @@ as follows: the postprocessor provides additional information (language, questio
 needed by the downstream components
 
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path {mrcmodel} \
+python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
         --output_dir {ws}/mrc/ --fp16 --learning_rate 4e-5 \
         --do_eval --per_device_train_batch_size 16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
@@ -100,9 +102,9 @@ python examples/boolqa/run_boolqa_classifier.py \
     --output_dir ${OUTDIR}/qtc \
     --use_auth_token
 ```
-## Evidence classification
+## Answer classification
 
-Given a question and the span predicted by the first step, predict whether the span supports
+Given a question and the passage predicted by the first step, predict whether the span supports
 a `yes` or `no` answer to question.  Both question and span are passed through the `eval_predictions.json`
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
 
@@ -124,7 +126,7 @@ python examples/boolqa/run_boolqa_classifier.py \
 ## Score normalization
 
 Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
-and output a file suitable for the tydi evaluation script.
+and output a file suitable for the TyDiQA evaluation script.
 
 ```shell
 python examples/boolqa/run_score_normalizer.py \
