@@ -68,6 +68,7 @@ class Arguments():
         self.add_argument('--query_only', dest='query_only', default=False, required=False, type=bool)
         self.add_argument('--loss_function', dest='loss_function', required=False)
         self.add_argument('--query_weight', dest='query_weight', default=0.5, type=float)
+        self.add_argument('--use_ib_negatives', dest='use_ib_negatives', default=False, action='store_true')
 
     def add_model_inference_parameters(self):
         self.add_argument('--checkpoint', dest='checkpoint', required=True)
