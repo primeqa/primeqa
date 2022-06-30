@@ -36,7 +36,7 @@ import re
 import frozendict
 import numpy as np
 import scipy.optimize
-
+import ast
 
 class SupervisionMode(enum.Enum):
   # Don't filter out any supervised information.
@@ -108,7 +108,7 @@ def _compute_cost_matrix_inner(
   # TODO(piccinno): Shall we allow ambiguous assignments?
   if max_candidates > 1:
     raise ValueError("Assignment is ambiguous")
-
+  #print("the cost matrix is",cost_matrix)
   return cost_matrix
 
 
@@ -118,6 +118,7 @@ def _compute_cost_matrix(
     discard_ambiguous_examples,
 ):
   """Computes cost matrix."""
+  #print("table and answer text is",table,answer_texts)
   for index, normalize_fn in enumerate(STRING_NORMALIZATIONS):
     try:
       result = _compute_cost_matrix_inner(
@@ -236,6 +237,12 @@ def to_float32(v):
     return v
   return struct.unpack("!f", struct.pack("!f", v))[0]
 
+def _split_thousands(delimeter,string_value):
+  if string_value.split(delimeter) is not None:
+    return True
+  else:
+    return False
+
 
 def convert_to_float(value):
   """Converts value to a float using a series of increasingly complex heuristics.
@@ -332,7 +339,6 @@ def _parse_question(
     ValueError if we cannot parse correctly the question message.
   """
   question = original_question
-
   # If we have a float value signal we just copy its string representation to
   # the answer text (if multiple answers texts are present OR the answer text
   # cannot be parsed to float OR the float value is different), after clearing
@@ -371,10 +377,11 @@ def _parse_question(
       error_message += "[answer_coordinates: {}]".format(str(exc))
       if discard_ambiguous_examples:
         raise ValueError(f"Cannot parse answer: {error_message}")
-
+  #print("Answer coordinates are",answer_coordinates)
   if not float_value:
     try:
       answer_texts, float_value = _parse_answer_float(answer_texts, float_value)
+
     except ValueError as exc:
       error_message += "[float_value: {}]".format(str(exc))
 
@@ -417,6 +424,9 @@ def parse_question(table, question, answer_texts, answer_coordinates=None, float
     Raises:
         ValueError if we cannot parse correctly the question string.
     """
+    # if ".0" in answer_texts[0]:
+    #   answer_texts=[(str(int(ast.literal_eval(answer_texts[0]))))]
+    answer_texts = list(set(answer_texts))
     if mode == SupervisionMode.NONE:
         return question, answer_texts
 
