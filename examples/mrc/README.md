@@ -11,6 +11,9 @@ Currently supported datasets include:
 - MLQA
 
 ## Example Usage
+
+ - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
+
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
@@ -19,6 +22,13 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
        --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
+```
+This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
+Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
+depending on your hardware configuration.
+
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
 ```
 
 For just training:
@@ -37,14 +47,18 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
-For eval-only TyDiQA with support for boolean questions (for [details](../boolqa/README.md)):
+PrimeQA also supports [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI in an eval-only setup. Check the [details](../boolqa/README.md)):
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
 
+- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) (\TODO: add a figure) estimate of your fine-tuned model use the following:
 
 
 For eval with confidence calibration, add the following additional command line arguments:
@@ -54,6 +68,7 @@ For eval with confidence calibration, add the following additional command line 
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
+ - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
@@ -63,6 +78,11 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics squad 
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
+ - Dataset: [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
+
 
 For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all languages are supported.
@@ -74,6 +94,10 @@ For the XQuAD in ZH use the following command line arguments for eval:
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics SQUAD 
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
+ - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all language combinations are supported.
@@ -85,6 +109,9 @@ For the MLQA configuration with context language EN and question language DE use
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
 
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1. See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
@@ -94,12 +121,10 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --passage_non_null_threshold 1 \
        --minimal_non_null_threshold 1 \
 ```
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
 
-This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
-Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
-depending on your hardware configuration.
-
-The dataset name and config are currently omitted as only TyDi is supported at the moment.
 
 ### Task Arguments
 
