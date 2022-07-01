@@ -16,11 +16,8 @@ class SQUADPostProcessor(ExtractivePostProcessor):
         references = []
         for example_idx in range(examples.num_rows):
             example = examples[example_idx]
-            n_annotators = len(example['target']['start_positions'])
-            text = example["context"][0]
-            answers_text = [text[s:e] for s,e in zip(example['target']['start_positions'],example['target']['end_positions'])]
-            answers_start = example['target']['start_positions'] 
-            answers = {"text": answers_text, "answer_start": answers_start}
+            answers = {"text": example["answer_text"], 
+                       "answer_start": example['target']['start_positions'] }
             label = {
                 'id': example['example_id'],
                 'answers': answers
