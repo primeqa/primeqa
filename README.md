@@ -80,7 +80,6 @@ export PATH=$JAVA_HOME/bin:$PATH
 |-|-|
 | [Documentation](https://github.com/primeqa/primeqa/) | TODO: Full API documentation and tutorials |
 | [Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
-| [Preprocessing tutorial](https://huggingface.co/docs/transformers/preprocessing) | Using the `Tokenizer` class to prepare data for the models |
 | [Quick tour: Fine-tuning/usage scripts](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 
