@@ -22,6 +22,7 @@ class AnswerSampler():
         for code in self.lang_codes:
             if self.lang_codes[code]['method_available'] == 'NER':
                 self.ner_models[code] = stanza.Pipeline(lang=code, processors='tokenize,ner', verbose=False)
+                print('Loaded NER model for ',self.lang_codes[code]['name'])
 
     def detect_language(self, text):
         doc = Document([], text=text)
