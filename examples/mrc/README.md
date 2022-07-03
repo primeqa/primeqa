@@ -29,8 +29,17 @@ depending on your hardware configuration.
 
 The trained model is available [here](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large).
 
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+This yields the following results:
+```
+***** eval metrics *****
+epoch = 1.0
+eval_avg_minimal_f1 = 0.6745
+eval_avg_minimal_precision = 0.7331
+eval_avg_minimal_recall = 0.628
+eval_avg_passage_f1 = 0.7215
+eval_avg_passage_precision = 0.7403
+eval_avg_passage_recall = 0.7061
+eval_samples = 238831
 ```
 
 For just training:
