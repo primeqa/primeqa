@@ -58,19 +58,6 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir
 ```
 
-PrimeQA also supports [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI in an eval-only setup. Check the [details](../boolqa/README.md)):
-```shell
-python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
-       --output_dir ${OUTPUT_DIR} --fp16 \
-       --per_device_eval_batch_size 128 --overwrite_output_dir \
-       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
-```
-The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large).
-
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
-```
-
 - if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) (\TODO: add a figure) estimate of your fine-tuned model use the following:
 
 
@@ -125,6 +112,23 @@ For the MLQA configuration with context language EN and question language DE use
 This yields the following results \TODO:
 ```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
 ```
+
+ -  PrimeQA also supports special Features for MRC systems as follows:
+
+ -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
+```shell
+python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
+       --output_dir ${OUTPUT_DIR} --fp16 \
+       --per_device_eval_batch_size 128 --overwrite_output_dir \
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+```
+The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large). This setup currently yields the top score (on blind test) on the minimal answer leaderboard for TyDI (as of 7/2/2022).
+
+This yields the following results \TODO:
+```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+```
+
+ - PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1. See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
