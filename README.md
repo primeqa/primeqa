@@ -22,7 +22,7 @@ limitations under the License.
 [![Build Status](https://app.travis-ci.com/primeqa/primeqa.svg?branch=main)](https://app.travis-ci.com/primeqa/primeqa)
 [![LICENSE|Apache2.0](https://img.shields.io/github/license/saltstack/salt?color=blue)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 
-PrimeQA is a public open source repository that enables researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher can replicate the experiments outlined in a paper published in the latest NLP conference while also enjoying the capability to download pre-trained models (from an online repository) and run them on their own custom data. PrimeQA is built on top of the Transformers toolkit and uses [datasets](https://huggingface.co/datasets/viewer/) and [models](https://huggingface.co/IBM) that are directly downloadable.
+PrimeQA is a public open source repository that enables researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher can replicate the experiments outlined in a paper published in the latest NLP conference while also enjoying the capability to download pre-trained models (from an online repository) and run them on their own custom data. PrimeQA is built on top of the [Transformers](https://github.com/huggingface/transformers) toolkit and uses [datasets](https://huggingface.co/datasets/viewer/) and [models](https://huggingface.co/IBM) that are directly downloadable.
 
 
 The models within PrimeQA supports End-to-end Question Answering. PrimeQA answers questions via 
