@@ -27,6 +27,8 @@ This will detect a GPU if present as well as multiple CPU cores for accelerating
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
 depending on your hardware configuration.
 
+The trained model is available [here](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large).
+
 This yields the following results \TODO:
 ```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
 ```
@@ -54,6 +56,8 @@ python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
+The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large).
+
 This yields the following results \TODO:
 ```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
 ```
