@@ -1,6 +1,6 @@
-# ColBERT (v2)
+# Cross-lingual ColBERT
 
-### ColBERT is a _fast_ and _accurate_ retrieval model, enabling scalable BERT-based search over large text collections in tens of milliseconds.
+### ColBERTv2 is a _fast_ and _accurate_ retrieval model, enabling scalable BERT-based search over large text collections in tens of milliseconds.
 
 
 <p align="center">
