@@ -10,6 +10,8 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 
 ### Model Training
 
+Here is an example of an training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of <query>, <positive_passage>, <negative_passage> triples.
+
 ```shell
 python examples/ir/run_ir.py \
     --do_train \
@@ -26,7 +28,7 @@ python examples/ir/run_ir.py \
     --model_type xlm-roberta-base \
     --triples <training_data> \
     --root <experiments_root_directory> \
-    --experiment <experiment_label> \ 
+    --experiment <experiment_label> 
 ```
 
 The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
@@ -48,7 +50,7 @@ python examples/ir/run_ir.py \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \ 
     --index_name <index_label> \
-    --compression_level 2 \
+    --compression_level 2
 ```
 
 The index is stored in `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
@@ -74,11 +76,29 @@ python examples/ir/run_ir.py \
     --experiment <experiment_label> \ 
     --index_name <index_label> \
     --index_name ${EXPT}_indname \
-    --ranks_fn <output_scores_and_ranks_file> \
-    --nprobe 4 \
+    --ranks_fn <scores_and_ranks> \
+    --nprobe 4
 ```
 
-The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output_scores_and_ranks_file>`.
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
+
+### Scoring
+
+The scoring steps depend on the task and metric used. 
+
+For cross-lingual question aswering, as in the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/), we need to convert the scores in  `<scores_and_ranks>` into the format used in the task.  This is done by running the conversion script:
+
+```shell
+    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.pyconvert_colbert_results_to_xor.py \
+    -c <document_collection> \
+    -q <ground_truth_data>
+    -p <scores_and_ranks> \
+    -o <xor_scores> 
+```
+
+The `<ground_truth_data>` file can be downloaded as described [here](./README.md#run-bm25-search-on-xortydi-dev-set-queries).
+The resulting `<xor_scores>` file can be evaluated as described [here](./README.md#evaluate-xortydi-bm25-ranked-results).
+
 
 
 ## Sparse retrieval
@@ -156,10 +176,10 @@ Output:
 ### Evaluate XORTyDI BM25 ranked results
 Evaluate BM25 ranked results on XORTyDI dev set queries:
 1. Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA
-2. Download DEV gold data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
+2. Download DEV ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
 3. Run:
    ```shell
-   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-gold-data> --pred_file <path-to-ranking_xortydi_format.json> 
+   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-ground-truth-data> --pred_file <path-to-ranking_xortydi_format.json> 
    ```
 Eval script output should match the following: 
 
