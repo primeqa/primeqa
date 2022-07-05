@@ -3,10 +3,10 @@ from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
 
 class TableQAModel():
-    def __init__(self,model_name,config=None):
-        self._model = TapasForQuestionAnswering.from_pretrained(model_name)
+    def __init__(self,model_name_path,config=None):
+        self._model = TapasForQuestionAnswering.from_pretrained(model_name_path)
         self.config = config
-        self._tokenizer = TapasTokenizer.from_pretrained(model_name)
+        self._tokenizer = TapasTokenizer.from_pretrained(model_name_path)
 
 
     @property

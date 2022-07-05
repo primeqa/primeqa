@@ -13,8 +13,6 @@ class DatasetProcessor(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         item = self.data.iloc[idx]
         table = pd.read_csv(self.table_csv_path + item.table_file,index_col=0).astype(str) # be sure to make your table data text only
-        #print(item.question)
-        #print(item.answer_coordinates,table,item.answer_text)
         answer_coordinates=ast.literal_eval(str(item.answer_coordinates))
 
         encoding = self.tokenizer(table=table,
@@ -69,15 +67,4 @@ class TableQADataset:
                 dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/wikisql/')
             return dataset
 
-
-
-
-def load_wikisql_dataset(split):
-    print("Loading split: ", split)
-    if split =="train":
-        dataset  = load_dataset('wikisql', split=nlp.Split.TRAIN)
-    elif split=="dev":
-        #print("here")
-        dataset = load_dataset('wikisql', split=nlp.Split.VALIDATION)
-    return dataset
 
