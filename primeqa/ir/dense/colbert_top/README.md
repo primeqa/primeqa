@@ -20,6 +20,6 @@ These rich interactions allow ColBERT to surpass the quality of _single-vector_ 
 * [**ColBERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction**](https://arxiv.org/abs/2112.01488) (preprint).
 
 PrimeQA also supports cross-lingual training and inference of ColBERT via the Dr. Decr algorithm:
-* [**Learning Cross-Lingual IR from an English Retriever**](https://arxiv.org/abs/2112.08185) (NAACL 2022). The trained model (via COlBERT v1 is available [here](https://huggingface.co/ibm/DrDecr_XOR-TyDi_whitebox).)
+* [**Learning Cross-Lingual IR from an English Retriever**](https://arxiv.org/abs/2112.08185) (NAACL 2022). The trained model (via ColBERT v1 is available [here](https://huggingface.co/ibm/DrDecr_XOR-TyDi_whitebox).)
 
 
