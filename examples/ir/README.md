@@ -11,7 +11,7 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 ### Model Training
 
 ```shell
-python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
+python examples/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -29,12 +29,14 @@ python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
     --experiment <experiment_label> \ 
 ```
 
-The trained model will be stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
+The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
  
 ### Indexing
 
+Here is an example of an indexing run, using a model as trained in the previous step.
+
 ```shell
-python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
+python examples/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
     --doc_maxlen 180 \
@@ -49,7 +51,35 @@ python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
     --compression_level 2 \
 ```
 
-The index will be stored in `<experiments_root_directory>/<experiment_label>/indexes/<index_label>` directory.
+The index is stored in `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
+
+### Retrieval
+
+Here is an example of an retrieval (search) run, using a model and index as created in the previous two steps.
+
+```shell
+python examples/ir/run_ir.py \
+    --do_search \
+    --engine_type ColBERT \
+    --amp \
+    --doc_maxlen 180 \
+    --mask-punctuation \
+    --bsize 16 \
+    --similarity l2 \
+    --retrieve_only \
+    --queries <query_file> \
+    --checkpoint <model_checkpoint> \
+    --collection <document_collection> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> \ 
+    --index_name <index_label> \
+    --index_name ${EXPT}_indname \
+    --ranks_fn <output_scores_and_ranks_file> \
+    --nprobe 4 \
+```
+
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output_scores_and_ranks_file>`.
+
 
 ## Sparse retrieval
 
