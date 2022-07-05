@@ -22,25 +22,4 @@ These rich interactions allow ColBERT to surpass the quality of _single-vector_ 
 PrimeQA also supports cross-lingual training and inference of ColBERT via the Dr. Decr algorithm:
 * [**Learning Cross-Lingual IR from an English Retriever**](https://arxiv.org/abs/2112.08185) (NAACL 2022). The trained model (via COlBERT v1 is available [here](https://huggingface.co/ibm/DrDecr_XOR-TyDi_whitebox).)
 
-----
-
-## Installation
-
-ColBERT (currently: [v2.0.2](#releases)) requires Python 3.7+ and Pytorch 1.9+ and uses the [HuggingFace Transformers](https://github.com/huggingface/transformers) library.
-
-We strongly recommend creating a conda environment using the commands below. (If you don't have conda, follow the official [conda installation guide](https://docs.anaconda.com/anaconda/install/linux/#installation).)
-
-```
-conda env create -f conda_env.yml
-conda activate colbert-v0.4.2
-```
-
-If you face any problems, please [open a new issue](https://github.com/stanford-futuredata/ColBERT/issues) and we'll help you promptly!
-
-
-## UPDATED 2022/02/02: API Usage Notebook
-
-This Jupyter **[docs/intro.ipynb notebook](docs/intro.ipynb)** illustrates using the key features of ColBERT with the new Python API.
-
-It includes how to download the ColBERTv2 model checkpoint trained on MS MARCO Passage Ranking and how to download our new LoTTE benchmark.
 
