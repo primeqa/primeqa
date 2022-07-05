@@ -12,11 +12,21 @@ from transformers import (
 )
 import pandas as pd
 from primeqa.tableqa.utils.data_collator import TapasCollator
+from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
 @dataclass
-class TapasArguments:
+class TableQAArguments:
     """
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
+    data_path_root: str = field(
+       default='primeqa/tableqa/preprocessors/data/wikisql/', metadata={"help": "root path to store the preprocessed dataset"}
+    )
+    train_data_path: str = field(
+       default='primeqa/tableqa/preprocessors/data/wikisql/', metadata={"help": "Train data path for training on user's own dataset"}
+    )
+    dev_data_path: str = field(
+       default='primeqa/tableqa/preprocessors/data/wikisql/', metadata={"help": "Dev data path for training on user's own dataset"}
+    )
 
     dataset_name: str = field(
        default='wikisql', metadata={"help": "Name of the dataset to train the tapas model on"}
@@ -52,22 +62,19 @@ class TapasArguments:
 
 
 def main():
-    parser = HfArgumentParser((TapasArguments, TrainingArguments))
-    tapas_args,training_args = parser.parse_args_into_dataclasses()
-    print(tapas_args)
-    config = TapasConfig(tapas_args)
+    parser = HfArgumentParser((TableQAArguments, TrainingArguments))
+    tqa_args,training_args = parser.parse_args_into_dataclasses()
+    print(tqa_args)
+    config = TapasConfig(tqa_args)
     tableqa_model = TableQAModel("google/tapas-base",config=config)
     model = tableqa_model.model
+    tokenizer = tableqa_model.tokenizer
     if training_args.do_train or training_args.do_eval:
-        if tapas_args.dataset_name=="sqa":
-            sqa_dataset = TableQADataset(tapas_args.dataset_name,tableqa_model.tokenizer)
-            train_dataset = sqa_dataset.load_data("dev")
-            eval_dataset = sqa_dataset.load_data("dev")
-        elif tapas_args.dataset_name=="wikisql":
-            print("loading wikisql dataset")
-            wikisql_dataset =  TableQADataset(tapas_args.dataset_name,tableqa_model.tokenizer)
-            train_dataset = wikisql_dataset.load_data("train")
-            eval_dataset = wikisql_dataset.load_data("dev")
+        if tqa_args.dataset_name=="wikisql":
+            train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
+        else:
+            tqadataset = TableQADataset(tqa_args.data_path_root,tqa_args.train_data_path,tqa_args.dev_data_path ,tokenizer)
+            train_dataset,eval_dataset= tqadataset.load_data()
         trainer = TableQATrainer(model=model,
                                 args=training_args,
                                 train_dataset=train_dataset if training_args.do_train else None,

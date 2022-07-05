@@ -7,9 +7,16 @@ import nlp
 from nlp import load_dataset
 import argparse
 import os
+from primeqa.tableqa.preprocessors.dataset import DatasetProcessor
+from pathlib import Path
 
 def preprocess_wikisql(output_dir,dataset,split):
-    file_to_write = open(os.path.join(output_dir,split+".tsv"),"wt")
+    path = Path(output_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    tables_path = Path(output_dir+"/tables/")
+    tables_path.mkdir(parents=True, exist_ok=True)
+    data_path = os.path.join(output_dir,split+".tsv")
+    file_to_write = open(data_path,"wt")
     tsv_writer = csv.writer(file_to_write, delimiter='\t')
     tsv_writer.writerow(['id','question','table_file','answer_coordinates','answer_text','float_answer','aggregation_label'])
     for id, d in enumerate(dataset):
@@ -37,6 +44,7 @@ def preprocess_wikisql(output_dir,dataset,split):
         tsv_writer.writerow([qid,question,"tables/"+str(table_id)+".csv",answer_coordinates,answer_text,float_answer,aggregation_label])
     print("done")
     file_to_write.close()
+    return output_dir,data_path
 
 
 def preprocess_table(table):
@@ -55,18 +63,28 @@ def get_answer(table,sql):
     answer_text,table = _execute_sql(sql,table)
     return answer_text,table
 
-def main(args):
+def load_data(out_dir,tokenizer):
     print("Preprocessing wikisql dataset")
     dataset_dev = load_dataset('wikisql', split=nlp.Split.VALIDATION)
     dataset_train = load_dataset('wikisql', split=nlp.Split.TRAIN)
-    preprocess_wikisql(args.out_dir,dataset_dev,"dev")
-    preprocess_wikisql(args.out_dir,dataset_train,"train")
+    root_dir,train_data_path = preprocess_wikisql(out_dir,dataset_dev,"train")
+    root_dir,dev_data_path  = preprocess_wikisql(out_dir,dataset_train,"dev")
+    dev_data = pd.read_csv(dev_data_path, sep='\t')
+    dev_dataset = DatasetProcessor(dev_data, tokenizer,root_dir)
+    train_data = pd.read_csv(train_data_path, sep='\t')
+    train_dataset = DatasetProcessor(train_data, tokenizer,root_dir)
+    return train_dataset,dev_dataset
+
+def main(args):
+    print(" Main function")
+
+    
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--out_dir", help="Output directory to stor the processed data",
                     type=str)
     args = parser.parse_args()
-    main(args)    
-    
+    main(args)
+
 

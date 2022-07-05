@@ -91,7 +91,6 @@ def _execute_sql(sql, table):
 				selected_cells.append(rows[i][sql['sel']])
 		
 		if table['types'][sql['sel']] == 'real':
-			print("real column ???")
 			selected_cells = [float(str(s).replace(',','')) for s in selected_cells]
 		else:
 			selected_cells = [s.lower() for s in selected_cells]
@@ -109,15 +108,8 @@ def _execute_sql(sql, table):
 		elif agg_op == 'count':
 			answer = [len(selected_cells)]
 		elif agg_op == 'sum':
-			#selected_cells = [str(c).lstrip('0') for c in selected_cells if len(str(c))>1]
-			#answer = [sum([int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)])]
 			answer = [sum(selected_cells)]
 		elif agg_op == 'average':
-			print(selected_cells)
-			#selected_cells = [str(c).lstrip('0') if len(str(c))>1 else c for c in selected_cells ]
-			print(selected_cells)
-			#selected_cells = [int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)]
-
 			answer = [sum(selected_cells)/len(selected_cells)]
 
 		return answer,table

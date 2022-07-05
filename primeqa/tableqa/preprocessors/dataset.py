@@ -38,33 +38,21 @@ class DatasetProcessor(torch.utils.data.Dataset):
     def __len__(self):
        return len(self.data)
 
+
 class TableQADataset:
-    def __init__(self,dataset_name,tokenizer=None):
+    def __init__(self,data_path_root,train_dataset_path,dev_dataset_path,tokenizer=None):
         self.tokenizer = tokenizer
-        self.dataset_name = dataset_name
+        self.data_path_root = data_path_root
+        self.train_dataset_path = train_dataset_path
+        self.dev_dataset_path = dev_dataset_path
         
-    def load_data(self,split):
-        if self.dataset_name=="sqa":
-            if split=="train":
-                data = pd.read_csv('primeqa/tableqa/preprocessors/data/sqa_1.0/random-split-1-train.tsv', sep='\t')
-                train_dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/sqa_1.0/')
-                return train_dataset
-            elif split=="dev":
-                data = pd.read_csv('primeqa/tableqa/preprocessors/data/sqa_1.0/random-split-1-dev.tsv', sep='\t')
-                dev_dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/sqa_1.0/')
-                return dev_dataset
-            elif split=="test":
-                data = pd.read_csv('primeqa/tableqa/preprocessors/data/sqa_1.0/test.tsv', sep='\t')
-                test_dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/sqa_1.0/')
-                return test_dataset
-        elif self.dataset_name=="wikisql":
-            if split =="train":
-                data = pd.read_csv('primeqa/tableqa/preprocessors/data/wikisql/train.tsv', sep='\t')
-                dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/wikisql/')
-            elif split=="dev":
-                print("here")
-                data = pd.read_csv('primeqa/tableqa/preprocessors/data/wikisql/dev.tsv', sep='\t')
-                dataset = DatasetProcessor(data, self.tokenizer,'primeqa/tableqa/preprocessors/data/wikisql/')
-            return dataset
+    def load_data(self):
+        train_data = pd.read_csv(self.train_dataset_path, sep='\t')
+        train_dataset = DatasetProcessor(train_data, self.tokenizer,self.data_path_root)
+
+        dev_data = pd.read_csv(self.dev_dataset_path, sep='\t')
+        dev_dataset = DatasetProcessor(dev_data, self.tokenizer,self.data_path_root)
+        return train_dataset,dev_dataset
+
 
 
