@@ -6,6 +6,7 @@ This README shows how to run the basic model training, data indexing, retrieval,
 
 
 The following steps require to have PrimeQA [installed](../../README.md#Installation).
+Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
 ### Model Training
 
@@ -30,6 +31,26 @@ python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
 
 The trained model will be stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
  
+### Indexing
+
+```shell
+python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
+    --do_index \
+    --engine_type ColBERT \
+    --doc_maxlen 180 \
+    --mask-punctuation \
+    --bsize 256 \
+    --similarity l2 \
+    --checkpoint <model_checkpoint> \
+    --collection <document_collection> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> \ 
+    --index_name <index_label> \
+    --compression_level 2 \
+```
+
+The index will be stored in `<experiments_root_directory>/<experiment_label>/indexes/<index_label>` directory.
+
 ## Sparse retrieval
 
 Sparse retrieval is based on BM25 ranking using bag of words representation. It is built on Pyserini which is built on Lucene.  
