@@ -21,7 +21,8 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --do_train --do_eval --per_device_train_batch_size 16 \
        --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
-       --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
+       --overwrite_output_dir --num_train_epochs 1 
+       --evaluation_strategy no --overwrite_cache
 ```
 This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
 Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
@@ -48,14 +49,15 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --output_dir ${TRAINING_OUTPUT_DIR} --fp16 --learning_rate 4e-5 \
        --do_train --per_device_train_batch_size 16 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
-       --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
+       --overwrite_output_dir --num_train_epochs 1 
+       --evaluation_strategy no --overwrite_cache
 ```
 
 For just eval:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
-       --per_device_eval_batch_size 128 --overwrite_output_dir
+       --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
 
 - if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) (\TODO: add a figure) estimate of your fine-tuned model use the following:
@@ -63,7 +65,7 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
 
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
-      --output_dropout_rate 0.25 \
+       --output_dropout_rate 0.25 \
        --decoding_times_with_dropout 5 \
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
@@ -79,7 +81,8 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --eval_metrics SQUAD 
 ```
 This yields the following results:
-``` 
+```
+***** eval metrics ***** 
 eval_exact_match = 88.7133
 eval_f1          = 94.3525
 ```
@@ -97,12 +100,12 @@ For the XQuAD in ZH use the following command line arguments for eval:
        --eval_metrics SQUAD 
 ```
 This yields the following results:
-```
+
 |  | en   | es   |  de  |  el |  ru  |  tr | ar  | vi  | th | zh | hi |
 |--| ---- | -----|------|-----|------|-----|-----|-----|----|----|----|
 |F1| 87.5 | 82.1 | 80.7 |81.5 | 80.0 | 75.0| 75.1| 80.0|75.3|70.3|77.2|
 |EM| 76.7 | 63.4 | 65.4 |64.2 | 63.6 | 59.3| 59.1| 61.3|65.5|62.2|61.8|
-```
+
  - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
