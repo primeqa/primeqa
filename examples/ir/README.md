@@ -1,3 +1,8 @@
+## Dense retrieval
+
+We support ColBERT-based Information Retrieval engine, as described here: https://github.com/primeqa/primeqa/blob/main/primeqa/ir/dense/colbert_top/README.md
+
+
 ## Sparse retrieval
 
 Sparse retrieval is based on BM25 ranking using bag of words representation. It is built on Pyserini which is built on Lucene.  
