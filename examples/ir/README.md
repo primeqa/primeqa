@@ -2,8 +2,33 @@
 
 We support ColBERT-based Information Retrieval engine, as described in [README](../../primeqa/ir/dense/colbert_top/README.md).
 
-This README shows how to run the basic model training, data indexing, retrieval and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../primeqa/notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+This README shows how to run the basic model training, data indexing, retrieval, and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
+
+The following steps require to have PrimeQA [installed](../../README.md#Installation).
+
+### Model Training
+
+```shell
+python /u/franzm/git8/PrimeQA/primeqa/examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
+    --amp \
+    --doc_maxlen 180 \
+    --bsize 192 \
+    --accum 6 \
+    --maxsteps 100000 \
+    --save_steps 20000
+    --mask-punctuation \
+    --lr 6e-06 \
+    --similarity l2 \
+    --model_type xlm-roberta-base \
+    --triples <training_data> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> \ 
+```
+
+The trained model will be stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
  
 ## Sparse retrieval
 
