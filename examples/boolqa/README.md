@@ -5,8 +5,8 @@ First, as a single command line argument in `run_mrc.py` to run all steps, and s
 later sections of this README.  
 The single command line argument is:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
-       --output_dir ${OUTPUT_DIR} --fp16 \
+python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+       --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
@@ -45,7 +45,7 @@ The configuration file contains the parameters for each of the post-MRC steps
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "ibm/tydiqa-boolean-question-classifier"
+        "model_name_or_path": "PrimeQA/tydiqa-boolean-question-classifier"
     },
     "evc": {
         "id_key": "example_id",
@@ -56,7 +56,7 @@ The configuration file contains the parameters for each of the post-MRC steps
         "overwrite_cache": true,
         "drop_label": "no_answer",
         "use_auth_token": true,
-        "model_name_or_path": "ibm/tydiqa-boolean-answer-classifier"
+        "model_name_or_path": "PrimeQA/tydiqa-boolean-answer-classifier"
     },
     "sn": {
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
@@ -76,7 +76,7 @@ as follows: the postprocessor provides additional information (language, questio
 needed by the downstream components
 
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
+python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
         --output_dir {ws}/mrc/ --fp16 --learning_rate 4e-5 \
         --do_eval --per_device_train_batch_size 16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
@@ -97,7 +97,7 @@ python examples/boolqa/run_boolqa_classifier.py \
     --sentence1_key question \
     --label_list short_answer boolean \
     --output_label_prefix question_type \
-    --model_name_or_path ibm/qtc_bert_pretrained_model \
+    --model_name_or_path PrimeQA/qtc_bert_pretrained_model \
     --test_file ${BASE}/eval_predictions.json \
     --output_dir ${OUTDIR}/qtc \
     --use_auth_token
@@ -117,7 +117,7 @@ python examples/boolqa/run_boolqa_classifier.py \
     --label_list no no_answer yes \
     --output_label_prefix boolean_answer \
     --drop_label no_answer \
-    --model_name_or_path ibm/evc_xlm_roberta_large \
+    --model_name_or_path PrimeQA/evc_xlm_roberta_large \
     --test_file ${BASE}/qtc/eval_predictions.json \
     --output_dir ${OUTDIR}/evc \
     --use_auth_token
