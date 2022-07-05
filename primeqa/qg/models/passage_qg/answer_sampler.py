@@ -12,6 +12,10 @@ class AnswerSampler():
 	Class for sampling answer tokens from passage, to be used for PassageQG inference.
 	"""
     def __init__(self):
+        """_summary_
+        We use NERs from stanza library here. Currently we support four languages: Arabic, English, Finnish and Russian.
+        These languages are in the intersection between TyDi QA data and Stanza NER.
+        """
         self.lang_codes = {'ar': {'name':'Arabic', 'method_available': 'NER'},
                            'en': {'name':'English', 'method_available':'NER'},
                            'fi': {'name':'Finnish', 'method_available':'NER'},
@@ -51,15 +55,23 @@ class AnswerSampler():
         else:
             NotImplementedError
     
-    def create_qg_input(self, data_list, num_questions_per_instance = 5):
+    def create_qg_input(self, 
+                        data_list, 
+                        num_questions_per_instance = 5, 
+                        answers_list=[]):
         """
-        create the input for qg training by sampling named entities as possible
-        answers from text passages.
+        create the input for qg training: If the answers are provided in answers_list, use them. 
+        Otherwise sampling named entities as possible answers from text passages.
         """
         input_str_list = []
-        answer_list = []
-        for data in data_list:
-            answers = self.get_named_entities(data)
+        ans_list = []
+        for i, data in enumerate(data_list):
+            # If answers_list provided, then use them to generate questions. Otherwise use NER to
+            # sample answers.
+            if answers_list[i] != []: 
+                answers = answers_list[i]
+            else:
+                answers = self.get_named_entities(data)
 
             if num_questions_per_instance < len(answers):
                 answers = np.random.choice(answers, num_questions_per_instance, replace=False)
@@ -67,5 +79,5 @@ class AnswerSampler():
             for ans in answers:
                 text = ans + ' '+QGSpecialTokens.sep+' ' + data        
                 input_str_list.append(text)
-                answer_list.append(ans)
-        return input_str_list, answer_list
+                ans_list.append(ans)
+        return input_str_list, ans_list

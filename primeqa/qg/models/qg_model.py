@@ -45,7 +45,14 @@ class QGModel():
         """
         return self._tokenizer
 
-    def generate_questions(self, data_list, num_questions_per_instance=5, agg_prob=[], num_where_prob=[], ineq_prob=0.0):
+    def generate_questions(self, 
+                data_list, 
+                num_questions_per_instance=5, 
+                agg_prob=[], 
+                num_where_prob=[], 
+                ineq_prob=0.0,
+                answers_list=[]):
+                
         if type(data_list) == dict:
             data_list = [data_list]
 
@@ -55,7 +62,7 @@ class QGModel():
             answer_list = [s['answer'] for s in sql_list]
         elif self.modality == 'passage':
             ans_sampler = AnswerSampler()
-            input_str_list, answer_list = ans_sampler.create_qg_input(data_list, num_questions_per_instance)
+            input_str_list, answer_list = ans_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list)
 
         input_ids = self._tokenizer(input_str_list, 
             return_tensors='pt', 
