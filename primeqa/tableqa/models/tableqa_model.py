@@ -30,8 +30,6 @@ class TableQAModel():
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
         outputs = self._model(**inputs)
-        #print(outputs)
-
         predicted_answer_coordinates = self._tokenizer.convert_logits_to_predictions(inputs,
                                                                                     outputs.logits.detach(),
                                                                                     None)

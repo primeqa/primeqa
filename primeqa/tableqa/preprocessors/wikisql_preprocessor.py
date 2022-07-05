@@ -5,10 +5,11 @@ import pandas as pd
 import csv
 import nlp
 from nlp import load_dataset
+import argparse
+import os
 
-
-def preprocess_wikisql(dataset,split):
-    file_to_write = open("primeqa/tableqa/preprocessors/data/wikisql/"+split+".tsv","w")
+def preprocess_wikisql(output_dir,dataset,split):
+    file_to_write = open(os.path.join(output_dir,split+".tsv"),"wt")
     tsv_writer = csv.writer(file_to_write, delimiter='\t')
     tsv_writer.writerow(['id','question','table_file','answer_coordinates','answer_text','float_answer','aggregation_label'])
     for id, d in enumerate(dataset):
@@ -25,9 +26,8 @@ def preprocess_wikisql(dataset,split):
         if min_tokens > 150:
             continue
         table_df = pd.DataFrame.from_dict(processed_table)
-        #print("question and answer",question,answer_text,sql,table_df)
         parsed_data = parse_question(table_df,question,answer_text)
-        table_df.to_csv("primeqa/tableqa/preprocessors/data/wikisql/tables/"+str(table_id)+".csv", sep=',')
+        table_df.to_csv(os.path.join(output_dir,"tables/"+str(table_id)+".csv"), sep=',')
         answer_coordinates = parsed_data[2]
         if answer_coordinates=="" or answer_coordinates==None or answer_coordinates==[]:
             continue
@@ -55,15 +55,18 @@ def get_answer(table,sql):
     answer_text,table = _execute_sql(sql,table)
     return answer_text,table
 
-
-
-
-
-if __name__=="__main__":
-    print("preprocessing wikisql dataset")
-    wikisql = TableQADataset("wikisql")
+def main(args):
+    print("Preprocessing wikisql dataset")
     dataset_dev = load_dataset('wikisql', split=nlp.Split.VALIDATION)
     dataset_train = load_dataset('wikisql', split=nlp.Split.TRAIN)
-    preprocess_wikisql(dataset_dev,"dev")
-    preprocess_wikisql(dataset_train,"train")
+    preprocess_wikisql(args.out_dir,dataset_dev,"dev")
+    preprocess_wikisql(args.out_dir,dataset_train,"train")
+
+if __name__=="__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out_dir", help="Output directory to stor the processed data",
+                    type=str)
+    args = parser.parse_args()
+    main(args)    
+    
 
