@@ -118,7 +118,7 @@ def _compute_cost_matrix(
     discard_ambiguous_examples,
 ):
   """Computes cost matrix."""
-  #print("table and answer text is",table,answer_texts)
+  # print("table and answer text is",table,answer_texts)
   for index, normalize_fn in enumerate(STRING_NORMALIZATIONS):
     try:
       result = _compute_cost_matrix_inner(

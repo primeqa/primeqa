@@ -10,6 +10,7 @@ from transformers import (
     TrainingArguments,
     set_seed,default_data_collator,
 )
+import pandas as pd
 from primeqa.tableqa.utils.data_collator import TapasCollator
 @dataclass
 class TapasArguments:
@@ -65,7 +66,7 @@ def main():
         elif tapas_args.dataset_name=="wikisql":
             print("loading wikisql dataset")
             wikisql_dataset =  TableQADataset(tapas_args.dataset_name,tableqa_model.tokenizer)
-            train_dataset = wikisql_dataset.load_data("dev")
+            train_dataset = wikisql_dataset.load_data("train")
             eval_dataset = wikisql_dataset.load_data("dev")
         trainer = TableQATrainer(model=model,
                                 args=training_args,
@@ -86,24 +87,8 @@ def main():
             metrics = trainer.evaluate()
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)
-        
-
-            
-
-
-
-    # if toy:
-    #     print("Main function for training and testing tapas based tableqa")
-    #     TableQADataset.load("wikisql")
-        
-    #     model = TableQAModel("google/tapas-base-finetuned-wtq")
-    #     data = {"Actors": ["Brad Pitt", "Leonardo Di Caprio",
-    #                     "George Clooney"], "Number of movies": ["87", "53", "69"]}
-    #     queries = ["What is the name of the first actor?",
-    #             "How many movies has George Clooney played in?",
-    #             "What is the total number of movies?", ]
-    #     print(model.predict_from_dict(data,queries))
 
 
 if __name__ == '__main__':
        main()
+    

@@ -15,24 +15,23 @@ def preprocess_wikisql(dataset,split):
         question = d['question']
         qid = "wikisql_"+str(id)
         table = d['table']
-        table_id,processed_table = preprocess_table(table)
-        sql = d['sql']
-        # if d['question']=="What is the rank for the team with a Time of 1:12.40.28?":
-        #     continue
-        answer_text = [str(i) for i in get_answer(table,sql)]
-        if answer_text == ['0']:
-            continue
-        #print("answer_text: ",answer_text)
-        #print("processed table: ",processed_table )
-        table_df = pd.DataFrame.from_dict(processed_table)
-        if answer_text ==['']:
-            continue
-        parsed_data = parse_question(table_df,question,answer_text)
         
-
+        sql = d['sql']
+        answer_text,table =  get_answer(table,sql)
+        answer_text = [str(i) for i in answer_text]
+        table_id,processed_table,min_tokens = preprocess_table(table)
+        if answer_text==['']:
+            continue
+        if min_tokens > 150:
+            continue
+        table_df = pd.DataFrame.from_dict(processed_table)
+        #print("question and answer",question,answer_text,sql,table_df)
+        parsed_data = parse_question(table_df,question,answer_text)
         table_df.to_csv("primeqa/tableqa/preprocessors/data/wikisql/tables/"+str(table_id)+".csv", sep=',')
-        print(parsed_data)
         answer_coordinates = parsed_data[2]
+        if answer_coordinates=="" or answer_coordinates==None or answer_coordinates==[]:
+            continue
+        #print(parsed_data)
         float_answer = parsed_data[3]
         aggregation_label = parsed_data[4]
         tsv_writer.writerow([qid,question,"tables/"+str(table_id)+".csv",answer_coordinates,answer_text,float_answer,aggregation_label])
@@ -44,16 +43,17 @@ def preprocess_table(table):
     header = table['header']
     id = table['id']
     rows = table['rows']
+    min_tokens = len(header)*len(rows)
     table_data = {}
     for i,h in enumerate(header):
         table_data[h] = [r[i] for r in rows]
-    return id,table_data
+    return id,table_data,min_tokens
 
 
 def get_answer(table,sql):
     answer_text = None
-    answer_text = _execute_sql(sql,table)
-    return answer_text
+    answer_text,table = _execute_sql(sql,table)
+    return answer_text,table
 
 
 
@@ -62,5 +62,8 @@ def get_answer(table,sql):
 if __name__=="__main__":
     print("preprocessing wikisql dataset")
     wikisql = TableQADataset("wikisql")
-    dataset = load_dataset('wikisql', split=nlp.Split.VALIDATION)
-    preprocess_wikisql(dataset,"dev")
+    dataset_dev = load_dataset('wikisql', split=nlp.Split.VALIDATION)
+    dataset_train = load_dataset('wikisql', split=nlp.Split.TRAIN)
+    preprocess_wikisql(dataset_dev,"dev")
+    preprocess_wikisql(dataset_train,"train")
+

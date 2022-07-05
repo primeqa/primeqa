@@ -1,3 +1,4 @@
+from pickle import NONE
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
 
@@ -29,14 +30,16 @@ class TableQAModel():
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
         outputs = self._model(**inputs)
-        print(outputs)
-        predicted_answer_coordinates, predicted_aggregation_indices = self._tokenizer.convert_logits_to_predictions(inputs,
-                                                                                                            outputs.logits.detach(),
-                                                                                                            outputs.logits_aggregation.detach())
+        #print(outputs)
+
+        predicted_answer_coordinates = self._tokenizer.convert_logits_to_predictions(inputs,
+                                                                                    outputs.logits.detach(),
+                                                                                    None)
+        print(predicted_answer_coordinates)
         id2aggregation = {0: "NONE", 1: "SUM", 2: "AVERAGE", 3:"COUNT"}
-        aggregation_predictions_string = [id2aggregation[x] for x in predicted_aggregation_indices]
+        #aggregation_predictions_string = [id2aggregation[x] for x in predicted_aggregation_indices]
         answers = []
-        for coordinates in predicted_answer_coordinates:
+        for coordinates in predicted_answer_coordinates[0]:
             if len(coordinates) == 1:
             # only a single cell:
                 answers.append(table.iat[coordinates[0]])
@@ -46,13 +49,12 @@ class TableQAModel():
                     cell_values.append(table.iat[coordinate])
                 answers.append(", ".join(cell_values))
         query_answer_dict = {}
-        for query, answer, predicted_agg in zip(queries_list, answers, aggregation_predictions_string):
+        for query, answer in zip(queries_list, answers):
             print(query)
             
-            if predicted_agg == "NONE":
-                print("Predicted answer: " + answer)
-            else:
-                print("Predicted answer: " + predicted_agg + " > " + answer)
+            
+            print("Predicted answer: " + answer)
+           
             query_answer_dict[query] = answer
         return query_answer_dict
                                                                                                     

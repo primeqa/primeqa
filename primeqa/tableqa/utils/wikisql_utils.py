@@ -9,6 +9,41 @@ class SqlOperants:
 	cond_ops = ['=', '>', '<', 'OP']
 	cond_ops_string = ['equal', 'greater', 'lesser', 'OP']
 
+def add_column_types(table):
+	"""Adds a data type list to the table dict based on values in the cells in that column.
+	The data type for a column is either real or text.
+	Args:
+		table ([dict]): [The table Dict containing headers and rows]
+	Returns:
+		[Dict]: [Table Dict with  key 'type' containing list of data type for every column]
+	"""
+
+	header = table['header']
+	rows = table['rows']
+
+	# identifying column types. Initializing with real
+	types = ['real'] * len(header)
+	for r in rows:
+		for i in range(len(header)):
+			x = str(r[i]).replace(',','')
+			try:
+				_ = float(x)
+			except ValueError:
+				# if not able to convert string to float in any cell the whole column is 'text'
+				types[i] = 'text'
+
+	# converting str to float for real columns
+	for r in range(len(rows)):
+		for i in range(len(header)):
+			if types[i] == 'real':
+				x = str(rows[r][i]).replace(',','')
+				rows[r][i] = float(x)
+
+	table['types'] = types
+	table['rows'] = rows
+	return table
+
+
 def _is_number(s):
 	try:
 		float(s)
@@ -24,6 +59,7 @@ def _execute_sql(sql, table):
 		Returns:
 			List: output of SQL execution. (Answer to the question captured by SQL)
 		"""
+		table = add_column_types(table)
 		rows = table['rows']
 		conds = sql['conds']
 		num_conds = len(conds['column_index'])
@@ -54,14 +90,15 @@ def _execute_sql(sql, table):
 			if cond_passes:
 				selected_cells.append(rows[i][sql['sel']])
 		
-		# if table['types'][sql['sel']] == 'real':
-		# 	selected_cells = [float(str(s).replace(',','')) for s in selected_cells]
-		# else:
-		selected_cells = [s.lower() for s in selected_cells]
+		if table['types'][sql['sel']] == 'real':
+			print("real column ???")
+			selected_cells = [float(str(s).replace(',','')) for s in selected_cells]
+		else:
+			selected_cells = [s.lower() for s in selected_cells]
 		
 		# SQL might return an empty set. Applying math operations on empty set will break the code
 		if selected_cells == []:
-			return ['']
+			return [''],table
 
 		if agg_op == 'select':
 			answer =  selected_cells
@@ -72,13 +109,15 @@ def _execute_sql(sql, table):
 		elif agg_op == 'count':
 			answer = [len(selected_cells)]
 		elif agg_op == 'sum':
-			selected_cells = [c.lstrip('0') for c in selected_cells if len(c)>1]
-			answer = [sum([int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)])]
+			#selected_cells = [str(c).lstrip('0') for c in selected_cells if len(str(c))>1]
+			#answer = [sum([int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)])]
+			answer = [sum(selected_cells)]
 		elif agg_op == 'average':
 			print(selected_cells)
-			selected_cells = [c.lstrip('0') if len(c)>1 else c for c in selected_cells ]
+			#selected_cells = [str(c).lstrip('0') if len(str(c))>1 else c for c in selected_cells ]
 			print(selected_cells)
-			selected_cells = [int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)]
+			#selected_cells = [int(ast.literal_eval(x.strip().replace(",",""))) for x in selected_cells if not isinstance(x, int)]
+
 			answer = [sum(selected_cells)/len(selected_cells)]
 
-		return answer
+		return answer,table
