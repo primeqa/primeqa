@@ -1,8 +1,10 @@
 ## Dense retrieval
 
-We support ColBERT-based Information Retrieval engine, as described here: https://github.com/primeqa/primeqa/blob/main/primeqa/ir/dense/colbert_top/README.md
+We support ColBERT-based Information Retrieval engine, as described in [README](../../primeqa/ir/dense/colbert_top/README.md).
 
+This README shows how to run the basic model training, data indexing, retrieval and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../primeqa/notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
+ 
 ## Sparse retrieval
 
 Sparse retrieval is based on BM25 ranking using bag of words representation. It is built on Pyserini which is built on Lucene.  
