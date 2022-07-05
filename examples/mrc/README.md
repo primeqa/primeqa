@@ -122,7 +122,7 @@ python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
 ```
-The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large). This setup currently yields the top score (on blind test) on the minimal answer leaderboard for TyDI (as of 7/2/2022).
+The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large). This setup is based on the top submission to the minimal answer leaderboard (hidden blind test) for TyDI (as of 7/2/2022).
 
 This yields the following results \TODO:
 ```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
