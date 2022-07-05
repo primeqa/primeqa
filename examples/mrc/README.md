@@ -141,11 +141,11 @@ This yields the following results:
 ***** eval metrics *****
 epoch = 1.0
 eval_avg_minimal_f1 = 0.7151
-eval_avg_minimal_precision = 0.7222
-eval_avg_minimal_recall = 0.7107
-eval_avg_passage_f1 = 0.7450
-eval_avg_passage_precision = 0.7487
-eval_avg_passage_recall = 0.7444
+eval_avg_minimal_precision = 0.7229
+eval_avg_minimal_recall = 0.7097
+eval_avg_passage_f1 = 0.7447
+eval_avg_passage_precision = 0.7496
+eval_avg_passage_recall = 0.7433
 eval_samples = 18670
 ```
 
