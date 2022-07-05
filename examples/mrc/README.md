@@ -118,9 +118,12 @@ For the MLQA configuration with context language EN and question language DE use
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
-```
+This yields the following results:
+
+|  | en   | es   |  de  |  ar |  hi  |  vi | zh  |
+|--| ---- | -----|------|-----|------|-----|-----|
+|F1| 84.8 | 75.9 | 68.8 |67.7 | 72.1 | 71.8| 69.8|
+|EM| 72.9 | 57.2 | 52.7 |46.6 | 55.6 | 52.1| 50.0|
 
  -  PrimeQA also supports special Features for MRC systems as follows:
 
