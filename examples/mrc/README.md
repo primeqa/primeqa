@@ -39,7 +39,7 @@ eval_avg_minimal_recall = 0.628
 eval_avg_passage_f1 = 0.7215
 eval_avg_passage_precision = 0.7403
 eval_avg_passage_recall = 0.7061
-eval_samples = 238831
+eval_samples = 18670
 ```
 
 For just training:
@@ -76,10 +76,12 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --dataset_config_name plain_text \
        --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-       --eval_metrics squad 
+       --eval_metrics SQUAD 
 ```
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+This yields the following results:
+``` 
+eval_exact_match = 88.7133
+eval_f1          = 94.3525
 ```
  - Dataset: [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
 
@@ -94,8 +96,12 @@ For the XQuAD in ZH use the following command line arguments for eval:
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics SQUAD 
 ```
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+This yields the following results:
+```
+|  | en   | es   |  de  |  el |  ru  |  tr | ar  | vi  | th | zh | hi |
+|--| ---- | -----|------|-----|------|-----|-----|-----|----|----|----|
+|F1| 87.5 | 82.1 | 80.7 |81.5 | 80.0 | 75.0| 75.1| 80.0|75.3|70.3|77.2|
+|EM| 76.7 | 63.4 | 65.4 |64.2 | 63.6 | 59.3| 59.1| 61.3|65.5|62.2|61.8|
 ```
  - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
 
@@ -124,8 +130,17 @@ python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-
 ```
 The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/ibm/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/ibm/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large). This setup is based on the top submission to the minimal answer leaderboard (hidden blind test) for TyDI (as of 7/2/2022).
 
-This yields the following results \TODO:
-```add our results here in the HF format as shown in https://github.com/huggingface/transformers/tree/main/examples/pytorch/question-answering
+This yields the following results:
+```
+***** eval metrics *****
+epoch = 1.0
+eval_avg_minimal_f1 = 0.7151
+eval_avg_minimal_precision = 0.7222
+eval_avg_minimal_recall = 0.7107
+eval_avg_passage_f1 = 0.7450
+eval_avg_passage_precision = 0.7487
+eval_avg_passage_recall = 0.7444
+eval_samples = 18670
 ```
 
  - PrimeQA also supports answering questions to which answers are collective e.g. lists.
