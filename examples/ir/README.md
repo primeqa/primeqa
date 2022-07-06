@@ -5,7 +5,7 @@ We support ColBERT-based Information Retrieval engine, as described in [README](
 This README shows how to run the basic model training, data indexing, retrieval, and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
 
-The following steps require to have PrimeQA [installed](../../README.md#Installation).
+The following steps require PrimeQA to be [installed](../../README.md#Installation).
 Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
 ### Model Training
