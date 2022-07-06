@@ -1,7 +1,7 @@
 """ MLQA metric. """
 
 import datasets
-
+from typing import Dict, Any
 from primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1 import evaluate
 
 
@@ -62,8 +62,7 @@ class MLQA(datasets.Metric):
                                 "text": datasets.Value("string"),
                                 "answer_start": datasets.Value("int32"),
                             }
-                        ),
-                        "answer_language": datasets.Value("string")
+                        )
                     },
                 }
             ),
@@ -71,7 +70,15 @@ class MLQA(datasets.Metric):
             reference_urls=["https://github.com/facebookresearch/MLQA"],
         )
 
-    def _compute(self, predictions, references):
+    def _compute(self, *, predictions, references, **kwargs) -> Dict[str, Any]:     
+        
+        if not predictions:
+                raise ValueError("No predictions provided")
+        elif not references:
+            raise ValueError("No references provided")
+        if not kwargs or 'dataset_config_name' not in  kwargs:
+            raise ValueError("No dataset config name provided")
+        
         pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
         dataset = [
             {
@@ -88,6 +95,6 @@ class MLQA(datasets.Metric):
                 ]
             }
         ]
-        answer_language = references[0]['answer_language']
+        answer_language = kwargs['dataset_config_name'][5:7]
         score = evaluate(dataset=dataset, predictions=pred_dict, lang=answer_language)
         return score

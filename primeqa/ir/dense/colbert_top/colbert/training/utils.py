@@ -3,7 +3,7 @@ import torch
 
 # from colbert.utils.runs import Run
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, save_checkpoint
-from primeqa.ir.dense.colbert_top.colbert.parameters import SAVED_CHECKPOINTS
+from primeqa.ir.dense.colbert_top.colbert.parameters import SAVED_CHECKPOINTS, SAVED_STEPS_PROGRESS
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 
 
@@ -70,7 +70,7 @@ def manage_checkpoints_with_path_save(args, colbert, optimizer, amp, batch_idx, 
     path_save = None
 
     # saving the last checkpoint, to be rewritten every args.save_steps
-    if batch_idx % args.save_steps == 0:
+    if batch_idx % SAVED_STEPS_PROGRESS == 0:
         saved_name = prefix + f".progress.model"
         save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
 
