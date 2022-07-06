@@ -10,7 +10,7 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 
 ### Model Training
 
-Here is an example of an training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of <query>, <positive_passage>, <negative_passage> triples.
+Here is an example of an training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of \<query>, <positive_passage>, <negative_passage> triples.
 
 ```shell
 python examples/ir/run_ir.py \
