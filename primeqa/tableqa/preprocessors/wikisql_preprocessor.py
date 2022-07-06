@@ -11,6 +11,16 @@ from primeqa.tableqa.preprocessors.dataset import DatasetProcessor
 from pathlib import Path
 
 def preprocess_wikisql(output_dir,dataset,split):
+    """Preprocesses wikisql dataset downloaded from huggingface. Converts it to a format accepted by tapas
+
+    Args:
+        output_dir (str): Directory path to store converted intermediate data 
+        dataset (Dataset): Downloaded wikisql dataset
+        split (str): The dataset split whether train or dev
+
+    Returns:
+        str,str: Returns path to the output directory and path to the processed dataset
+    """
     path = Path(output_dir)
     path.mkdir(parents=True, exist_ok=True)
     tables_path = Path(output_dir+"/tables/")
@@ -48,6 +58,14 @@ def preprocess_wikisql(output_dir,dataset,split):
 
 
 def preprocess_table(table):
+    """This method preprocess the table and converts it into format such as {column_header: [list of values for that column in every row ]}
+
+    Args:
+        table (Dict): The table dictionary as provided with wikisql dataset from huggingface
+
+    Returns:
+        str,Dict,int: Returns the id of the table, a dictionary of processed table in required format, and the minimum number of tokens in the table which is #rows * #columns
+    """
     header = table['header']
     id = table['id']
     rows = table['rows']
@@ -59,11 +77,29 @@ def preprocess_table(table):
 
 
 def get_answer(table,sql):
+    """ Executes the SQL provided with wikisql dataset on the table and fetches the answer text
+
+    Args:
+        table (Dict): Table Dictonary
+        sql (str): sql string
+
+    Returns:
+        str,Dict: Returns the answer text and the corrected table
+    """
     answer_text = None
     answer_text,table = _execute_sql(sql,table)
     return answer_text,table
 
 def load_data(out_dir,tokenizer):
+    """Main function which downloads the wikisql data from huggingface, converts it into required format and preprocessed it and returns the Dataset objects.
+
+    Args:
+        out_dir (str): Output directory to store intemediate converted data
+        tokenizer (TapasTokenizer): Tokenizer to tokenize the data and get encodings
+
+    Returns:
+        Dataset,Dataset: Returns processed train and dev Dataset objects
+    """
     print("Preprocessing wikisql dataset")
     dataset_dev = load_dataset('wikisql', split=nlp.Split.VALIDATION)
     dataset_train = load_dataset('wikisql', split=nlp.Split.TRAIN)
