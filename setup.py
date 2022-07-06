@@ -61,7 +61,10 @@ _deps = {
     "transformers~=4.17.0": ["install"],
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
-    "tqdm~=4.64.0": ["install"]
+    "tqdm~=4.64.0": ["install"],
+    "torch-scatter": ["install"],
+    "frozendict": ["install"],
+    "nlp": ["install"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]
