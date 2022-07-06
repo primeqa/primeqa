@@ -86,7 +86,7 @@ The resulting .tsv file, containing query IDs, document IDs, ranks, and scores i
 
 The scoring steps depend on the task and metric used. 
 
-For cross-lingual question aswering, as in the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/), we need to convert the scores in  `<scores_and_ranks>` into the format used in the task.  This is done by running the conversion script:
+For cross-lingual question answering, as in the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/), we need to convert the scores in  `<scores_and_ranks>` into the format used in the task.  This is done by running the conversion script:
 
 ```shell
     python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.pyconvert_colbert_results_to_xor.py \
