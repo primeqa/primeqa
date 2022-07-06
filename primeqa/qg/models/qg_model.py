@@ -15,8 +15,6 @@ class QGModel():
         """        
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
-        self.modality = modality 
-
         # adding special tokens to tokenizer which will be used to convert SQL and Passage+Answer to string
         # expanding token embeddings in model
         
@@ -26,6 +24,13 @@ class QGModel():
             if sql_token not in self._tokenizer.vocab: # add only when special-tokens aren't already there
                 self._tokenizer.add_tokens([sql_token])
         self._model.resize_token_embeddings(len(self._tokenizer.vocab))
+
+        self.modality = modality 
+        if self.modality == 'passage':
+            self.answer_sampler = AnswerSampler()
+        elif self.modality == 'table':
+            self.sql_sampler = SimpleSqlSampler()
+
     
     @property
     def model(self):
@@ -57,12 +62,10 @@ class QGModel():
             data_list = [data_list]
 
         if self.modality == 'table':
-            sql_sampler = SimpleSqlSampler()
-            input_str_list, sql_list = sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob)
+            input_str_list, sql_list = self.sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob)
             answer_list = [s['answer'] for s in sql_list]
         elif self.modality == 'passage':
-            ans_sampler = AnswerSampler()
-            input_str_list, answer_list = ans_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list)
+            input_str_list, answer_list = self.answer_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list)
 
         input_ids = self._tokenizer(input_str_list, 
             return_tensors='pt', 
