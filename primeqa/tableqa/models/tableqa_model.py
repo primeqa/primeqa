@@ -26,6 +26,8 @@ class TableQAModel():
         return self._tokenizer
         
 
+        
+
     def predict_from_dict(self,data_dict,queries_list):
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")

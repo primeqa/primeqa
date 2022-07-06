@@ -27,11 +27,6 @@ class DatasetProcessor(torch.utils.data.Dataset):
         )
      
         encoding = {key: val.squeeze(0) for key, val in encoding.items()}
-        # encoding['labels'] = torch.zeros(512)
-        # encoding['numeric_values_scale'] = torch.ones(512)
-        # encoding['numeric_values']= torch.tensor([float("nan")]*512)
-        #print(encoding)
-        #print("Float answer",item.float_answer)
         if item.float_answer:
             encoding["float_answer"] = torch.tensor(item.float_answer)
         return encoding

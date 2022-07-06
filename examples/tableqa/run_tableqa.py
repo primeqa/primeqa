@@ -1,4 +1,5 @@
 #from transformers import TapasConfig, TapasForQuestionAnswering, AdamW
+from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 from primeqa.tableqa.models.tableqa_model import TableQAModel
 from primeqa.tableqa.preprocessors.dataset import TableQADataset
 from primeqa.tableqa.trainer.tableqa_trainer import TableQATrainer
@@ -94,6 +95,11 @@ def main():
             metrics = trainer.evaluate()
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)
+            #predictions = trainer.predict(eval_dataset)
+            # compute_denotation_accuracy(eval_dataset,predictions)
+            
+            # print(predictions)
+
 
 
 if __name__ == '__main__':
