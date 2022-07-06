@@ -57,7 +57,7 @@ The index is stored in `<experiments_root_directory>/<experiment_label>/<index_l
 
 ### Retrieval
 
-Here is an example of an retrieval (search) run, using a model and index as created in the previous two steps.
+Here is an example of a retrieval (search) run, using a model and index as created in the previous two steps.
 
 ```shell
 python examples/ir/run_ir.py \
