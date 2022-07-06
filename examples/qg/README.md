@@ -1,8 +1,10 @@
-# Table Question Generation (TableQG)
+# Question Generation (QG)
 The task of TableQG can be summarized as given a table, generate <question, answer> pairs such that the answer for that question can be deduced from the table.  
 The primary script for TableQG is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline as shown below:
 ## Pipeline
 <img src="../../docs/img/tableqg_pipeline.png" width="500" class="center">
+
+The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except SQL generator over a table is replaced by Answer Sampler over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
 
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
