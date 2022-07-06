@@ -95,10 +95,6 @@ def main():
             metrics = trainer.evaluate()
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)
-            #predictions = trainer.predict(eval_dataset)
-            # compute_denotation_accuracy(eval_dataset,predictions)
-            
-            # print(predictions)
 
 
 

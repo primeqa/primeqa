@@ -48,11 +48,10 @@ def preprocess_wikisql(output_dir,dataset,split):
         answer_coordinates = parsed_data[2]
         if answer_coordinates=="" or answer_coordinates==None or answer_coordinates==[]:
             continue
-        #print(parsed_data)
         float_answer = parsed_data[3]
         aggregation_label = parsed_data[4]
         tsv_writer.writerow([qid,question,"tables/"+str(table_id)+".csv",answer_coordinates,answer_text,float_answer,aggregation_label])
-    print("done")
+    print("Preprocessing done")
     file_to_write.close()
     return output_dir,data_path
 
