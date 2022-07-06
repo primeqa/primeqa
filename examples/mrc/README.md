@@ -60,7 +60,7 @@ python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
 
-- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) (\TODO: add a figure) estimate of your fine-tuned model use the following:
+- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) estimate of your fine-tuned model use the following:
 
 
 For eval with confidence calibration, add the following additional command line arguments:
