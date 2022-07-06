@@ -69,7 +69,7 @@ _deps = {
     "tqdm~=4.64.0": ["install"],
     "torch-scatter": ["install"],
     "frozendict": ["install"],
-    "nlp": ["install"]
+    "nlp": ["install"],
     "sentencepiece~=0.1.96": ["install"],
     "protobuf~=3.20.0": ["install"],
     "nltk~=3.6":["install"],
