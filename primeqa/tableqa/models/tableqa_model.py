@@ -4,6 +4,12 @@ import pandas as pd
 
 class TableQAModel():
     def __init__(self,model_name_path,config=None):
+        """TableQA model class
+
+        Args:
+            model_name_path (str): Path to the pre-trained model.
+            config (_type_, optional): _description_. Defaults to None.
+        """
         self._model = TapasForQuestionAnswering.from_pretrained(model_name_path)
         self.config = config
         self._tokenizer = TapasTokenizer.from_pretrained(model_name_path)
@@ -26,16 +32,24 @@ class TableQAModel():
         return self._tokenizer
         
 
+        
+
     def predict_from_dict(self,data_dict,queries_list):
+        """This function takes a table dictionary and a list of queries as input and returns the answer to the queries using the TableQA model.
+
+        Args:
+            data_dict (Dict): Table in dict format
+            queries_list (List): List of queries
+
+        Returns:
+            Dict: Returns a dictionary of query and the predicted answer.
+        """
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
         outputs = self._model(**inputs)
         predicted_answer_coordinates = self._tokenizer.convert_logits_to_predictions(inputs,
                                                                                     outputs.logits.detach(),
                                                                                     None)
-        print(predicted_answer_coordinates)
-        id2aggregation = {0: "NONE", 1: "SUM", 2: "AVERAGE", 3:"COUNT"}
-        #aggregation_predictions_string = [id2aggregation[x] for x in predicted_aggregation_indices]
         answers = []
         for coordinates in predicted_answer_coordinates[0]:
             if len(coordinates) == 1:
@@ -48,11 +62,6 @@ class TableQAModel():
                 answers.append(", ".join(cell_values))
         query_answer_dict = {}
         for query, answer in zip(queries_list, answers):
-            print(query)
-            
-            
-            print("Predicted answer: " + answer)
-           
             query_answer_dict[query] = answer
         return query_answer_dict
                                                                                                     

@@ -17,7 +17,6 @@ class TapasCollator:
         token_type_ids = torch.stack([example['token_type_ids'] for example in batch])
         numeric_values = torch.stack([example['numeric_values'] for example in batch])
         numeric_values_scale = torch.stack([example['numeric_values_scale'] for example in batch])
-        #float_answer = torch.stack([example['float_answer'] for example in batch])        
 
         return {
             'input_ids': input_ids, 
