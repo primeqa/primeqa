@@ -28,7 +28,7 @@ PrimeQA is a public open source repository that enables researchers and develope
 The models within PrimeQA supports End-to-end Question Answering. PrimeQA answers questions via 
 - [Information Retrieval](https://github.com/primeqa/primeqa/blob/main/examples/ir/run_ir.py): Retrieving documents and passages using both traditional (e.g. BM25) and neural (e.g. ColBERT) models
 - [Multilingual Machine Reading Comprehension](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large): Extract and/ or generate answers given the source document or passage.
-- [Multilingual Question Generation](https://huggingface.co/ibm/mt5-base-tydi-question-generator): Supports generation of questions for effective domain adaptation over [tables] (https://huggingface.co/ibm/t5-base-table-question-generator) and [multilingual text](https://huggingface.co/ibm/mt5-base-tydi-question-generator).
+- [Multilingual Question Generation]: Supports generation of questions for effective domain adaptation over [tables] (https://huggingface.co/PrimeQA/t5-base-table-question-generator) and [multilingual text](https://huggingface.co/PrimeQA/mt5-base-tydi-question-generator).
 
 Some examples of models (applicable on benchmark datasets) supported are :
 - [Traditional IR with BM25](https://github.com/primeqa/primeqa/blob/main/examples/ir/run_bm25_retrieval.py) Pyserini
