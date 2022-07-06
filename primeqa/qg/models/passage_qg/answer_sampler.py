@@ -26,12 +26,10 @@ class AnswerSampler():
                         }
         self.lang_identify = Pipeline(lang="multilingual", processors="langid", verbose=False)
         self.ner_models = {}
-        for code in self.lang_codes:
-            if self.lang_codes[code]['method_available'] == 'NER':
-                self.ner_models[code] = stanza.Pipeline(lang=code, processors='tokenize,ner', verbose=False)
-                print('Loaded NER model for ',self.lang_codes[code]['name'])
-
-    
+        for lang in self.lang_codes:
+            if self.lang_codes[lang]['method_available'] == 'NER':
+                self.ner_models[lang] = stanza.Pipeline(lang=lang, processors='tokenize,ner', verbose=False)
+                print('Loaded NER model for ',self.lang_codes[lang]['name'])            
     
     def detect_language(self, text):
         """
@@ -68,14 +66,12 @@ class AnswerSampler():
         for i, data in enumerate(data_list):
             # If answers_list provided, then use them to generate questions. Otherwise use NER to
             # sample answers.
-            if answers_list[i] != []: 
+            if len(answers_list) > i and answers_list[i] != []: 
                 answers = answers_list[i]
             else:
                 answers = self.get_named_entities(data)
-
             if num_questions_per_instance < len(answers):
                 answers = np.random.choice(answers, num_questions_per_instance, replace=False)
-            
             for ans in answers:
                 text = ans + ' '+QGSpecialTokens.sep+' ' + data        
                 input_str_list.append(text)
