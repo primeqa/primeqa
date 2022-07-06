@@ -1,3 +1,106 @@
+## Dense retrieval
+
+We support ColBERT-based Information Retrieval engine, as described in [README](../../primeqa/ir/dense/colbert_top/README.md).
+
+This README shows how to run the basic model training, data indexing, retrieval, and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+
+
+The following steps require PrimeQA to be [installed](../../README.md#Installation).
+Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+
+### Model Training
+
+Here is an example of a training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of \<query>, <positive_passage>, <negative_passage> triples.
+
+```shell
+python examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
+    --amp \
+    --doc_maxlen 180 \
+    --bsize 192 \
+    --accum 6 \
+    --maxsteps 100000 \
+    --save_steps 20000
+    --mask-punctuation \
+    --lr 6e-06 \
+    --similarity l2 \
+    --model_type xlm-roberta-base \
+    --triples <training_data> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> 
+```
+
+The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
+ 
+### Indexing
+
+Here is an example of an indexing run, using a model as trained in the previous step.
+
+```shell
+python examples/ir/run_ir.py \
+    --do_index \
+    --engine_type ColBERT \
+    --doc_maxlen 180 \
+    --mask-punctuation \
+    --bsize 256 \
+    --similarity l2 \
+    --checkpoint <model_checkpoint> \
+    --collection <document_collection> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> \ 
+    --index_name <index_label> \
+    --compression_level 2
+```
+
+The index is stored in `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
+
+### Retrieval
+
+Here is an example of a retrieval (search) run, using a model and index as created in the previous two steps.
+
+```shell
+python examples/ir/run_ir.py \
+    --do_search \
+    --engine_type ColBERT \
+    --amp \
+    --doc_maxlen 180 \
+    --mask-punctuation \
+    --bsize 16 \
+    --similarity l2 \
+    --retrieve_only \
+    --queries <query_file> \
+    --checkpoint <model_checkpoint> \
+    --collection <document_collection> \
+    --root <experiments_root_directory> \
+    --experiment <experiment_label> \ 
+    --index_name <index_label> \
+    --index_name ${EXPT}_indname \
+    --ranks_fn <scores_and_ranks> \
+    --nprobe 4
+```
+
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
+
+### Scoring
+
+The scoring steps depend on the task and metric used. 
+
+For cross-lingual question answering, as in the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/), we need to convert the scores in  `<scores_and_ranks>` into the format used in the task.  This is done by running the conversion script:
+
+```shell
+    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.pyconvert_colbert_results_to_xor.py \
+    -c <document_collection> \
+    -q <ground_truth_data>
+    -p <scores_and_ranks> \
+    -o <xor_scores> 
+```
+
+The `<ground_truth_data>` file can be downloaded as described [here](./README.md#run-bm25-search-on-xortydi-dev-set-queries).
+The resulting `<xor_scores>` file can be evaluated as described [here](./README.md#evaluate-xortydi-bm25-ranked-results).
+
+
+
 ## Sparse retrieval
 
 Sparse retrieval is based on BM25 ranking using bag of words representation. It is built on Pyserini which is built on Lucene.  
@@ -73,10 +176,10 @@ Output:
 ### Evaluate XORTyDI BM25 ranked results
 Evaluate BM25 ranked results on XORTyDI dev set queries:
 1. Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA
-2. Download DEV gold data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
+2. Download DEV ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
 3. Run:
    ```shell
-   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-gold-data> --pred_file <path-to-ranking_xortydi_format.json> 
+   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-ground-truth-data> --pred_file <path-to-ranking_xortydi_format.json> 
    ```
 Eval script output should match the following: 
 
