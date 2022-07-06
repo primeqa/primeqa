@@ -9,7 +9,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-
+    
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
@@ -19,7 +19,7 @@ include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"]
 
 keywords = [
     "NLP", "transformers", "QA", "question", "answering", "mrc", "rc", "machine", "reading", "comprehension",
-    "IR", "information", "retrieval", "deep", "learning", "pytorch", "BERT", "RoBERTa"
+    "IR", "information", "retrieval", "deep", "learning", "pytorch", "BERT", "RoBERTa", "T5", "generation", "table"
 ]
 
 authors = [
@@ -34,7 +34,7 @@ _deps = {
     "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
     "myst-parser~=0.17.2": ["docs"],
-    "faiss-cpu~=1.7.2": ["install"], 
+    "faiss-cpu~=1.7.2": ["install"],
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
     "ipykernel~=6.13.0": ["notebooks"],
@@ -55,14 +55,24 @@ _deps = {
     "scikit-learn~=1.0.2": ["install"],
     "signals~=0.0.2": ["install"],
     "spacy~=3.2.2": ["install"],
+    "stanza~=1.4.0":["install"],
     "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
+    "transformers~=4.17.0": ["install"],
+    "sentencepiece~=0.1.96": ["install"],
+    "protobuf~=3.20.0": ["install"],
     "tqdm~=4.64.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
-    "tqdm~=4.64.0": ["install"]
+    "sentencepiece~=0.1.96": ["install"],
+    "protobuf~=3.20.0": ["install"],
+    "tqdm~=4.64.0": ["install"],
+    "nltk~=3.6":["install"],
+    "tabulate~=0.8.9":["install"],
+    "rouge_score":["install"]
+
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]
