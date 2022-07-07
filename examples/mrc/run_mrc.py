@@ -380,7 +380,7 @@ def main():
                 trainer.save_metrics("train", metrics)
                 trainer.save_state()
             if training_args.do_eval:
-                print("*** Evaluate ***")
+                logger.info("*** Evaluate ***")
                 metrics = trainer.evaluate()
                 trainer.log_metrics("eval", metrics)
                 trainer.save_metrics("eval", metrics)
