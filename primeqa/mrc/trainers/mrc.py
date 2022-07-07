@@ -240,7 +240,7 @@ class MRCTrainer(Trainer):
     
     def predict(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
         """
-        Evaluate model using either eval data passed to method (if given).
+        Obtain the predictions using either eval data passed to method (if given).
         Otherwise use data given to constructor at instantiation.
 
         Args:
@@ -249,8 +249,8 @@ class MRCTrainer(Trainer):
             ignore_keys: Keys to ignore in evaluation loop.
 
         Returns:
-            Evaluation metrics if post-processing and metric computation functions
-            were provided to constructor at instantiation, otherwise an empty dict.
+            Answer predictions if post-processing function was provided to constructor 
+            at instantiation, otherwise an empty dict.
         """
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
@@ -274,6 +274,6 @@ class MRCTrainer(Trainer):
         if self.post_process_function is not None:
             eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
         else:
-            eval_preds = []
+            eval_preds = {}
 
         return eval_preds

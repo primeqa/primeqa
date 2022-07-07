@@ -1,14 +1,11 @@
 from transformers import AutoConfig, AutoTokenizer
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
-from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 
 from transformers import DataCollatorWithPadding
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from transformers import TrainingArguments
-
 
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from datasets import Dataset
@@ -20,11 +17,9 @@ class MRCPipeline():
         task_heads = EXTRACTIVE_HEAD
         config = AutoConfig.from_pretrained(
             model_for_qa,
-            #cache_dir=model_args.cache_dir,
         )
         tokenizer = AutoTokenizer.from_pretrained(
             model_for_qa,
-            #cache_dir=model_args.cache_dir,
             use_fast=True,
             config=config,
         )
@@ -34,7 +29,6 @@ class MRCPipeline():
             config,
             model_for_qa,
             task_heads=task_heads,
-            #cache_dir=model_args.cache_dir,
         )
         model.set_task_head(next(iter(task_heads)))        
 
@@ -56,18 +50,8 @@ class MRCPipeline():
             tokenizer=tokenizer,
             data_collator=data_collator,
             post_process_function=postprocessor.process
-)
+        )
         
-    # def examples(self):
-    #     questions = ["Who walked the dog?", "Which country is Canberra located in?"]
-    #     contexts = [["Alice walks the cat", "Bob walks the dog"],
-    #                ["Canberra is the capital city of Australia. Founded following the federation of the colonies of Australia as the seat of government for the new nation, it is Australia's largest inland city"]]
-    #     example_ids = range(len(questions))
-        
-    #     examples_dict = dict(question=questions, context=contexts, example_id=example_ids)
-    #     examples_dataset = Dataset.from_dict(examples_dict)
-    #     return examples_dataset
-
     def predict(self, question, context):
         questions = [question]
         contexts = [[context]]
@@ -85,15 +69,4 @@ class MRCPipeline():
         for a in original_answers:
             processed_answers.append({'span_answer_text' : a['span_answer_text'],
                                         'confidence_score': a['confidence_score']})
-        return processed_answers    
-        
-    
-def main():
-    pipeline = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
-    question = "Who walked the dog?"
-    context = "Alice walks the cat. Bob walks the dog"
-    answers = pipeline.predict(question,context)  
-    print(json.dumps(answers, indent=4))  
-        
-if __name__ == '__main__':
-    main()
+        return processed_answers
