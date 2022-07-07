@@ -15,6 +15,8 @@ There are three datasets used to train Dr. DECR:
 * XOR (data containg English queries and non-English passages)
 * Parallel Corpus (data containg parallel English and non-English passages)
 
+More details about the data sets can be found in Appendix A.1 of the [Dr. DECR](https://arxiv.org/abs/2112.08185) paper.
+
 To create **NQ** training data, run:
 ```
 source ./script/create_NQ.sh
