@@ -2,6 +2,7 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConf
 from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, flatten
 from primeqa.ir.dense.colbert_top.colbert.modeling.base_colbert import BaseColBERT
+from primeqa.ir.dense.colbert_top.colbert.parameters import DEVICE
 
 import torch
 import string
@@ -49,7 +50,10 @@ class ColBERT(BaseColBERT):
 
     def compute_ib_loss(self, Q, D, D_mask):
         # TODO: Organize the code below! Quite messy.
-        scores = (D.unsqueeze(0) @ Q.permute(0, 2, 1).unsqueeze(1)).flatten(0, 1)  # query-major unsqueeze
+        if DEVICE == torch.device("cuda"):
+            scores = (D.unsqueeze(0) @ Q.permute(0, 2, 1).unsqueeze(1)).flatten(0, 1)  # query-major unsqueeze
+        else:
+            scores = (D.unsqueeze(0).float() @ Q.permute(0, 2, 1).unsqueeze(1)).flatten(0, 1)
 
         scores = colbert_score_reduce(scores, D_mask.repeat(Q.size(0), 1, 1), self.colbert_config)
 

@@ -20,7 +20,7 @@ class TestTraining(UnitTest):
     def test_batchers(self):
         test_files_location = 'tests/resources/ir_dense'
         if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
-            test_files_location = '/u/franzm/git8/PrimeQA/tests/resources/ir_dense'
+            test_files_location = 'PrimeQA/tests/resources/ir_dense'
 
         rank = 0
         nranks = 1
