@@ -73,9 +73,7 @@ Reproducing the Dr. DECR XOR-TyDi leaderboard result consists of the following s
 
 **Step 4: Retrieving the relevent passages using the index**
 
-**Step 5: Reranking the top retrieved passages**
-
-**Step 6: Relevance scoring**
+**Step 5: Relevance scoring**
 
 ## Step 1: Fine tuning the student and teacher models
 
@@ -86,10 +84,13 @@ There are two rounds of fine tuning involved in this step.
 ### XLMR -> NQ
 
 ```
-LR=1.5e-6 python -m colbert.train \
+python examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
+    --lr 1.5e-6 \
     --bsize 192 \
     --accum 6 \
     --maxsteps 91287 \
@@ -97,49 +98,50 @@ LR=1.5e-6 python -m colbert.train \
     --root ./results/NQ/ \
     --experiment NQ \
     --similarity l2 \
-    --run ${LR}_1 \
     --model_type xlm-roberta-base \
-    --lr ${LR} \
 > ./results/NQ_out.log 
 ```
-The result will be generated in:
+The trained model will be stored in:
 ```
-results/NQ/NQ/train.py/1.5e-6_1/checkpoints/
+results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn 
 ```
 
-### XLMR -> NQ -> XOR
+### NQ -> XOR
 
 ```
-LR=6e-6 python -m colbert.train \
+python examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
+    --lr 6e-6 \
     --bsize 192 \
     --accum 6 \
-    --lr ${LR} \
     --maxsteps 74704 \
     --triples ./data/XOR/data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
     --root ./results/XOR/ \
     --experiment XOR \
     --similarity l2 \
-    --run ${LR}_1 \
     --model_type xlm-roberta-base \
-    --checkpoint ./results/NQ/NQ/train.py/1.5e-6_1/checkpoints/colbert-LAST.dnn \
+    --checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/XOR_out.log 
 ```
 
-The result will be generated in:
+The trained model will be stored in:
 ```
-results/XOR/XOR/train.py/6e-6_1/checkpoints/
+results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 ```
 
-In the following Knowledge Distillation (KD) steps, the model resulting from the `XLMR->NQ` training will be used as the teacher model, the model resulting from the `NQ -> XOR` training will be used as the student starting point. 
+In the following Knowledge Distillation (KD) steps, the model resulting from the `XLMR->NQ` training will be used as the teacher model, and the model resulting from the `NQ -> XOR` training will be used as the student starting point. 
 
 ## Step 2: Two-stage Knowledge Distillation (KD)
 
 ### KD with Parallel Corpus Data
 ```
-LR=4.8e-5; QWEIGHT=0.5; python -m colbert.train \
+python examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
@@ -147,38 +149,39 @@ LR=4.8e-5; QWEIGHT=0.5; python -m colbert.train \
     --bsize 192 \
     --accum 6 \
     --maxsteps 84897 \
-    --lr ${LR} \
-    --query_weight ${QWEIGHT} \
+    --lr 4.8e-5 \
+    --query_weight 0.5 \
     --triples ./data/en-7lan_2ep_triple.other.clean \
     --teacher_triples ./data/en-7lan_2ep_triple.en.clean \
 	--root ./results/KD_PC \
     --experiment PC \
     --similarity l2 \
-    --run ${LR}_${QWEIGHT}_1 \
     --distill_query_passage_separately True \
     --loss_function MSE \
     --model_type xlm-roberta-base \
     --teacher_model_type xlm-roberta-base \
-	--checkpoint ./results/XOR/XOR/train.py/6e-6_1/checkpoints/colbert-LAST.dnn \
-	--teacher_checkpoint ./results/NQ/NQ/train.py/1.5e-6_1/checkpoints/colbert-LAST.dnn \
+    --checkpoint ./results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
+    --teacher_checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/KD_PC_out.log ;
 ```
 
-The result will be generated in:
+The trained model will be stored in:
 ```
-results/KD_PC/PC/train.py/4.8e-5_0.5_1/checkpoints
+results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 ```
 
 ### KD with XOR Data
 ```
-LR=6e-6; python -m colbert.train \
+python examples/ir/run_ir.py \
+    --do_train \
+    --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
     --mask-punctuation \
     --bsize 192 \
     --accum 6 \
-    --lr ${LR} \
+    --lr 6e-6 \
     --maxsteps 87618 \
     --student_teacher_temperature 2 \
     --triples ./data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
@@ -186,156 +189,126 @@ LR=6e-6; python -m colbert.train \
 	--root ./results/KD_XOR \
     --experiment XOR \
     --similarity l2 \
-    --run ${LR}_1 \
     --model_type xlm-roberta-base \
     --teacher_model_type xlm-roberta-base \
-    --checkpoint results/KD_PC/PC/train.py/4.8e-5_0.5_1/checkpoints/colbert-LAST.dnn \
-	--teacher_checkpoint ./results/NQ/NQ/train.py/1.5e-6_1/checkpoints/colbert-LAST.dnn \
+    --checkpoint ./results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
+    --teacher_checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/KD_XOR_out.log ;
 ```
 
-The result will be generated in:
+The trained model will be stored in:
 ```
-results/KD_XOR/train.py/6e-6_1/checkpoints
+results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 ```
 
 ## Step 3: Indexing
 ```
-OUTPUT_DIR="./results/post_training/"
-CP_PATH="./results/KD_XOR/XOR/train.py/6e-6_1/checkpoints/colbert-LAST.dnn"
-mkdir -pv ${OUTPUT_DIR}
-CHECKPOINT=colbert-LAST; python -m colbert.index \
+OUTPUT_DIR="./results/post_training/" ; \
+mkdir -pv ${OUTPUT_DIR} ; \
+CP_PATH="./results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn" ; \
+CHECKPOINT=colbert-LAST; 
+python examples/ir/run_ir.py \
+    --do_index \
+    --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
     --bsize 256 \
+    --similarity l2 \
     --checkpoint ${CP_PATH} \
     --collection ./data/psgs_w100.tsv \
-    --index_root ${OUTPUT_DIR} \
     --index_name ${CHECKPOINT}_index \
     --root ${OUTPUT_DIR} \
     --experiment ${CHECKPOINT} \
     --model_type xlm-roberta-base \
-    --similarity l2 \
+    --compression_level 2 \
 > ${OUTPUT_DIR}/${CHECKPOINT}_index.log ;
-
-CHECKPOINT=colbert-LAST python -m colbert.index_faiss \
-    --root ${OUTPUT_DIR}/index_faiss \
-    --index_root ${OUTPUT_DIR} \
-    --index_name ${CHECKPOINT}_index \
-    --partitions 16381 \
-    --sample 0.1 \
-    --experiment ${CHECKPOINT}_faiss \
-> ${OUTPUT_DIR}/${CHECKPOINT}_FAISS.log \
 ```
 
-The result will be generated in:
-```
-results/post_training/colbert-LAST_index
-```
+The index will be stored in `./results/post_training/colbert-LAST/colbert-LAST_index` directory.
 
 ## Step 4: Retrieval
 ```
-OUTPUT_DIR="../results/post_training/"
-CP_PATH="../results/KD_XOR/train.py/6e-6_1/checkpoints/colbert-LAST.dnn"
-CHECKPOINT=colbert-LAST python -m colbert.retrieve \
+OUTPUT_DIR="./results/post_training/" ; \
+CP_PATH="./results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn" ; \
+ CHECKPOINT=colbert-LAST ; \
+python examples/ir/run_ir.py \
+    --do_search \
+    --engine_type ColBERT \
     --doc_maxlen 180 \
     --mask-punctuation \
-    --bsize 64 \
-    --batch \
+    --bsize 4 \
+    --similarity l2 \
     --retrieve_only \
     --queries ./data/xortydi_dev.tsv \
-    --index_root ${OUTPUT_DIR} \
-    --index_name ${CHECKPOINT}_index \
     --checkpoint ${CP_PATH} \
-    --partitions 16381 \
-    --faiss_depth 1024 \
-    --compression_level -1 \
-    --nprobe 32 \
-    --similarity l2 \
-    --model_type xlm-roberta-base \
     --root ${OUTPUT_DIR} \
+    --index_name ${CHECKPOINT}_index \
     --experiment ${CHECKPOINT}_retrieve \
-> ${OUTPUT_DIR}/${CHECKPOINT}_retrieve.log  \
+    --nprobe 4 \
+    --ranks_fn ${OUTPUT_DIR}/colbert-LAST_retrieve.tsv \
+> ${OUTPUT_DIR}/${CHECKPOINT}_retrieve.log
 ```
 
-The result will be generated in:
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores will be stored in:
 ```
-results/post_training/colbert-LAST_retrieve
-```
-
-## Step 5: Reranking
-```
-OUTPUT_DIR="../results/post_training/"
-CP_PATH="../results/KD_XOR/train.py/6e-6_1/checkpoints/colbert-LAST.dnn"
-RETRIEVED_FN=\` ls ${OUTPUT_DIR}/${CHECKPOINT}_retrieve/${CHECKPOINT}_retrieve/retrieve.py/*/unordered.tsv \` CHECKPOINT=colbert-LAST python -m colbert.rerank \
-    --doc_maxlen 180 \
-    --mask-punctuation \
-    --similarity l2 \
-    --bsize 64 \
-    --batch \
-    --queries ././data/xortydi_dev.tsv \
-    --index_root ${OUTPUT_DIR} \
-    --index_name ${CHECKPOINT}_index \
-    --checkpoint ${CP_PATH} \
-    --model_type xlm-roberta-base \
-    --log-scores \
-    --partitions 16381 \
-    --compression_level -1 \
-    --topk \${RETRIEVED_FN} \
-    --root ${OUTPUT_DIR} \
-    --experiment ${CHECKPOINT}_rerank \
-> ${OUTPUT_DIR}/${CHECKPOINT}_rerank.log \
+results/post_training/colbert-LAST_retrieve.tsv
 ```
 
-The result will be generated in:
-```
-results/post_training/colbert-LAST_rerank
-```
+## Step 5: Relevance Scoring
 
-## Step 6: Relavance Scoring
-
-To obtain the relevance scores on the XOR-TyDi development set, run:
+To obtain the relevance scores on the XOR-TyDi development set, the scores have to be converted into XOR-TyDi format by running:
 
 ```
-python ./script/convert_colbert_results_to_xor.py -c ./data/psgs_w100.tsv -q ./data/xor_dev_retrieve_eng_span_v1.jsonl -p ./ranking.tsv -o ./ranking_xortydi_format.json
-python ./script/eval_xor_retrieve.py  --data_file ./data/xor_dev_retrieve_eng_span_v1.jsonl --pred_file ./ranking_xortydi_format.json > xorqa.metrics
+   python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py \
+    -c ./data/psgs_w100.tsv \
+    -q ./data/xor_dev_retrieve_eng_span_v1.jsonl \
+    -p ./results/post_training/colbert-LAST_retrieve.tsv \
+    -o ./results/post_training/colbert-LAST_retrieve_xortydi_format.json
 ```
 
-The output in `xorqa.metrics` contains records such as:
+Finally, to obtain the XOR-TyDi scores, run:
+```
+python ./script/eval_xor_retrieve.py \
+    --data_file ./data/xor_dev_retrieve_eng_span_v1.jsonl \
+    --pred_file ./results/post_training/colbert-LAST_retrieve_xortydi_format.json > ./results/post_training/xorqa.metrics
+```
+
+The output in `./results/post_training/xorqa.metrics` will contain records such as:
 
 ```
 Evaluating R@2kt
 performance on te (238 examples)
-79.41176470588235
+74.36974789915966
 performance on bn (304 examples)
-77.96052631578947
+73.35526315789474
 performance on fi (314 examples)
-65.92356687898089
+61.78343949044586
 performance on ja (241 examples)
-63.07053941908713
+50.20746887966805
 performance on ko (285 examples)
-60.35087719298245
+60.0
 performance on ru (237 examples)
-60.75949367088608
+54.43037974683544
 performance on ar (309 examples)
-65.69579288025889
+56.310679611650485
 Final macro averaged score: 
-67.59608015198104
+61.49385411223632
 Evaluating R@5kt
 performance on te (238 examples)
-83.19327731092437
+78.99159663865547
 performance on bn (304 examples)
-82.89473684210526
+81.25
 performance on fi (314 examples)
-72.61146496815286
+67.83439490445859
 performance on ja (241 examples)
-67.63485477178423
+59.33609958506224
 performance on ko (285 examples)
-68.0701754385965
+67.36842105263158
 performance on ru (237 examples)
-68.35443037974683
+63.29113924050633
 performance on ar (309 examples)
-73.13915857605178
+64.07766990291263
 Final macro averaged score: 
-73.699728326
+68.87847447488954
+```
