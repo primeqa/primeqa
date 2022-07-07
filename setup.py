@@ -68,7 +68,7 @@ _deps = {
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
-    "torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl": ["install"],
+    # "torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl": ["install"],
     "frozendict": ["install"],
     "nlp": ["install"],
     "sentencepiece~=0.1.96": ["install"],
@@ -95,7 +95,7 @@ extras["all"] = list(_deps)
 
 install_requires = extras["install"]
 
-python_version = sys.version_info
+python_version = sys.version_info.major,sys.version_info.minor
 
 
 if python_version == (3,7):
