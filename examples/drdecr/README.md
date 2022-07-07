@@ -59,7 +59,7 @@ Parallel Corpus training files use the following TSV format: `{ {English, non-En
 To download and pre-process additional data used in indexing and scoring, run:
 ```
 wget --output-document ./data/xor_dev_retrieve_eng_span_v1.jsonl https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_retrieve_eng_span_v1.jsonl
-python ./script/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file ./data/xor_dev_retrieve_eng_span_v1.jsonl  --output_file ./data/xortydi_dev.tsv
+python ../../primeqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file ./data/xor_dev_retrieve_eng_span_v1.jsonl  --output_file ./data/xortydi_dev.tsv
 ```
 ## Model Training, Indexing, Retrieval and Scoring
 
