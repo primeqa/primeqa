@@ -2,7 +2,7 @@
 
 This file provides instructions on how to train and test the Dr. DECR models (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185). 
 
-Similar models based on ColBERT V1, were used to obtain the results in Dr. DECR XOR-TyDi leaderboard whitebox (not using external APIs) submission.
+Similar models based on ColBERT V1 were used to obtain the results in the Dr. DECR XOR-TyDi leaderboard whitebox (not using external APIs) submission.
 
 ## Installation
 
