@@ -1,4 +1,4 @@
-#from transformers import TapasConfig, TapasForQuestionAnswering, AdamW
+import logging
 from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 from primeqa.tableqa.models.tableqa_model import TableQAModel
 from primeqa.tableqa.preprocessors.dataset import TableQADataset
@@ -63,9 +63,10 @@ class TableQAArguments:
 
 
 def main():
+    logger = logging.getLogger(__name__)
     parser = HfArgumentParser((TableQAArguments, TrainingArguments))
     tqa_args,training_args = parser.parse_args_into_dataclasses()
-    print(tqa_args)
+    logger.info(f"TableQA arguments are {tqa_args}")
     config = TapasConfig(tqa_args)
     tableqa_model = TableQAModel("google/tapas-base",config=config)
     model = tableqa_model.model
@@ -91,7 +92,7 @@ def main():
             trainer.save_metrics("train", metrics)
             trainer.save_state()
         if training_args.do_eval:
-            print("*** Evaluate ***")
+            logger.info("*** Evaluate ***")
             metrics = trainer.evaluate()
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)

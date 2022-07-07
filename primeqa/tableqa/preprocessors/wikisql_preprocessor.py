@@ -110,16 +110,4 @@ def load_data(out_dir,tokenizer):
     train_dataset = DatasetProcessor(train_data, tokenizer,root_dir)
     return train_dataset,dev_dataset
 
-def main(args):
-    print(" Main function")
-
-    
-
-if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--out_dir", help="Output directory to stor the processed data",
-                    type=str)
-    args = parser.parse_args()
-    main(args)
-
 
