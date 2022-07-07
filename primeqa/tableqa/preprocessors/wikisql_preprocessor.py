@@ -117,7 +117,7 @@ def main(args):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out_dir", help="Output directory to stor the processed data",
+    parser.add_argument("--out_dir", help="Output directory to store the processed data",
                     type=str)
     args = parser.parse_args()
     main(args)
