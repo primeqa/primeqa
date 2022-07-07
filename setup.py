@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from itertools import chain
 
 from setuptools import setup, find_packages
@@ -93,6 +94,16 @@ for package_name, package_required_by in _deps.items():
 extras["all"] = list(_deps)
 
 install_requires = extras["install"]
+
+python_version = sys.version_info
+
+
+if python_version == (3,7):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl")
+elif python_version == (3,8):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp38-cp38-linux_x86_64.whl")
+elif python_version == (3,9):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp39-cp39-linux_x86_64.whl")
 
 setup(
     name="prime-qa",
