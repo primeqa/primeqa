@@ -11,9 +11,9 @@ The following steps require PrimeQA to be [installed](../../README.md#Installati
 ## Data Preparation
 
 There are three datasets used to train Dr. DECR:
-* NQ (data containing English queries and passages)
-* XOR (data containg English queries and non-English passages)
-* Parallel Corpus (data containg parallel English and non-English passages)
+* [NQ](https://research.google/pubs/pub47761/) (data containing English queries and passages)
+* [XOR](https://nlp.cs.washington.edu/xorqa/XORQA_site/xorqa_datasheet.pdf) (data containg English queries and non-English passages)
+* [Parallel Corpus](https://opus.nlpl.eu) (data containg parallel English and non-English passages)
 
 To create **NQ** training data, run:
 ```

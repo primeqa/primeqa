@@ -3,6 +3,11 @@
 DATA='./data'
 mkdir -pv ${DATA}
 
+get_fixed_random()
+{
+  openssl enc -aes-256-ctr -pass pass:"$1" -nosalt </dev/zero 2>/dev/null
+}
+
 #Download all dataset from OPUS
 echo "Downloading datasets from OPUS:"
 declare -a languages=("ja" "ru" "ar" "te" "bn" "fi" "ko")
@@ -40,8 +45,6 @@ fi
 
 # Create tsv file including 7 language for 2 epoch
 echo "Creating tsv files:"
-source ./script/get_fixed_random.sh
-
 for lang in ${languages[@]};
 do
 	if [ ! -f "${DATA}/en-${lang}.tsv" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA='./data/XOR_bha'
+DATA='./data/XOR'
 mkdir -pv ${DATA}
 
 echo "Downloading the DPR corpus of English Wikpedia"
