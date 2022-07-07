@@ -95,16 +95,16 @@ python examples/ir/run_ir.py \
     --accum 6 \
     --maxsteps 91287 \
     --triples ./data/ColBERT.C3_3_20_biased200_triples_text.tsv \
-    --root ./results/NQ/ \
+    --root ./results \
     --experiment NQ \
     --similarity l2 \
     --model_type xlm-roberta-base \
 > ./results/NQ_out.log 
 ```
 The trained model will be stored in:
-```
-results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn 
-```
+`
+./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn 
+`
 
 ### NQ -> XOR
 
@@ -120,7 +120,7 @@ python examples/ir/run_ir.py \
     --accum 6 \
     --maxsteps 74704 \
     --triples ./data/XOR/data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
-    --root ./results/XOR/ \
+    --root ./results \
     --experiment XOR \
     --similarity l2 \
     --model_type xlm-roberta-base \
@@ -129,9 +129,8 @@ python examples/ir/run_ir.py \
 ```
 
 The trained model will be stored in:
-```
-results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
-```
+`
+./results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`
 
 In the following Knowledge Distillation (KD) steps, the model resulting from the `XLMR->NQ` training will be used as the teacher model, and the model resulting from the `NQ -> XOR` training will be used as the student starting point. 
 
@@ -166,9 +165,9 @@ python examples/ir/run_ir.py \
 ```
 
 The trained model will be stored in:
-```
+`
 results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
-```
+`
 
 ### KD with XOR Data
 ```
@@ -191,15 +190,15 @@ python examples/ir/run_ir.py \
     --similarity l2 \
     --model_type xlm-roberta-base \
     --teacher_model_type xlm-roberta-base \
-    --checkpoint ./results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
+    --checkpoint ./results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
     --teacher_checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/KD_XOR_out.log ;
 ```
 
 The trained model will be stored in:
-```
+`
 results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
-```
+`
 
 ## Step 3: Indexing
 ```
@@ -225,7 +224,8 @@ python examples/ir/run_ir.py \
 > ${OUTPUT_DIR}/${CHECKPOINT}_index.log ;
 ```
 
-The index will be stored in `./results/post_training/colbert-LAST/colbert-LAST_index` directory.
+The index will be stored in:
+`./results/post_training/colbert-LAST/colbert-LAST_index` directory.
 
 ## Step 4: Retrieval
 ```
@@ -251,9 +251,9 @@ python examples/ir/run_ir.py \
 ```
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores will be stored in:
-```
-results/post_training/colbert-LAST_retrieve.tsv
-```
+`
+./results/post_training/colbert-LAST_retrieve.tsv
+`
 
 ## Step 5: Relevance Scoring
 
@@ -269,10 +269,12 @@ To obtain the relevance scores on the XOR-TyDi development set, the scores have 
 
 Finally, to obtain the XOR-TyDi scores, run:
 ```
-python ./script/eval_xor_retrieve.py \
+python eval_xor_retrieve.py \
     --data_file ./data/xor_dev_retrieve_eng_span_v1.jsonl \
     --pred_file ./results/post_training/colbert-LAST_retrieve_xortydi_format.json > ./results/post_training/xorqa.metrics
 ```
+
+The `eval_xor_retrieve.py` script can be downloaded from the XORTyDI repo here: https://github.com/AkariAsai/XORQA
 
 The output in `./results/post_training/xorqa.metrics` will contain records such as:
 
