@@ -22,6 +22,7 @@ source ./script/create_NQ.sh
 The output is in:
 ```
 ./data/ColBERT.C3_3_20_biased200_triples_text.tsv
+./data/psgs_w100.tsv
 ```
 
 To create **XOR** training data:
@@ -34,9 +35,9 @@ into the directory, then run:
 ```
 source ./script/create_XOR.sh
 ```
-The output is in:
+The output files are: 
 ```
-./data/XOR/xortydi_ir_negs_poss.json
+./data/xortydi_ir_negs_poss.json
 ./data/xorqa_triples_3poss_100neg_5ep_randTrue.tsv (17125570 lines)
 ./data/xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv (17125570 lines)
 ```
