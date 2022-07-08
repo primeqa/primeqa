@@ -1,6 +1,42 @@
 # Machine Reading Comprehension (MRC)
 
-The primary script is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
+If you want to perform a sample usage of the MRC component within PrimeQA on your example data you can run the following:
+
+ - Step 1:  Initialize your reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
+```shell
+import json
+from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
+reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+```
+- Step 2: Execute the reader in inference mode:
+```shell
+question = "Which country is Canberra located in?"
+context = """Canberra is the capital city of Australia. 
+Founded following the federation of the colonies of Australia 
+as the seat of government for the new nation, it is Australia's 
+largest inland city"""
+answers = reader.predict(question,context)  
+print(json.dumps(answers, indent=4))  
+```
+The above statements will generate an output in the form of a dictionary:
+```shell
+[
+    {
+        "span_answer_text": "Australia",
+        "confidence_score": 0.7988516960240685
+    },
+    {
+        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+        "confidence_score": 0.10721889035823319
+    },
+    {
+        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
+        "confidence_score": 0.09392941361769835
+    }
+]
+```
+
+If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported Datasets
