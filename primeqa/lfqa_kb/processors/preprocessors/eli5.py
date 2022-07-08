@@ -8,6 +8,10 @@ import torch
 # from 
 # https://github.com/facebookresearch/FiD/blob/25ed1ff0fe0288b80fb5e9e5de8d6346b94b8d48/src/data.py#L73
 def encode_passages(batch_text_passages, tokenizer, max_length):
+    '''
+    Param: 
+        batch_text_passages: (bsz, n_doc, )
+    '''
     passage_ids, passage_masks = [], []
     for text_passages in batch_text_passages:
         # p = tokenizer.batch_encode_plus(
@@ -38,6 +42,7 @@ def preprocess_eli5_function_fid(examples, data_args, tokenizer, max_seq_length,
     model_inputs["input_ids"] = passage_ids
     model_inputs["attention_mask"] = passage_masks
     model_inputs["labels"] = labels["input_ids"]
+    model_inputs["example_id"] = indexes
     return model_inputs
 
 
@@ -62,7 +67,7 @@ def preprocess_eli5_validation_function_fid(examples, data_args, tokenizer, max_
     return model_inputs
 
 def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[str], List[str]]:
-    indices = examples["id"]
+    indices = []
     questions = examples[data_args.question_column]
     answers = examples[data_args.answer_column]
     contexts = examples[data_args.context_column]
@@ -84,6 +89,7 @@ def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[s
             if len(answer_list) == 0:
                 inputs.append(question_passages)
                 targets.append("")  
+                indices.append(examples["id"][idx])
             else: # multiple answers
                 for answer_data in answer_list:
                     a = answer_data["answer"]
@@ -91,6 +97,7 @@ def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[s
                     if answer_score >= 3: # only takes answers whose score>3
                         inputs.append(question_passages)
                         targets.append(a)
+                        indices.append(examples["id"][idx])
                     
     elif mode == "eval": # for evaluation only take each question once
         inputs = []
@@ -98,6 +105,7 @@ def preprocess_eli5_batch_fid(examples, data_args, mode="train") -> Tuple[List[s
             passages = top_passages(contexts[idx])
             question_passages = append_question(passages, q)
             inputs.append(question_passages)
+            indices.append(examples["id"][idx])
         targets = [answer[0]["answer"] if len(answer) > 0 else "" for answer in answers]
     else:
         raise ValueError("mode requires eval or train")
