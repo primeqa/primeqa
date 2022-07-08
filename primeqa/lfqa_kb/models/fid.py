@@ -75,6 +75,7 @@ class FiDBART(transformers.BartForConditionalGeneration):
     
     def set_checkpoint(self, use_checkpoint):
         """
+        FIXME might be deprecated
         Enable or disable checkpointing in the encoder.
         See https://pytorch.org/docs/stable/checkpoint.html
         """
