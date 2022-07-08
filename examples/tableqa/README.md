@@ -15,9 +15,9 @@ Currently supported dataset
 An example usage for training and evaluation of TableQA model on default WikiSQL dataset :
 ```shell
 python examples/tableqa/run_tableqa.py --do_train \
-        --model_name_or_path "tapas-base" --do_eval \
+        --model_name_or_path "google/tapas-base" --do_eval \
         --dataset_name "wikisql" \
-        --data_path_root "data/wikisql" \
+        --data_path_root "data/wikisql/" \
         --output_dir <output_dir_path_to_save_the_model> \
         --learning_rate 4e-4
 ```
@@ -25,7 +25,7 @@ To train the model on user's data:
 
 ```shell
 python examples/tableqa/run_tableqa.py --do_train \
-        --model_name_or_path "tapas-base" --do_eval \
+        --model_name_or_path "google/tapas-base" --do_eval \
         --dataset_name "wikisql" \
         --data_path_root "data/my_root_dir" \
         --train_data_path "data/my_root_dir/train.tsv" \
@@ -42,7 +42,8 @@ The format of dataset required for training and evaluation is:
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
 
-Refer to [notebooks](../notebooks/tableqa/) for knowing about how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+Refer to [notebooks](../notebooks/tableqa/tableqa_inference.ipynb) for knowing about how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+
 
 
 

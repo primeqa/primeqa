@@ -89,7 +89,7 @@ def get_answer(table,sql):
     answer_text,table = _execute_sql(sql,table)
     return answer_text,table
 
-def load_data(out_dir,tokenizer):
+def load_data(out_dir,tokenizer,subset_train=-1,subset_dev=-1):
     """Main function which downloads the wikisql data from huggingface, converts it into required format and preprocessed it and returns the Dataset objects.
 
     Args:
@@ -102,6 +102,10 @@ def load_data(out_dir,tokenizer):
     print("Preprocessing wikisql dataset")
     dataset_dev = load_dataset('wikisql', split=nlp.Split.VALIDATION)
     dataset_train = load_dataset('wikisql', split=nlp.Split.TRAIN)
+    if(subset_dev>-1):
+        dataset_dev=dataset_dev.select(range(subset_dev))
+    if(subset_train>-1):
+        dataset_train=dataset_train.select(range(subset_train))
     root_dir,train_data_path = preprocess_wikisql(out_dir,dataset_train,"train")
     root_dir,dev_data_path  = preprocess_wikisql(out_dir,dataset_dev,"dev")
     dev_data = pd.read_csv(dev_data_path, sep='\t')
