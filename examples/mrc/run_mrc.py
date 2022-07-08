@@ -459,7 +459,7 @@ def main():
         metrics = trainer.evaluate()
 
         max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-        metrics["eval_samples"] = min(max_eval_samples, len(eval_dataset))
+        metrics["eval_samples"] = min(max_eval_samples, len(eval_examples))
 
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
@@ -490,8 +490,11 @@ def main():
 
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)
+            
         references = postprocessor.prepare_examples_as_references(eval_examples)
         boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+        boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+        trainer.log_metrics("eval", boolean_eval_metric)
         path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
         with open(path, "w") as f:
             json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
