@@ -178,7 +178,7 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
 
     def get_annotations(self, annotations, paragraphs):
         """
-        Process NQ annotations into TyDi format.
+        Process NQ annotations into preprocessor format.
         """
 
         tydi_annotations = {}
