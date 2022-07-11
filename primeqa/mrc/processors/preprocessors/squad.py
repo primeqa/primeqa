@@ -11,13 +11,6 @@ class SQUADPreprocessor(BasePreProcessor):
     Note this preprocessor only supports `single_context_multiple_passages=True` and will
     override the value accordingly.
     """
-    _feature_types = {'question': Value(dtype='string', id=None),
-                      'context': Value(dtype='string', id=None)}
-    _train_feature_types = {
-        'answers': Sequence(feature={
-                   'text': Value(dtype='string', id=None),
-                   'answer_start': Value(dtype='int32', id=None)})
-    }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,16 +35,19 @@ class SQUADPreprocessor(BasePreProcessor):
         target = example.pop('answers')
         target["start_positions"] = target.pop("answer_start")
         target["end_positions"] = [s + len(t) for (s,t) in zip(target["start_positions"],target["text"])]
-        target.pop("text")
         target["passage_indices"] = [0 for _ in target["start_positions"]]
         target["yes_no_answer"] = ['NONE' for _ in target["start_positions"]]
         example['target'] = target
         
+        # this is to fix issue in the XQUAD.ZH dataset
+        # the answer offset is not correct
+        # rely on the original answer text
+        example["answer_text"] = target.pop("text")
+        
         passage_candidates = {"start_positions": [0],
                                "end_positions" : [len(example["context"])]}
         example['passage_candidates'] = passage_candidates
-        
         context = [ example['context'] ]
         example['context'] = context  
-        
+      
         return example
