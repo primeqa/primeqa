@@ -107,7 +107,6 @@ class Arguments():
         self.add_argument('--collection', dest='collection', required=True)
         self.add_argument('--index_root', dest='index_root', required=True)
         self.add_argument('--index_name', dest='index_name', required=True)
-        self.add_argument('--num_partitions_max', dest='num_partitions_max', default=10000000, type=int)
 
     def add_compressed_index_input(self):
         self.add_argument('--nbits', dest='nbits', choices=[1, 2, 4], type=int, default=1)
