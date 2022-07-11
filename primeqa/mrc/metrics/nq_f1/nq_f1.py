@@ -67,7 +67,7 @@ class NQF1(datasets.Metric):
                     predictions={**self._common_answer_schema, **self._pred_answer_schema},
                     references=datasets.Sequence(feature={**self._common_answer_schema, **self._ref_answer_schema})
                 )),
-            reference_urls=["https://github.com/google-research-datasets/tydiqa/blob/master/tydi_eval.py"],
+            reference_urls=["https://github.com/google-research-datasets/natural-questions/blob/master/nq_eval.py"],
         )
 
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
