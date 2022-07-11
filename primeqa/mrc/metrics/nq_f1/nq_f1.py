@@ -92,7 +92,6 @@ class NQF1(datasets.Metric):
             short_non_null_threshold=short_non_null_threshold)
 
         metrics = pretty_print(long_answer_stats=long_answer_stats, short_answer_stats=short_answer_stats)
-        # metrics = get_metrics_with_answer_stats(long_answer_stats, short_answer_stats)
         return metrics
 
     def _convert_ref_to_entry(self, ref: dict) -> Tuple[str, List[NQLabel]]:
