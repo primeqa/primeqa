@@ -39,5 +39,6 @@ jobs:
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers/test_mrc.py  tests/primeqa/mrc
           pytest -s --cov primeqa/mrc/trainers --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/trainers/test_mrc.py 
+          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=20 --ignore tests/primeqa/ir --ignore tests/primeqa/mrc tests/primeqa
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
