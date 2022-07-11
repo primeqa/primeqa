@@ -6,7 +6,6 @@ from primeqa.mrc.metrics.nq_f1.eval_utils import NQLabel, NQSpan
 from primeqa.mrc.metrics.nq_f1.nq_eval import pretty_print, get_metrics_with_answer_stats, score_answers
 from primeqa.mrc.data_models.target_type import TargetType
 
-# TODO: NQ F1 doc
 
 _DESCRIPTION = """
 The F1 score is the harmonic mean of the precision and recall. It can be computed with:
