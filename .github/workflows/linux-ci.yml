@@ -1,4 +1,4 @@
-name: Linux CI ALL
+name: linux-ci
 on:
   push:
     branches: [ "main" ]
