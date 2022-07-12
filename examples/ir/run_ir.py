@@ -11,7 +11,7 @@ import logging
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
-#from primeqa.ir.sparse.bm25_engine import BM25Engine
+from primeqa.ir.sparse.bm25_engine import BM25Engine
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
