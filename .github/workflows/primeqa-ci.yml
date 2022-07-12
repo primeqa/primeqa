@@ -1,0 +1,52 @@
+name: primeqa-ci
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9"]
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .[all]
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+          free
+      - name: Run tests
+        run: |
+          echo "******* Running tests *******"
+          echo "Run IR tests"
+          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
+          echo "Run MRC tests excluding trainer"
+          pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers/test_mrc.py  tests/primeqa/mrc
+          echo "Run MRC trainer tests"
+          pytest -s --cov primeqa/mrc/trainers --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/trainers/test_mrc.py 
+          echo "Remove datasets cache to free disk space"
+          du -h /home/runner/.cache/huggingface/datasets/
+          rm -rf /home/runner/.cache/huggingface/datasets/
+          echo "Run all except IR and MRC tests"
+          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=20 --ignore tests/primeqa/ir --ignore tests/primeqa/mrc tests/primeqa
+          echo "******* Finished running tests *******"
+      - run: echo "🍏 This job's status is ${{ job.status }}."
