@@ -63,6 +63,16 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
 
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool, keep_html: bool=True) -> Dataset:
+        """
+        Process dataset examples to rename fields, create context and set answer offset.
+        Args:
+             dataset: Dataset to be processed.
+             is_train: True for training otherwise False.
+             keep_html: True if keep html token in context otherwise false.
+        Returns:
+             Precossed dataset.
+        """
+        
         self.validate_schema(dataset, is_train)
         dataset = dataset.map(
             functools.partial(self._rename_examples_create_context_and_adjust_offset, is_train=is_train, keep_html=keep_html),
@@ -75,9 +85,16 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
 
     def _rename_examples_create_context_and_adjust_offset(self, example: Example, is_train: bool, keep_html: bool=True):
         """
-        Rename examples to `BasePreProcessor` schema,
+        Rename examples to BasePreProcessor schema,
         create context from document token,
-        and set the start/end positions of target and passage candidates to the new context
+        and set the start/end positions of target and passage candidates to the new context.
+        
+        Args:
+             example: Dataset example.
+             is_train: True for training otherwise False.
+             keep_html: True if keep html token in context otherwise false.
+        Returns:
+             Precossed example.
         """
 
         # rename example
@@ -179,6 +196,11 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
     def get_annotations(self, annotations, paragraphs):
         """
         Process NQ annotations into preprocessor format.
+        Args:
+             annotations: Annotations of NQ example.
+             paragraphs: Passage_candidates of NQ example.
+        Returns:
+             Annotations in preprocessor format.
         """
 
         tydi_annotations = {}
