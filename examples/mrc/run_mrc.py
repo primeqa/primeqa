@@ -362,20 +362,12 @@ def main():
             data_files=data_files,
             cache_dir=model_args.cache_dir)
     else:
-        if data_args.beam_runner:
-            raw_datasets = datasets.load_dataset(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                cache_dir=model_args.cache_dir,
-                beam_runner=data_args.beam_runner
-            )
-        else:
-            raw_datasets = datasets.load_dataset(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                cache_dir=model_args.cache_dir
-            )
-
+        raw_datasets = datasets.load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
+            cache_dir=model_args.cache_dir,
+            beam_runner=data_args.beam_runner
+        )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
