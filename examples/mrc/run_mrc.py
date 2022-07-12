@@ -204,7 +204,7 @@ class DataTrainingArguments:
     beam_runner: str = field(
         default=None,
         metadata={"help": "The beam runner for loading large dataset.",
-                  "choices": 'DirectRunner',
+                  "choices": ['DirectRunner'],
                   }
     )
 
