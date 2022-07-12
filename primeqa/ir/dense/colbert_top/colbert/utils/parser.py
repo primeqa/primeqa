@@ -45,7 +45,7 @@ class Arguments():
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
         self.add_argument('--bsize', dest='bsize', default=32, type=int)
-        self.add_argument('--accumsteps', dest='accumsteps', default=2, type=int)
+        self.add_argument('--accumsteps', dest='accumsteps', default=1, type=int)
         self.add_argument('--amp', dest='amp', default=False, action='store_true')
         # adding shuffle option
         self.add_argument('--shuffle_every_epoch', dest='shuffle_every_epoch', default=False, action='store_true')
