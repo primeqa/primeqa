@@ -97,7 +97,6 @@ def main():
             colbert_parser.add_model_inference_parameters()
             colbert_parser.add_indexing_input()
             colbert_parser.add_compressed_index_input()
-            colbert_parser.add_argument('--kmeans_niters', dest='kmeans_niters', default=20, type=int)
             colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
             args = colbert_parser.parse()
 
