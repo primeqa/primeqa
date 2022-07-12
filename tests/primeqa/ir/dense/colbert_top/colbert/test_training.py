@@ -63,7 +63,6 @@ class TestTraining(UnitTest):
                     colBERTConfig = ColBERTConfig(**args_dict)
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
 
-                    # Use smaller model for ST to enable Github Actions CI
                     if model_type == 'bert-base-uncased':
 
                         # reading numerical training triples
