@@ -11,7 +11,7 @@ import logging
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
-from primeqa.ir.sparse.bm25_engine import BM25Engine
+#from primeqa.ir.sparse.bm25_engine import BM25Engine
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -97,7 +97,6 @@ def main():
             colbert_parser.add_model_inference_parameters()
             colbert_parser.add_indexing_input()
             colbert_parser.add_compressed_index_input()
-            colbert_parser.add_argument('--kmeans_niters', dest='kmeans_niters', default=20, type=int)
             colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
             args = colbert_parser.parse()
 
