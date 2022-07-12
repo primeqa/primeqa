@@ -22,17 +22,17 @@ class TestNQF1(UnitTest):
             [dict(start_position=-1, end_position=-1, passage_index=-1,
                   yes_no_answer=TargetType.NO_ANSWER, example_id='6092', language='english')] * 4 +
             [dict(start_position=44318, end_position=44657, passage_index=0,
-                  yes_no_answer=TargetType.YES, example_id='6092', language='english')],
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='6092', language='english')],
 
             [dict(start_position=-1, end_position=-1, passage_index=-1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='7647', language='english')] * n_annotators,
+                  yes_no_answer=TargetType.NO, example_id='7647', language='english')] * n_annotators,
 
             [dict(start_position=-1, end_position=-1, passage_index=-1,
-                  yes_no_answer=TargetType.NO_ANSWER, example_id='9484', language='english')] +
+                  yes_no_answer=TargetType.YES, example_id='9484', language='english')] +
             [dict(start_position=37907, end_position=37946, passage_index=1,
-                  yes_no_answer=TargetType.NO, example_id='9484', language='english')] * 2 +
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='9484', language='english')] * 2 +
             [dict(start_position=37907, end_position=37930, passage_index=1,
-                  yes_no_answer=TargetType.YES, example_id='9484', language='english')] * 2
+                  yes_no_answer=TargetType.NO_ANSWER, example_id='9484', language='english')] * 2
         ]
         predictions = [
             dict(start_position=50425, end_position=50485, passage_index=4,
@@ -64,7 +64,7 @@ class TestNQF1(UnitTest):
         actual_metric_values = metric.compute()
         expected_metric_values = {
             "long_answer_f1": 0.5, "long_answer_n": 3, "long_answer_precision": 1.0/3, "long_answer_recall": 1.0,
-            "short_answer_f1": 0.5, "short_answer_n": 3, "short_answer_precision": 1.0/3, "short_answer_recall": 1.0
+            "short_answer_f1": 0.8, "short_answer_n": 3, "short_answer_precision": 2.0/3, "short_answer_recall": 1.0
         }
         assert actual_metric_values == expected_metric_values
 
