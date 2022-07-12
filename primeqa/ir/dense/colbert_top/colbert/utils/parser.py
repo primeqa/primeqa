@@ -28,7 +28,9 @@ class Arguments():
         self.add_argument('--doc_maxlen', dest='doc_maxlen', default=180, type=int)
 
         # Filtering-related Arguments
-        self.add_argument('--mask-punctuation', dest='mask_punctuation', default=True, action='store_true')
+        self.add_argument('---mask-punctuation', dest='mask_punctuation', action='store_true')
+        self.add_argument('--no-mask-punctuation', dest='mask_punctuation', action='store_false')
+        self.parser.set_defaults(mask_punctuation=True)
 
         # for handling models in local repository
         self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
