@@ -27,6 +27,7 @@ from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from examples.boolqa.run_boolqa_classifier import main as cls_main
 from examples.boolqa.run_score_normalizer import main as sn_main
@@ -219,7 +220,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor]
                   }
     )
     postprocessor: object_reference = field(
