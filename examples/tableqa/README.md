@@ -1,6 +1,6 @@
 # Table Question Answering(TableQA) model for question answering over tables
 
-The primary script is [run_tableqa.py](./run_tableqa.py).  This runs a tapas based tableQA pipeline.
+The primary script is [run_tableqa.py](./run_tableqa.py).  This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported Datasets
