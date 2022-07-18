@@ -237,3 +237,43 @@ class MRCTrainer(Trainer):
 
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
         return metrics
+    
+    def predict(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
+        """
+        Obtain the predictions using either eval data passed to method (if given).
+        Otherwise use data given to constructor at instantiation.
+
+        Args:
+            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            ignore_keys: Keys to ignore in evaluation loop.
+
+        Returns:
+            Answer predictions if post-processing function was provided to constructor 
+            at instantiation, otherwise an empty dict.
+        """
+        eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
+        eval_dataloader = self.get_eval_dataloader(eval_dataset)
+        eval_examples = self.eval_examples if eval_examples is None else eval_examples
+
+        
+        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        try:
+            output = eval_loop(
+                eval_dataloader,
+                description="Evaluation",
+                # No point gathering the predictions if there are no metrics, otherwise we defer to
+                # self.args.prediction_loss_only
+                # gather predictions if running in eval mode
+                prediction_loss_only=self.args.prediction_loss_only, #True if compute_metrics is None else None,
+                ignore_keys=ignore_keys,
+            )
+        finally:
+            pass
+
+        if self.post_process_function is not None:
+            eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+        else:
+            eval_preds = {}
+
+        return eval_preds

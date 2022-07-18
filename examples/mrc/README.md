@@ -1,6 +1,42 @@
 # Machine Reading Comprehension (MRC)
 
-The primary script is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
+If you want to perform a sample usage of the MRC component within PrimeQA on your example data you can run the following:
+
+ - Step 1:  Initialize your reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
+```shell
+import json
+from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
+reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+```
+- Step 2: Execute the reader in inference mode:
+```shell
+question = "Which country is Canberra located in?"
+context = """Canberra is the capital city of Australia. 
+Founded following the federation of the colonies of Australia 
+as the seat of government for the new nation, it is Australia's 
+largest inland city"""
+answers = reader.predict(question,context)  
+print(json.dumps(answers, indent=4))  
+```
+The above statements will generate an output in the form of a dictionary:
+```shell
+[
+    {
+        "span_answer_text": "Australia",
+        "confidence_score": 0.7988516960240685
+    },
+    {
+        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+        "confidence_score": 0.10721889035823319
+    },
+    {
+        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
+        "confidence_score": 0.09392941361769835
+    }
+]
+```
+
+If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 ## Supported Datasets
@@ -11,6 +47,9 @@ Currently supported datasets include:
 - MLQA
 
 ## Example Usage
+
+ - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
+
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
@@ -18,7 +57,26 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --do_train --do_eval --per_device_train_batch_size 16 \
        --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
-       --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
+       --overwrite_output_dir --num_train_epochs 1 
+       --evaluation_strategy no --overwrite_cache
+```
+This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
+Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
+depending on your hardware configuration.
+
+The trained model is available [here](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large).
+
+This yields the following results:
+```
+***** eval metrics *****
+epoch = 1.0
+eval_avg_minimal_f1 = 0.6745
+eval_avg_minimal_precision = 0.7331
+eval_avg_minimal_recall = 0.628
+eval_avg_passage_f1 = 0.7215
+eval_avg_passage_precision = 0.7403
+eval_avg_passage_recall = 0.7061
+eval_samples = 18670
 ```
 
 For just training:
@@ -27,33 +85,28 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --output_dir ${TRAINING_OUTPUT_DIR} --fp16 --learning_rate 4e-5 \
        --do_train --per_device_train_batch_size 16 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
-       --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no
+       --overwrite_output_dir --num_train_epochs 1 
+       --evaluation_strategy no --overwrite_cache
 ```
 
 For just eval:
 ```shell
 python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
-       --per_device_eval_batch_size 128 --overwrite_output_dir
+       --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
 
-For eval-only TyDiQA with support for boolean questions (for [details](../boolqa/README.md)):
-```shell
-python examples/mrc/run_mrc.py --model_name_or_path ibm/tydiqa-primary-task-xlm-roberta-large \
-       --output_dir ${OUTPUT_DIR} --fp16 \
-       --per_device_eval_batch_size 128 --overwrite_output_dir \
-       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
-```
-
+- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) estimate of your fine-tuned model use the following:
 
 
 For eval with confidence calibration, add the following additional command line arguments:
 ```shell
-      --output_dropout_rate 0.25 \
+       --output_dropout_rate 0.25 \
        --decoding_times_with_dropout 5 \
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
+ - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
@@ -61,8 +114,16 @@ For the SQUAD 1.1 dataset use the folowing additional command line arguments for
        --dataset_config_name plain_text \
        --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-       --eval_metrics squad 
+       --eval_metrics SQUAD 
 ```
+This yields the following results:
+```
+***** eval metrics ***** 
+eval_exact_match = 88.7133
+eval_f1          = 94.3525
+```
+ - Dataset: [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
+
 
 For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all languages are supported.
@@ -74,6 +135,14 @@ For the XQuAD in ZH use the following command line arguments for eval:
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics SQUAD 
 ```
+This yields the following results:
+
+|  | en   | es   |  de  |  el |  ru  |  tr | ar  | vi  | th | zh | hi |
+|--| ---- | -----|------|-----|------|-----|-----|-----|----|----|----|
+|F1| 87.5 | 82.1 | 80.7 |81.5 | 80.0 | 75.0| 75.1| 80.0|75.3|70.3|77.2|
+|EM| 76.7 | 63.4 | 65.4 |64.2 | 63.6 | 59.3| 59.1| 61.3|65.5|62.2|61.8|
+
+ - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all language combinations are supported.
@@ -85,8 +154,40 @@ For the MLQA configuration with context language EN and question language DE use
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics MLQA 
 ```
+This yields the following results:
 
-For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1. See `examples/listqa/README.md` for more information and a use case using NQ list data:
+|  | en   | es   |  de  |  ar |  hi  |  vi | zh  |
+|--| ---- | -----|------|-----|------|-----|-----|
+|F1| 84.8 | 75.9 | 68.8 |67.7 | 72.1 | 71.8| 69.8|
+|EM| 72.9 | 57.2 | 52.7 |46.6 | 55.6 | 52.1| 50.0|
+
+ -  PrimeQA also supports special Features for MRC systems as follows:
+
+ -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
+```shell
+python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+       --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
+       --per_device_eval_batch_size 128 --overwrite_output_dir \
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+```
+The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/PrimeQA/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/PrimeQA/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/PrimeQA/tydiqa-primary-task-xlm-roberta-large). This setup is based on the top submission to the minimal answer leaderboard (hidden blind test) for TyDI (as of 7/2/2022).
+
+This yields the following results:
+```
+***** eval metrics *****
+epoch = 1.0
+eval_avg_minimal_f1 = 0.7151
+eval_avg_minimal_precision = 0.7229
+eval_avg_minimal_recall = 0.7097
+eval_avg_passage_f1 = 0.7447
+eval_avg_passage_precision = 0.7496
+eval_avg_passage_recall = 0.7433
+eval_samples = 18670
+```
+
+ - PrimeQA also supports answering questions to which answers are collective e.g. lists.
+
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
        --learning_rate 5e-05 \
@@ -94,12 +195,12 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --passage_non_null_threshold 1 \
        --minimal_non_null_threshold 1 \
 ```
+This yields the following results on English only using the TyDi evaluation script with two training strategies:
+```
+xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
+xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
+```
 
-This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
-Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
-depending on your hardware configuration.
-
-The dataset name and config are currently omitted as only TyDi is supported at the moment.
 
 ### Task Arguments
 
