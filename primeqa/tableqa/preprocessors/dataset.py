@@ -1,8 +1,6 @@
 from cmath import nan
 import torch
 import pandas as pd
-from nlp import load_dataset
-import nlp
 import ast
 
 class DatasetProcessor(torch.utils.data.Dataset):
