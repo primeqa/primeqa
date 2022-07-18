@@ -1,11 +1,12 @@
+from OneQA.primeqa.tableqa.utils.wikisql_utils import add_column_types
 from primeqa.tableqa.preprocessors.convert_to_sqa_format import parse_question
-from primeqa.tableqa.preprocessors.dataset import TableQADataset
-from primeqa.tableqa.utils.wikisql_utils import _execute_sql
+from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
+from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
+
 import pandas as pd
 import csv
 import nlp
 from nlp import load_dataset
-import argparse
 import os
 from primeqa.tableqa.preprocessors.dataset import DatasetProcessor
 from pathlib import Path
@@ -86,7 +87,8 @@ def get_answer(table,sql):
         str,Dict: Returns the answer text and the corrected table
     """
     answer_text = None
-    answer_text,table = _execute_sql(sql,table)
+    table = SimpleSqlSampler.add_column_types(table)
+    answer_text,table = WikiSqlDataset._execute_sql(sql,table)
     return answer_text,table
 
 def load_data(out_dir,tokenizer,subset_train=-1,subset_dev=-1):
