@@ -1,4 +1,3 @@
-from OneQA.primeqa.tableqa.utils.wikisql_utils import add_column_types
 from primeqa.tableqa.preprocessors.convert_to_sqa_format import parse_question
 from primeqa.qg.processors.table_qg.wikisql_processor import WikiSqlDataset
 from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
@@ -88,7 +87,7 @@ def get_answer(table,sql):
     """
     answer_text = None
     table = SimpleSqlSampler.add_column_types(table)
-    answer_text,table = WikiSqlDataset._execute_sql(sql,table)
+    answer_text= WikiSqlDataset._execute_sql(sql,table)
     return answer_text,table
 
 def load_data(out_dir,tokenizer,subset_train=-1,subset_dev=-1):
