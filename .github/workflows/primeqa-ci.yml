@@ -39,12 +39,14 @@ jobs:
         run: |
           top -bn1 | head -20
           echo "******* Running tests *******"
+          echo "******* RAM size *****"
+          lshw -c memory
+          echo "Run IR tests"
+          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
           echo "Run MRC tests excluding trainer"
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers/test_mrc.py  tests/primeqa/mrc
           echo "Run MRC trainer tests"
           pytest -s --cov primeqa/mrc/trainers --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/trainers/test_mrc.py 
-          echo "Run IR tests"
-          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
           echo "Remove datasets cache to free disk space"
           du -h /home/runner/.cache/huggingface/datasets/
           rm -rf /home/runner/.cache/huggingface/datasets/
