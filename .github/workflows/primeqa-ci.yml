@@ -37,7 +37,6 @@ jobs:
           free
       - name: Run tests
         run: |
-          top -bn1 | head -20
           echo "******* Running tests *******"
           echo "******* RAM size *****"
           lshw -c memory
