@@ -40,6 +40,7 @@ jobs:
         run: |
           echo "******* Running tests *******"
           echo "******* RAM size *****"
+          top -bn1 | head -20
           lshw -c memory
           echo "Run IR tests"
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
