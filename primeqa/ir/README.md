@@ -10,9 +10,18 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 
 ### Model Training
 
-Here is an example of a training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of \<query>, <positive_passage>, <negative_passage> triples.
+Here is an example of a training command for a Question Anwering model.
 
-todo: please add example snippet of how train + corpus file look like (just a couple lines please)
+The command uses training data in a _.tsv_ (tabulator character separated) file, containing training examples in the form of _[query, positive_passage, negative_passage]_ triples. An example of a training data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv).
+
+This table shows two lines from the file, with the positive and negative passages truncated:
+
+| query | positive_passage | negative_passage                                                           |
+|-------|-------|----------------------------------------------------------------------------|
+| 중국에서 가장 오랜기간 왕위를 유지한 인물은 누구인가? | "Kangxi Emperor The Kangxi Emperors reign of 61 years ... | Chiddy Bang new songs from the duo and in November 2009 debuted...         |
+| 중국에서 가장 오랜기간 왕위를 유지한 인물은 누구인가? | Kangxi Emperor The Kangxi Emperors reign of 61 years ... | Emperor Zhi Yao. The Bamboo Annals says that when Emperor Zhuanxu died ... |
+(English translation of the original Korean query is "_Who maintained the throne for the longest time in China?_")
+
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -37,7 +46,18 @@ The trained model is stored in `<experiments_root_directory>/<experiment_label>/
  
 ### Indexing
 
-Here is an example of an indexing run, using a model as trained in the previous step.
+Here is an example of an indexing command, using a model as trained in the previous step.
+
+The command uses corpus (collection) data in a _.tsv_ file, containing collection records in the form of _[ID, text, title]_ triples. The first line of the file contains a header record.
+An example of a collection file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv).
+
+This table shows the three lines from the file, with _text_ fields truncated:
+
+| id | text | title |
+|----|-------|-------|
+| 1 | "The Kangxi Emperor's reign of 61 years ... | Kangxi Emperor |
+| 2 | Yao. The Bamboo Annals says that when Emperor Zhuanxu died ... | Emperor Zhi |
+
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -59,7 +79,10 @@ The index is stored in `<experiments_root_directory>/<experiment_label>/<index_l
 
 ### Retrieval
 
-Here is an example of a retrieval (search) run, using a model and index as created in the previous two steps.
+Here is an example of a retrieval (search) command, using a model and index as created in the previous two steps.
+
+The command uses queries (questions) in a _.tsv_ file in the form of _[ID, text]_ records.
+An example of a training data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
 
 ```shell
 python primeqa/ir/run_ir.py \
