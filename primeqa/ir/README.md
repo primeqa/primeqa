@@ -13,7 +13,7 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 Here is an example of a training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of \<query>, <positive_passage>, <negative_passage> triples.
 
 ```shell
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -38,7 +38,7 @@ The trained model is stored in `<experiments_root_directory>/<experiment_label>/
 Here is an example of an indexing run, using a model as trained in the previous step.
 
 ```shell
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
     --doc_maxlen 180 \
@@ -60,7 +60,7 @@ The index is stored in `<experiments_root_directory>/<experiment_label>/<index_l
 Here is an example of a retrieval (search) run, using a model and index as created in the previous two steps.
 
 ```shell
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
     --amp \
@@ -164,7 +164,7 @@ Output:
  ```
 3. Run:
   ```shell
-   python examples/ir/run_bm25_retrieval.py \
+   python primeqa/ir/run_bm25_retrieval.py \
    --output_dir <output-dir> --index_path <path-to-psgs_w100_index> \
    --queries_file <xortydi-dev-gmt-queries.tsv> --top_k 1000 \
    --max_hits_to_output 100 --xorqa_data_file <xortydi-queries-jsonl>
