@@ -29,8 +29,8 @@ from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
-from examples.boolqa.run_boolqa_classifier import main as cls_main
-from examples.boolqa.run_score_normalizer import main as sn_main
+from primeqa.boolqa.run_boolqa_classifier import main as cls_main
+from primeqa.boolqa.run_score_normalizer import main as sn_main
 
 def object_reference(reference_as_str: str) -> object:
     """
