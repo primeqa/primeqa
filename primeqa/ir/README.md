@@ -12,6 +12,8 @@ Sample data files are [here](../../tests/resources/ir_dense), their formats are 
 
 Here is an example of a training run for a Question Anwering model, using a training data .tsv file containing training examples in the form of \<query>, <positive_passage>, <negative_passage> triples.
 
+todo: please add example snippet of how train + corpus file look like (just a couple lines please)
+
 ```shell
 python primeqa/ir/run_ir.py \
     --do_train \
@@ -113,6 +115,8 @@ and evaluate performance on the Google translation of the XORTyDI DEV set querie
 ### Java SDK Dependency
 Pyserini requires Java 11
 Set the environment variable JAVA_HOME to the path where the Java SDK is installed 
+
+todo: how do I create an index? please document.
 
 ### PyseriniRetriever usage
 Here's how to run a search query against an index and retrieve ranked list of documents:
