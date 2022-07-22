@@ -5,10 +5,10 @@ First, as a single command line argument in `run_mrc.py` to run all steps, and s
 later sections of this README.  
 The single command line argument is:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
-       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+       --do_boolean --boolean_config  primeqa/boolqa/tydi_boolqa_config.json
 ```
 The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
 
@@ -76,7 +76,7 @@ as follows: the postprocessor provides additional information (language, questio
 needed by the downstream components
 
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
         --output_dir {ws}/mrc/ --fp16 --learning_rate 4e-5 \
         --do_eval --per_device_train_batch_size 16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
@@ -91,7 +91,7 @@ Given a question (obtained from the `eval_predictions.json` file created in the 
 whether the question is `boolean` or `short_answer`.
 
 ```shell
-python examples/boolqa/run_boolqa_classifier.py \
+python primeqa/boolqa/run_boolqa_classifier.py \
     --overwrite_cache \
     --id_key example_id \
     --sentence1_key question \
@@ -109,7 +109,7 @@ a `yes` or `no` answer to question.  Both question and span are passed through t
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
 
 ```shell
-python examples/boolqa/run_boolqa_classifier.py \
+python primeqa/boolqa/run_boolqa_classifier.py \
     --overwrite_cache  \
     --id_key example_id \
     --sentence1_key question \
@@ -129,7 +129,7 @@ Span scores may have different dynamic ranges according as whether the question 
 and output a file suitable for the TyDiQA evaluation script.
 
 ```shell
-python examples/boolqa/run_score_normalizer.py \
+python primeqa/boolqa/run_score_normalizer.py \
     --test_file ${BASE}/evc/eval_predictions.json \
     --model_name_or_path tests/resources/boolqa/score_normalizer_model/sn.pickle \
     --output_dir ${OUTDIR}/sn
