@@ -147,7 +147,7 @@ python primeqa/ir/run_ir.py \
 ```
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output-dir>`.
 
-This table shows the sample lines from the search results output file:
+This table shows the sample lines from the search results tsv file:
 
 | query_id | passage_id | rank | score |
 |----|-------|-------|-------|
@@ -155,3 +155,76 @@ This table shows the sample lines from the search results output file:
 7606160988275694755|  309305|  2|  8.041299819946289|
 7606160988275694755|  65986|   3|  7.9517998695373535|
 7606160988275694755|  529090|  4|  7.807199954986572|
+
+
+## Scoring
+The scoring steps depend on the task and metric used. 
+The following describes the steps to evaluate retrieval on the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/)
+
+### Obtain XORTyDI GroundTruth data and Eval scripts
+1. Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA
+2. Download ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
+
+
+### Convert for evaluation
+Convert the search results obtained from the retrieval step into the format required by the evaluation script.  This is done by running the conversion script:
+
+```shell
+    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py \
+    -c <document_collection> \
+    -q <ground_truth_data>
+    -p <scores_and_ranks> \
+    -o <ranking_xortydi_format.json> 
+```
+
+### Run Evaluation Script
+
+Run:
+   ```shell
+   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <ground_truth_data> --pred_file <ranking_xortydi_format.json> 
+   ```
+
+### Sample Evaluation Results
+The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:
+1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages 
+   wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
+2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).  
+
+```
+Evaluating R@2kt
+performance on te (238 examples)
+53.78151260504202
+performance on bn (304 examples)
+62.82894736842105
+performance on fi (314 examples)
+43.31210191082803
+performance on ja (241 examples)
+42.32365145228216
+performance on ko (285 examples)
+43.15789473684211
+performance on ru (237 examples)
+54.85232067510548
+performance on ar (309 examples)
+49.19093851132686
+Final macro averaged score: 
+49.921052465692526
+Evaluating R@5kt
+performance on te (238 examples)
+63.02521008403361
+performance on bn (304 examples)
+70.06578947368422
+performance on fi (314 examples)
+51.910828025477706
+performance on ja (241 examples)
+53.52697095435685
+performance on ko (285 examples)
+53.333333333333336
+performance on ru (237 examples)
+61.60337552742617
+performance on ar (309 examples)
+57.60517799352751
+Final macro averaged score: 
+58.72438362740563
+```
+
+
