@@ -1,6 +1,7 @@
 import logging
 from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 from primeqa.tableqa.models.tableqa_model import TableQAModel
+from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
 from primeqa.tableqa.preprocessors.dataset import TableQADataset
 from primeqa.tableqa.trainer.tableqa_trainer import TableQATrainer
 from dataclasses import dataclass, field
@@ -60,29 +61,36 @@ class TableQAArguments:
     temperature: float = field(
         default=0.0352513, metadata={"help": "temperature"}
     )
+@dataclass
+class TQATrainingArguments(TrainingArguments):
+    "TableQA training arguments"
+    model_name_or_path: str = field(
+       default='PrimeQA/tapas-based-tableqa-wikisql-lookup', metadata={"help": "root path to store the preprocessed dataset"}
+    )
 
 
 def main():
     logger = logging.getLogger(__name__)
-    parser = HfArgumentParser((TableQAArguments, TrainingArguments))
+    parser = HfArgumentParser((TableQAArguments, TQATrainingArguments))
     tqa_args,training_args = parser.parse_args_into_dataclasses()
     logger.info(f"TableQA arguments are {tqa_args}")
     config = TapasConfig(tqa_args)
-    tableqa_model = TableQAModel("google/tapas-base",config=config)
+    tableqa_model = TableQAModel(training_args.model_name_or_path,config=config)
     model = tableqa_model.model
     tokenizer = tableqa_model.tokenizer
     if training_args.do_train or training_args.do_eval:
         if tqa_args.dataset_name=="wikisql":
             train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
+            postprocessor = WikiSQLPostprocessor(tokenizer,tqa_args)
         else:
             tqadataset = TableQADataset(tqa_args.data_path_root,tqa_args.train_data_path,tqa_args.dev_data_path ,tokenizer)
             train_dataset,eval_dataset= tqadataset.load_data()
         trainer = TableQATrainer(model=model,
                                 args=training_args,
+                                tokenizer=tokenizer,
                                 train_dataset=train_dataset if training_args.do_train else None,
                                 eval_dataset=eval_dataset if training_args.do_eval else None,
-                                tokenizer=tableqa_model.tokenizer,
-                                data_collator=TapasCollator(),
+                                data_collator=TapasCollator(),post_process_function=postprocessor.postprocess_prediction,compute_metrics=compute_denotation_accuracy
                                 )
         if training_args.do_train:
             train_result = trainer.train()
@@ -94,6 +102,7 @@ def main():
         if training_args.do_eval:
             logger.info("*** Evaluate ***")
             metrics = trainer.evaluate()
+           
             trainer.log_metrics("eval", metrics)
             trainer.save_metrics("eval", metrics)
 
