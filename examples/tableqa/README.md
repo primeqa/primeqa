@@ -35,6 +35,13 @@ python examples/tableqa/run_tableqa.py --do_train \
 
 ```
 
+The current performance on wikisql dev set is:
+```shell
+***** eval metrics *****
+Eval denotation accuracy: 86.78%
+
+```
+
 The format of dataset required for training and evaluation is:
 
 `Question_id\tquestion\ttable_path\tanswer_coordinates\tanswer_text`    
