@@ -122,7 +122,6 @@ python primeqa/ir/run_ir.py \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \ 
     --index_name <index_label> \
-    --index_name ${EXPT}_indname \
     --ranks_fn <scores_and_ranks> \
     --nprobe 4
 ```
