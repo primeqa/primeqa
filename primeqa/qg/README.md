@@ -18,7 +18,7 @@ Currently supported datasets for training include:
 An example for training the model on WikiSQL dataset:
 
 ```bash
-python examples/qg/run_qg.py \
+python primeqa/qg/run_qg.py \
     --model_name_or_path t5-base \
     --modality table \
     --dataset_name wikisql \
