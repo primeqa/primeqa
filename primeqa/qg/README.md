@@ -49,7 +49,7 @@ Inference can be done on any table in particular dict format. Check this [notebo
 An example usage for training the model on TydiQA dataset:
 
 ```bash
-python examples/qg/run_qg.py\
+python primeqa/qg/run_qg.py\
     --model_name_or_path mt5-base \
     --modality passage \
     --dataset_name tydiqa \
