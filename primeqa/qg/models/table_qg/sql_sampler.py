@@ -58,9 +58,15 @@ class SimpleSqlSampler():
             [String]: [Answer after executing sql on the given table]
         """
         
+
         selected_cells = []
-        for row_id in where_clause['rows']:
-            selected_cells.append(table['rows'][row_id][select_column])
+        
+        if (len(where_clause)>0):
+            for row_id in where_clause['rows']:
+                selected_cells.append(table['rows'][row_id][select_column])
+        else:
+            for row in table['rows']:
+                selected_cells.append(row[select_column])
         
         if table['types'][select_column] == 'real':
             selected_cells = [float(str(s).replace(',','')) for s in selected_cells]
@@ -189,6 +195,8 @@ class SimpleSqlSampler():
     def get_where_clauses(self, table, num_where=2, if_ineq=False):
         cols_list = self._get_column_freq(table, if_ineq)
         where_dict = {}
+        if num_where==0:
+            return where_dict
 
         where1_list = []
         for i, c in enumerate(cols_list):
@@ -277,9 +285,10 @@ class SimpleSqlSampler():
         """
         header = table['header']
         types = table['types']
-
+        where_list = [] 
         multiple_where_dict = self.get_where_clauses(table, num_where, if_ineq)
-        where_list = multiple_where_dict['nw-' + str(num_where)]
+        if num_where > 0 :
+            where_list = multiple_where_dict['nw-' + str(num_where)]
         real_cols = [i for i in range(len(types)) if types[i] == 'real']
 
         if_agg = 0
@@ -294,11 +303,15 @@ class SimpleSqlSampler():
             elif not if_agg and len(wc['rows']) == 1:
                 filtered_where_list.append(wc)
 
-        if len(filtered_where_list) == 0:
+        if len(filtered_where_list) == 0 and num_where > 0 :
             return []
-        sample_ids = np.random.choice(
-            len(filtered_where_list), num_sample, replace=True)
-        sampled_where_list = [filtered_where_list[i] for i in sample_ids]
+        
+        sampled_where_list = []
+        
+        if num_where > 0:
+            sample_ids = np.random.choice(
+                len(filtered_where_list), num_sample, replace=True)
+            sampled_where_list = [filtered_where_list[i] for i in sample_ids]
 
         if if_agg:
             clist = real_cols
@@ -307,19 +320,32 @@ class SimpleSqlSampler():
 
         sql_string_list = []
         sql_list = []
-        for wc in sampled_where_list:
-            try:
-                possible_cols = list(set(clist) - set([c[0] for c in wc['conds']]))
-                select_column = np.random.choice(possible_cols)
-                sql = {'sel': select_column, 'agg': agg_op}
-                sql['conds'] = wc['conds']
-                answer = self.sql_execution(wc, select_column, agg_op, table)
-                sql_dict = self.readable_sql(sql, header, answer)
+        
+        if (len(sampled_where_list)>0):
+            for wc in sampled_where_list:
+                try:
+                    possible_cols = list(set(clist) - set([c[0] for c in wc['conds']]))
+                    select_column = np.random.choice(possible_cols)
+                    sql = {'sel': select_column, 'agg': agg_op}
+                    sql['conds'] = wc['conds']
+                    answer = self.sql_execution(wc, select_column, agg_op, table)
+                    sql_dict = self.readable_sql(sql, header, answer)
 
-                sql_list.append(sql_dict)
-                sql_string_list.append(self.convert_sql_to_string(sql_dict, table))
-            except:
-                print('\nQuery creation error')
+                    sql_list.append(sql_dict)
+                    sql_string_list.append(self.convert_sql_to_string(sql_dict, table))
+                except:
+                    print('\nQuery creation error')
+        else :
+            possible_cols = list(set(clist))
+            select_column = np.random.choice(possible_cols)
+            sql = {'sel': select_column, 'agg': agg_op}
+            wc={}
+            answer = self.sql_execution(wc, select_column, agg_op, table)
+            sql_dict = self.readable_sql(sql, header, answer)
+            sql_list.append(sql_dict)
+            sql_string_list.append(self.convert_sql_to_string(sql_dict, table))
+
+
         return sql_string_list, sql_list
 
     def readable_sql(self, sql, header, answer):
@@ -336,10 +362,11 @@ class SimpleSqlSampler():
         sql_dict = {}
         sql_dict['col'] = [SqlOperants.agg_ops[sql['agg']], header[sql['sel']]]
         conds = []
-        for c in sql['conds']:
-            cond = [header[c[0]], SqlOperants.cond_ops_string[c[1]], str(c[2])]
-            conds.append(cond)
-        sql_dict['conds'] = conds
+        if "conds" in sql :
+            for c in sql['conds']:
+                cond = [header[c[0]], SqlOperants.cond_ops_string[c[1]], str(c[2])]
+                conds.append(cond)
+            sql_dict['conds'] = conds
         sql_dict['answer'] = str(answer[0])
         return sql_dict
 
@@ -356,9 +383,10 @@ class SimpleSqlSampler():
         tokens = self.sql_tokens
 
         sql_str =  str(sql_dict['col'][0]) + ' '+tokens.sep+' ' + str(sql_dict['col'][1])
-        for cond in sql_dict['conds']:
-            sql_str += ' '+tokens.sep+' '
-            sql_str += (' '+tokens.cond+' ').join([str(c) for c in cond])
+        if "conds" in sql_dict :
+            for cond in sql_dict['conds']:
+                sql_str += ' '+tokens.sep+' '
+                sql_str += (' '+tokens.cond+' ').join([str(c) for c in cond])
         sql_str += ' '+tokens.ans+' ' + str(sql_dict['answer'])
 
         table['header'] = [str(h) for h in table['header']]

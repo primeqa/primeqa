@@ -24,6 +24,12 @@ class TestSQLSampler():
         sampled_sql_str,sampled_sql = self.sql_sampler.sample_sql(self.table,2,2,0)
         assert len(sampled_sql_str)==2
         assert len(sampled_sql[0]['conds'])==2
+        
+        sampled_sql_str2,sampled_sql2 = self.sql_sampler.sample_sql(self.table,1,0,1)
+        assert len(sampled_sql_str2)==1
+        assert "conds" not in sampled_sql2[0] 
+        assert sampled_sql2[0]['col']!=None
+
 
         
 
