@@ -32,7 +32,9 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
+    'sphinx_design'
 ]
+myst_enable_extensions = ["colon_fence"]
 
 # Enable extensions
 
@@ -62,3 +64,12 @@ source_suffix = {
     '.txt': 'markdown',
     '.md': 'markdown',
 }
+
+html_theme_options = {
+    "use_edit_page_button": False,
+    "github_url": "https://github.com/primeqa/primeqa",
+    # "navbar_end": ["navbar-icon-links"],
+}
+html_logo = "_static/images/IBM_logo.png"
+html_favicon = "_static/images/IBM_logo.png"
+html_css_files = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css"]
