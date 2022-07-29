@@ -394,7 +394,7 @@ class SimpleSqlSampler():
 
         return sql_str
 
-    def controlled_sample_sql(self, table_list, num_samples_per_table=5, agg_prob=[], num_where_prob=[], ineq_prob=0.0):
+    def controlled_sample_sql(self, table_list, num_samples_per_table=5, agg_prob=[], num_where_prob=[], ineq_prob=0.0,id_list=[]):
         if agg_prob == []:
             # agg_prob = [0.6, 0.1, 0.1, 0.0, 0.1, 0.1] #['select', 'maximum', 'minimum', 'count', 'sum', 'average']
             # ['select', 'maximum', 'minimum', 'count', 'sum', 'average']
@@ -412,6 +412,7 @@ class SimpleSqlSampler():
 
         all_sql_str_list = []
         all_sql_list = []
+        all_id_list = []
         # for table in tqdm(table_list):
         for i, table in enumerate(table_list):
             if 'types' not in table:
@@ -455,5 +456,12 @@ class SimpleSqlSampler():
                         break
 
                 all_sql_str_list.extend(sql_str_list)
+                if i < len(id_list) and id_list[i]!=None :
+                    id_num = id_list[i]
+                elif(len(id_list)>0):
+                    id_num = "NA"
+                if(len(id_list)>0):
+                    id_num_list= [id_num] * len(sql_str_list)
+                    all_id_list.extend(id_num_list)
                 all_sql_list.extend(sql_list)
-        return all_sql_str_list, all_sql_list
+        return all_sql_str_list, all_sql_list, all_id_list
