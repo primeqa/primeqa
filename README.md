@@ -31,7 +31,7 @@ The models within PrimeQA supports End-to-end Question Answering. PrimeQA answer
 - [Multilingual Question Generation](https://huggingface.co/PrimeQA/mt5-base-tydi-question-generator): Supports generation of questions for effective domain adaptation over [tables](https://huggingface.co/PrimeQA/t5-base-table-question-generator) and [multilingual text](https://huggingface.co/PrimeQA/mt5-base-tydi-question-generator).
 
 Some examples of models (applicable on benchmark datasets) supported are :
-- [Traditional IR with BM25](https://github.com/primeqa/primeqa/blob/main/examples/ir/run_bm25_retrieval.py) Pyserini
+- [Traditional IR with BM25](https://github.com/primeqa/primeqa/tree/main/primeqa/ir/sparse) Pyserini
 - [Neural IR with ColBERT, DPR (coming soon)](https://github.com/primeqa/primeqa/tree/main/primeqa/ir/dense/): to replicate the experiments that [Dr. Decr](https://huggingface.co/ibm/DrDecr_XOR-TyDi_whitebox) (Li et. al, 2022) performed to reach the top of the XOR TyDI leaderboard. Collaboration with [Stanford NLP](https://nlp.stanford.edu/) IR led by [Chris Potts](https://web.stanford.edu/~cgpotts/) & [Matei Zaharia](https://cs.stanford.edu/~matei/).
 - [Machine Reading Comprehension with XLM-R](https://github.com/primeqa/primeqa/tree/main/primeqa/mrc): to replicate the experiments to get to the top of the TyDI leaderboard similar to the performance of the IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
 - [Multimedia QA over news & movies](https://arxiv.org/abs/2112.10728): coming soon! to replicate the experiments run over multi-hop QA over images, text over variety of domains. Collaboration with [UIUC Blender lab](https://blender.cs.illinois.edu/).
