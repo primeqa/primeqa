@@ -79,8 +79,9 @@ export PATH=$JAVA_HOME/bin:$PATH
 | Section | Description |
 |-|-|
 | [Documentation](https://github.com/primeqa/primeqa/) | TODO: Full API documentation and tutorials |
-| [Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
-| [Quick tour: Fine-tuning/usage scripts](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning models on a range of QA tasks |
+| [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
+| [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
+| [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 
 
