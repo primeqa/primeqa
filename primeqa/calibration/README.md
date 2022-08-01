@@ -3,7 +3,7 @@
 ## train_confidence_calibrator.py
 
 This script trains a confidence calibration model which can be 
-used by run_mrc pipeline to generate confidence score for each answer.
+used by the run_mrc pipeline to generate a confidence score for each answer.
 
 In the script, a confidence calibration model is built in multiple
 steps:
