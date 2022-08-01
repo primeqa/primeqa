@@ -2,7 +2,7 @@
 
 ## train_confidence_calibrator.py
 
-This script is to train a confidence calibration model which can be 
+This script trains a confidence calibration model which can be 
 used by run_mrc pipeline to generate confidence score for each answer.
 
 In the script, a confidence calibration model is built in multiple
@@ -19,7 +19,7 @@ steps:
   "confidence_model_dir".
 
 The script also runs the trained MRC model on validation set to predict 
-answer for each question, and calculates confidence score by using the 
+an answer for each question, and calculates the confidence score by using the 
 confidence calibration model. The result is saved to the file 
 "eval_predictions.rescored.json" in the directory "output_dir", 
 which can be used to evaluate the performance of the confidence calibration model.

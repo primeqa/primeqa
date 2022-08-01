@@ -1,16 +1,23 @@
-## Dense retrieval
+# Information Retrieval (IR)
 
-We support ColBERT-based Information Retrieval engine, as described in [README](../../primeqa/ir/dense/colbert_top/README.md).
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
-This README shows how to run the basic model training, data indexing, retrieval, and scoring steps, using the `run_ir.py` script.  The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+PrimeQA provides both dense and sparse IR components. 
+- **Dense IR** is a ColBERT-based IR Engine enabling scalable BERT-based search
+- **Sparse IR** is a Pyserini-based IR Engine enabling BM25 ranking using bag of words representation
+
+This README shows how to run the basic model training, data indexing, retrieval using the `run_ir.py` script. 
+
+Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb). 
+
+The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+
+The [Jupyter notebook](../../notebooks/ir/sparse/bm25_retrieval.ipynb) shows how to use the Sparse retriever API.
 
 
-The following steps require PrimeQA to be [installed](../../README.md#Installation).
-Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+## Model Training
 
-### Model Training
-
-Here is an example of a training command for a Question Anwering model.
+Dense IR requires training a model.  The following is an example of training a ColBERT model using the `run_ir.py` script.
 
 The command uses training data in a _.tsv_ (tabulator character separated) file, containing training examples in the form of _[query, positive_passage, negative_passage]_ triples. An example of a training data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv).
 
@@ -45,11 +52,11 @@ python primeqa/ir/run_ir.py \
 
 The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
  
-### Indexing
+## Indexing
 
-Here is an example of an indexing command, using a model as trained in the previous step.
-
-The command uses corpus (collection) data in a _.tsv_ file, containing collection records in the form of _[ID, text, title]_ triples. The first line of the file contains a header record.
+The following are examples of how to index a corpus using the `run_ir.py` script.
+### Corpus Format
+The command requires a corpus (collection) data in a _.tsv_ file, containing collection records in the form of _[ID, text, title]_ triples. The first line of the file contains a header record.
 An example of a collection file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv).
 
 This table shows the three lines from the file, with _text_ fields truncated:
@@ -59,6 +66,8 @@ This table shows the three lines from the file, with _text_ fields truncated:
 | 1 | "The Kangxi Emperor's reign of 61 years ... | Kangxi Emperor |
 | 2 | Yao. The Bamboo Annals says that when Emperor Zhuanxu died ... | Emperor Zhi |
 
+### Dense Index using ColBERT
+Using a model trained as described [here](./README.md#model-training), the following command builds the index.
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -75,16 +84,28 @@ python primeqa/ir/run_ir.py \
     --index_name <index_label> \
     --compression_level 2
 ```
-
 The index is stored in `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
 
-### Retrieval
+### Sparse Index using Pyserini
 
-Here is an example of a retrieval (search) command, using a model and index as created in the previous two steps.
+The following command builds an index for BM25 retrieval.  
+
+```shell
+python primeqa/ir/run_ir.py \
+    --do_index \
+    --engine_type BM25 \
+    --corpus_path <document_collection> \
+    --index_path <index_dir>
+    --threads <num_threads>
+```
+
+## Retrieval
 
 The command uses queries (questions) in a _.tsv_ file in the form of _[ID, text]_ records.
-An example of a training data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
+An example of a queries data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
 
+### Dense Index Retrieval
+The command uses a model and index as created in the previous two steps
 ```shell
 python primeqa/ir/run_ir.py \
     --do_search \
@@ -101,115 +122,72 @@ python primeqa/ir/run_ir.py \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \ 
     --index_name <index_label> \
-    --index_name ${EXPT}_indname \
     --ranks_fn <scores_and_ranks> \
     --nprobe 4
 ```
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
 
-### Scoring
+### Sparse Index Retrieval
 
+The command requires an index and a queries tsv file as input.
+```shell
+python primeqa/ir/run_ir.py \
+      --do_search \
+      --engine_type BM25 \
+      --index_path <index-dir> \  
+      --queries_path  <query_file> \
+      --nhits <num-hits> \
+      --use_bm25 \
+      --k1 <bm25-score-k1> \
+      --b <bm25-score-b> \
+      --threads  <num-processing-threads> \
+      --output_dir <output-dir>
+```
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output-dir>`.
+
+This table shows the sample lines from the search results tsv file:
+
+| query_id | passage_id | rank | score |
+|----|-------|-------|-------|
+7606160988275694755|  532|     1|  8.82699966430664|
+7606160988275694755|  309305|  2|  8.041299819946289|
+7606160988275694755|  65986|   3|  7.9517998695373535|
+7606160988275694755|  529090|  4|  7.807199954986572|
+
+
+## Scoring
 The scoring steps depend on the task and metric used. 
+The following describes the steps to evaluate retrieval on the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/)
 
-For cross-lingual question answering, as in the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/), we need to convert the scores in  `<scores_and_ranks>` into the format used in the task.  This is done by running the conversion script:
+### Obtain XORTyDI GroundTruth data and Eval scripts
+1. Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA
+2. Download ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
+
+
+### Convert for evaluation
+Convert the search results obtained from the retrieval step into the format required by the evaluation script.  This is done by running the conversion script:
 
 ```shell
-    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.pyconvert_colbert_results_to_xor.py \
+    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py \
     -c <document_collection> \
     -q <ground_truth_data>
     -p <scores_and_ranks> \
-    -o <xor_scores> 
+    -o <ranking_xortydi_format.json> 
 ```
 
-The `<ground_truth_data>` file can be downloaded as described [here](./README.md#run-bm25-search-on-xortydi-dev-set-queries).
-The resulting `<xor_scores>` file can be evaluated as described [here](./README.md#evaluate-xortydi-bm25-ranked-results).
+### Run Evaluation Script
 
-
-
-## Sparse retrieval
-
-Sparse retrieval is based on BM25 ranking using bag of words representation. It is built on Pyserini which is built on Lucene.  
-
-The ```PyseriniRetriever``` class provides the entry point for running queries against an index.
-
-The instructions below are for creating an index of English Wikipedia passage and use the index to search 
-and evaluate performance on the Google translation of the XORTyDI DEV set queries. 
-
-### Java SDK Dependency
-Pyserini requires Java 11
-Set the environment variable JAVA_HOME to the path where the Java SDK is installed 
-
-todo: how do I create an index? please document.
-
-### PyseriniRetriever usage
-Here's how to run a search query against an index and retrieve ranked list of documents:
-
-
-```
-
-from primeqa.ir.sparse.retriever import PyseriniRetriever
-
-index_path='<path-to-wikipedia-passage-index>
-searcher = PyseriniRetriever(index_path, use_bm25=True, k1=0.9, b=0.4)
-
-query = 'What is the largest region of Germany?'
-top_n = 5
-
-hits = searcher.retrieve(query,top_n)
-
-for hit in hits:
-   print(f"{hit['rank']} {hit['doc_id']} {hit['score']}  {hit['title']} {hit['text']}")
-
-```
-
-Output:
-
-```
-0 9135762 9.3326997756958  Lenggries Lenggries Lenggries (Central Bavarian: "Lenggrias") is a municipality in Bavaria, Germany. Lenggries is the center of the Isarwinkel, the region along the Isar between Bad Tölz and Wallgau. The town has about 9,500 inhabitants. By area, it is the largest rural municipality ("Gemeinde") in what was formerly West Germany, and the 7th-largest overall. (All six currently larger "Gemeinden" are in Brandenburg.) The name Lenggries is derived from "Lenngengrieze" (long Gries), a long rubble field with deposits of debris from the bed of the Isar. Lenggries sits on the Isar River before it transitions into the Alpine foothills. To the east
-1 9135765 9.332698822021484  Lenggries Oberlandbahn (BOB). Lenggries Lenggries (Central Bavarian: "Lenggrias") is a municipality in Bavaria, Germany. Lenggries is the center of the Isarwinkel, the region along the Isar between Bad Tölz and Wallgau. The town has about 9,500 inhabitants. By area, it is the largest rural municipality ("Gemeinde") in what was formerly West Germany, and the 7th-largest overall. (All six currently larger "Gemeinden" are in Brandenburg.) The name Lenggries is derived from "Lenngengrieze" (long Gries), a long rubble field with deposits of debris from the bed of the Isar. Lenggries sits on the Isar River before it transitions into the Alpine foothills. To
-2 16887558 9.208499908447266  Würzburger Stein Würzburger Stein Würzburger Stein is a vineyard in the German wine region of Franconia that has been producing a style of wine, known as "Steinwein" since at least the 8th century. Located on a hill overlooking the Main river outside the city of Würzburg, the vineyard is responsible for what may have been the oldest wine ever tasted. In addition to being one of Germany's oldest winemaking sites, at 85 hectares (210 acres), the vineyard is also one of Germany's largest individual plots. Today the vineyard is one of the warmest sites in the Franconia wine region and is planted
-3 3608379 8.919300079345703  Melle, Germany Melle, Germany Melle is a city in the district of Osnabrück, Lower Saxony, Germany. The city corresponds to what used to be the district of Melle until regional territorial reform in 1972. Since then Melle is the third largest city in Lower Saxony in terms of surface area. Melle was first mentioned in a document from 1169. In 1443 Heinrich von Moers, Bishop of Osnabrück, gave Melle the privilege of a "Wigbold". Osnabrück looked after Melle's interests in the Westphalian Hanseatic League. Melle belonged to the Kingdom of Hanover until 1866 when it became part of Prussia. In 1885 Amt
-4 3608383 8.919299125671387  Melle, Germany observation. Melle, Germany Melle is a city in the district of Osnabrück, Lower Saxony, Germany. The city corresponds to what used to be the district of Melle until regional territorial reform in 1972. Since then Melle is the third largest city in Lower Saxony in terms of surface area. Melle was first mentioned in a document from 1169. In 1443 Heinrich von Moers, Bishop of Osnabrück, gave Melle the privilege of a "Wigbold". Osnabrück looked after Melle's interests in the Westphalian Hanseatic League. Melle belonged to the Kingdom of Hanover until 1866 when it became part of Prussia. In 1885
-```
-
-
-### Create an Pyserini index of Wikipedia passages for XORTyDI
-1. Download the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages 
-   wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
-2. Format as JSON
-    python convert_corpus_tsv_to_pyserini_jsonl.py --input <psgs_w100_file> --output <output_dir>
-3. Build the Pyserini index
-   ```
-   python -m pyserini.index.lucene --collection JsonCollection --input <psgs_w100_jsonl-dir> --generator DefaultLuceneDocumentGenerator --threads 1 --storePositions --storeDocvectors --storeRaw --index <index-dir>
-   ```
-
-### Run BM25 search on XORTyDI DEV set queries 
-1. Download and unzip the English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing). 
-2. Convert to ColBERT tsv format 
-```shell
-   python primeqa/ir/scripts/xortydi/convert_xorqa_jsonl_to_tsv.py --queries_jsonl_file <path-to-xortydi-gmt-queries-jsonl> --output_file <path-to-xortydi-dev-gmt-queries.tsv> 
- ```
-3. Run:
-  ```shell
-   python primeqa/ir/run_bm25_retrieval.py \
-   --output_dir <output-dir> --index_path <path-to-psgs_w100_index> \
-   --queries_file <xortydi-dev-gmt-queries.tsv> --top_k 1000 \
-   --max_hits_to_output 100 --xorqa_data_file <xortydi-queries-jsonl>
-  ```
-4. This will produce 2 files in the output directory:
-   - ranking.tsv in ColBERT ranking output format
-   - ranking_xortydi_format.json in XORTyDI format
-
-### Evaluate XORTyDI BM25 ranked results
-Evaluate BM25 ranked results on XORTyDI dev set queries:
-1. Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA
-2. Download DEV ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl
-3. Run:
+Run:
    ```shell
-   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <path-to-ground-truth-data> --pred_file <path-to-ranking_xortydi_format.json> 
+   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <ground_truth_data> --pred_file <ranking_xortydi_format.json> 
    ```
-Eval script output should match the following: 
+
+### Sample Evaluation Results
+The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:
+1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages 
+   wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
+2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).  
 
 ```
 Evaluating R@2kt
@@ -247,3 +225,5 @@ performance on ar (309 examples)
 Final macro averaged score: 
 58.72438362740563
 ```
+
+
