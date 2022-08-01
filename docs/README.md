@@ -30,3 +30,4 @@ cd docs
 # run container
 docker run -p 80:80 --rm -d --name primeqa-docs primeqa-docs:${VERSION}
 ```
+
