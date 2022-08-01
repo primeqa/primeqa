@@ -86,8 +86,8 @@ class QGModel():
         if id_question_list == [] :
             questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
         elif self.modality == 'passage' :
-            questions_dict = [{'id':id_question_list[i], 'context':id_context_map.get(id_question_list[i]),'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
+            questions_dict = [{'context_id':id_question_list[i], 'context':id_context_map.get(id_question_list[i]),'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
         else:
-            questions_dict = [{'id':id_question_list[i], 'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
+            questions_dict = [{'context_id':id_question_list[i], 'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
         
         return questions_dict
