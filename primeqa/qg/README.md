@@ -4,11 +4,8 @@ The primary script for QG is [run_qg.py](./run_qg.py).  This runs a transformer-
 ## Pipeline
 <img src="../../docs/img/tableqg_pipeline.png" width="500" class="center">
 
-<<<<<<< HEAD
 The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except SQL generator [sql_sampler.py](./models/table_qg/sql_sampler.py) over a table is replaced by Answer Sampler [answer_sampler.py](./models/passage_qg/answer_sampler.py) over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
-=======
-The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except the SQL generator over a table is replaced by the Answer Sampler over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
->>>>>>> 6e061b55ae3007eb2960bcd88052d0b7acb211b1
+
 
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
