@@ -291,9 +291,9 @@ class CollectionIndexer():
             for chunk_idx, offset, passages in tqdm.tqdm(batches, disable=self.rank > 0):
                 embs, doclens = self.encoder.encode_passages(passages)
                 if torch.cuda.is_available():
-                    assert embs.dtype == torch.float16
+                    assert embs.dtype == torch.float16, embs.dtype
                 else:
-                    assert embs.dtype == torch.float32
+                    assert embs.dtype == torch.float32, embs.dtype
                     embs = embs.half()
 
                 Run().print_main(f"#> Saving chunk {chunk_idx}: \t {len(passages):,} passages "
@@ -341,7 +341,7 @@ class CollectionIndexer():
                 f.write(ujson.dumps(chunk_metadata, indent=4) + '\n')
 
         self.num_embeddings = embedding_offset
-        assert len(self.embedding_offsets) == self.num_chunks
+        assert len(self.embedding_offsets) == self.num_chunks, len(self.embedding_offsets)
 
     def _build_ivf(self):
         # Maybe we should several small IVFs? Every 250M embeddings, so that's every 1 GB.

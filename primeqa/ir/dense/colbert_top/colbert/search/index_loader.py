@@ -30,7 +30,7 @@ class IndexLoader:
         if os.path.exists(os.path.join(self.index_path, "ivf.pid.pt")):
             ivf, ivf_lengths = torch.load(os.path.join(self.index_path, "ivf.pid.pt"), map_location='cpu')
         else:
-            assert os.path.exists(os.path.join(self.index_path, "ivf.pt"))
+            assert os.path.exists(os.path.join(self.index_path, "ivf.pt")), f"ivf.pt not found in {self.index_path}"
             ivf, ivf_lengths = torch.load(os.path.join(self.index_path, "ivf.pt"), map_location='cpu')
             ivf, ivf_lengths = optimize_ivf(ivf, ivf_lengths, self.index_path)
 

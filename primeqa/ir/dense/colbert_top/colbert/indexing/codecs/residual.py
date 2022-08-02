@@ -220,7 +220,7 @@ class ResidualCodec:
         residuals = residuals >> self.arange_bits  # divide by 2^bit for each bit position
         residuals = residuals & 1  # apply mod 2 to binarize
 
-        assert self.dim % 8 == 0
+        assert self.dim % 8 == 0, self.dim
         assert self.dim % (self.nbits * 8) == 0, (self.dim, self.nbits)
 
         if self.use_gpu:
