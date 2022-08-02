@@ -19,6 +19,7 @@ from primeqa.ir.dense.colbert_top.colbert.data.collection import Collection
 
 from primeqa.ir.dense.colbert_top.colbert.indexing.collection_encoder import CollectionEncoder
 from primeqa.ir.dense.colbert_top.colbert.indexing.index_saver import IndexSaver
+from primeqa.ir.dense.colbert_top.colbert.indexing.utils import optimize_ivf
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten, print_message
 
 from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
@@ -203,7 +204,7 @@ class CollectionIndexer():
             endpos = offset + sub_sample.size(0)
             sample[offset:endpos] = sub_sample
             offset = endpos
-        
+
         assert endpos == sample.size(0), (endpos, sample.size())
 
         print_memory_stats(f'***2*** \t RANK:{self.rank}')
@@ -289,7 +290,11 @@ class CollectionIndexer():
             batches = self.collection.enumerate_batches(rank=self.rank)
             for chunk_idx, offset, passages in tqdm.tqdm(batches, disable=self.rank > 0):
                 embs, doclens = self.encoder.encode_passages(passages)
-                assert embs.dtype == torch.float16
+                if torch.cuda.is_available():
+                    assert embs.dtype == torch.float16
+                else:
+                    assert embs.dtype == torch.float32
+                    embs = embs.half()
 
                 Run().print_main(f"#> Saving chunk {chunk_idx}: \t {len(passages):,} passages "
                                  f"and {embs.size(0):,} embeddings. From #{offset:,} onward.")
@@ -359,17 +364,8 @@ class CollectionIndexer():
         print_message(f"codes size(0): {codes.size(0)}")
         print_message(f"codes size(): {codes.size()}")
 
-        '''
-            codes_sort = codes.sort()
-            ivf, values = codes_sort.indices, codes_sort.values
-            partitions, ivf_lengths = values.unique_consecutive(return_counts=True)
 
-            print(f'>>>> codes.size(): {codes.size()}, self.num_partitions : {self.num_partitions}')
-            print(f'>>>> codes_sort: {codes_sort}')
-            print(f'>>>> codes_sort.values.size(): {codes_sort.values.size()}, partitions.size() : {partitions.size()}')
-        '''
-
-        assert offset+chunk_codes.size(0) == codes.size(0), (offset, chunk_codes.size(0), codes.size()) 
+        assert offset+chunk_codes.size(0) == codes.size(0), (offset, chunk_codes.size(0), codes.size())
 
 
         print_memory_stats(f'RANK:{self.rank}')
@@ -388,22 +384,9 @@ class CollectionIndexer():
         # All partitions should be non-empty. (We can use torch.histc otherwise.)
         assert partitions.size(0) == self.num_partitions, (partitions.size(), self.num_partitions)
 
-        # ivf = [[] for _ in range(self.num_partitions)]
-        # for chunk_idx in range(self.num_chunks):
-        #     embedding_offset = self.embedding_offsets[chunk_idx]
-        #     chunk_codes = ResidualCodec.Embeddings.load_codes(self.config.index_path_, chunk_idx)
-
-        #     for local_embedding_idx, partition_idx in enumerate(chunk_codes.tolist()):
-        #         embedding_idx = embedding_offset + local_embedding_idx
-        #         ivf[partition_idx].append(embedding_idx)
-        
-        # ivf_lengths = [len(partition) for partition in ivf]
-        # ivf = torch.tensor(flatten(ivf), dtype=torch.long)  # FIXME: If num_embeddings > 2B, use torch.long!
-
         print_memory_stats(f'RANK:{self.rank}')
 
-        ivf = (ivf, ivf_lengths)
-        torch.save(ivf, os.path.join(self.config.index_path_, f'ivf.pt'))
+        _, _ = optimize_ivf(ivf, ivf_lengths, self.config.index_path_)
 
     def _update_metadata(self):
         config = self.config

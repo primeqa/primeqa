@@ -5,12 +5,14 @@ import numpy as np
 
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import lengths2offsets, print_message, dotdict, flatten
 from primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual import ResidualCodec
+from primeqa.ir.dense.colbert_top.colbert.indexing.utils import optimize_ivf
 from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
 
 
 class IndexLoader:
-    def __init__(self, index_path):
+    def __init__(self, index_path, use_gpu=torch.cuda.is_available()):
         self.index_path = index_path
+        self.use_gpu = use_gpu
 
         self._load_codec()
         self._load_ivf()
@@ -19,17 +21,20 @@ class IndexLoader:
         self._load_embeddings()
 
     def _load_codec(self):
+        print_message(f"#> Loading codec...")
         self.codec = ResidualCodec.load(self.index_path)
 
     def _load_ivf(self):
-        ivf, ivf_lengths = torch.load(os.path.join(self.index_path, "ivf.pt"), map_location='cpu')
-        
-        if False:
-            ivf = ivf.tolist()
-            ivf = [ivf[offset:endpos] for offset, endpos in lengths2offsets(ivf_lengths)]
+        print_message(f"#> Loading IVF...")
+
+        if os.path.exists(os.path.join(self.index_path, "ivf.pid.pt")):
+            ivf, ivf_lengths = torch.load(os.path.join(self.index_path, "ivf.pid.pt"), map_location='cpu')
         else:
-            # ivf, ivf_lengths = ivf.cuda(), torch.LongTensor(ivf_lengths).cuda()  # FIXME: REMOVE THIS LINE!
-            ivf = StridedTensor(ivf, ivf_lengths)
+            assert os.path.exists(os.path.join(self.index_path, "ivf.pt"))
+            ivf, ivf_lengths = torch.load(os.path.join(self.index_path, "ivf.pt"), map_location='cpu')
+            ivf, ivf_lengths = optimize_ivf(ivf, ivf_lengths, self.index_path)
+
+        ivf = StridedTensor(ivf, ivf_lengths, use_gpu=self.use_gpu)
 
         self.ivf = ivf
 
