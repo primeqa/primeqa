@@ -1,0 +1,140 @@
+.container-xl {
+    max-width: none;
+}
+
+.container-xl .bd-sidebar {
+    background-color: #121212 !important;
+    border-right: 1px solid #c9c9c9 !important;
+}
+
+.bd-header.navbar-light#navbar-main {
+    background-color: #121212 !important;
+    border-bottom: 1px solid #c9c9c9 !important;
+}
+
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link {
+    color: silver !important;
+}
+
+.fab.fa-github-square {
+    color: white !important;
+}
+
+.bd-footer {
+    background-color: #121212 !important;
+}
+
+.copyright {
+    color: silver !important;
+}
+
+.sphinx-version {
+    color: silver !important;
+}
+
+nav.bd-links {
+    color: silver !important;
+}
+
+nav.bd-links li>a {
+    color: silver !important;
+}
+
+nav.bd-links .active:hover>a,
+nav.bd-links .active>a {
+    color: #459db9 !important;
+}
+
+nav.bd-links li>a:hover {
+    color: #ee9040 !important;
+}
+
+.bd-header.navbar-light#navbar-main .navbar-nav>.active>.nav-link {
+    color: #459db9 !important;
+}
+
+.bd-search input {
+    background-color: #121212 !important;
+    color: #c9d1d9 !important;
+}
+
+.title.logo__title {
+    color: #c9d1d9 !important;
+    font-size: .8rem !important;
+}
+
+html {
+    --scrollbarBG: #CFD8DC;
+    --thumbBG: #90A4AE;
+}
+
+.bd-sidebar::-webkit-scrollbar {
+    width: 11px !important;
+}
+
+.bd-sidebar {
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG) !important;
+}
+
+.bd-sidebar::-webkit-scrollbar-track {
+    background: var(--scrollbarBG) !important;
+}
+
+.bd-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--thumbBG) !important;
+    border-radius: 6px !important;
+    border: 3px solid var(--scrollbarBG) !important;
+}
+
+.bd-sidebar label:hover {
+    background: none !important;
+}
+
+.sd-card-footer.docutils {
+    text-align: right !important;
+}
+
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link:focus,
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link:hover {
+    color: #ee9040 !important;
+}
+
+/* .longtable.table.autosummary {
+    display: none !important;
+} */
+
+#navbar-main .reference.internal.nav-link {
+    text-transform: uppercase !important;
+}
+
+.bd-article [id^="primeqa-"] h1 {
+    font-size: 1.5rem;
+}
+
+.bd-footer-article .prev-next-area .prev-next-subtitle {
+    font-size: .6rem;
+}
+
+.bd-footer-article .prev-next-area .prev-next-title {
+    font-size: .7rem;
+}
+
+.prev-next-area a {
+    max-width: none !important;
+}
+
+/* html {
+    background: lightgrey;
+    overflow: hidden;
+}
+
+.bd-sidebar {
+    height: 100vh;
+    background: whitesmoke;
+    overflow-y: auto;
+    max-width: 310px;
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.25)
+} */

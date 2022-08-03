@@ -66,10 +66,77 @@ source_suffix = {
 }
 
 html_theme_options = {
-    "use_edit_page_button": False,
-    "github_url": "https://github.com/primeqa/primeqa",
-    # "navbar_end": ["navbar-icon-links"],
+    "use_edit_page_button": True,
+    "navbar_end": ["navbar-icon-links"],
+    # "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    # "pygment_light_style": "monokai",
+    # "pygment_dark_style": "monokai",
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/primeqa/primeqa/",
+            "icon": "https://badgen.net/github/stars/primeqa/primeqa?icon=github",
+            "type": "url",
+        },
+        # {
+        #     "name": "GitHub",
+        #     "url": "https://github.com/primeqa/primeqa",
+        #     "icon": "fab fa-github-square",
+        #     "type": "fontawesome",
+        # },
+         {
+            "name": "Support",
+            "url": "https://github.com/primeqa/primeqa/discussions",
+            "icon": "fa fa-comment fa-fw",
+            "type": "fontawesome",
+        },
+        {
+            "name": "Slack",
+            "url": "https://ibm-research.slack.com/",
+            "icon": "https://cdn.bfldr.com/5H442O3W/at/pl546j-7le8zk-6gwiyo/Slack_Mark.svg?auto=webp&format=png",
+            "type": "url",
+        },
+        
+   ],
+    "show_prev_next": True,
+    "navbar_align": "content",
+    "logo":{
+        "text": "Research AI",
+    },
+    "globaltoc_collapse": True,
+    "globaltoc_includehidden": False,
+    "globaltoc_maxdepth": 2
 }
-html_logo = "_static/images/IBM_logo.png"
-html_favicon = "_static/images/IBM_logo.png"
-html_css_files = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css"]
+html_context = {
+    "github_user": "primeqa",
+    "github_repo": "primeqa",
+    "github_version": "main",
+    # "doc_path": "doc",
+    "edit_page_url_template": "{{ my_vcs_site }}{{ file_name }}{{ some_other_arg }}",
+    "my_vcs_site": "https://github.com/primeqa/primeqa/edit/main/docs/",
+    "file_name": "README.md",
+    "some_other_arg": "",
+    "default_mode": "light"
+}
+html_logo = "_static/images/IBM_logo_rev_RGB.png"
+html_favicon = "_static/images/IBM_logo_rev_RGB.png"
+html_css_files = [
+    "custom.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css"
+]
+html_sidebars = { 
+        # "**": [ "search-field.html","globaltoc.html"],
+        # "_autosummary/primeqa":[ "search-field.html","globaltoc.html"],
+        "index": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "installation": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "development": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "testing": [
+            "search-field.html","custom-left-section.html"
+        ],
+     }
