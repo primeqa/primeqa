@@ -86,7 +86,7 @@ There are two rounds of fine tuning involved in this step.
 ### XLMR -> NQ
 
 ```
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -111,7 +111,7 @@ The trained model will be stored in:
 ### NQ -> XOR
 
 ```
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -140,7 +140,7 @@ In the following Knowledge Distillation (KD) steps, the model resulting from the
 
 ### KD with Parallel Corpus Data
 ```
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -173,7 +173,7 @@ results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 
 ### KD with XOR Data
 ```
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
@@ -208,7 +208,7 @@ OUTPUT_DIR="./results/post_training/" ; \
 mkdir -pv ${OUTPUT_DIR} ; \
 CP_PATH="./results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn" ; \
 CHECKPOINT=colbert-LAST; 
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
     --amp \
@@ -234,7 +234,7 @@ The index will be stored in:
 OUTPUT_DIR="./results/post_training/" ; \
 CP_PATH="./results/KD_XOR/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn" ; \
  CHECKPOINT=colbert-LAST ; \
-python examples/ir/run_ir.py \
+python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
     --doc_maxlen 180 \
