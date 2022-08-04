@@ -119,7 +119,7 @@ Some examples of models (applicable on benchmark datasets) supported are :
 ::::{grid} 1 1 3 3
 :gutter: 3
 
-:::{grid-item-card} {fas}`check;sd-text-primary` Installation
+:::{grid-item-card} {fas}`check` Installation
 :link: installation
 :link-type: doc
 New to PrimeQA? Check out the getting started guide.
@@ -127,7 +127,7 @@ New to PrimeQA? Check out the getting started guide.
 {fas}`arrow-right`
 :::
 
-:::{grid-item-card} {fas}`code;sd-text-warning` Development
+:::{grid-item-card} {fas}`code` Development
 :link: development
 :link-type: doc
 Saw a typo in the documentation? Want to improve
@@ -137,7 +137,7 @@ you through the process of improving PrimeQA.
 {fas}`arrow-right`
 :::
 
-:::{grid-item-card} {fas}`vial;sd-text-danger` Testing
+:::{grid-item-card} {fas}`vial` Testing
 :link: testing
 :link-type: doc
 Our goal is that every module and package should have a thorough set of unit tests. 

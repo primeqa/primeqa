@@ -1,3 +1,15 @@
+:root {
+    --pst-font-family-base-system: -apple-system, BlinkMacSystemFont, Segoe UI,
+        "Helvetica Neue", Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+        Segoe UI Symbol;
+    --pst-font-family-monospace-system: "SFMono-Regular", Menlo, Consolas, Monaco,
+        Liberation Mono, Lucida Console, monospace;
+
+    --pst-font-family-base: "IBMPlexSans", var(--pst-font-family-base-system);
+    --pst-font-family-heading: "IBMPlexSans", var(--pst-font-family-base-system);
+    --pst-font-family-monospace: "IBMPlexMono", var(--pst-font-family-monospace-system);
+}
+
 .container-xl {
     max-width: none;
 }
@@ -47,7 +59,16 @@ nav.bd-links .active>a {
 
 nav.bd-links li>a:hover {
     color: #ee9040 !important;
+    text-decoration: none !important;
 }
+
+/* .sidebar-start-items nav.bd-links ul {
+    padding: 0 !important;
+}
+
+.sidebar-start-items #bd-docs-nav {
+    padding: 0 1.5rem !important;
+} */
 
 .bd-header.navbar-light#navbar-main .navbar-nav>.active>.nav-link {
     color: #459db9 !important;
@@ -122,6 +143,11 @@ html {
 
 .prev-next-area a {
     max-width: none !important;
+}
+
+.custom-left-section a:hover {
+    color: #ee9040 !important;
+    text-decoration: none !important;
 }
 
 /* html {
