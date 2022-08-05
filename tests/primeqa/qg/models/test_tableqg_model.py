@@ -20,11 +20,14 @@ def test_qg_model(model_name):
             ]
         }
     ]
+    id_list = ["abcID123"]
     gqs= tqm.generate_questions(table_list, 
-                            num_questions_per_instance = 10,
+                            num_questions_per_instance = 3,
                             agg_prob = [1.,0,0,0,0,0],
                             num_where_prob = [0,1.,0,0,0],
-                            ineq_prob = 0.0)
+                            ineq_prob = 0.0,
+                            id_list=id_list)
+    
     assert(len(gqs)>0)
     
 

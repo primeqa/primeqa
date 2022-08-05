@@ -56,13 +56,16 @@ class AnswerSampler():
     def create_qg_input(self, 
                         data_list, 
                         num_questions_per_instance = 5, 
-                        answers_list=[]):
+                        answers_list=[],
+                        id_list=[]):
         """
         create the input for qg training: If the answers are provided in answers_list, use them. 
         Otherwise sampling named entities as possible answers from text passages.
         """
         input_str_list = []
         ans_list = []
+        id_question_list = []
+        id_context_map = dict()
         for i, data in enumerate(data_list):
             # If answers_list provided, then use them to generate questions. Otherwise use NER to
             # sample answers.
@@ -76,4 +79,8 @@ class AnswerSampler():
                 text = ans + ' '+QGSpecialTokens.sep+' ' + data        
                 input_str_list.append(text)
                 ans_list.append(ans)
-        return input_str_list, ans_list
+                if len(id_list) > i and id_list[i] != None :
+                    id_question_list.append(id_list[i])
+                    id_context_map[id_list[i]]=data
+
+        return input_str_list, ans_list, id_question_list, id_context_map
