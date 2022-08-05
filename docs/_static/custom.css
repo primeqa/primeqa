@@ -129,6 +129,19 @@ html {
     text-transform: uppercase !important;
 }
 
+#navbar-main-elements li:nth-child(4) {
+    visibility: hidden;
+    position: relative;
+}
+
+#navbar-main-elements li:nth-child(4):after {
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "";
+}
+
 .bd-article [id^="primeqa-"] h1 {
     font-size: 1.5rem;
 }
@@ -148,6 +161,27 @@ html {
 .custom-left-section a:hover {
     color: #ee9040 !important;
     text-decoration: none !important;
+}
+
+.custom-right-section .bootstrap-btn {
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #459db9;
+    padding: .375rem .75rem;
+    border-radius: .25rem;
+    color: #459db9;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.custom-right-section .bootstrap-btn:hover {
+    border: 1px solid #ee9040;
+    color: #ee9040;
+}
+
+.custom-right-section .bootstrap-btn:hover svg path {
+    fill: #ee9040 !important;
 }
 
 /* html {

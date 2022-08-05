@@ -1,0 +1,14 @@
+{%- if display_toc %}
+
+{% set theTocTree = toc
+| replace("<li>", "")
+| replace("</li>", "")
+| replace("<ul>", "<nav class='nav flex-column'>")
+| replace("</ul>", "</nav>")
+| replace("<a", "<a class='nav-link' ")%}
+
+<div id="local-toc-nav" class="sticky-top">
+{{theTocTree}}
+</div>
+
+{%- endif %}
