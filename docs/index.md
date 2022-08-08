@@ -15,23 +15,7 @@ limitations under the License.
 -->
 
 (primeqa-docs)=
-```{eval-rst}
-.. toctree::
-    :maxdepth: 2
-    :hidden:
 
-    installation
-    development
-    testing
-
-.. autosummary::
-    :toctree: _autosummary
-    :template: custom-module-template.rst
-    :recursive:
-   
-    primeqa
-
-```
 
 <!-- ::::{grid} 1 1 3 3
 :gutter: 3
@@ -156,3 +140,25 @@ to erroneous or unexpected input argument.
 | [Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
 | [Quick tour: Fine-tuning/usage scripts](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
+
+
+```{eval-rst}
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    installation
+    development
+    testing
+```
+
+### API Reference
+```{eval-rst}
+.. autosummary::
+    :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
+   
+    primeqa
+
+```
