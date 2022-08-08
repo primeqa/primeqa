@@ -150,9 +150,10 @@ to erroneous or unexpected input argument.
     installation
     development
     testing
+    api/index
 ```
 
-### API Reference
+<!-- ### API Reference
 ```{eval-rst}
 .. autosummary::
     :toctree: _autosummary
@@ -161,4 +162,4 @@ to erroneous or unexpected input argument.
    
     primeqa
 
-```
+``` -->

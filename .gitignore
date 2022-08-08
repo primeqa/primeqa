@@ -77,6 +77,13 @@ docs/_build/
 docs/_autosummary/
 docs/api/_autosummary/
 docs/api/boolqa/_autosummary/
+docs/api/calibration/_autosummary/
+docs/api/distillation/_autosummary/
+docs/api/ir/_autosummary/
+docs/api/mrc/_autosummary/
+docs/api/pipelines/_autosummary/
+docs/api/qg/_autosummary/
+docs/api/util/_autosummary/
 
 # PyBuilder
 target/

@@ -156,4 +156,31 @@ html_sidebars = {
         "testing": [
             "search-field.html","custom-left-section.html"
         ],
+        "api/index": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "api/boolqa/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/calibration/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/distillation/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/ir/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/mrc/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/pipelines/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/qg/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/util/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
      }
