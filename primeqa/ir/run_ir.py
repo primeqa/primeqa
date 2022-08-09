@@ -34,13 +34,6 @@ class ProcessArguments:
         default=False, metadata={"help": "Run search"}
     )
 
-@dataclass
-class DPRConfig:
-    '''
-    to be imported from the DPR implementation
-    '''
-    pass
-
 def main():
 
     parser = HfArgumentParser([ProcessArguments, BM25Config])
@@ -134,7 +127,19 @@ def main():
                 rankings.save(out_fn)
 
     elif process_args.engine_type == 'DPR':
-        pass
+        logger.info(f"Running DPR")
+
+        if hasattr(process_args, 'do_train') and process_args.do_train:
+            from primeqa.ir.dense.dpr_top.dpr.biencoder_trainer import BiEncoderTrainer
+            trainer = BiEncoderTrainer()
+            trainer.train()
+
+        if hasattr(process_args, 'do_index') and process_args.do_index:
+            raise NotImplementedError(f"Indexing using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
+
+        if hasattr(process_args, 'do_search') and process_args.do_search:
+            raise NotImplementedError(f"Search using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
+
     elif process_args.engine_type == 'BM25':
         logger.info(f"Running BM25")
 
