@@ -28,7 +28,9 @@ class Arguments():
         self.add_argument('--doc_maxlen', dest='doc_maxlen', default=180, type=int)
 
         # Filtering-related Arguments
-        self.add_argument('--mask-punctuation', dest='mask_punctuation', default=False, action='store_true')
+        self.add_argument('--mask-punctuation', dest='mask_punctuation', action='store_true')
+        self.add_argument('--no-mask-punctuation', dest='mask_punctuation', action='store_false')
+        self.parser.set_defaults(mask_punctuation=True)
 
         # for handling models in local repository
         self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
@@ -45,11 +47,13 @@ class Arguments():
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
         self.add_argument('--bsize', dest='bsize', default=32, type=int)
-        self.add_argument('--accum', dest='accumsteps', default=2, type=int)
+        self.add_argument('--accumsteps', dest='accumsteps', default=1, type=int)
         self.add_argument('--amp', dest='amp', default=False, action='store_true')
         # adding shuffle option
         self.add_argument('--shuffle_every_epoch', dest='shuffle_every_epoch', default=False, action='store_true')
         # support checkpoint
+        self.add_argument('--save_every', dest='save_every', default=None, type=int)
+        # TODO: deprecate save_steps and save_epochs
         self.add_argument('--save_steps', dest='save_steps', default=2000, type=int)
         #                  help="Training will save checkpoint at the specified steps. "
         #                       "Overridden by save_epochs.")
@@ -68,6 +72,7 @@ class Arguments():
         self.add_argument('--query_only', dest='query_only', default=False, required=False, type=bool)
         self.add_argument('--loss_function', dest='loss_function', required=False)
         self.add_argument('--query_weight', dest='query_weight', default=0.5, type=float)
+        self.add_argument('--use_ib_negatives', dest='use_ib_negatives', default=False, action='store_true')
 
     def add_model_inference_parameters(self):
         self.add_argument('--checkpoint', dest='checkpoint', required=True)
@@ -104,21 +109,23 @@ class Arguments():
         self.add_argument('--collection', dest='collection', required=True)
         self.add_argument('--index_root', dest='index_root', required=True)
         self.add_argument('--index_name', dest='index_name', required=True)
-        self.add_argument('--num_partitions_max', dest='num_partitions_max', default=10000000, type=int)
 
     def add_compressed_index_input(self):
-        self.add_argument('--compression_level', dest='compression_level',
-                          choices=[1, 2], type=int, default=None)
-
+        self.add_argument('--nbits', dest='nbits', choices=[1, 2, 4], type=int, default=1)
+        self.add_argument('--kmeans_niters', type=int, default=4)
+        self.add_argument('--num_partitions_max', type=int, default=10000000)
 
     def add_index_use_input(self):
         self.add_argument('--index_root', dest='index_root', required=True)
         self.add_argument('--index_name', dest='index_name', required=True)
         self.add_argument('--partitions', dest='partitions', default=None, type=int, required=False)
+        self.add_argument('--index_path', dest='index_path', default=None, type=str)
+
 
     def add_retrieval_input(self):
         self.add_index_use_input()
-        self.add_argument('--nprobe', dest='nprobe', default=10, type=int)
+        self.add_argument('--nprobe', dest='nprobe', default=2, type=int)
+        self.add_argument('--ncandidates', dest='ncandidates', type=int, default=8192)
         self.add_argument('--retrieve_only', dest='retrieve_only', default=False, action='store_true')
 
     def add_argument(self, *args, **kw_args):

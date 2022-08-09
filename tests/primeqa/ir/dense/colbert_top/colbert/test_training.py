@@ -49,9 +49,8 @@ class TestTraining(UnitTest):
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
 
-
-        model_types = ['bert-base-uncased', 'xlm-roberta-base']
-        #model_types = ['xlm-roberta-base']
+        #model_types = ['bert-base-uncased', 'xlm-roberta-base']
+        model_types = ['bert-base-uncased']
 
         do_training = True
         if do_training:
@@ -63,8 +62,7 @@ class TestTraining(UnitTest):
                     colBERTConfig = ColBERTConfig(**args_dict)
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
 
-                    if model_type == 'xlm-roberta-base':
-                        # additional modalities done for 'xlm-roberta-base' only
+                    if model_type == 'bert-base-uncased':
 
                         # reading numerical training triples
                         args_dict['triples'] = numerical_triples_fn
