@@ -14,11 +14,11 @@
 
 ### Question Generation (QG)
 The task of QG can be summarized as given a table pr passage, generate <question, answer> pairs such that the answer for that question can be deduced from the table/passage.  
-The primary script for QG is [run_qg.py](./run_qg.py).  This runs a transformer-based sequence generation pipeline as shown below (for TableQG):
+The primary script for QG is [run_qg.py](../../../primeqa/qg/run_qg.py).  This runs a transformer-based sequence generation pipeline as shown below (for TableQG):
 ### Pipeline
-<img src="../../img/tableqg_pipeline.png" width="500" class="center">
+<img src="../../_static/img/tableqg_pipeline.png" width="500" class="center">
 
-The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except SQL generator [sql_sampler.py](./models/table_qg/sql_sampler.py) over a table is replaced by Answer Sampler [answer_sampler.py](./models/passage_qg/answer_sampler.py) over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
+The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except SQL generator [sql_sampler.py](../../../primeqa/qg/models/table_qg/sql_sampler.py) over a table is replaced by Answer Sampler [answer_sampler.py](../../../primeqa/qg/models/passage_qg/answer_sampler.py) over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
 
 
 Before continuing below make sure you have PrimeQA [installed](../../installation).
@@ -57,7 +57,7 @@ We evaluated the generated questions against the gold standard questions availab
     eval_samples_per_second =     48.733\
     eval_steps_per_second   =      1.528\
 
-Inference can be done on any table in particular dict format. Check this [notebook](../../notebooks/qg/tableqg_inference.ipynb) for more information.
+Inference can be done on any table in particular dict format. Check this [notebook](../../../notebooks/qg/tableqg_inference.ipynb) for more information.
 
 
 
@@ -85,4 +85,4 @@ We evaluated the generated questions against the gold standard questions availab
     eval_samples_per_second =     38.855\
     eval_steps_per_second   =      1.217\
 
-Inference can be done for PassageQG over a given passage. Check this [notebook](../../notebooks/qg/passage_qg_inference.ipynb) for more information.
+Inference can be done for PassageQG over a given passage. Check this [notebook](../../../notebooks/qg/passage_qg_inference.ipynb) for more information.

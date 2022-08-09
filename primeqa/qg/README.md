@@ -9,4 +9,4 @@ To train the QG models on the supported datasets check out the inference noteboo
 
 
 ## Pipeline
-<img src="../../docs/img/tableqg_pipeline.png" width="500" class="center">
+<img src="../../docs/_static/img/tableqg_pipeline.png" width="500" class="center">

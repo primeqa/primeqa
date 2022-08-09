@@ -22,19 +22,18 @@ PrimeQA provides both dense and sparse IR components.
 
 This README shows how to run the basic model training, data indexing, retrieval using the `run_ir.py` script. 
 
-Sample data files are [here](../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb). 
+Sample data files are [here](../../../tests/resources/ir_dense), their formats are shown in the Jupyter notebooks [here](../../../notebooks/ir/dense/dense_ir.ipynb) and [here](../../../notebooks/ir/dense/dense_ir_student_teacher.ipynb). 
 
-The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
+The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185), are outlined in the [Jupyter notebook](../../../notebooks/ir/dense/dense_ir_student_teacher.ipynb).
 
-The [Jupyter notebook](../../notebooks/ir/sparse/bm25_retrieval.ipynb) shows how to use the Sparse retriever API.
+The [Jupyter notebook](../../../notebooks/ir/sparse/bm25_retrieval.ipynb) shows how to use the Sparse retriever API.
 
 
 ### Model Training
 
 Dense IR requires training a model.  The following is an example of training a ColBERT model using the `run_ir.py` script.
 
-The command uses training data in a _.tsv_ (tabulator character separated) file, containing training examples in the form of _[query, positive_passage, negative_passage]_ triples. An example of a training data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv).
-
+The command uses training data in a _.tsv_ (tabulator character separated) file, containing training examples in the form of _[query, positive_passage, negative_passage]_ triples. An example of a training data file is [here](../../../tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv).
 This table shows two lines from the file, with the positive and negative passages truncated:
 
 | query | positive_passage | negative_passage                                                           |
@@ -71,7 +70,7 @@ The trained model is stored in `<experiments_root_directory>/<experiment_label>/
 The following are examples of how to index a corpus using the `run_ir.py` script.
 ### Corpus Format
 The command requires a corpus (collection) data in a _.tsv_ file, containing collection records in the form of _[ID, text, title]_ triples. The first line of the file contains a header record.
-An example of a collection file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv).
+An example of a collection file is [here](../../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv).
 
 This table shows the three lines from the file, with _text_ fields truncated:
 
@@ -81,7 +80,7 @@ This table shows the three lines from the file, with _text_ fields truncated:
 | 2 | Yao. The Bamboo Annals says that when Emperor Zhuanxu died ... | Emperor Zhi |
 
 ### Dense Index using ColBERT
-Using a model trained as described [here](./README.md#model-training), the following command builds the index.
+Using a model trained as described [here](./index#model-training), the following command builds the index.
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -116,7 +115,7 @@ python primeqa/ir/run_ir.py \
 ### Retrieval
 
 The command uses queries (questions) in a _.tsv_ file in the form of _[ID, text]_ records.
-An example of a queries data file is [here](../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
+An example of a queries data file is [here](../../../tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
 
 ### Dense Index Retrieval
 The command uses a model and index as created in the previous two steps
