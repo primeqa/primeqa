@@ -53,7 +53,7 @@ The above statements will generate an output in the form of a dictionary:
 ]
 ```
 ### Train and Evaluate
-If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](../../../../primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
+If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 ### Supported Datasets
 Currently supported datasets include:
 - TyDiQA
@@ -202,7 +202,7 @@ eval_samples = 18670
 
  - PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
-For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](../../../../examples/listqa/README.md) for more information and a use case using NQ list data:
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
        --learning_rate 5e-05 \
