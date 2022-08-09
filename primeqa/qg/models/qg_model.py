@@ -56,16 +56,17 @@ class QGModel():
                 agg_prob=[], 
                 num_where_prob=[], 
                 ineq_prob=0.0,
-                answers_list=[]):
+                answers_list=[],
+                id_list=[]):
                 
         if type(data_list) == dict:
             data_list = [data_list]
 
         if self.modality == 'table':
-            input_str_list, sql_list = self.sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob)
+            input_str_list, sql_list, id_question_list = self.sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob, id_list)
             answer_list = [s['answer'] for s in sql_list]
         elif self.modality == 'passage':
-            input_str_list, answer_list = self.answer_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list)
+            input_str_list, answer_list, id_question_list , id_context_map = self.answer_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list, id_list)
 
         input_ids = self._tokenizer(input_str_list, 
             return_tensors='pt', 
@@ -81,6 +82,12 @@ class QGModel():
 
         questions = [self._tokenizer.decode(g, skip_special_tokens=True,
                             clean_up_tokenization_spaces=True) for g in generated_ids]
-        questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
-
+        
+        if id_question_list == [] :
+            questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
+        elif self.modality == 'passage' :
+            questions_dict = [{'context_id':id_question_list[i], 'context':id_context_map.get(id_question_list[i]),'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
+        else:
+            questions_dict = [{'context_id':id_question_list[i], 'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
+        
         return questions_dict
