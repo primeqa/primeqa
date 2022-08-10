@@ -72,7 +72,8 @@ _deps = {
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
     "rouge_score":["install"], 
-    "sphinx_design~=0.2.0": ["docs"]
+    "sphinx_design~=0.2.0": ["docs"],
+    "recommonmark~=0.7.1":["docs"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]

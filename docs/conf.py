@@ -32,7 +32,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
-    'sphinx_design'
+    'sphinx_design',
+    'recommonmark'
 ]
 myst_enable_extensions = ["colon_fence"]
 
@@ -122,7 +123,8 @@ html_theme_options = {
             "href": "icons8-intelligence-50.png"
         },
     ],
-    "page_sidebar_items": ["custom-right-section.html", "page-toc", "edit-this-page"],
+    # "page_sidebar_items": ["custom-right-section.html", "page-toc", "edit-this-page"],
+    "page_sidebar_items": ["custom-right-section.html", "page-toc"],
 }
 html_context = {
     "github_user": "primeqa",
