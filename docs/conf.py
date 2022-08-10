@@ -33,7 +33,7 @@ extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
     'sphinx_design',
-    'recommonmark'
+    # 'recommonmark'
 ]
 myst_enable_extensions = ["colon_fence"]
 
@@ -125,6 +125,9 @@ html_theme_options = {
     ],
     # "page_sidebar_items": ["custom-right-section.html", "page-toc", "edit-this-page"],
     "page_sidebar_items": ["custom-right-section.html", "page-toc"],
+    # "footer_items": ["copyright", "sphinx-version"],
+    "footer_items": [],
+
 }
 html_context = {
     "github_user": "primeqa",
