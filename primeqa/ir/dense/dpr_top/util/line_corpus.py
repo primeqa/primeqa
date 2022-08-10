@@ -38,8 +38,8 @@ def block_shuffle(iter, *, block_size=20000, rand=random):
         yield bi
 
 
-def jsonl_lines(input_files, completed_files=None, limit=0, report_every=100000, *, errors=None, shuffled=None):
-    return read_lines(jsonl_files(input_files, completed_files, '*.jsonl*'),
+def jsonl_lines(input_files, completed_files=None, limit=0, report_every=100000, *, errors=None, shuffled=None, file_suffix='*.jsonl*'):
+    return read_lines(jsonl_files(input_files, completed_files, file_suffix),
                       limit=limit, report_every=report_every,
                       errors=errors, shuffled_files=shuffled)
 

@@ -1,12 +1,17 @@
 from primeqa.ir.dense.dpr_top.dataloader.distloader_base import MultiFileLoader, DistBatchesBase
 from primeqa.ir.dense.dpr_top.dpr.biencoder_hypers import BiEncoderHypers
 from primeqa.ir.dense.dpr_top.util.line_corpus import jsonl_lines
+from primeqa.ir.dense.colbert_top.colbert.data.collection import Collection
+from primeqa.ir.dense.colbert_top.colbert.data.queries import Queries
+
 import ujson as json
 from typing import List
 from transformers import PreTrainedTokenizerFast
 import torch
 import logging
 import random
+import csv
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +49,8 @@ class BiEncoderBatches(DistBatchesBase):
         leftover_insts = []
         current_batch = []
         current_batch_leftover = []
-        if self.hypers.training_data_type == 'dpr' and not self.hypers.disable_confict_free_batches:
-            raise NotImplementedError(f"Confict free batches are not implemented (yet).")
+        if self.hypers.training_data_type != 'jsonl' and not self.hypers.disable_confict_free_batches:
+            raise NotImplementedError(f"Confict free batches for {self.hypers.training_data_type} data are not implemented (yet).")
 
         while len(self.insts) + len(leftover_insts) >= self.batch_size:
             # grab an instance
@@ -135,10 +140,13 @@ class BiEncoderLoader(MultiFileLoader):
         self.qry_tokenizer = qry_tokenizer
         self.ctx_tokenizer = ctx_tokenizer
         self.id2pos_pids = dict()
-        if self.hypers.training_data_type != 'dpr':
-            for line in jsonl_lines(positive_pid_file):
+        if self.hypers.training_data_type == 'jsonl':
+            for line in jsonl_lines(positive_pid_file, file_suffix='*.jsonl*'):
                 jobj = json.loads(line)
                 self.id2pos_pids[jobj['id']] = jobj['positive_pids']
+        if self.hypers.training_data_type == 'num_triples':
+            self.queries = Queries.cast(self.hypers.queries)
+            self.collection = Collection.cast(self.hypers.collection)
 
     def batch_dict(self, batch):
         """
@@ -157,13 +165,14 @@ class BiEncoderLoader(MultiFileLoader):
         logger.info(f'{input_ids_q.shape} queries and {input_ids_c.shape} contexts\n{positive_indices}')
         qndx = random.randint(0, input_ids_q.shape[0]-1)
         logger.info(f'   query: {self.qry_tokenizer.decode(input_ids_q[qndx])}')
-        logger.info(f' positve: {self.ctx_tokenizer.decode(input_ids_c[positive_indices[qndx]])}')
+        logger.info(f'positive: {self.ctx_tokenizer.decode(input_ids_c[positive_indices[qndx]])}')
         logger.info(f'negative: {self.ctx_tokenizer.decode(input_ids_c[1+positive_indices[qndx]])}')
 
     def _one_load(self, lines):
         insts = []
-        for line in lines:
-            if self.hypers.training_data_type == 'dpr':
+
+        if self.hypers.training_data_type == 'dpr':
+            for line in lines:
                 # "line" is a dictionary here
                 qry = line['question']
                 # using all positives, one negative per positive, hard negative if available
@@ -183,7 +192,8 @@ class BiEncoderLoader(MultiFileLoader):
                     assert len(positive) == 2
                     assert len(hard_neg) == 2
                     insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
-            else:
+        elif self.hypers.training_data_type == 'jsonl':
+            for line in lines:
                 jobj = json.loads(line)
                 qry = jobj['query']
                 positive = jobj['positive']['title'], jobj['positive']['text']
@@ -200,5 +210,35 @@ class BiEncoderLoader(MultiFileLoader):
                 pos_pids = self.id2pos_pids[jobj['id']]
                 assert len(positive) == 2
                 assert len(hard_neg) == 2
+                insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
+        elif self.hypers.training_data_type == 'text_triples':
+            for line in lines:
+                [qry, positive_text, negative_text] = next(csv.reader([line], delimiter="\t", quotechar='"'))   # TODO: is this slow?
+                ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
+                pos_pids = []
+                positive = '', positive_text  # NOTE: the titles are not delimited in the .tsv files
+                hard_neg = '', negative_text
+                insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
+        elif self.hypers.training_data_type == 'text_triples_with_title':
+            for line in lines:
+                [qry, positive, negative] = next(csv.reader([line], delimiter="\t", quotechar='"'))   # TODO: is this slow?
+                positive_title, positive_text = re.split(r" \| ", positive, maxsplit=1)
+                negative_title, negative_text = re.split(r" \| ", negative, maxsplit=1)
+                ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
+                pos_pids = []
+                positive = positive_title, positive_text  # NOTE: the titles are not delimited in the .tsv files
+                hard_neg = negative_title, negative_text
+                insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
+        elif self.hypers.training_data_type == 'num_triples':
+            for line in lines:
+                [query_id, positive_id, negative_id] = json.loads(line)
+                qry = self.queries[query_id]
+                # because of title and text handling in colbert.evaluation.loaders.load_collection
+                positive_title, positive_text = re.split(r" \| ", self.collection[positive_id], maxsplit=1)
+                negative_title, negative_text = re.split(r" \| ", self.collection[negative_id], maxsplit=1)
+                ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
+                pos_pids = []
+                positive = positive_title, positive_text  # NOTE: the titles are not delimited in the .tsv files
+                hard_neg = negative_title, negative_text
                 insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
         return BiEncoderBatches(insts, self.hypers, self.qry_tokenizer, self.ctx_tokenizer)

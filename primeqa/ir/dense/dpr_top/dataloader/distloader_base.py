@@ -186,8 +186,15 @@ class MultiFileLoader:
             return None
         if self.hypers.training_data_type == 'dpr':
             lines = jsonl_records(input_files)
+        elif self.hypers.training_data_type == 'jsonl':
+            lines = jsonl_lines(input_files, file_suffix='*.jsonl*')
+        elif self.hypers.training_data_type == 'text_triples' or self.hypers.training_data_type == 'text_triples_with_title' :
+            lines = jsonl_lines(input_files, file_suffix='*.tsv')
+        elif self.hypers.training_data_type == 'num_triples':
+            lines = jsonl_lines(input_files, file_suffix='*')
         else:
-            lines = jsonl_lines(input_files)
+            raise NotImplementedError(f"Input data type {self.hypers.training_data_type} is not implemented (yet).")
+
         # if input_files are supposed to be shared then get only the lines for our global_rank
         if files_are_shared:
             lines = itertools.islice(lines, self.hypers.global_rank, None, self.hypers.world_size)

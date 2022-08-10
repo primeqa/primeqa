@@ -247,7 +247,7 @@ class HypersBase:
         :param filter_out: json objects are passed to this function, True means the instance is excluded
         :return: this is a generator, it yields json objects
         """
-        dataset = jsonl_lines(filename, shuffled=rand)
+        dataset = jsonl_lines(filename, shuffled=rand,  file_suffix='*.jsonl*')
         if rand is not None:
             dataset = block_shuffle(dataset, block_size=100000, rand=rand)
         for line_ndx, line in enumerate(dataset):

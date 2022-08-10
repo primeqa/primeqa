@@ -16,15 +16,23 @@ class BiEncoderTrainArgs(BiEncoderHypers):
         self.train_dir = ''
         self.positive_pids = ''
         self.num_instances = -1
-        self.__required_args__ = ['train_dir', 'output_dir', 'positive_pids']
+        self.__required_args__ = ['train_dir', 'output_dir']
 
     def _post_init(self):
         super()._post_init()
         if self.num_instances <= 0:
-            if self.training_data_type == 'dpr':
+            if self.training_data_type == 'dpr':      # .json, as in https://dl.fbaipublicfiles.com/dpr/data/retriever/biencoder-nq-dev.json.gz
                 self.num_instances = sum(1 for _ in jsonl_records(self.train_dir))
+            elif self.training_data_type == 'jsonl':  # ,jsonl, as in the original code in https://github.com/IBM/kgi-slot-filling/tree/re2g
+                self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*.jsonl*'))
+            elif self.training_data_type == 'text_triples':    # .tsv, containing [query, positive, negative] triples
+                self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*.tsv'))
+            elif self.training_data_type == 'text_triples_with_title':    # .tsv, containing [query, positive, negative] triples, with "title | text" for passages
+                self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*.tsv'))
+            elif self.training_data_type == 'num_triples':    # text file, containing [query_id, positive_id, negative_id] triples
+                self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*'))
             else:
-                self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir))
+                raise NotImplementedError(f"Input data type {self.training_data_type} is not implemented (yet).")
             logger.info(f'Counted num_instances = {self.num_instances}')
 
 class BiEncoderTrainer():
