@@ -247,7 +247,10 @@ python examples/ir/run_ir.py \
     --root ${OUTPUT_DIR} \
     --index_name ${CHECKPOINT}_index \
     --experiment ${CHECKPOINT}_retrieve \
-    --nprobe 4 \
+    --topK 100 \
+    --ncells 4 \
+    --centroid_score_threshold 0.4 \
+    --ndocs 40000 \
     --ranks_fn ${OUTPUT_DIR}/colbert-LAST_retrieve.tsv \
 > ${OUTPUT_DIR}/${CHECKPOINT}_retrieve.log
 ```
