@@ -189,6 +189,16 @@ eval_samples = 18670
 
  - PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
+ 
+## Supported Datasets
+
+Currently supported dataset
+- WikiSQL
+- SQA
+- User's Custom Data
+
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
+
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
@@ -197,6 +207,8 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --passage_non_null_threshold 1 \
        --minimal_non_null_threshold 1 \
 ```
+This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
+
 This yields the following results on English only using the TyDi evaluation script with two training strategies:
 ```
 xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
