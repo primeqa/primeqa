@@ -32,7 +32,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
-from primeqa.tableqa.run_tableqa import TableQAArguments
+from primeqa.tableqa.arguments import TableQAArguments
 from transformers import TapasConfig
 from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
 from primeqa.tableqa.utils.data_collator import TapasCollator

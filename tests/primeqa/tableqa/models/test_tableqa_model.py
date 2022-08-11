@@ -14,7 +14,7 @@ from transformers import (
     set_seed,default_data_collator,
 )
 
-from primeqa.tableqa.run_tableqa import TableQAArguments
+from primeqa.tableqa.arguments import TableQAArguments
 from primeqa.tableqa.utils.data_collator import TapasCollator
 from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
 
