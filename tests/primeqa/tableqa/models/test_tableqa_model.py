@@ -56,3 +56,8 @@ def test_tableqa_model(model_name_path):
                                 )
     train_result = trainer.train()
     assert(train_result!=None)
+    metrics = train_result.metrics
+    assert(metrics['epoch']>0)
+    assert(metrics['train_loss']<10.0)
+    
+

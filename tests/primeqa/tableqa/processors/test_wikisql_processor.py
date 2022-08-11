@@ -10,6 +10,8 @@ def test_tableqa_model(output_dir):
     tqam = TableQAModel("google/tapas-base",config=config)
     model = tqam.model
     tokenizer = tqam.tokenizer
+    train_dataset={}
+    eval_dataset={}
     train_dataset,eval_dataset = load_data(output_dir,tokenizer,10,5)
     assert(len(train_dataset)>0)
     assert(len(eval_dataset)>0)
