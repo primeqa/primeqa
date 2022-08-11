@@ -5,7 +5,7 @@ from primeqa.tableqa.models.tableqa_model import TableQAModel
 
 from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 from primeqa.tableqa.models.tableqa_model import TableQAModel
-from primeqa.tableqa.trainer.tableqa_trainer import TableQATrainer
+from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
 from transformers import TapasConfig
 from transformers import (
     DataCollator,

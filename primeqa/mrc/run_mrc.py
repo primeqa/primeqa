@@ -3,7 +3,6 @@ import os
 import sys
 import traceback
 import json
-from primeqa.tableqa.run_tableqa import TableQAArguments
 import torch
 import gc
 import glob
@@ -33,7 +32,9 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
-from primeqa.tableqa.trainer.tableqa_trainer import TableQATrainer
+from primeqa.tableqa.run_tableqa import TableQAArguments
+from transformers import TapasConfig
+from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
 from primeqa.tableqa.utils.data_collator import TapasCollator
 from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
 from primeqa.tableqa.models.tableqa_model import TableQAModel
@@ -108,6 +109,9 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
+    tqa_args_file: Optional[str] = field(
+        default=None, metadata={"help": "TableQA additional arguments"}
+    )
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
@@ -288,14 +292,14 @@ class TaskArguments:
 
 
 def main():
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments,TableQAArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
         model_args, data_args, training_args, task_args = \
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args, task_args, tableqa_args= parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, task_args= parser.parse_args_into_dataclasses()
 
     # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
     # dataset) might have changed
@@ -329,14 +333,18 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
     if task_args.modality=="table":
+        tqa_parser = HfArgumentParser(TableQAArguments)
+        tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tqa_args_file))[0]
+        print(tqa_args.use_answer_as_supervision)
+        config = TapasConfig(tqa_args)
         tableqa_model = TableQAModel(model_args.model_name_or_path,config=config)
         model = tableqa_model.model
         tokenizer = tableqa_model.tokenizer
         if training_args.do_train or training_args.do_eval:
-            if tableqa_args.dataset_name=="wikisql":
-                train_dataset,eval_dataset = load_data(tableqa_args.data_path_root,tokenizer)
+            if data_args.dataset_name=="wikisql":
+                train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
             else:
-                tqadataset = TableQADataset(tableqa_args.data_path_root,tableqa_args.train_data_path,tableqa_args.dev_data_path ,tokenizer)
+                tqadataset = TableQADataset(tqa_args.data_path_root,data_args.train_file,data_args.eval_file ,tokenizer)
                 train_dataset,eval_dataset= tqadataset.load_data()
             trainer = TableQATrainer(model=model,
                                     args=training_args,

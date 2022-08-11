@@ -3,7 +3,7 @@ from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 from primeqa.tableqa.models.tableqa_model import TableQAModel
 from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
 from primeqa.tableqa.preprocessors.dataset import TableQADataset
-from primeqa.tableqa.trainer.tableqa_trainer import TableQATrainer
+from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
 from dataclasses import dataclass, field
 from transformers import TapasConfig
 from transformers import (
@@ -69,7 +69,7 @@ class TQATrainingArguments(TrainingArguments):
     )
 
 
-def main():
+def table_qa():
     logger = logging.getLogger(__name__)
     parser = HfArgumentParser((TableQAArguments, TQATrainingArguments))
     tqa_args,training_args = parser.parse_args_into_dataclasses()
@@ -109,5 +109,5 @@ def main():
 
 
 if __name__ == '__main__':
-       main()
+       table_qa()
     
