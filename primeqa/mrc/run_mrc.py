@@ -39,6 +39,8 @@ from primeqa.tableqa.utils.data_collator import TapasCollator
 from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
 from primeqa.tableqa.models.tableqa_model import TableQAModel
 from primeqa.tableqa.preprocessors.dataset import TableQADataset
+from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
+from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -340,6 +342,7 @@ def main():
         tableqa_model = TableQAModel(model_args.model_name_or_path,config=config)
         model = tableqa_model.model
         tokenizer = tableqa_model.tokenizer
+        post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
         if training_args.do_train or training_args.do_eval:
             if data_args.dataset_name=="wikisql":
                 train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
@@ -352,6 +355,8 @@ def main():
                                     eval_dataset=eval_dataset if training_args.do_eval else None,
                                     tokenizer=tableqa_model.tokenizer,
                                     data_collator=TapasCollator(),
+                                    post_process_function= post_obj.postprocess_prediction,
+                                    compute_metrics=compute_denotation_accuracy  
                                     )
             if training_args.do_train:
                 train_result = trainer.train()
