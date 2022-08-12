@@ -293,7 +293,7 @@ def main():
         model_args, data_args, training_args, task_args = \
             parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args, task_args= parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
     # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
     # dataset) might have changed
@@ -326,9 +326,12 @@ def main():
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
+
+    # Run Table Question Answering        
     if task_args.modality=="table":
         run_table_qa(data_args,model_args,training_args)
         sys.exit(0)
+        
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -485,33 +488,33 @@ def main():
         with open(task_args.boolean_config, 'r') as f:
             boolean_config = json.load(f)
 
-    boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
-    boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
-    boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
-    boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
-    boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-    boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
+        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
+        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
+        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
+        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
+        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
 
-    if model: del model
-    gc.collect()
-    torch.cuda.empty_cache()
-    logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
-        max memory {torch.cuda.max_memory_allocated()}")
+        if model: del model
+        gc.collect()
+        torch.cuda.empty_cache()
+        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+            max memory {torch.cuda.max_memory_allocated()}")
 
-    cls_main([boolean_config['qtc']])
-    cls_main([boolean_config['evc']])
-    sn_main([boolean_config['sn']])
+        cls_main([boolean_config['qtc']])
+        cls_main([boolean_config['evc']])
+        sn_main([boolean_config['sn']])
 
-    with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
-        processed_predictions = json.load(f)
-        
-    references = postprocessor.prepare_examples_as_references(eval_examples)
-    boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
-    boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
-    trainer.log_metrics("eval", boolean_eval_metric)
-    path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
-    with open(path, "w") as f:
-        json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
+        with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
+            processed_predictions = json.load(f)
+            
+        references = postprocessor.prepare_examples_as_references(eval_examples)
+        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+        boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+        trainer.log_metrics("eval", boolean_eval_metric)
+        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+        with open(path, "w") as f:
+            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
 
 
 if __name__ == '__main__':
