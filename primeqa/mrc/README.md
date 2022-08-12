@@ -220,7 +220,7 @@ For training and evaluation of a Table Question Answering model on wikisql datas
 ```shell
        python primeqa/mrc/run_mrc.py --modality "table" \
        --dataset_name "wikisql" \
-       --tqa_args_file "primeqa/tableqa/tqa_args.json" \
+       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
        --output_dir "models/wikisql/" \
        --model_name_or_path "google/tapas-base" \
        --do_train \
@@ -238,7 +238,7 @@ You can also train the tableqa model on your own custom data. Train the TableQA 
 ```shell
  python primeqa/mrc/run_mrc.py --modality "table" \
        --dataset_name "wikisql" \
-       --tqa_args_file "primeqa/tableqa/tqa_args.json" \
+       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
        --output_dir "models/wikisql/" \
        --model_name_or_path "google/tapas-base" \
        --train_file "<path_to_train.tsv file" \

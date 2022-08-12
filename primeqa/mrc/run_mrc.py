@@ -32,15 +32,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
-from primeqa.tableqa.arguments import TableQAArguments
-from transformers import TapasConfig
-from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
-from primeqa.tableqa.utils.data_collator import TapasCollator
-from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
-from primeqa.tableqa.models.tableqa_model import TableQAModel
-from primeqa.tableqa.preprocessors.dataset import TableQADataset
-from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
-from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
+from primeqa.tableqa.run_tableqa import run
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -111,7 +103,7 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    tqa_args_file: Optional[str] = field(
+    tableqa_config_file: Optional[str] = field(
         default=None, metadata={"help": "TableQA additional arguments"}
     )
     dataset_name: str = field(
@@ -335,225 +327,191 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
     if task_args.modality=="table":
-        tqa_parser = HfArgumentParser(TableQAArguments)
-        tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tqa_args_file))[0]
-        print(tqa_args.use_answer_as_supervision)
-        config = TapasConfig(tqa_args)
-        tableqa_model = TableQAModel(model_args.model_name_or_path,config=config)
-        model = tableqa_model.model
-        tokenizer = tableqa_model.tokenizer
-        post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
-        if training_args.do_train or training_args.do_eval:
-            if data_args.dataset_name=="wikisql":
-                train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
-            else:
-                tqadataset = TableQADataset(tqa_args.data_path_root,data_args.train_file,data_args.eval_file ,tokenizer)
-                train_dataset,eval_dataset= tqadataset.load_data()
-            trainer = TableQATrainer(model=model,
-                                    args=training_args,
-                                    train_dataset=train_dataset if training_args.do_train else None,
-                                    eval_dataset=eval_dataset if training_args.do_eval else None,
-                                    tokenizer=tableqa_model.tokenizer,
-                                    data_collator=TapasCollator(),
-                                    post_process_function= post_obj.postprocess_prediction,
-                                    compute_metrics=compute_denotation_accuracy  
-                                    )
-            if training_args.do_train:
-                train_result = trainer.train()
-                trainer.save_model()
-                metrics = train_result.metrics
-                trainer.log_metrics("train", metrics)
-                trainer.save_metrics("train", metrics)
-                trainer.save_state()
-            if training_args.do_eval:
-                logger.info("*** Evaluate ***")
-                metrics = trainer.evaluate()
-                trainer.log_metrics("eval", metrics)
-                trainer.save_metrics("eval", metrics)
+        run(data_args,model_args,training_args)
+        sys.exit(0)
+    task_heads = task_args.task_heads
+    config = AutoConfig.from_pretrained(
+        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir,
+    )
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        cache_dir=model_args.cache_dir,
+        use_fast=True,
+        config=config,
+    )
+
+    config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
+    config.output_dropout_rate = task_args.output_dropout_rate
+    config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
+    model = ModelForDownstreamTasks.from_config(
+        config,
+        model_args.model_name_or_path,
+        task_heads=task_heads,
+        cache_dir=model_args.cache_dir,
+    )
+    model.set_task_head(next(iter(task_heads)))
+
+    # load data
+    logger.info('Loading dataset')
+    if data_args.train_file is not None or data_args.eval_file is not None:
+        data_files = {}
+
+        if data_args.train_file is not None: 
+            data_files['train'] = glob.glob(data_args.train_file)
+        if data_args.eval_file is not None: 
+            data_files['validation'] = glob.glob(data_args.eval_file)
+
+        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+            data_files=data_files,
+            cache_dir=model_args.cache_dir)
     else:
-        task_heads = task_args.task_heads
-        config = AutoConfig.from_pretrained(
-            model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        raw_datasets = datasets.load_dataset(
+            data_args.dataset_name,
+            data_args.dataset_config_name,
             cache_dir=model_args.cache_dir,
         )
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
-            cache_dir=model_args.cache_dir,
-            use_fast=True,
-            config=config,
+
+    # load preprocessor
+    preprocessor_class = task_args.preprocessor
+    preprocessor = preprocessor_class(
+        stride=data_args.doc_stride,
+        tokenizer=tokenizer,
+        negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+        negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+        load_from_cache_file=not data_args.overwrite_cache,
+        max_seq_len=data_args.max_seq_length,
+        num_workers=data_args.preprocessing_num_workers,
+        max_q_char_len=data_args.max_q_char_len,
+        single_context_multiple_passages=data_args.single_context_multiple_passages,
+        max_contexts=data_args.max_contexts,
+    )
+
+    # process train data
+    if training_args.do_train:
+        train_dataset = raw_datasets["train"]
+        max_train_samples = data_args.max_train_samples
+        if max_train_samples is not None:
+            # We will select sample from whole data if argument is specified
+            train_dataset = train_dataset.select(range(max_train_samples))
+        # Train Feature Creation
+        with training_args.main_process_first(desc="train dataset map pre-processing"):
+            _, train_dataset = preprocessor.process_train(train_dataset)
+
+    # process val data
+    if training_args.do_eval:
+        eval_examples = raw_datasets["validation"]
+        max_eval_samples = data_args.max_eval_samples
+        if max_eval_samples is not None:
+            # We will select sample from whole data if argument is specified
+            eval_examples = eval_examples.select(range(max_eval_samples))
+        # Validation Feature Creation
+        with training_args.main_process_first(desc="validation dataset map pre-processing"):
+            eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+
+    # If using mixed precision we pad for efficient hardware acceleration
+    using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
+    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+
+    postprocessor_class = task_args.postprocessor
+
+    # noinspection PyProtectedMember
+    postprocessor = postprocessor_class(
+        k=data_args.n_best_logits,
+        n_best_size=data_args.n_best_size,
+        max_answer_length=data_args.max_answer_length,
+        scorer_type=SupportedSpanScorers(scorer_type),
+        single_context_multiple_passages=preprocessor._single_context_multiple_passages,
+        confidence_model_path=model_args.confidence_model_path,
+        output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
+    )
+
+    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+
+    def compute_metrics(p: EvalPredictionWithProcessing):
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold, 
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+            dataset_config_name = eval_dataset.config_name)
+
+    trainer = MRCTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset if training_args.do_train else None,
+        eval_dataset=eval_dataset if training_args.do_eval else None,
+        eval_examples=eval_examples if training_args.do_eval else None,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
+        compute_metrics=compute_metrics,
+    )
+
+    checkpoint = None
+    if training_args.resume_from_checkpoint is not None:
+        checkpoint = training_args.resume_from_checkpoint
+    elif last_checkpoint is not None:
+        checkpoint = last_checkpoint
+
+    # training
+    if training_args.do_train:
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        trainer.save_model()  # Saves the tokenizer too for easy upload
+
+        metrics = train_result.metrics
+        max_train_samples = (
+            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
         )
+        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
-        config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
-        config.output_dropout_rate = task_args.output_dropout_rate
-        config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
-        model = ModelForDownstreamTasks.from_config(
-            config,
-            model_args.model_name_or_path,
-            task_heads=task_heads,
-            cache_dir=model_args.cache_dir,
-        )
-        model.set_task_head(next(iter(task_heads)))
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
 
-        # load data
-        logger.info('Loading dataset')
-        if data_args.train_file is not None or data_args.eval_file is not None:
-            data_files = {}
+    # validation
+    if training_args.do_eval:
+        logger.info("*** Evaluate ***")
+        metrics = trainer.evaluate()
 
-            if data_args.train_file is not None: 
-                data_files['train'] = glob.glob(data_args.train_file)
-            if data_args.eval_file is not None: 
-                data_files['validation'] = glob.glob(data_args.eval_file)
+        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+        metrics["eval_samples"] = min(max_eval_samples, len(eval_examples))
 
-            raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-                data_files=data_files,
-                cache_dir=model_args.cache_dir)
-        else:
-            raw_datasets = datasets.load_dataset(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                cache_dir=model_args.cache_dir,
-            )
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
 
-        # load preprocessor
-        preprocessor_class = task_args.preprocessor
-        preprocessor = preprocessor_class(
-            stride=data_args.doc_stride,
-            tokenizer=tokenizer,
-            negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
-            negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
-            load_from_cache_file=not data_args.overwrite_cache,
-            max_seq_len=data_args.max_seq_length,
-            num_workers=data_args.preprocessing_num_workers,
-            max_q_char_len=data_args.max_q_char_len,
-            single_context_multiple_passages=data_args.single_context_multiple_passages,
-            max_contexts=data_args.max_contexts,
-        )
+    if task_args.do_boolean:
+        logger.info("Processing of boolean questions")
+        if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
+            raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
+        with open(task_args.boolean_config, 'r') as f:
+            boolean_config = json.load(f)
 
-        # process train data
-        if training_args.do_train:
-            train_dataset = raw_datasets["train"]
-            max_train_samples = data_args.max_train_samples
-            if max_train_samples is not None:
-                # We will select sample from whole data if argument is specified
-                train_dataset = train_dataset.select(range(max_train_samples))
-            # Train Feature Creation
-            with training_args.main_process_first(desc="train dataset map pre-processing"):
-                _, train_dataset = preprocessor.process_train(train_dataset)
+    boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
+    boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
+    boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
+    boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+    boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
+    boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
 
-        # process val data
-        if training_args.do_eval:
-            eval_examples = raw_datasets["validation"]
-            max_eval_samples = data_args.max_eval_samples
-            if max_eval_samples is not None:
-                # We will select sample from whole data if argument is specified
-                eval_examples = eval_examples.select(range(max_eval_samples))
-            # Validation Feature Creation
-            with training_args.main_process_first(desc="validation dataset map pre-processing"):
-                eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+    if model: del model
+    gc.collect()
+    torch.cuda.empty_cache()
+    logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+        max memory {torch.cuda.max_memory_allocated()}")
 
-        # If using mixed precision we pad for efficient hardware acceleration
-        using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
-        data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+    cls_main([boolean_config['qtc']])
+    cls_main([boolean_config['evc']])
+    sn_main([boolean_config['sn']])
 
-        postprocessor_class = task_args.postprocessor
-
-        # noinspection PyProtectedMember
-        postprocessor = postprocessor_class(
-            k=data_args.n_best_logits,
-            n_best_size=data_args.n_best_size,
-            max_answer_length=data_args.max_answer_length,
-            scorer_type=SupportedSpanScorers(scorer_type),
-            single_context_multiple_passages=preprocessor._single_context_multiple_passages,
-            confidence_model_path=model_args.confidence_model_path,
-            output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
-        )
-
-        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
-
-        def compute_metrics(p: EvalPredictionWithProcessing):
-            return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
-                passage_non_null_threshold=task_args.passage_non_null_threshold, 
-                span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
-                dataset_config_name = eval_dataset.config_name)
-
-        trainer = MRCTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset if training_args.do_train else None,
-            eval_dataset=eval_dataset if training_args.do_eval else None,
-            eval_examples=eval_examples if training_args.do_eval else None,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-            post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-            compute_metrics=compute_metrics,
-        )
-
-        checkpoint = None
-        if training_args.resume_from_checkpoint is not None:
-            checkpoint = training_args.resume_from_checkpoint
-        elif last_checkpoint is not None:
-            checkpoint = last_checkpoint
-
-        # training
-        if training_args.do_train:
-            train_result = trainer.train(resume_from_checkpoint=checkpoint)
-            trainer.save_model()  # Saves the tokenizer too for easy upload
-
-            metrics = train_result.metrics
-            max_train_samples = (
-                data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
-            )
-            metrics["train_samples"] = min(max_train_samples, len(train_dataset))
-
-            trainer.log_metrics("train", metrics)
-            trainer.save_metrics("train", metrics)
-            trainer.save_state()
-
-        # validation
-        if training_args.do_eval:
-            logger.info("*** Evaluate ***")
-            metrics = trainer.evaluate()
-
-            max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
-            metrics["eval_samples"] = min(max_eval_samples, len(eval_examples))
-
-            trainer.log_metrics("eval", metrics)
-            trainer.save_metrics("eval", metrics)
-
-        if task_args.do_boolean:
-            logger.info("Processing of boolean questions")
-            if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
-                raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
-            with open(task_args.boolean_config, 'r') as f:
-                boolean_config = json.load(f)
-
-        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
-        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
-        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
-        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
-        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
-
-        if model: del model
-        gc.collect()
-        torch.cuda.empty_cache()
-        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
-            max memory {torch.cuda.max_memory_allocated()}")
-
-        cls_main([boolean_config['qtc']])
-        cls_main([boolean_config['evc']])
-        sn_main([boolean_config['sn']])
-
-        with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
-            processed_predictions = json.load(f)
-            
-        references = postprocessor.prepare_examples_as_references(eval_examples)
-        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
-        boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
-        trainer.log_metrics("eval", boolean_eval_metric)
-        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
-        with open(path, "w") as f:
-            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
+    with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
+        processed_predictions = json.load(f)
+        
+    references = postprocessor.prepare_examples_as_references(eval_examples)
+    boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+    boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+    trainer.log_metrics("eval", boolean_eval_metric)
+    path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+    with open(path, "w") as f:
+        json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
 
 
 if __name__ == '__main__':

@@ -15,6 +15,8 @@ from transformers import (
 import pandas as pd
 from primeqa.tableqa.utils.data_collator import TapasCollator
 from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
+import os
+
 @dataclass
 class TableQAArguments:
     """
@@ -61,3 +63,43 @@ class TableQAArguments:
     temperature: float = field(
         default=0.0352513, metadata={"help": "temperature"}
     )
+def run(data_args,model_args,training_args):
+    logger = logging.getLogger(__name__)
+    tqa_parser = HfArgumentParser(TableQAArguments)
+    tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tableqa_config_file))[0]
+    config = TapasConfig(tqa_args)
+    tableqa_model = TableQAModel(model_args.model_name_or_path,config=config)
+    model = tableqa_model.model
+    tokenizer = tableqa_model.tokenizer
+    post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
+    if data_args.dataset_name=="wikisql":
+        train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
+    else:
+        tqadataset = TableQADataset(tqa_args.data_path_root,data_args.train_file,data_args.eval_file ,tokenizer)
+        train_dataset,eval_dataset= tqadataset.load_data()
+    trainer = TableQATrainer(model=model,
+                            args=training_args,
+                            train_dataset=train_dataset if training_args.do_train else None,
+                            eval_dataset=eval_dataset if training_args.do_eval else None,
+                            tokenizer=tableqa_model.tokenizer,
+                            data_collator=TapasCollator(),
+                            post_process_function= post_obj.postprocess_prediction,
+                            compute_metrics=compute_denotation_accuracy  
+                            )
+    if training_args.do_train:
+        train_result = trainer.train()
+        trainer.save_model()
+        metrics = train_result.metrics
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
+        trainer.save_state()
+    if training_args.do_eval:
+        logger.info("*** Evaluate ***")
+        metrics = trainer.evaluate()
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
+
+
+if __name__ == '__main__':
+       run()
+    
