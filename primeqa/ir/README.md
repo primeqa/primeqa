@@ -210,7 +210,7 @@ performance on ru (237 examples)
 54.85232067510548
 performance on ar (309 examples)
 49.19093851132686
-Final macro averaged score:
+Final macro averaged score: 
 49.921052465692526
 Evaluating R@5kt
 performance on te (238 examples)
@@ -227,7 +227,7 @@ performance on ru (237 examples)
 61.60337552742617
 performance on ar (309 examples)
 57.60517799352751
-Final macro averaged score:
+Final macro averaged score: 
 58.72438362740563
 ```
 

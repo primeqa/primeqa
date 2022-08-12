@@ -1,8 +1,11 @@
 # Machine Reading Comprehension (MRC)
 
-If you want to perform a sample usage of the MRC component within PrimeQA on your example data you can run the following:
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
- - Step 1:  Initialize your reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
+## Inference Example Usage
+The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
+
+ - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```shell
 import json
 from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
@@ -35,24 +38,23 @@ The above statements will generate an output in the form of a dictionary:
     }
 ]
 ```
-
+## Train and Evaluate
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
-Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
-## Supported Datasets
+### Supported Datasets
 Currently supported datasets include:
 - TyDiQA
 - SQuAD 1.1
 - XQuAD
 - MLQA
 
-## Example Usage
+### Example Usage
 
  - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
 
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --learning_rate 4e-5 \
        --do_train --do_eval --per_device_train_batch_size 16 \
        --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
@@ -81,7 +83,7 @@ eval_samples = 18670
 
 For just training:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
        --output_dir ${TRAINING_OUTPUT_DIR} --fp16 --learning_rate 4e-5 \
        --do_train --per_device_train_batch_size 16 --gradient_accumulation_steps 4 \
        --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
@@ -91,7 +93,7 @@ python examples/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
 
 For just eval:
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
+python primeqa/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --output_dir ${OUTPUT_DIR} --fp16 --do_eval \
        --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
@@ -165,7 +167,7 @@ This yields the following results:
 
  -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
 ```shell
-python examples/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
