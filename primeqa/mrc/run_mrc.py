@@ -219,7 +219,7 @@ class TaskArguments:
     Task specific arguments.
     """
     modality: str = field(
-        default='table',
+        default='text',
         metadata={"help": "whether modality is table or text"
                   }
     )
