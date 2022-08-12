@@ -212,7 +212,8 @@ class TaskArguments:
     """
     modality: str = field(
         default='text',
-        metadata={"help": "whether modality is table or text"
+        metadata={"help": "whether modality is table or text",
+        "choices": ["text", "table"]
                   }
     )
 
@@ -331,7 +332,7 @@ def main():
     if task_args.modality=="table":
         run_table_qa(data_args,model_args,training_args)
         sys.exit(0)
-        
+
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
