@@ -76,6 +76,7 @@ python primeqa/qg/run_qg.py\
 ```
 
 We evaluated the generated questions against the gold standard questions available in TydiQA benchmark using Rogue metrics. The results are shown as follows:
+```default     
     eval_loss               =     1.0944\
     eval_rouge1             =    28.9264\
     eval_rouge2             =    17.1576\
@@ -84,5 +85,6 @@ We evaluated the generated questions against the gold standard questions availab
     eval_runtime            = 0:02:10.66\
     eval_samples_per_second =     38.855\
     eval_steps_per_second   =      1.217\
+```     
 
 Inference can be done for PassageQG over a given passage. Check this [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/qg/passageqg_inference.ipynb) for more information.
