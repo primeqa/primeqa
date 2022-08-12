@@ -63,7 +63,7 @@ class TableQAArguments:
     temperature: float = field(
         default=0.0352513, metadata={"help": "temperature"}
     )
-def run(data_args,model_args,training_args):
+def run_table_qa(data_args,model_args,training_args):
     logger = logging.getLogger(__name__)
     tqa_parser = HfArgumentParser(TableQAArguments)
     tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tableqa_config_file))[0]
@@ -98,8 +98,4 @@ def run(data_args,model_args,training_args):
         metrics = trainer.evaluate()
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
-
-
-if __name__ == '__main__':
-       run()
     

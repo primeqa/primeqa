@@ -32,7 +32,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
-from primeqa.tableqa.run_tableqa import run
+from primeqa.tableqa.run_tableqa import run_table_qa
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -327,7 +327,7 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
     if task_args.modality=="table":
-        run(data_args,model_args,training_args)
+        run_table_qa(data_args,model_args,training_args)
         sys.exit(0)
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(

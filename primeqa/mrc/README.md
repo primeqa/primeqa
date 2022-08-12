@@ -233,18 +233,11 @@ The current performance on wikisql dev set is:
 Eval denotation accuracy: 86.78%
 
 ```
-You can also train the tableqa model on your own custom data. Train the TableQA model on custom data using the following script:
+You can also train the tableqa model on your own custom data by proving own train_file and eval_file. Train the TableQA model on custom data using the above script with the following additional parameters:
 
 ```shell
- python primeqa/mrc/run_mrc.py --modality "table" \
-       --dataset_name "wikisql" \
-       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
-       --output_dir "models/wikisql/" \
-       --model_name_or_path "google/tapas-base" \
        --train_file "<path_to_train.tsv file" \
        --eval_file "<path_to_eval.tsv file" \
-       --do_train \
-       --do_eval
 
 ```
 
