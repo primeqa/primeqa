@@ -1,20 +1,19 @@
-from transformers import (
-    HfArgumentParser,
-    Seq2SeqTrainingArguments,
-    set_seed,
-)
-from primeqa.qg.processors.data_loader import QGDataLoader
-from dataclasses import dataclass,field
-from primeqa.qg.models.qg_model import QGModel
-from primeqa.qg.trainers.qg_trainer import QGTrainer
-from primeqa.qg.metrics.generation_metrics import rouge_metrics
-from primeqa.qg.utils.data_collator import T2TDataCollator
-from typing import Optional
-
 import json
 import logging
 import os
 import sys
+from dataclasses import dataclass, field
+from typing import List, Optional
+
+import datasets
+from datasets import list_datasets, load_dataset
+from primeqa.qg.metrics.generation_metrics import rouge_metrics
+from primeqa.qg.models.qg_model import QGModel
+from primeqa.qg.processors.data_loader import QGDataLoader
+from primeqa.qg.utils.data_collator import T2TDataCollator
+from transformers import (HfArgumentParser, Seq2SeqTrainer,
+                          Seq2SeqTrainingArguments, set_seed)
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -44,9 +43,13 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    dataset_name:Optional[str] = field(
-        default="wikisql", metadata={"help": "Name of the dataset to train the qg model", 
-                                    "choices": ["wikisql", "squad", "squad_v2", "tydiqa"]}
+    dataset_name: Optional[str] = field(
+        default=None,
+        metadata={"help": "Name of the dataset to train the qg model", "choices": list_datasets()}
+    )
+    dataset_config: Optional[str] = field(
+        default=None,
+        metadata={"help": "Config of the dataset loaded, e.g. 'secondary_task' for TyDiQA"}
     )
     train_file_path: Optional[str] = field(
         default='train_data.pt',
@@ -77,14 +80,14 @@ class InferenceArguments:
         default=1, metadata={"help": "Max number of filters in generated question"}
     )
     data_path:str = field(
-        default='examples/qg/sample_table.json', metadata={"help": "Path to JSON file with LIST of tables/passages. Each table \
+        default='primeqa/qg/sample_table.json', metadata={"help": "Path to JSON file with LIST of tables/passages. Each table \
                               should be a dict with keys 'header' and 'rows', and passages should be str"}
     )
     generate_aggregate: Optional[bool] = field(
         default=False, metadata={"help": "Whether to generate aggregate questions with max, min, sum, etc."}
     )
     gen_output_path: Optional[str] = field(
-        default='examples/qg/sample_generation.json', metadata={"help": "path to JSON file where generated questions will be saved"} 
+        default='sample_generation.json', metadata={"help": "path to JSON file where generated questions will be saved"} 
     )
 
 def main(raw_args):
@@ -98,7 +101,7 @@ def main(raw_args):
     else:
         model_args, data_args, training_args, inference_args = parser.parse_args_into_dataclasses()
     
-    # These rguments has to be hardcoded in order for Trainer to work
+    # These arguments has to be hardcoded in order for Trainer to work
     training_args.predict_with_generate=True
     training_args.remove_unused_columns = False
     training_args.prediction_loss_only = False
@@ -134,26 +137,26 @@ def main(raw_args):
 
     qg_model = QGModel(model_args.model_name_or_path, modality=model_args.modality)
 
+    qgdl = QGDataLoader(
+        tokenizer=qg_model.tokenizer,
+        dataset_name=data_args.dataset_name,
+        modality=model_args.modality,
+        input_max_len=data_args.max_len,
+        target_max_len=data_args.target_max_len
+        )
     if training_args.do_train or training_args.do_eval:
-        qgdl = QGDataLoader(
-            tokenizer=qg_model.tokenizer,
-            dataset_name=data_args.dataset_name,
-            input_max_len=data_args.max_len,
-            target_max_len=data_args.target_max_len
-            )
-        
-        train_dataset = qgdl.create("train")
-        valid_dataset = qgdl.create("validation")
+        train_dataset = qgdl.create(data_split="train", data_config=data_args.dataset_config)
+        valid_dataset = qgdl.create(data_split="validation", data_config=data_args.dataset_config)
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)
         
 
-        trainer = QGTrainer(
+        trainer = Seq2SeqTrainer(
             model=qg_model.model,
             tokenizer = qg_model.tokenizer,
             args=training_args,
             train_dataset=train_dataset,
-            valid_dataset=valid_dataset,
+            eval_dataset=valid_dataset,
             data_collator=T2TDataCollator(),
             compute_metrics=compute_metrics
         )
@@ -170,7 +173,7 @@ def main(raw_args):
         trainer.save_state()
     
     # Inference
-    if inference_args.do_generate:     
+    if inference_args.do_generate:
         # There are some arguments to control the type of questions generated such as probability of aggregations, number of where clauses etc. (contd.)
         # These arguments can optionally be provided by the user as inference arguments. 
         # Check out the notebook at primeqa/notebooks/qg/tableqginference.ipynb for more details.    
