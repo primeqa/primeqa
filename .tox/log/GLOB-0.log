@@ -1,0 +1,6 @@
+action: GLOB, msg: packaging
+cwd: /Users/juanbrusco/Develop/Projects/primeqa
+cmd: /Users/juanbrusco/opt/miniconda3/envs/primeqa_1/bin/python setup.py sdist --formats=zip --dist-dir .tox/dist
+running sdist
+running egg_info
+interrupted
