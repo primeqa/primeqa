@@ -191,7 +191,7 @@ class HypersBase:
             handler.setFormatter(format)
             logging.getLogger('').addHandler(handler)
         else:
-            logging.basicConfig(format='%(filename)s:%(lineno)d - %(message)s',
+            logging.basicConfig(format='%(asctime)s %(filename)s:%(lineno)d - %(message)s',
                                 datefmt='%m/%d/%Y %H:%M:%S',
                                 level=logging.INFO)
         if self.global_rank != 0 and not self.log_on_all_nodes:
