@@ -201,7 +201,7 @@ xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
 xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
 ```
 
-- PrimeQA also supports answering questions over tables
+### PrimeQA also supports answering questions over tables
 
 Currently supported TableQA datasets :
 - WikiSQL
