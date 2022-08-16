@@ -13,7 +13,7 @@
 import os
 import sys
 
-# sys.path.insert(0, os.path.abspath('../..'))
+# sys.path.append(os.path.abspath("../primeqa"))
 sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
@@ -94,7 +94,7 @@ html_theme_options = {
         # },
         {
             "name": "Slack",
-            "url": "https://ibm-research.slack.com/",
+            "url": "https://join.slack.com/t/primeqaworkspace/shared_invite/zt-1edc4fn7n-6aUO0CCvDOMOLb0drROwSw",
             "icon": "https://cdn.bfldr.com/5H442O3W/at/pl546j-7le8zk-6gwiyo/Slack_Mark.svg?auto=webp&format=png",
             "type": "url",
         },

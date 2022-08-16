@@ -78,7 +78,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 | Section | Description |
 |-|-|
-| [Documentation](https://github.com/primeqa/primeqa/) | TODO: Full API documentation and tutorials |
+| [Documentation](https://github.com/primeqa/docs/) | TODO: Full API documentation and tutorials |
 | [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
 | [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
 | [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |

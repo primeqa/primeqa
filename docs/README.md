@@ -11,7 +11,7 @@ The documentation can then be built with:
 
 ```shell
 cd docs
-make html
+make html -e SPHINXOPTS='--keep-going --no-color -w "{log_file}"'   
 ```
 
 This will generate the documentation in HTML.
