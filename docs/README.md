@@ -49,28 +49,48 @@ docker run -p 80:80 --rm -d --name primeqa-docs primeqa-docs:${VERSION}
 * After that, you will need an automated process that performs the make html step every time the sources change. That can be achieved using [GitHub Actions](https://github.com/features/actions).
 * After you have published your sources on GitHub, create a file named `.github/workflows/sphinx-doc-build.yml` in your repository with the following contents:       
 ```
-name: Sphinx Doc Build
+name: SphinxDoc Build
 
-on: push
+on:
+  push:
+    branches: [ "main"]
+  pull_request:
+    branches: [ "main"]
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Build HTML
-      uses: juanbrusco/sphinx4-action@main
-    - name: Upload artifacts
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+    - name: Install dependencies (docs/requirements.txt)
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
+        if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
+    - name: SphinxDoc Make HTML
+      run: |
+        cd docs
+        make html -e SPHINXOPTS='--keep-going --no-color -w "log_file"'   
+    - name: Upload artifacts (docs/log_file)
       uses: actions/upload-artifact@v3
       with:
-        name: html-docs
-        path: docs/_build/html/
-    - name: Deploy
+        name: html-docs-log_file
+        path: docs/log_file
+    - name: Deploy Documentation from main (gh-pages branch)
       uses: peaceiris/actions-gh-pages@v3
       if: github.ref == 'refs/heads/main'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
+        commit_message: -automatic commit- Sphinx Doc Build
 ```
 
 * This contains a GitHub Actions workflow with a single job of four steps:
@@ -83,10 +103,4 @@ jobs:
 
 * And finally, you are ready to enable [GitHub Pages on your repository](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). For that, go to Settings, then Pages on the left sidebar, select the gh-pages branch in the “Source” dropdown menu, and click Save. After a few minutes, you should be able to see your HTML at the designated URL.        
 
-
-### Custom GitHub Action to work with Sphinx 4.4.0:
-*[gh-custom-sphinx-action](https://github.com/juanbrusco/sphinx4-action)*     
-*Note: based on [action](https://github.com/ammaraskar/sphinx-action)*  
-
-This is a Github action that looks for Sphinx documentation folders in your project. It builds the documentation using Sphinx.   
 

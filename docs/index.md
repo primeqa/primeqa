@@ -15,7 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-### PrimeQA
+# PrimeQA     
+[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/index.md)         
 <h3 align="center">
     <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
@@ -37,7 +38,7 @@ Some examples of models (applicable on benchmark datasets) supported are :
 - [Machine Reading Comprehension with XLM-R](https://github.com/primeqa/primeqa/tree/main/primeqa/mrc): to replicate the experiments to get to the top of the TyDI leaderboard similar to the performance of the IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
 - [Multimedia QA over news & movies](https://arxiv.org/abs/2112.10728): coming soon! to replicate the experiments run over multi-hop QA over images, text over variety of domains. Collaboration with [UIUC Blender lab](https://blender.cs.illinois.edu/).
 
-### Getting Started
+# Getting Started
 
 ::::{grid} 1 1 3 3
 :gutter: 3
@@ -72,7 +73,7 @@ to erroneous or unexpected input argument.
 
 ::::
 
-### Learn more
+# Learn more
 
 | Section | Description |
 |-|-|
@@ -92,14 +93,3 @@ to erroneous or unexpected input argument.
     testing
     api/index
 ```
-
-<!-- ### API Reference
-```{eval-rst}
-.. autosummary::
-    :toctree: _autosummary
-    :template: custom-module-template.rst
-    :recursive:
-   
-    primeqa
-
-``` -->

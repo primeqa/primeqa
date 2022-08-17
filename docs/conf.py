@@ -15,6 +15,7 @@ import sys
 
 # sys.path.append(os.path.abspath("../primeqa"))
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('_ext'))
 
 # -- Project information -----------------------------------------------------
 
@@ -34,8 +35,10 @@ extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
     'sphinx_design',
-    # 'recommonmark'
+    # 'recommonmark',
+    'edit_on_github'
 ]
+
 myst_enable_extensions = ["colon_fence"]
 
 # Enable extensions
@@ -69,10 +72,7 @@ source_suffix = {
 
 html_theme_options = {
     "use_edit_page_button": True,
-    # "navbar_end": ["navbar-icon-links"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
-    # "pygment_light_style": "monokai",
-    # "pygment_dark_style": "monokai",
     "icon_links": [
         {
             "name": "GitHub",
@@ -130,26 +130,27 @@ html_theme_options = {
     "footer_items": [],
 
 }
+
 html_context = {
     "github_user": "primeqa",
     "github_repo": "primeqa",
     "github_version": "main",
-    # "doc_path": "doc",
-    "edit_page_url_template": "{{ my_vcs_site }}{{ file_name }}{{ some_other_arg }}",
-    "my_vcs_site": "https://github.com/primeqa/primeqa/edit/main/docs/",
-    "file_name": "",
-    "some_other_arg": "",
+    # "edit_page_url_template": "{{ my_vcs_site }}{{ file_name }}{{ some_other_arg }}",
+    # "my_vcs_site": "https://github.com/primeqa/primeqa/edit/main/docs/",
+    # "file_name": "",
+    # "some_other_arg": "",
     "default_mode": "light"
 }
-# html_logo = "_static/images/IBM_logo_rev_RGB.png"
-# html_favicon = "_static/images/IBM_logo_rev_RGB.png"
+
+edit_on_github_project = 'primeqa/primeqa'
+edit_on_github_branch = 'main'
+
 html_css_files = [
     "custom.css",
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css"
 ]
+
 html_sidebars = { 
-        # "**": [ "search-field.html","globaltoc.html","localtoc.html"],
-        # "_autosummary/primeqa":[ "search-field.html","globaltoc.html"],
         "index": [
             "search-field.html","custom-left-section.html"
         ],
@@ -163,7 +164,7 @@ html_sidebars = {
             "search-field.html","custom-left-section.html"
         ],
         "api/index": [
-            "search-field.html","custom-left-section.html"
+            "search-field.html"
         ],
         "api/boolqa/index": [
             "search-field.html","custom-left-section-api-pkg.html"
