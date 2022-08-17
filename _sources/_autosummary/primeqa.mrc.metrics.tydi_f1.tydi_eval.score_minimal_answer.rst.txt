@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.tydi\_f1.tydi\_eval.score\_minimal\_answer
-==============================================================
-
-.. currentmodule:: primeqa.mrc.metrics.tydi_f1.tydi_eval
-
-.. autofunction:: score_minimal_answer

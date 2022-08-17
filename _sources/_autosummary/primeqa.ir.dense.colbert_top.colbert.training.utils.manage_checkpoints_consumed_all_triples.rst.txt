@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.training.utils.manage\_checkpoints\_consumed\_all\_triples
-================================================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.training.utils
-
-.. autofunction:: manage_checkpoints_consumed_all_triples

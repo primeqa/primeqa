@@ -1,6 +1,0 @@
-primeqa.boolqa.run\_boolqa\_classifier.save\_to\_json\_file
-===========================================================
-
-.. currentmodule:: primeqa.boolqa.run_boolqa_classifier
-
-.. autofunction:: save_to_json_file

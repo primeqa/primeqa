@@ -1,6 +1,0 @@
-primeqa.util.metrics.simple\_accuracy
-=====================================
-
-.. currentmodule:: primeqa.util.metrics
-
-.. autofunction:: simple_accuracy

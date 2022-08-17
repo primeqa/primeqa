@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.utils.utils.file\_tqdm
-============================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
-
-.. autofunction:: file_tqdm

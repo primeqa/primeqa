@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.utils.utils.lengths2offsets
-=================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
-
-.. autofunction:: lengths2offsets

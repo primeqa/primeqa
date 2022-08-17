@@ -1,6 +1,0 @@
-primeqa.util.transformers\_utils.hypers\_base.dist\_initialize
-==============================================================
-
-.. currentmodule:: primeqa.util.transformers_utils.hypers_base
-
-.. autofunction:: dist_initialize

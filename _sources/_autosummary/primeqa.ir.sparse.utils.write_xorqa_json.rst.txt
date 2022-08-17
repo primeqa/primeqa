@@ -1,6 +1,0 @@
-primeqa.ir.sparse.utils.write\_xorqa\_json
-==========================================
-
-.. currentmodule:: primeqa.ir.sparse.utils
-
-.. autofunction:: write_xorqa_json

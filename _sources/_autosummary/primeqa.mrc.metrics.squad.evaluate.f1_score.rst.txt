@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.squad.evaluate.f1\_score
-============================================
-
-.. currentmodule:: primeqa.mrc.metrics.squad.evaluate
-
-.. autofunction:: f1_score

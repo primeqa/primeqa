@@ -1,6 +1,0 @@
-primeqa.util.reporting.time\_str
-================================
-
-.. currentmodule:: primeqa.util.reporting
-
-.. autofunction:: time_str

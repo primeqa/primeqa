@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.squad.evaluate.metric\_max\_over\_ground\_truths
-====================================================================
-
-.. currentmodule:: primeqa.mrc.metrics.squad.evaluate
-
-.. autofunction:: metric_max_over_ground_truths

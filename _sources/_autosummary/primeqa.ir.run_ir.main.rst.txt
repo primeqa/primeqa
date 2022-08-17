@@ -1,6 +1,0 @@
-primeqa.ir.run\_ir.main
-=======================
-
-.. currentmodule:: primeqa.ir.run_ir
-
-.. autofunction:: main

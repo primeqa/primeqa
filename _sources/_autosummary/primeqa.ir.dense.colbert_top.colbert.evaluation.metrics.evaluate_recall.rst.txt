@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.evaluation.metrics.evaluate\_recall
-=========================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.evaluation.metrics
-
-.. autofunction:: evaluate_recall

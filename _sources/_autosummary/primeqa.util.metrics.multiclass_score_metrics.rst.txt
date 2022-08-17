@@ -1,6 +1,0 @@
-primeqa.util.metrics.multiclass\_score\_metrics
-===============================================
-
-.. currentmodule:: primeqa.util.metrics
-
-.. autofunction:: multiclass_score_metrics

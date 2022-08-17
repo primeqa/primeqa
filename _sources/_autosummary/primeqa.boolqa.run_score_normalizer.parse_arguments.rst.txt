@@ -1,6 +1,0 @@
-primeqa.boolqa.run\_score\_normalizer.parse\_arguments
-======================================================
-
-.. currentmodule:: primeqa.boolqa.run_score_normalizer
-
-.. autofunction:: parse_arguments

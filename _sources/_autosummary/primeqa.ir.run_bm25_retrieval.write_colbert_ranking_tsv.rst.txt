@@ -1,6 +1,0 @@
-primeqa.ir.run\_bm25\_retrieval.write\_colbert\_ranking\_tsv
-============================================================
-
-.. currentmodule:: primeqa.ir.run_bm25_retrieval
-
-.. autofunction:: write_colbert_ranking_tsv

@@ -1,6 +1,0 @@
-primeqa.qg.run\_qg.main
-=======================
-
-.. currentmodule:: primeqa.qg.run_qg
-
-.. autofunction:: main

@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.tydi\_f1.tydi\_eval.get\_metrics\_with\_answer\_stats
-=========================================================================
-
-.. currentmodule:: primeqa.mrc.metrics.tydi_f1.tydi_eval
-
-.. autofunction:: get_metrics_with_answer_stats

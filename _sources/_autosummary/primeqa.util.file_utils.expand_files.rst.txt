@@ -1,6 +1,0 @@
-primeqa.util.file\_utils.expand\_files
-======================================
-
-.. currentmodule:: primeqa.util.file_utils
-
-.. autofunction:: expand_files

@@ -1,6 +1,0 @@
-primeqa.ir.util.corpus\_reader.lookup\_by\_aliases
-==================================================
-
-.. currentmodule:: primeqa.ir.util.corpus_reader
-
-.. autofunction:: lookup_by_aliases

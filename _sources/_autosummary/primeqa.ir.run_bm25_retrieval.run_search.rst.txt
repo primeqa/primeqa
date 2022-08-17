@@ -1,6 +1,0 @@
-primeqa.ir.run\_bm25\_retrieval.run\_search
-===========================================
-
-.. currentmodule:: primeqa.ir.run_bm25_retrieval
-
-.. autofunction:: run_search

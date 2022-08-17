@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.squad.evaluate.evaluate
-===========================================
-
-.. currentmodule:: primeqa.mrc.metrics.squad.evaluate
-
-.. autofunction:: evaluate

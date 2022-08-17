@@ -1,6 +1,0 @@
-primeqa.util.args\_helper.fill\_from\_args
-==========================================
-
-.. currentmodule:: primeqa.util.args_helper
-
-.. autofunction:: fill_from_args

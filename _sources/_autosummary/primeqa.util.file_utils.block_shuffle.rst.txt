@@ -1,6 +1,0 @@
-primeqa.util.file\_utils.block\_shuffle
-=======================================
-
-.. currentmodule:: primeqa.util.file_utils
-
-.. autofunction:: block_shuffle

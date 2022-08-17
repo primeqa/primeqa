@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.utils.utils.f7
-====================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
-
-.. autofunction:: f7

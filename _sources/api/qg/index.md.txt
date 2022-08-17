@@ -1,4 +1,6 @@
 # Question Generation
+[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/qg/index.md)        
+
 <p><strong>API Reference</strong></p>
 
 ```{eval-rst}

@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.indexing.loaders.get\_parts
-=================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.indexing.loaders
-
-.. autofunction:: get_parts

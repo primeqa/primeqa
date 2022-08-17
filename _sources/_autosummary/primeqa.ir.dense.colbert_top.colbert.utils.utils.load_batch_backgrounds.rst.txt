@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.utils.utils.load\_batch\_backgrounds
-==========================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
-
-.. autofunction:: load_batch_backgrounds

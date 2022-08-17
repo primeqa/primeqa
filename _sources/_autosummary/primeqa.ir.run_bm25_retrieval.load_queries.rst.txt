@@ -1,6 +1,0 @@
-primeqa.ir.run\_bm25\_retrieval.load\_queries
-=============================================
-
-.. currentmodule:: primeqa.ir.run_bm25_retrieval
-
-.. autofunction:: load_queries

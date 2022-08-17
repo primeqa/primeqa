@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.utils.signals.checkpoint\_on\_exit
-========================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.signals
-
-.. autofunction:: checkpoint_on_exit

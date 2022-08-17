@@ -1,6 +1,0 @@
-primeqa.ir.util.corpus\_reader.corpus\_reader
-=============================================
-
-.. currentmodule:: primeqa.ir.util.corpus_reader
-
-.. autofunction:: corpus_reader

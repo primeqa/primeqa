@@ -1,6 +1,0 @@
-primeqa.boolqa.processors.dataset.mrc2dataset.create\_dataset\_from\_json\_str
-==============================================================================
-
-.. currentmodule:: primeqa.boolqa.processors.dataset.mrc2dataset
-
-.. autofunction:: create_dataset_from_json_str

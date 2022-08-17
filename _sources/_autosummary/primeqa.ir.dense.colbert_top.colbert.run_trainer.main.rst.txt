@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.run\_trainer.main
-=======================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.run_trainer
-
-.. autofunction:: main

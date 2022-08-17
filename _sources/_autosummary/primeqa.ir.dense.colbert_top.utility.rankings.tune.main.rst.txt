@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.utility.rankings.tune.main
-========================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.utility.rankings.tune
-
-.. autofunction:: main

@@ -1,4 +1,6 @@
 # Util
+[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/utils/index.md)        
+
 <p><strong>API Reference</strong></p>
 
 ```{eval-rst}

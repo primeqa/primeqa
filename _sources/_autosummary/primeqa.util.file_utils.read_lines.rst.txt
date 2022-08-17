@@ -1,6 +1,0 @@
-primeqa.util.file\_utils.read\_lines
-====================================
-
-.. currentmodule:: primeqa.util.file_utils
-
-.. autofunction:: read_lines

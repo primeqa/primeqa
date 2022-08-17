@@ -1,6 +1,0 @@
-primeqa.util.transformers\_utils.model\_utils.load\_tokenizer
-=============================================================
-
-.. currentmodule:: primeqa.util.transformers_utils.model_utils
-
-.. autofunction:: load_tokenizer

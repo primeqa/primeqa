@@ -1,6 +1,0 @@
-primeqa.util.transformers\_utils.torch\_utils.all\_gather
-=========================================================
-
-.. currentmodule:: primeqa.util.transformers_utils.torch_utils
-
-.. autofunction:: all_gather

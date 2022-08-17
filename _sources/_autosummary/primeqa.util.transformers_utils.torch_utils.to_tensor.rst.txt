@@ -1,6 +1,0 @@
-primeqa.util.transformers\_utils.torch\_utils.to\_tensor
-========================================================
-
-.. currentmodule:: primeqa.util.transformers_utils.torch_utils
-
-.. autofunction:: to_tensor

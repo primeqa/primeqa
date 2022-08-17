@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.tydi\_f1.eval\_utils.gold\_has\_passage\_answer
-===================================================================
-
-.. currentmodule:: primeqa.mrc.metrics.tydi_f1.eval_utils
-
-.. autofunction:: gold_has_passage_answer

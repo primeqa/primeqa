@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.colbert.training.utils.manage\_checkpoints\_with\_path\_save
-==========================================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.training.utils
-
-.. autofunction:: manage_checkpoints_with_path_save

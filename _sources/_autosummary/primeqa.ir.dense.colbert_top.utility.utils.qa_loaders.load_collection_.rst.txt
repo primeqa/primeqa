@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.utility.utils.qa\_loaders.load\_collection\_
-==========================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.utility.utils.qa_loaders
-
-.. autofunction:: load_collection_

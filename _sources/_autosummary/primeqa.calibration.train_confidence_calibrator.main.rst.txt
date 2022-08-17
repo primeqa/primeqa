@@ -1,6 +1,0 @@
-primeqa.calibration.train\_confidence\_calibrator.main
-======================================================
-
-.. currentmodule:: primeqa.calibration.train_confidence_calibrator
-
-.. autofunction:: main

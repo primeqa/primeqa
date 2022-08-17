@@ -1,6 +1,0 @@
-primeqa.ir.sparse.utils.write\_colbert\_ranking\_tsv
-====================================================
-
-.. currentmodule:: primeqa.ir.sparse.utils
-
-.. autofunction:: write_colbert_ranking_tsv

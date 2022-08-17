@@ -1,6 +1,0 @@
-primeqa.ir.sparse.utils.write\_search\_results
-==============================================
-
-.. currentmodule:: primeqa.ir.sparse.utils
-
-.. autofunction:: write_search_results

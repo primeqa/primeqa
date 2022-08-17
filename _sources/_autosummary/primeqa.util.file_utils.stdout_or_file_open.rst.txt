@@ -1,6 +1,0 @@
-primeqa.util.file\_utils.stdout\_or\_file\_open
-===============================================
-
-.. currentmodule:: primeqa.util.file_utils
-
-.. autofunction:: stdout_or_file_open

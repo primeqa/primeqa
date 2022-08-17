@@ -1,6 +1,0 @@
-primeqa.mrc.metrics.squad.evaluate.exact\_match\_score
-======================================================
-
-.. currentmodule:: primeqa.mrc.metrics.squad.evaluate
-
-.. autofunction:: exact_match_score

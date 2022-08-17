@@ -1,6 +1,0 @@
-primeqa.boolqa.processors.dataset.mrc2dataset.create\_dataset\_from\_run\_mrc\_output
-=====================================================================================
-
-.. currentmodule:: primeqa.boolqa.processors.dataset.mrc2dataset
-
-.. autofunction:: create_dataset_from_run_mrc_output

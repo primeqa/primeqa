@@ -1,6 +1,0 @@
-primeqa.ir.dense.colbert\_top.utility.utils.save\_metadata.save\_metadata
-=========================================================================
-
-.. currentmodule:: primeqa.ir.dense.colbert_top.utility.utils.save_metadata
-
-.. autofunction:: save_metadata
