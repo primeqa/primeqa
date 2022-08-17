@@ -6,20 +6,12 @@ import numpy as np
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import flatten
 
 
-"""
-import line_profiler
-import atexit
-profile = line_profiler.LineProfiler()
-atexit.register(profile.print_stats)
-"""
-
-
 class StridedTensorCore:
-    # # @profile
-    def __init__(self, packed_tensor, lengths, dim=None):
+    def __init__(self, packed_tensor, lengths, dim=None, use_gpu=torch.cuda.is_available()):
         self.dim = dim
         self.tensor = packed_tensor
         self.inner_dims = self.tensor.size()[1:]
+        self.use_gpu = use_gpu
 
         self.lengths = lengths.long() if torch.is_tensor(lengths) else torch.LongTensor(lengths)
 
@@ -73,14 +65,13 @@ class StridedTensorCore:
 
         return tuple(return_vals)
 
-    # # @profile
     def as_padded_tensor(self):
-        if torch.cuda.is_available():
+        if self.use_gpu:
             view = _create_view(self.tensor.cuda(), self.max_stride, self.inner_dims)[self.offsets[:-1]]
-            mask = _create_mask(self.lengths.cuda(), self.max_stride, like=view)
+            mask = _create_mask(self.lengths.cuda(), self.max_stride, like=view, use_gpu=self.use_gpu)
         else:
             view = _create_view(self.tensor, self.max_stride, self.inner_dims)[self.offsets[:-1]]
-            mask = _create_mask(self.lengths, self.max_stride, like=view)
+            mask = _create_mask(self.lengths, self.max_stride, like=view, use_gpu=self.use_gpu)
 
         return view, mask
 
@@ -92,7 +83,7 @@ class StridedTensorCore:
 def _select_strides(lengths, quantiles):
     if lengths.size(0) < 5_000:
         return _get_quantiles(lengths, quantiles)
-    
+
     sample = torch.randint(0, lengths.size(0), size=(2_000,))
 
     return _get_quantiles(lengths[sample], quantiles)
@@ -111,8 +102,8 @@ def _create_view(tensor, stride, inner_dims):
     return torch.as_strided(tensor, size=size, stride=multidim_stride)
 
 
-def _create_mask(lengths, stride, like=None):
-    if torch.cuda.is_available():
+def _create_mask(lengths, stride, like=None, use_gpu=torch.cuda.is_available()):
+    if use_gpu:
         mask = torch.arange(stride).cuda() + 1
         mask = mask.unsqueeze(0) <= lengths.cuda().unsqueeze(-1)
     else:

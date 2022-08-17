@@ -10,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-    
+
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
@@ -32,7 +32,6 @@ _deps = {
     "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install"],
-    "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
     "myst-parser~=0.17.2": ["docs"],
     "faiss-cpu~=1.7.2": ["install"],
@@ -41,6 +40,7 @@ _deps = {
     "ipykernel~=6.13.0": ["notebooks"],
     "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
+    "ninja~=1.10.2.3": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
     "myst-parser~=0.17.2": ["docs"],

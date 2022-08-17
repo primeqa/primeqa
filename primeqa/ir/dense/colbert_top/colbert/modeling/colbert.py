@@ -1,6 +1,6 @@
 from primeqa.ir.dense.colbert_top.colbert.infra.config.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.search.strided_tensor import StridedTensor
-from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, flatten
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, flatten, print_torch_extension_error_message
 from primeqa.ir.dense.colbert_top.colbert.modeling.base_colbert import BaseColBERT
 from primeqa.ir.dense.colbert_top.colbert.parameters import DEVICE
 
@@ -9,6 +9,11 @@ import string
 
 import random
 import numpy as np
+
+import os
+import pathlib
+from torch.utils.cpp_extension import load
+import sys
 
 class ColBERT(BaseColBERT):
     """
@@ -20,6 +25,9 @@ class ColBERT(BaseColBERT):
         print_message(f"#>>>>> at ColBERT name (model type) : {name}")
 
         super().__init__(name, colbert_config)
+        self.use_gpu = torch.cuda.is_available()
+
+        ColBERT.try_load_torch_extensions(self.use_gpu)
 
         if self.colbert_config.mask_punctuation:
             self.skiplist = {w: True
@@ -27,6 +35,35 @@ class ColBERT(BaseColBERT):
                              for w in [symbol, self.raw_tokenizer.encode(symbol, add_special_tokens=False)[0]]}
         self.query_used = False
         self.doc_used = False
+
+    @classmethod
+    def try_load_torch_extensions(cls, use_gpu):
+        if hasattr(cls, "loaded_extensions") or use_gpu:
+            return
+
+        verbose=os.getenv("COLBERT_LOAD_TORCH_EXTENSION_VERBOSE", "False") == "True"
+
+        print_message(f"Loading segmented_maxsim_cpp extension (set COLBERT_LOAD_TORCH_EXTENSION_VERBOSE=True for more info)...")
+        try:
+            segmented_maxsim_cpp = load(
+                name="segmented_maxsim_cpp",
+                sources=[
+                    os.path.join(
+                        pathlib.Path(__file__).parent.resolve(), "segmented_maxsim.cpp"
+                    ),
+                ],
+                extra_cflags=["-O3"],
+                verbose=verbose,
+            )
+        except (RuntimeError, KeyboardInterrupt) as e:
+            if not verbose:
+                import traceback
+                traceback.print_exc()
+            print_torch_extension_error_message()
+            sys.exit(1)
+        cls.segmented_maxsim = segmented_maxsim_cpp.segmented_maxsim_cpp
+
+        cls.loaded_extensions = True
 
     def forward(self, Q, D):
         Q = self.query(*Q)
@@ -66,7 +103,7 @@ class ColBERT(BaseColBERT):
         scores = scores.view(Q.size(0), -1)  # D.size(0) - self.colbert_config.nway + 1)
 
         labels = torch.arange(0, Q.size(0), device=scores.device) * (self.colbert_config.nway)
-        
+
         return torch.nn.CrossEntropyLoss()(scores, labels)
 
     def query(self, input_ids, attention_mask):
@@ -130,7 +167,9 @@ class ColBERT(BaseColBERT):
         mask = torch.tensor(self.mask(input_ids, skiplist=self.skiplist), device=self.device).unsqueeze(2).float()
         D = D * mask
 
-        D = torch.nn.functional.normalize(D, p=2, dim=2).half()
+        D = torch.nn.functional.normalize(D, p=2, dim=2)
+        if self.use_gpu:
+            D = D.half()
 
         if keep_dims is False:
             D, mask = D.cpu(), mask.bool().cpu().squeeze(-1)
@@ -193,7 +232,9 @@ def colbert_score(Q, D_padded, D_mask, config=ColBERTConfig()):
         EVENTUALLY: Consider masking with -inf for the maxsim (or enforcing a ReLU).
     """
 
-    Q, D_padded, D_mask = Q.cuda(), D_padded.cuda(), D_mask.cuda()
+    use_gpu = torch.cuda.is_available()
+    if use_gpu:
+        Q, D_padded, D_mask = Q.cuda(), D_padded.cuda(), D_mask.cuda()
 
     assert Q.dim() == 3, Q.size()
     assert D_padded.dim() == 3, D_padded.size()
@@ -208,7 +249,8 @@ def colbert_score_packed(Q, D_packed, D_lengths, config=ColBERTConfig()):
     """
         Works with a single query only.
     """
-    if torch.cuda.is_available():
+    use_gpu = torch.cuda.is_available()
+    if use_gpu:
         Q, D_packed, D_lengths = Q.cuda(), D_packed.cuda(), D_lengths.cuda()
 
     Q = Q.squeeze(0)
@@ -218,6 +260,9 @@ def colbert_score_packed(Q, D_packed, D_lengths, config=ColBERTConfig()):
 
     scores = D_packed @ Q.to(dtype=D_packed.dtype).T
 
-    scores_padded, scores_mask = StridedTensor(scores, D_lengths).as_padded_tensor()
+    if use_gpu or config.interaction == "flipr":
+        scores_padded, scores_mask = StridedTensor(scores, D_lengths, use_gpu=use_gpu).as_padded_tensor()
 
-    return colbert_score_reduce(scores_padded, scores_mask, config)
+        return colbert_score_reduce(scores_padded, scores_mask, config)
+    else:
+        return ColBERT.segmented_maxsim(scores, D_lengths)
