@@ -187,6 +187,8 @@ eval_avg_passage_recall = 0.7433
 eval_samples = 18670
 ```
 
+ - PrimeQA also supports answering questions to which answers are collective e.g. lists.
+
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
@@ -244,7 +246,6 @@ The tables in csv format should be placed under `data_path_root/tables/`. The ta
 
 
 Our python [notebook](../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
-
 
 
 ### Task Arguments
