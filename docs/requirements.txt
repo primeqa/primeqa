@@ -42,3 +42,4 @@ faiss-cpu==1.7.2
 faiss-gpu==1.7.2
 wheel==0.37.1
 bitarray==2.3.7
+transformers==4.17.0
