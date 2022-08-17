@@ -1,0 +1,33 @@
+metrics
+=======
+
+.. automodule:: primeqa.util.metrics
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      multiclass_score_metrics
+      score_metrics
+      simple_accuracy
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

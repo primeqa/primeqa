@@ -1,0 +1,30 @@
+primeqa.mrc.processors.preprocessors.base.BasePreProcessor
+==========================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.base
+
+.. autoclass:: BasePreProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BasePreProcessor.adapt_dataset
+      ~BasePreProcessor.label_features_for_subsampling
+      ~BasePreProcessor.process_eval
+      ~BasePreProcessor.process_train
+      ~BasePreProcessor.subsample_features
+      ~BasePreProcessor.validate_schema
+   
+   
+
+   
+   
+   

@@ -1,0 +1,33 @@
+primeqa.mrc.processors.postprocessors.scorers.SupportedSpanScorers
+==================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.scorers
+
+.. autoclass:: SupportedSpanScorers
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SupportedSpanScorers.get_supported
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SupportedSpanScorers.SCORE_DIFF_BASED
+      ~SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
+      ~SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
+   
+   

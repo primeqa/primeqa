@@ -1,0 +1,32 @@
+logging
+=======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utils.logging
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Logger
+   
+   
+
+   
+   
+   
+
+
+

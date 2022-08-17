@@ -1,0 +1,26 @@
+primeqa.util.file\_utils.ShuffledWriter
+=======================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autoclass:: ShuffledWriter
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ShuffledWriter.close
+      ~ShuffledWriter.write
+   
+   
+
+   
+   
+   

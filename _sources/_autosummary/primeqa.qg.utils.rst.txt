@@ -1,0 +1,31 @@
+utils
+=====
+
+.. automodule:: primeqa.qg.utils
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.utils.constants
+   primeqa.qg.utils.data_collator
+

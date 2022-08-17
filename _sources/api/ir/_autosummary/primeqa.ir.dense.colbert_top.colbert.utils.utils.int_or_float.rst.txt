@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.int\_or\_float
+================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autofunction:: int_or_float

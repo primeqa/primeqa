@@ -1,0 +1,26 @@
+primeqa.ir.dense.colbert\_top.colbert.distillation.ranking\_scorer.RankingScorer
+================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.distillation.ranking_scorer
+
+.. autoclass:: RankingScorer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~RankingScorer.provenance
+      ~RankingScorer.run
+   
+   
+
+   
+   
+   

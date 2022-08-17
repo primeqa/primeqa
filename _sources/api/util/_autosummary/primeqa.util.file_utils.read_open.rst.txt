@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.read\_open
+===================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: read_open

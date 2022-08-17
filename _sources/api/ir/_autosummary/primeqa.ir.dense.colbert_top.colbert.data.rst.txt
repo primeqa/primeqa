@@ -1,0 +1,34 @@
+data
+====
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.data
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.colbert.data.collection
+   primeqa.ir.dense.colbert_top.colbert.data.dataset
+   primeqa.ir.dense.colbert_top.colbert.data.examples
+   primeqa.ir.dense.colbert_top.colbert.data.queries
+   primeqa.ir.dense.colbert_top.colbert.data.ranking
+

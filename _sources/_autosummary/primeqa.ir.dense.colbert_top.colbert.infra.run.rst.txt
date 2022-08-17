@@ -1,0 +1,32 @@
+run
+===
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.infra.run
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Run
+   
+   
+
+   
+   
+   
+
+
+

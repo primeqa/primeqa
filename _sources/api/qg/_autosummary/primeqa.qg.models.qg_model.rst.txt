@@ -1,0 +1,32 @@
+qg\_model
+=========
+
+.. automodule:: primeqa.qg.models.qg_model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      QGModel
+   
+   
+
+   
+   
+   
+
+
+

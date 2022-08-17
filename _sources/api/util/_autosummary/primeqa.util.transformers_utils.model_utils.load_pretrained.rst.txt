@@ -1,0 +1,6 @@
+primeqa.util.transformers\_utils.model\_utils.load\_pretrained
+==============================================================
+
+.. currentmodule:: primeqa.util.transformers_utils.model_utils
+
+.. autofunction:: load_pretrained

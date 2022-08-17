@@ -1,0 +1,73 @@
+primeqa.mrc.models.heads.abstract.AbstractTaskHead
+==================================================
+
+.. currentmodule:: primeqa.mrc.models.heads.abstract
+
+.. autoclass:: AbstractTaskHead
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~AbstractTaskHead.add_module
+      ~AbstractTaskHead.apply
+      ~AbstractTaskHead.bfloat16
+      ~AbstractTaskHead.buffers
+      ~AbstractTaskHead.children
+      ~AbstractTaskHead.cpu
+      ~AbstractTaskHead.cuda
+      ~AbstractTaskHead.double
+      ~AbstractTaskHead.eval
+      ~AbstractTaskHead.extra_repr
+      ~AbstractTaskHead.float
+      ~AbstractTaskHead.forward
+      ~AbstractTaskHead.get_buffer
+      ~AbstractTaskHead.get_extra_state
+      ~AbstractTaskHead.get_parameter
+      ~AbstractTaskHead.get_submodule
+      ~AbstractTaskHead.half
+      ~AbstractTaskHead.load_state_dict
+      ~AbstractTaskHead.modules
+      ~AbstractTaskHead.named_buffers
+      ~AbstractTaskHead.named_children
+      ~AbstractTaskHead.named_modules
+      ~AbstractTaskHead.named_parameters
+      ~AbstractTaskHead.parameters
+      ~AbstractTaskHead.register_backward_hook
+      ~AbstractTaskHead.register_buffer
+      ~AbstractTaskHead.register_forward_hook
+      ~AbstractTaskHead.register_forward_pre_hook
+      ~AbstractTaskHead.register_full_backward_hook
+      ~AbstractTaskHead.register_module
+      ~AbstractTaskHead.register_parameter
+      ~AbstractTaskHead.requires_grad_
+      ~AbstractTaskHead.set_extra_state
+      ~AbstractTaskHead.share_memory
+      ~AbstractTaskHead.state_dict
+      ~AbstractTaskHead.to
+      ~AbstractTaskHead.to_empty
+      ~AbstractTaskHead.train
+      ~AbstractTaskHead.type
+      ~AbstractTaskHead.xpu
+      ~AbstractTaskHead.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AbstractTaskHead.T_destination
+      ~AbstractTaskHead.dump_patches
+      ~AbstractTaskHead.training
+   
+   

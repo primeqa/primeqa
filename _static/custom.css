@@ -1,0 +1,286 @@
+:root {
+    --pst-font-family-base-system: -apple-system, BlinkMacSystemFont, Segoe UI,
+        "Helvetica Neue", Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+        Segoe UI Symbol;
+    --pst-font-family-monospace-system: "SFMono-Regular", Menlo, Consolas, Monaco,
+        Liberation Mono, Lucida Console, monospace;
+
+    --pst-font-family-base: "IBMPlexSans", var(--pst-font-family-base-system);
+    --pst-font-family-heading: "IBMPlexSans", var(--pst-font-family-base-system);
+    --pst-font-family-monospace: "IBMPlexMono", var(--pst-font-family-monospace-system);
+
+
+    --pst-color-primary: #459db9 !important;
+    --pst-color-secondary: #ee9040 !important;
+    --pst-color-success: #488757 !important;
+    --pst-color-info: var(--pst-color-primary) !important;
+    --pst-color-warning: var(--pst-color-secondary) !important;
+    --pst-color-danger: #cb4653 !important;
+    /* --pst-color-text-base: #c9d1d9; */
+    --pst-color-text-muted: silver !important;
+    --pst-color-border: silver !important;
+    --pst-color-shadow: var(--pst-color-background) !important;
+    /* --pst-color-background: #121212; */
+    --pst-color-on-background: #1e1e1e !important;
+    --pst-color-surface: #292929 !important;
+    --pst-color-on-surface: #373737 !important;
+    --pst-color-panel-background: var(--pst-color-background-up) !important;
+    --pst-color-link: var(--pst-color-primary) !important;
+    --pst-color-link-hover: var(--pst-color-secondary) !important;
+    /* --pst-color-inline-code: #dd9ec2 !important; */
+    /* --pst-color-target: #472700 !important; */
+
+}
+
+.container-xl {
+    max-width: none;
+}
+
+.container-xl .bd-sidebar {
+    background-color: #121212 !important;
+    border-right: 1px solid #c9c9c9 !important;
+}
+
+.bd-header.navbar-light#navbar-main {
+    background-color: #121212 !important;
+    border-bottom: 1px solid #c9c9c9 !important;
+}
+
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link {
+    color: silver !important;
+}
+
+.fab.fa-github-square {
+    color: white !important;
+}
+
+.bd-footer {
+    background-color: #121212 !important;
+}
+
+.copyright {
+    color: silver !important;
+}
+
+.sphinx-version {
+    color: silver !important;
+}
+
+nav.bd-links {
+    color: silver !important;
+}
+
+nav.bd-links li>a {
+    color: silver !important;
+}
+
+nav.bd-links .active:hover>a,
+nav.bd-links .active>a {
+    color: #459db9 !important;
+}
+
+nav.bd-links li>a:hover {
+    color: #ee9040 !important;
+    text-decoration: none !important;
+}
+
+/* .sidebar-start-items nav.bd-links ul {
+    padding: 0 !important;
+}
+
+.sidebar-start-items #bd-docs-nav {
+    padding: 0 1.5rem !important;
+} */
+
+.bd-header.navbar-light#navbar-main .navbar-nav>.active>.nav-link {
+    color: #459db9 !important;
+}
+
+.bd-search input {
+    background-color: #121212 !important;
+    color: #c9d1d9 !important;
+}
+
+.title.logo__title {
+    color: #c9d1d9 !important;
+    font-size: .8rem !important;
+}
+
+html {
+    --scrollbarBG: #CFD8DC;
+    --thumbBG: #90A4AE;
+}
+
+.bd-sidebar::-webkit-scrollbar {
+    width: 11px !important;
+}
+
+.bd-sidebar {
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG) !important;
+}
+
+.bd-sidebar::-webkit-scrollbar-track {
+    background: var(--scrollbarBG) !important;
+}
+
+.bd-sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--thumbBG) !important;
+    border-radius: 6px !important;
+    border: 3px solid var(--scrollbarBG) !important;
+}
+
+.bd-sidebar label:hover {
+    background: none !important;
+}
+
+.sd-card-footer.docutils {
+    text-align: right !important;
+}
+
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link:focus,
+.bd-header.navbar-light#navbar-main .navbar-nav li a.nav-link:hover {
+    color: #ee9040 !important;
+}
+
+/* .longtable.table.autosummary {
+    display: none !important;
+} */
+
+#navbar-main .reference.internal.nav-link {
+    text-transform: uppercase !important;
+}
+
+#navbar-main-elements li:nth-child(5) {
+    visibility: hidden;
+    position: relative;
+}
+
+#navbar-main-elements li:nth-child(5):after {
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "";
+}
+
+/* .longtable.table.autosummary {
+    visibility: hidden;
+    position: relative;
+}
+
+.longtable.table.autosummary:after {
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "API Reference";
+} */
+
+/* .longtable.table.autosummary {
+    visibility: hidden;
+} */
+
+.bd-article [id^="primeqa-"] h1 {
+    font-size: 1.5rem;
+}
+
+.bd-footer-article .prev-next-area .prev-next-subtitle {
+    font-size: .6rem;
+}
+
+.bd-footer-article .prev-next-area .prev-next-title {
+    font-size: .7rem;
+}
+
+.prev-next-area a {
+    max-width: none !important;
+}
+
+.custom-left-section a:hover {
+    color: #ee9040 !important;
+    text-decoration: none !important;
+}
+
+.custom-left-section-api-pkg a:hover {
+    color: #ee9040 !important;
+    text-decoration: none !important;
+}
+
+.custom-right-section .bootstrap-btn {
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #459db9;
+    padding: .375rem .75rem;
+    border-radius: .25rem;
+    color: #459db9;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.custom-right-section .bootstrap-btn:hover {
+    border: 1px solid #ee9040;
+    color: #ee9040;
+}
+
+.custom-right-section .bootstrap-btn:hover svg path {
+    fill: #ee9040 !important;
+}
+
+/* html {
+    background: lightgrey;
+    overflow: hidden;
+}
+
+.bd-sidebar {
+    height: 100vh;
+    background: whitesmoke;
+    overflow-y: auto;
+    max-width: 310px;
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid rgba(0, 0, 0, 0.25)
+} */
+
+
+
+.highlight pre {
+    color: white !important;
+}
+
+.highlight pre .nb {
+    color: #2e83ff !important;
+}
+
+.highlight pre .bp {
+    color: #2e83ff !important;
+}
+
+.highlight pre .m {
+    color: #2e83ff !important;
+}
+
+.highlight pre .mf {
+    color: #2e83ff !important;
+}
+
+.highlight pre .mi {
+    color: #2e83ff !important;
+}
+
+.highlight pre .nv {
+    color: unset !important;
+}
+
+.highlight pre .n {
+    color: white !important;
+}
+
+.highlight pre .vm {
+    color: white !important;
+}
+
+.highlight pre .p {
+    color: white !important;
+}

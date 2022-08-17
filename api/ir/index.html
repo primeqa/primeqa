@@ -1,0 +1,658 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Information Retrieval &#8212; PrimeQA  documentation</title>
+<link rel="stylesheet" href="../../_static/plex.css" type="text/css">
+
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    <link rel="icon" sizes="16x16" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="icon" sizes="32x32" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="apple-touch-icon" sizes="180x180" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="None">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="light">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">PrimeQA: The Prime Repository for QA</p>
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../installation.html">
+  Installation
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../development.html">
+  Development
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../testing.html">
+  Testing
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../index.html">
+  API
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/primeqa/primeqa/" rel="noopener" target="_blank" title="GitHub"><img src="https://badgen.net/github/stars/primeqa/primeqa?icon=github" class="icon-link-image" alt="GitHub"/></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://join.slack.com/t/primeqaworkspace/shared_invite/zt-1edc4fn7n-6aUO0CCvDOMOLb0drROwSw" rel="noopener" target="_blank" title="Slack"><img src="https://cdn.bfldr.com/5H442O3W/at/pl546j-7le8zk-6gwiyo/Slack_Mark.svg?auto=webp&format=png" class="icon-link-image" alt="Slack"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><div class="custom-left-section-api-pkg" style="padding: 0 1.5rem">
+
+
+        <h4 style="color: #c9d1d9">API</h4>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../boolqa/index.html">Boolean Question Answer</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../calibration/index.html">Calibration</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../distillation/index.html">Distillation</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../ir/index.html">Information Retrieval</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../mrc/index.html">Machine Reading Comprehension</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../pipelines/index.html">Pipelines</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../qg/index.html">Question Generation</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../util/index.html">Util</a></strong>
+        </p>
+</div>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      <div class="custom-right-section" style="padding: 2rem 0 0 0">
+        <button onclick="window.open('https://github.com/primeqa/primeqa/edit/main/docs/index.rst','_blank')" class="bootstrap-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"
+                        style="width: 1em; height: 1em;">
+                        <!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) -->
+                        <path style="fill: #459db9"
+                                d="M402.3 344.9l32-32c5-5 13.7-1.5 13.7 5.7V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h273.5c7.1 0 10.7 8.6 5.7 13.7l-32 32c-1.5 1.5-3.5 2.3-5.7 2.3H48v352h352V350.5c0-2.1.8-4.1 2.3-5.6zm156.6-201.8L296.3 405.7l-90.4 10c-26.2 2.9-48.5-19.2-45.6-45.6l10-90.4L432.9 17.1c22.9-22.9 59.9-22.9 82.7 0l43.2 43.2c22.9 22.9 22.9 60 .1 82.8zM460.1 174L402 115.9 216.2 301.8l-7.3 65.3 65.3-7.3L460.1 174zm64.8-79.7l-43.2-43.2c-4.1-4.1-10.8-4.1-14.8 0L436 82l58.1 58.1 30.9-30.9c4-4.2 4-10.8-.1-14.9z" />
+                </svg>&nbsp;Edit on GitHub</button>
+                
+        <button onclick="window.open('https://github.com/primeqa/primeqa/discussions','_blank')" class="bootstrap-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="width: 1em; height: 1em;">
+                        <!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) -->
+                        <path style="fill: #459db9"
+                                d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z" />
+                </svg>&nbsp;Start a Discussion!</button>
+</div>
+
+<script>
+        function getURL() {
+                alert("The URL of this page is: " + window.location.href);
+        }
+</script>
+    </div>
+    
+    <div class="toc-item">
+      
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#information-retrieval-ir">
+   Information Retrieval (IR)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#model-training">
+   Model Training
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#indexing">
+   Indexing
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#corpus-format">
+   Corpus Format
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#dense-index-using-colbert">
+   Dense Index using ColBERT
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sparse-index-using-pyserini">
+   Sparse Index using Pyserini
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#retrieval">
+   Retrieval
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#dense-index-retrieval">
+   Dense Index Retrieval
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sparse-index-retrieval">
+   Sparse Index Retrieval
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#scoring">
+   Scoring
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#obtain-xortydi-groundtruth-data-and-eval-scripts">
+   Obtain XORTyDI GroundTruth data and Eval scripts
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#convert-for-evaluation">
+   Convert for evaluation
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#run-evaluation-script">
+   Run Evaluation Script
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#sample-evaluation-results">
+   Sample Evaluation Results
+  </a>
+ </li>
+</ul>
+
+</nav>
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  <section id="information-retrieval">
+<h1>Information Retrieval<a class="headerlink" href="#information-retrieval" title="Permalink to this headline">#</a></h1>
+<p><strong>API Reference</strong></p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/primeqa.ir.html#module-primeqa.ir" title="primeqa.ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primeqa.ir</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<section id="information-retrieval-ir">
+<h2>Information Retrieval (IR)<a class="headerlink" href="#information-retrieval-ir" title="Permalink to this headline">#</a></h2>
+<p>Before continuing below make sure you have PrimeQA <a class="reference internal" href="../../installation.html"><span class="doc std std-doc">installed</span></a>.</p>
+<p>PrimeQA provides both dense and sparse IR components.</p>
+<ul class="simple">
+<li><p><strong>Dense IR</strong> is a ColBERT-based IR Engine enabling scalable BERT-based search</p></li>
+<li><p><strong>Sparse IR</strong> is a Pyserini-based IR Engine enabling BM25 ranking using bag of words representation</p></li>
+</ul>
+<p>This README shows how to run the basic model training, data indexing, retrieval using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+<p>Sample data files are <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/tests/resources/ir_dense">here</a>, their formats are shown in the Jupyter notebooks <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir.ipynb">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_student_teacher.ipynb">here</a>.</p>
+<p>The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in <a class="reference external" href="https://arxiv.org/abs/2112.08185">Learning Cross-Lingual IR from an English Retriever</a>, are outlined in the <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_student_teacher.ipynb">Jupyter notebook</a>.</p>
+<p>The <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/sparse/bm25_retrieval.ipynb">Jupyter notebook</a> shows how to use the Sparse retriever API.</p>
+</section>
+<section id="model-training">
+<h2>Model Training<a class="headerlink" href="#model-training" title="Permalink to this headline">#</a></h2>
+<p>Dense IR requires training a model.  The following is an example of training a ColBERT model using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+<p>The command uses training data in a <em>.tsv</em> (tabulator character separated) file, containing training examples in the form of <em>[query, positive_passage, negative_passage]</em> triples. An example of a training data file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv">here</a>.
+This table shows two lines from the file, with the positive and negative passages truncated:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>query</p></th>
+<th class="head"><p>positive_passage</p></th>
+<th class="head"><p>negative_passage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>중국에서 가장 오랜기간 왕위를 유지한 인물은 누구인가?</p></td>
+<td><p>“Kangxi Emperor The Kangxi Emperors reign of 61 years …</p></td>
+<td><p>Chiddy Bang new songs from the duo and in November 2009 debuted…</p></td>
+</tr>
+<tr class="row-odd"><td><p>중국에서 가장 오랜기간 왕위를 유지한 인물은 누구인가?</p></td>
+<td><p>Kangxi Emperor The Kangxi Emperors reign of 61 years …</p></td>
+<td><p>Emperor Zhi Yao. The Bamboo Annals says that when Emperor Zhuanxu died …</p></td>
+</tr>
+</tbody>
+</table>
+<p>(English translation of the original Korean query is “<em>Who maintained the throne for the longest time in China?</em>”)</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_train <span class="se">\</span>
+    --engine_type ColBERT <span class="se">\</span>
+    --amp <span class="se">\</span>
+    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
+    --bsize <span class="m">192</span> <span class="se">\</span>
+    --accum <span class="m">6</span> <span class="se">\</span>
+    --maxsteps <span class="m">100000</span> <span class="se">\</span>
+    --save_steps <span class="m">20000</span>
+    --mask-punctuation <span class="se">\</span>
+    --lr 6e-06 <span class="se">\</span>
+    --similarity l2 <span class="se">\</span>
+    --model_type xlm-roberta-base <span class="se">\</span>
+    --triples &lt;training_data&gt; <span class="se">\</span>
+    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
+    --experiment &lt;experiment_label&gt; 
+</pre></div>
+</div>
+<p>The trained model is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/none/&lt;year_month/&lt;day&gt;/&lt;time&gt;/checkpoints/colbert-LAST.dnn</span></code>, with intermediate model files in the same <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> directory.</p>
+</section>
+<section id="indexing">
+<h2>Indexing<a class="headerlink" href="#indexing" title="Permalink to this headline">#</a></h2>
+<p>The following are examples of how to index a corpus using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+</section>
+<section id="corpus-format">
+<h2>Corpus Format<a class="headerlink" href="#corpus-format" title="Permalink to this headline">#</a></h2>
+<p>The command requires a corpus (collection) data in a <em>.tsv</em> file, containing collection records in the form of <em>[ID, text, title]</em> triples. The first line of the file contains a header record.
+An example of a collection file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv">here</a>.</p>
+<p>This table shows the three lines from the file, with <em>text</em> fields truncated:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>id</p></th>
+<th class="head"><p>text</p></th>
+<th class="head"><p>title</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>“The Kangxi Emperor’s reign of 61 years …</p></td>
+<td><p>Kangxi Emperor</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Yao. The Bamboo Annals says that when Emperor Zhuanxu died …</p></td>
+<td><p>Emperor Zhi</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dense-index-using-colbert">
+<h2>Dense Index using ColBERT<a class="headerlink" href="#dense-index-using-colbert" title="Permalink to this headline">#</a></h2>
+<p>Using a model trained as described <a class="reference internal" href="#"><span class="doc std std-doc">here</span></a> (<code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Training</span></code> section), the following command builds the index.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_index <span class="se">\</span>
+    --engine_type ColBERT <span class="se">\</span>
+    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
+    --mask-punctuation <span class="se">\</span>
+    --bsize <span class="m">256</span> <span class="se">\</span>
+    --similarity l2 <span class="se">\</span>
+    --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
+    --collection &lt;document_collection&gt; <span class="se">\</span>
+    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
+    --experiment &lt;experiment_label&gt; <span class="se">\ </span>
+    --index_name &lt;index_label&gt; <span class="se">\</span>
+    --compression_level <span class="m">2</span>
+</pre></div>
+</div>
+<p>The index is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/&lt;index_label&gt;</span></code> directory.</p>
+</section>
+<section id="sparse-index-using-pyserini">
+<h2>Sparse Index using Pyserini<a class="headerlink" href="#sparse-index-using-pyserini" title="Permalink to this headline">#</a></h2>
+<p>The following command builds an index for BM25 retrieval.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_index <span class="se">\</span>
+    --engine_type BM25 <span class="se">\</span>
+    --corpus_path &lt;document_collection&gt; <span class="se">\</span>
+    --index_path &lt;index_dir&gt;
+    --threads &lt;num_threads&gt;
+</pre></div>
+</div>
+</section>
+<section id="retrieval">
+<h2>Retrieval<a class="headerlink" href="#retrieval" title="Permalink to this headline">#</a></h2>
+<p>The command uses queries (questions) in a <em>.tsv</em> file in the form of <em>[ID, text]</em> records.
+An example of a queries data file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv">here</a>.</p>
+</section>
+<section id="dense-index-retrieval">
+<h2>Dense Index Retrieval<a class="headerlink" href="#dense-index-retrieval" title="Permalink to this headline">#</a></h2>
+<p>The command uses a model and index as created in the previous two steps</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_search <span class="se">\</span>
+    --engine_type ColBERT <span class="se">\</span>
+    --amp <span class="se">\</span>
+    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
+    --mask-punctuation <span class="se">\</span>
+    --bsize <span class="m">16</span> <span class="se">\</span>
+    --similarity l2 <span class="se">\</span>
+    --retrieve_only <span class="se">\</span>
+    --queries &lt;query_file&gt; <span class="se">\</span>
+    --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
+    --collection &lt;document_collection&gt; <span class="se">\</span>
+    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
+    --experiment &lt;experiment_label&gt; <span class="se">\ </span>
+    --index_name &lt;index_label&gt; <span class="se">\</span>
+    --ranks_fn &lt;scores_and_ranks&gt; <span class="se">\</span>
+    --nprobe <span class="m">4</span>
+</pre></div>
+</div>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
+</section>
+<section id="sparse-index-retrieval">
+<h2>Sparse Index Retrieval<a class="headerlink" href="#sparse-index-retrieval" title="Permalink to this headline">#</a></h2>
+<p>The command requires an index and a queries tsv file as input.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+      --do_search <span class="se">\</span>
+      --engine_type BM25 <span class="se">\</span>
+      --index_path &lt;index-dir&gt; <span class="se">\ </span> 
+      --queries_path  &lt;query_file&gt; <span class="se">\</span>
+      --nhits &lt;num-hits&gt; <span class="se">\</span>
+      --use_bm25 <span class="se">\</span>
+      --k1 &lt;bm25-score-k1&gt; <span class="se">\</span>
+      --b &lt;bm25-score-b&gt; <span class="se">\</span>
+      --threads  &lt;num-processing-threads&gt; <span class="se">\</span>
+      --output_dir &lt;output-dir&gt;
+</pre></div>
+</div>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output-dir&gt;</span></code>.</p>
+<p>This table shows the sample lines from the search results tsv file:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>query_id</p></th>
+<th class="head"><p>passage_id</p></th>
+<th class="head"><p>rank</p></th>
+<th class="head"><p>score</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>7606160988275694755</p></td>
+<td><p>532</p></td>
+<td><p>1</p></td>
+<td><p>8.82699966430664</p></td>
+</tr>
+<tr class="row-odd"><td><p>7606160988275694755</p></td>
+<td><p>309305</p></td>
+<td><p>2</p></td>
+<td><p>8.041299819946289</p></td>
+</tr>
+<tr class="row-even"><td><p>7606160988275694755</p></td>
+<td><p>65986</p></td>
+<td><p>3</p></td>
+<td><p>7.9517998695373535</p></td>
+</tr>
+<tr class="row-odd"><td><p>7606160988275694755</p></td>
+<td><p>529090</p></td>
+<td><p>4</p></td>
+<td><p>7.807199954986572</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="scoring">
+<h2>Scoring<a class="headerlink" href="#scoring" title="Permalink to this headline">#</a></h2>
+<p>The scoring steps depend on the task and metric used.
+The following describes the steps to evaluate retrieval on the <a class="reference external" href="https://nlp.cs.washington.edu/xorqa/">XOR-TyDi task</a></p>
+</section>
+<section id="obtain-xortydi-groundtruth-data-and-eval-scripts">
+<h2>Obtain XORTyDI GroundTruth data and Eval scripts<a class="headerlink" href="#obtain-xortydi-groundtruth-data-and-eval-scripts" title="Permalink to this headline">#</a></h2>
+<ol class="arabic simple">
+<li><p>Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA</p></li>
+<li><p>Download ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl</p></li>
+</ol>
+</section>
+<section id="convert-for-evaluation">
+<h2>Convert for evaluation<a class="headerlink" href="#convert-for-evaluation" title="Permalink to this headline">#</a></h2>
+<p>Convert the search results obtained from the retrieval step into the format required by the evaluation script.  This is done by running the conversion script:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py <span class="se">\</span>
+    -c &lt;document_collection&gt; <span class="se">\</span>
+    -q &lt;ground_truth_data&gt;
+    -p &lt;scores_and_ranks&gt; <span class="se">\</span>
+    -o &lt;ranking_xortydi_format.json&gt; 
+</pre></div>
+</div>
+</section>
+<section id="run-evaluation-script">
+<h2>Run Evaluation Script<a class="headerlink" href="#run-evaluation-script" title="Permalink to this headline">#</a></h2>
+<p>Run:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python &lt;path-to-xorqa-repo&gt;/evals/eval_xor_retrieve.py --data_file &lt;ground_truth_data&gt; --pred_file &lt;ranking_xortydi_format.json&gt; 
+</pre></div>
+</div>
+</section>
+<section id="sample-evaluation-results">
+<h2>Sample Evaluation Results<a class="headerlink" href="#sample-evaluation-results" title="Permalink to this headline">#</a></h2>
+<p>The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:</p>
+<ol class="arabic simple">
+<li><p>Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages
+wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz</p></li>
+<li><p>English MT translation of XORTyDI DEV queries from <a class="reference external" href="https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing">here</a>.</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Evaluating</span> <span class="n">R</span><span class="o">@</span><span class="mi">2</span><span class="n">kt</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">te</span> <span class="p">(</span><span class="mi">238</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">53.78151260504202</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">bn</span> <span class="p">(</span><span class="mi">304</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">62.82894736842105</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">fi</span> <span class="p">(</span><span class="mi">314</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">43.31210191082803</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ja</span> <span class="p">(</span><span class="mi">241</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">42.32365145228216</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ko</span> <span class="p">(</span><span class="mi">285</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">43.15789473684211</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ru</span> <span class="p">(</span><span class="mi">237</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">54.85232067510548</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ar</span> <span class="p">(</span><span class="mi">309</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">49.19093851132686</span>
+<span class="n">Final</span> <span class="n">macro</span> <span class="n">averaged</span> <span class="n">score</span><span class="p">:</span> 
+<span class="mf">49.921052465692526</span>
+<span class="n">Evaluating</span> <span class="n">R</span><span class="o">@</span><span class="mi">5</span><span class="n">kt</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">te</span> <span class="p">(</span><span class="mi">238</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">63.02521008403361</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">bn</span> <span class="p">(</span><span class="mi">304</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">70.06578947368422</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">fi</span> <span class="p">(</span><span class="mi">314</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">51.910828025477706</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ja</span> <span class="p">(</span><span class="mi">241</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">53.52697095435685</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ko</span> <span class="p">(</span><span class="mi">285</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">53.333333333333336</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ru</span> <span class="p">(</span><span class="mi">237</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">61.60337552742617</span>
+<span class="n">performance</span> <span class="n">on</span> <span class="n">ar</span> <span class="p">(</span><span class="mi">309</span> <span class="n">examples</span><span class="p">)</span>
+<span class="mf">57.60517799352751</span>
+<span class="n">Final</span> <span class="n">macro</span> <span class="n">averaged</span> <span class="n">score</span><span class="p">:</span> 
+<span class="mf">58.72438362740563</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+</div>
+</footer>
+  </body>
+</html>

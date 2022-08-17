@@ -1,0 +1,29 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.logging.Logger
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.logging
+
+.. autoclass:: Logger
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Logger.info
+      ~Logger.info_all
+      ~Logger.log_metric
+      ~Logger.log_new_artifact
+      ~Logger.warn
+   
+   
+
+   
+   
+   

@@ -1,0 +1,32 @@
+data\_collator
+==============
+
+.. automodule:: primeqa.qg.utils.data_collator
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      T2TDataCollator
+   
+   
+
+   
+   
+   
+
+
+

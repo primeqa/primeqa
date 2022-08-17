@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.training.training.train
+=============================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.training.training
+
+.. autofunction:: train

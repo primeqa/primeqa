@@ -1,0 +1,31 @@
+squad
+=====
+
+.. automodule:: primeqa.mrc.metrics.squad
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.metrics.squad.evaluate
+   primeqa.mrc.metrics.squad.squad
+

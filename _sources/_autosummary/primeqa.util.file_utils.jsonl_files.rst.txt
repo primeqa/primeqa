@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.jsonl\_files
+=====================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: jsonl_files

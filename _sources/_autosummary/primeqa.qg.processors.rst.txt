@@ -1,0 +1,32 @@
+processors
+==========
+
+.. automodule:: primeqa.qg.processors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.processors.data_loader
+   primeqa.qg.processors.passage_qg
+   primeqa.qg.processors.table_qg
+

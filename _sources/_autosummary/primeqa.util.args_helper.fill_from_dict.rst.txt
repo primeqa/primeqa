@@ -1,0 +1,6 @@
+primeqa.util.args\_helper.fill\_from\_dict
+==========================================
+
+.. currentmodule:: primeqa.util.args_helper
+
+.. autofunction:: fill_from_dict

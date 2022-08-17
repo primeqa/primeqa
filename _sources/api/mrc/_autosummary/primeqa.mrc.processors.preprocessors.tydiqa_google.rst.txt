@@ -1,0 +1,32 @@
+tydiqa\_google
+==============
+
+.. automodule:: primeqa.mrc.processors.preprocessors.tydiqa_google
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      TyDiQAGooglePreprocessor
+   
+   
+
+   
+   
+   
+
+
+

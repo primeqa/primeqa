@@ -1,0 +1,125 @@
+primeqa.mrc.models.task\_model.ModelForDownstreamTasks
+======================================================
+
+.. currentmodule:: primeqa.mrc.models.task_model
+
+.. autoclass:: ModelForDownstreamTasks
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ModelForDownstreamTasks.add_memory_hooks
+      ~ModelForDownstreamTasks.add_module
+      ~ModelForDownstreamTasks.adjust_logits_during_generation
+      ~ModelForDownstreamTasks.apply
+      ~ModelForDownstreamTasks.beam_sample
+      ~ModelForDownstreamTasks.beam_search
+      ~ModelForDownstreamTasks.bfloat16
+      ~ModelForDownstreamTasks.buffers
+      ~ModelForDownstreamTasks.children
+      ~ModelForDownstreamTasks.compute_transition_beam_scores
+      ~ModelForDownstreamTasks.constrained_beam_search
+      ~ModelForDownstreamTasks.cpu
+      ~ModelForDownstreamTasks.create_extended_attention_mask_for_decoder
+      ~ModelForDownstreamTasks.cuda
+      ~ModelForDownstreamTasks.double
+      ~ModelForDownstreamTasks.estimate_tokens
+      ~ModelForDownstreamTasks.eval
+      ~ModelForDownstreamTasks.extra_repr
+      ~ModelForDownstreamTasks.float
+      ~ModelForDownstreamTasks.floating_point_ops
+      ~ModelForDownstreamTasks.forward
+      ~ModelForDownstreamTasks.from_config
+      ~ModelForDownstreamTasks.from_pretrained
+      ~ModelForDownstreamTasks.generate
+      ~ModelForDownstreamTasks.get_buffer
+      ~ModelForDownstreamTasks.get_extended_attention_mask
+      ~ModelForDownstreamTasks.get_extra_state
+      ~ModelForDownstreamTasks.get_head_mask
+      ~ModelForDownstreamTasks.get_input_embeddings
+      ~ModelForDownstreamTasks.get_output_embeddings
+      ~ModelForDownstreamTasks.get_parameter
+      ~ModelForDownstreamTasks.get_position_embeddings
+      ~ModelForDownstreamTasks.get_submodule
+      ~ModelForDownstreamTasks.gradient_checkpointing_disable
+      ~ModelForDownstreamTasks.gradient_checkpointing_enable
+      ~ModelForDownstreamTasks.greedy_search
+      ~ModelForDownstreamTasks.group_beam_search
+      ~ModelForDownstreamTasks.half
+      ~ModelForDownstreamTasks.init_weights
+      ~ModelForDownstreamTasks.invert_attention_mask
+      ~ModelForDownstreamTasks.load_state_dict
+      ~ModelForDownstreamTasks.model_class_from_config
+      ~ModelForDownstreamTasks.modules
+      ~ModelForDownstreamTasks.named_buffers
+      ~ModelForDownstreamTasks.named_children
+      ~ModelForDownstreamTasks.named_modules
+      ~ModelForDownstreamTasks.named_parameters
+      ~ModelForDownstreamTasks.num_parameters
+      ~ModelForDownstreamTasks.parameters
+      ~ModelForDownstreamTasks.post_init
+      ~ModelForDownstreamTasks.prepare_inputs_for_generation
+      ~ModelForDownstreamTasks.prune_heads
+      ~ModelForDownstreamTasks.push_to_hub
+      ~ModelForDownstreamTasks.register_backward_hook
+      ~ModelForDownstreamTasks.register_buffer
+      ~ModelForDownstreamTasks.register_for_auto_class
+      ~ModelForDownstreamTasks.register_forward_hook
+      ~ModelForDownstreamTasks.register_forward_pre_hook
+      ~ModelForDownstreamTasks.register_full_backward_hook
+      ~ModelForDownstreamTasks.register_module
+      ~ModelForDownstreamTasks.register_parameter
+      ~ModelForDownstreamTasks.requires_grad_
+      ~ModelForDownstreamTasks.reset_memory_hooks_state
+      ~ModelForDownstreamTasks.resize_position_embeddings
+      ~ModelForDownstreamTasks.resize_token_embeddings
+      ~ModelForDownstreamTasks.retrieve_modules_from_names
+      ~ModelForDownstreamTasks.sample
+      ~ModelForDownstreamTasks.save_pretrained
+      ~ModelForDownstreamTasks.set_extra_state
+      ~ModelForDownstreamTasks.set_input_embeddings
+      ~ModelForDownstreamTasks.set_task_head
+      ~ModelForDownstreamTasks.share_memory
+      ~ModelForDownstreamTasks.state_dict
+      ~ModelForDownstreamTasks.tie_weights
+      ~ModelForDownstreamTasks.to
+      ~ModelForDownstreamTasks.to_empty
+      ~ModelForDownstreamTasks.train
+      ~ModelForDownstreamTasks.type
+      ~ModelForDownstreamTasks.xpu
+      ~ModelForDownstreamTasks.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ModelForDownstreamTasks.T_destination
+      ~ModelForDownstreamTasks.base_model
+      ~ModelForDownstreamTasks.base_model_prefix
+      ~ModelForDownstreamTasks.config_class
+      ~ModelForDownstreamTasks.device
+      ~ModelForDownstreamTasks.dtype
+      ~ModelForDownstreamTasks.dummy_inputs
+      ~ModelForDownstreamTasks.dump_patches
+      ~ModelForDownstreamTasks.framework
+      ~ModelForDownstreamTasks.is_gradient_checkpointing
+      ~ModelForDownstreamTasks.is_parallelizable
+      ~ModelForDownstreamTasks.main_input_name
+      ~ModelForDownstreamTasks.model_
+      ~ModelForDownstreamTasks.supports_gradient_checkpointing
+      ~ModelForDownstreamTasks.task_head
+      ~ModelForDownstreamTasks.training
+   
+   

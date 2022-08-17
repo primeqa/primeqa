@@ -1,0 +1,6 @@
+primeqa.boolqa.processors.dataset.mrc2dataset.unpack\_target\_type
+==================================================================
+
+.. currentmodule:: primeqa.boolqa.processors.dataset.mrc2dataset
+
+.. autofunction:: unpack_target_type

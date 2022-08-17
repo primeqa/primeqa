@@ -1,0 +1,6 @@
+primeqa.boolqa.processors.dataset.mrc2dataset.unpack\_span\_answer
+==================================================================
+
+.. currentmodule:: primeqa.boolqa.processors.dataset.mrc2dataset
+
+.. autofunction:: unpack_span_answer

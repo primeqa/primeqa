@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Machine Reading Comprehension &#8212; PrimeQA  documentation</title>
+<link rel="stylesheet" href="../../_static/plex.css" type="text/css">
+
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "light";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    <link rel="icon" sizes="16x16" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="icon" sizes="32x32" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="apple-touch-icon" sizes="180x180" type="image/png" href="../../_static/icons8-intelligence-50.png" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/design-tabs.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="None">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="light">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">PrimeQA: The Prime Repository for QA</p>
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../installation.html">
+  Installation
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../development.html">
+  Development
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../testing.html">
+  Testing
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../index.html">
+  API
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/primeqa/primeqa/" rel="noopener" target="_blank" title="GitHub"><img src="https://badgen.net/github/stars/primeqa/primeqa?icon=github" class="icon-link-image" alt="GitHub"/></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://join.slack.com/t/primeqaworkspace/shared_invite/zt-1edc4fn7n-6aUO0CCvDOMOLb0drROwSw" rel="noopener" target="_blank" title="Slack"><img src="https://cdn.bfldr.com/5H442O3W/at/pl546j-7le8zk-6gwiyo/Slack_Mark.svg?auto=webp&format=png" class="icon-link-image" alt="Slack"/></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><div class="custom-left-section-api-pkg" style="padding: 0 1.5rem">
+
+
+        <h4 style="color: #c9d1d9">API</h4>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../boolqa/index.html">Boolean Question Answer</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../calibration/index.html">Calibration</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../distillation/index.html">Distillation</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../ir/index.html">Information Retrieval</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../mrc/index.html">Machine Reading Comprehension</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../pipelines/index.html">Pipelines</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../qg/index.html">Question Generation</a></strong>
+        </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../util/index.html">Util</a></strong>
+        </p>
+</div>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      <div class="custom-right-section" style="padding: 2rem 0 0 0">
+        <button onclick="window.open('https://github.com/primeqa/primeqa/edit/main/docs/index.rst','_blank')" class="bootstrap-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"
+                        style="width: 1em; height: 1em;">
+                        <!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) -->
+                        <path style="fill: #459db9"
+                                d="M402.3 344.9l32-32c5-5 13.7-1.5 13.7 5.7V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h273.5c7.1 0 10.7 8.6 5.7 13.7l-32 32c-1.5 1.5-3.5 2.3-5.7 2.3H48v352h352V350.5c0-2.1.8-4.1 2.3-5.6zm156.6-201.8L296.3 405.7l-90.4 10c-26.2 2.9-48.5-19.2-45.6-45.6l10-90.4L432.9 17.1c22.9-22.9 59.9-22.9 82.7 0l43.2 43.2c22.9 22.9 22.9 60 .1 82.8zM460.1 174L402 115.9 216.2 301.8l-7.3 65.3 65.3-7.3L460.1 174zm64.8-79.7l-43.2-43.2c-4.1-4.1-10.8-4.1-14.8 0L436 82l58.1 58.1 30.9-30.9c4-4.2 4-10.8-.1-14.9z" />
+                </svg>&nbsp;Edit on GitHub</button>
+                
+        <button onclick="window.open('https://github.com/primeqa/primeqa/discussions','_blank')" class="bootstrap-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="width: 1em; height: 1em;">
+                        <!-- Font Awesome Pro 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) -->
+                        <path style="fill: #459db9"
+                                d="M96 224c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm448 0c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm32 32h-64c-17.6 0-33.5 7.1-45.1 18.6 40.3 22.1 68.9 62 75.1 109.4h66c17.7 0 32-14.3 32-32v-32c0-35.3-28.7-64-64-64zm-256 0c61.9 0 112-50.1 112-112S381.9 32 320 32 208 82.1 208 144s50.1 112 112 112zm76.8 32h-8.3c-20.8 10-43.9 16-68.5 16s-47.6-6-68.5-16h-8.3C179.6 288 128 339.6 128 403.2V432c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48v-28.8c0-63.6-51.6-115.2-115.2-115.2zm-223.7-13.4C161.5 263.1 145.6 256 128 256H64c-35.3 0-64 28.7-64 64v32c0 17.7 14.3 32 32 32h65.9c6.3-47.4 34.9-87.3 75.2-109.4z" />
+                </svg>&nbsp;Start a Discussion!</button>
+</div>
+
+<script>
+        function getURL() {
+                alert("The URL of this page is: " + window.location.href);
+        }
+</script>
+    </div>
+    
+    <div class="toc-item">
+      
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#machine-reading-comprehension-mrc">
+   Machine Reading Comprehension (MRC)
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#inference-example-usage">
+   Inference Example Usage
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#train-and-evaluate">
+   Train and Evaluate
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#supported-datasets">
+   Supported Datasets
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#example-usage">
+   Example Usage
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#task-arguments">
+   Task Arguments
+  </a>
+ </li>
+</ul>
+
+</nav>
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  <section id="machine-reading-comprehension">
+<h1>Machine Reading Comprehension<a class="headerlink" href="#machine-reading-comprehension" title="Permalink to this headline">#</a></h1>
+<p><strong>API Reference</strong></p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/primeqa.mrc.html#module-primeqa.mrc" title="primeqa.mrc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primeqa.mrc</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<section id="machine-reading-comprehension-mrc">
+<h2>Machine Reading Comprehension (MRC)<a class="headerlink" href="#machine-reading-comprehension-mrc" title="Permalink to this headline">#</a></h2>
+<p>Before continuing below make sure you have PrimeQA <a class="reference internal" href="../../installation.html"><span class="doc std std-doc">installed</span></a>.</p>
+</section>
+<section id="inference-example-usage">
+<h2>Inference Example Usage<a class="headerlink" href="#inference-example-usage" title="Permalink to this headline">#</a></h2>
+<p>The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:</p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import json
+from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
+<span class="nv">reader</span> <span class="o">=</span> MRCPipeline<span class="o">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="o">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2: Execute the reader in inference mode:</p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">question</span> <span class="o">=</span> <span class="s2">&quot;Which country is Canberra located in?&quot;</span>
+<span class="nv">context</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
+<span class="s2">Founded following the federation of the colonies of Australia </span>
+<span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
+<span class="s2">largest inland city&quot;&quot;&quot;</span>
+<span class="nv">answers</span> <span class="o">=</span> reader.predict<span class="o">(</span>question,context<span class="o">)</span>  
+print<span class="o">(</span>json.dumps<span class="o">(</span>answers, <span class="nv">indent</span><span class="o">=</span><span class="m">4</span><span class="o">))</span>  
+</pre></div>
+</div>
+<p>The above statements will generate an output in the form of a dictionary:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>
+    <span class="o">{</span>
+        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia&quot;</span>,
+        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.7988516960240685
+    <span class="o">}</span>,
+    <span class="o">{</span>
+        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia&quot;</span>,
+        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.10721889035823319
+    <span class="o">}</span>,
+    <span class="o">{</span>
+        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia&quot;</span>,
+        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.09392941361769835
+    <span class="o">}</span>
+<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+<section id="train-and-evaluate">
+<h2>Train and Evaluate<a class="headerlink" href="#train-and-evaluate" title="Permalink to this headline">#</a></h2>
+<p>If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py">run_mrc.py</a>.  This runs a transformer-based MRC pipeline.</p>
+</section>
+<section id="supported-datasets">
+<h2>Supported Datasets<a class="headerlink" href="#supported-datasets" title="Permalink to this headline">#</a></h2>
+<p>Currently supported datasets include:</p>
+<ul class="simple">
+<li><p>TyDiQA</p></li>
+<li><p>SQuAD 1.1</p></li>
+<li><p>XQuAD</p></li>
+<li><p>MLQA</p></li>
+</ul>
+</section>
+<section id="example-usage">
+<h2>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">#</a></h2>
+<ul class="simple">
+<li><p>Dataset: <a class="reference external" href="https://ai.google.com/research/tydiqa">TyDiQA</a></p></li>
+</ul>
+<p>An example usage for train + eval command on the TyDiQA dataset (default) is:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large <span class="se">\</span>
+       --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --learning_rate 4e-5 <span class="se">\</span>
+       --do_train --do_eval --per_device_train_batch_size <span class="m">16</span> <span class="se">\</span>
+       --per_device_eval_batch_size <span class="m">128</span> --gradient_accumulation_steps <span class="m">4</span> <span class="se">\</span>
+       --warmup_ratio <span class="m">0</span>.1 --weight_decay <span class="m">0</span>.1 --save_steps <span class="m">50000</span> <span class="se">\</span>
+       --overwrite_output_dir --num_train_epochs <span class="m">1</span> 
+       --evaluation_strategy no --overwrite_cache
+</pre></div>
+</div>
+<p>This will detect a GPU if present as well as multiple CPU cores for accelerating preprocessing.
+Some hyperparameters (e.g. fp16, batch size, gradient accumulation steps) may need to be changed
+depending on your hardware configuration.</p>
+<p>The trained model is available <a class="reference external" href="https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large">here</a>.</p>
+<p>This yields the following results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*****</span> <span class="nb">eval</span> <span class="n">metrics</span> <span class="o">*****</span>
+<span class="n">epoch</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">eval_avg_minimal_f1</span> <span class="o">=</span> <span class="mf">0.6745</span>
+<span class="n">eval_avg_minimal_precision</span> <span class="o">=</span> <span class="mf">0.7331</span>
+<span class="n">eval_avg_minimal_recall</span> <span class="o">=</span> <span class="mf">0.628</span>
+<span class="n">eval_avg_passage_f1</span> <span class="o">=</span> <span class="mf">0.7215</span>
+<span class="n">eval_avg_passage_precision</span> <span class="o">=</span> <span class="mf">0.7403</span>
+<span class="n">eval_avg_passage_recall</span> <span class="o">=</span> <span class="mf">0.7061</span>
+<span class="n">eval_samples</span> <span class="o">=</span> <span class="mi">18670</span>
+</pre></div>
+</div>
+<p>For just training:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large <span class="se">\</span>
+       --output_dir <span class="si">${</span><span class="nv">TRAINING_OUTPUT_DIR</span><span class="si">}</span> --fp16 --learning_rate 4e-5 <span class="se">\</span>
+       --do_train --per_device_train_batch_size <span class="m">16</span> --gradient_accumulation_steps <span class="m">4</span> <span class="se">\</span>
+       --warmup_ratio <span class="m">0</span>.1 --weight_decay <span class="m">0</span>.1 --save_steps <span class="m">50000</span> <span class="se">\</span>
+       --overwrite_output_dir --num_train_epochs <span class="m">1</span> 
+       --evaluation_strategy no --overwrite_cache
+</pre></div>
+</div>
+<p>For just eval:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path <span class="si">${</span><span class="nv">TRAINING_OUTPUT_DIR</span><span class="si">}</span> <span class="se">\</span>
+       --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --do_eval <span class="se">\</span>
+       --per_device_eval_batch_size <span class="m">128</span> --overwrite_output_dir --overwrite_cache
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>if you want to do <a class="reference external" href="https://arxiv.org/abs/2101.07942">confidence calibration</a> estimate of your fine-tuned model use the following:</p></li>
+</ul>
+<p>For eval with confidence calibration, add the following additional command line arguments:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       --output_dropout_rate <span class="m">0</span>.25 <span class="se">\</span>
+       --decoding_times_with_dropout <span class="m">5</span> <span class="se">\</span>
+       --confidence_model_path <span class="si">${</span><span class="nv">CONFIDENCE_MODEL_PATH</span><span class="si">}</span> <span class="se">\</span>
+       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Dataset: <a class="reference external" href="https://rajpurkar.github.io/SQuAD-explorer/">SQuAD</a></p></li>
+</ul>
+<p>For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       --dataset_name squad <span class="se">\</span>
+       --dataset_config_name plain_text <span class="se">\</span>
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor <span class="se">\</span>
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor <span class="se">\</span>
+       --eval_metrics SQUAD 
+</pre></div>
+</div>
+<p>This yields the following results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*****</span> <span class="nb">eval</span> <span class="n">metrics</span> <span class="o">*****</span> 
+<span class="n">eval_exact_match</span> <span class="o">=</span> <span class="mf">88.7133</span>
+<span class="n">eval_f1</span>          <span class="o">=</span> <span class="mf">94.3525</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Dataset: <a class="reference external" href="https://arxiv.org/pdf/1910.11856v3.pdf">XQuAD</a></p></li>
+</ul>
+<p>For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1.
+The dataset configurations for all languages are supported.
+For the XQuAD in ZH use the following command line arguments for eval:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       --dataset_name xquad <span class="se">\</span>
+       --dataset_config_name xquad.zh <span class="se">\</span>
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor <span class="se">\</span>
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor <span class="se">\</span>
+       --eval_metrics SQUAD 
+</pre></div>
+</div>
+<p>This yields the following results:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>en</p></th>
+<th class="head"><p>es</p></th>
+<th class="head"><p>de</p></th>
+<th class="head"><p>el</p></th>
+<th class="head"><p>ru</p></th>
+<th class="head"><p>tr</p></th>
+<th class="head"><p>ar</p></th>
+<th class="head"><p>vi</p></th>
+<th class="head"><p>th</p></th>
+<th class="head"><p>zh</p></th>
+<th class="head"><p>hi</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>F1</p></td>
+<td><p>87.5</p></td>
+<td><p>82.1</p></td>
+<td><p>80.7</p></td>
+<td><p>81.5</p></td>
+<td><p>80.0</p></td>
+<td><p>75.0</p></td>
+<td><p>75.1</p></td>
+<td><p>80.0</p></td>
+<td><p>75.3</p></td>
+<td><p>70.3</p></td>
+<td><p>77.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>EM</p></td>
+<td><p>76.7</p></td>
+<td><p>63.4</p></td>
+<td><p>65.4</p></td>
+<td><p>64.2</p></td>
+<td><p>63.6</p></td>
+<td><p>59.3</p></td>
+<td><p>59.1</p></td>
+<td><p>61.3</p></td>
+<td><p>65.5</p></td>
+<td><p>62.2</p></td>
+<td><p>61.8</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>Dataset: <a class="reference external" href="https://github.com/facebookresearch/MLQA">MLQA</a></p></li>
+</ul>
+<p>For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1.
+The dataset configurations for all language combinations are supported.
+For the MLQA configuration with context language EN and question language DE use the following command line arguments for eval:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       --dataset_name mlqa <span class="se">\</span>
+       --dataset_config_name mlqa.en.de <span class="se">\</span>
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor <span class="se">\</span>
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor <span class="se">\</span>
+       --eval_metrics MLQA 
+</pre></div>
+</div>
+<p>This yields the following results:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>en</p></th>
+<th class="head"><p>es</p></th>
+<th class="head"><p>de</p></th>
+<th class="head"><p>ar</p></th>
+<th class="head"><p>hi</p></th>
+<th class="head"><p>vi</p></th>
+<th class="head"><p>zh</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>F1</p></td>
+<td><p>84.8</p></td>
+<td><p>75.9</p></td>
+<td><p>68.8</p></td>
+<td><p>67.7</p></td>
+<td><p>72.1</p></td>
+<td><p>71.8</p></td>
+<td><p>69.8</p></td>
+</tr>
+<tr class="row-odd"><td><p>EM</p></td>
+<td><p>72.9</p></td>
+<td><p>57.2</p></td>
+<td><p>52.7</p></td>
+<td><p>46.6</p></td>
+<td><p>55.6</p></td>
+<td><p>52.1</p></td>
+<td><p>50.0</p></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><p>PrimeQA also supports special Features for MRC systems as follows:</p></li>
+<li><p>Answering <a class="reference external" href="https://arxiv.org/abs/1905.10044">Boolean Questions</a> for TyDI (currently in an inference-only setup). Please read the <a class="reference internal" href="../boolqa/index.html"><span class="doc std std-doc">details</span></a>:</p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large <span class="se">\</span>
+       --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --overwrite_cache <span class="se">\</span>
+       --per_device_eval_batch_size <span class="m">128</span> --overwrite_output_dir <span class="se">\</span>
+       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+</pre></div>
+</div>
+<p>The corresponding model files are available as part of these: <a class="reference external" href="https://huggingface.co/PrimeQA/tydiqa-boolean-question-classifier">Question classifier</a>, <a class="reference external" href="https://huggingface.co/PrimeQA/tydiqa-boolean-answer-classifier">Answer classifier</a>, <a class="reference external" href="https://huggingface.co/PrimeQA/tydiqa-primary-task-xlm-roberta-large">MRC system</a>. This setup is based on the top submission to the minimal answer leaderboard (hidden blind test) for TyDI (as of 7/2/2022).</p>
+<p>This yields the following results:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">*****</span> <span class="nb">eval</span> <span class="n">metrics</span> <span class="o">*****</span>
+<span class="n">epoch</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">eval_avg_minimal_f1</span> <span class="o">=</span> <span class="mf">0.7151</span>
+<span class="n">eval_avg_minimal_precision</span> <span class="o">=</span> <span class="mf">0.7229</span>
+<span class="n">eval_avg_minimal_recall</span> <span class="o">=</span> <span class="mf">0.7097</span>
+<span class="n">eval_avg_passage_f1</span> <span class="o">=</span> <span class="mf">0.7447</span>
+<span class="n">eval_avg_passage_precision</span> <span class="o">=</span> <span class="mf">0.7496</span>
+<span class="n">eval_avg_passage_recall</span> <span class="o">=</span> <span class="mf">0.7433</span>
+<span class="n">eval_samples</span> <span class="o">=</span> <span class="mi">18670</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>PrimeQA also supports answering questions to which answers are collective e.g. lists.</p></li>
+</ul>
+<p>For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md">examples/listqa/README.md</a> for more information and a use case using NQ list data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       <span class="o">--</span><span class="n">max_seq_length</span> <span class="mi">512</span> \
+       <span class="o">--</span><span class="n">learning_rate</span> <span class="mf">5e-05</span> \
+       <span class="o">--</span><span class="n">max_answer_length</span> <span class="mi">1000</span> \
+       <span class="o">--</span><span class="n">passage_non_null_threshold</span> <span class="mi">1</span> \
+       <span class="o">--</span><span class="n">minimal_non_null_threshold</span> <span class="mi">1</span> \
+</pre></div>
+</div>
+<p>This yields the following results on English only using the TyDi evaluation script with two training strategies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xlm</span><span class="o">-</span><span class="n">roberta</span><span class="o">-</span><span class="n">large</span> <span class="o">-&gt;</span> <span class="n">NQ</span> <span class="n">Lists</span><span class="p">:</span> <span class="n">Minimal</span> <span class="n">F1</span> <span class="o">=</span> <span class="mf">46.95</span>
+<span class="n">xlm</span><span class="o">-</span><span class="n">roberta</span><span class="o">-</span><span class="n">large</span> <span class="o">-&gt;</span> <span class="n">PrimeQA</span><span class="o">/</span><span class="n">tydiqa</span><span class="o">-</span><span class="n">primary</span><span class="o">-</span><span class="n">task</span><span class="o">-</span><span class="n">xlm</span><span class="o">-</span><span class="n">roberta</span><span class="o">-</span><span class="n">large</span> <span class="o">-&gt;</span> <span class="n">NQ</span> <span class="n">Lists</span><span class="p">:</span> <span class="n">Minimal</span> <span class="n">F1</span> <span class="o">=</span> <span class="mf">57.44</span>
+</pre></div>
+</div>
+</section>
+<section id="task-arguments">
+<h2>Task Arguments<a class="headerlink" href="#task-arguments" title="Permalink to this headline">#</a></h2>
+<p>Some task arguments take references which allow for dynamic imports of existing or
+user-defined functionality.  For example, to select the <code class="docutils literal notranslate"><span class="pre">ExtractivePostProcessor</span></code> use
+<code class="docutils literal notranslate"><span class="pre">--postprocessor</span> <span class="pre">primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor</span></code>.
+Alternatively, a new postprocessor could be written and selected with
+<code class="docutils literal notranslate"><span class="pre">--postprocessor</span> <span class="pre">qualified.path.to.new.postprocessor.NewPostProcessor</span></code>.</p>
+<p>For example, if one was implementing a new model which made predictions by means other than
+an extractive head then a <code class="docutils literal notranslate"><span class="pre">NewPostProcessor</span></code> which derived predictions from the model
+outputs would be needed.</p>
+<p>Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
+This would be selected by specifying <code class="docutils literal notranslate"><span class="pre">--preprocessor</span> <span class="pre">qualified.path.to.new.postprocessor.NewPreProcessor</span></code>
+for the <code class="docutils literal notranslate"><span class="pre">NewPreProcessor</span></code> corresponding to this dataset and schema.</p>
+</section>
+</section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+</div>
+</footer>
+  </body>
+</html>

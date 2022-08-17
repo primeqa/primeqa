@@ -1,0 +1,30 @@
+preprocessors
+=============
+
+.. automodule:: primeqa.boolqa.processors.preprocessors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.boolqa.processors.preprocessors.boolqa_classifier
+

@@ -1,0 +1,6 @@
+primeqa.boolqa.run\_boolqa\_classifier.create\_a\_backup\_file\_if\_file\_exists
+================================================================================
+
+.. currentmodule:: primeqa.boolqa.run_boolqa_classifier
+
+.. autofunction:: create_a_backup_file_if_file_exists

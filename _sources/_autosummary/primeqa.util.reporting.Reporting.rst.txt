@@ -1,0 +1,35 @@
+primeqa.util.reporting.Reporting
+================================
+
+.. currentmodule:: primeqa.util.reporting
+
+.. autoclass:: Reporting
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Reporting.display
+      ~Reporting.display_warn
+      ~Reporting.elapsed_seconds
+      ~Reporting.elapsed_time_str
+      ~Reporting.get_count
+      ~Reporting.get_moving_average
+      ~Reporting.get_samples
+      ~Reporting.is_time
+      ~Reporting.moving_averages
+      ~Reporting.progress_str
+      ~Reporting.reset
+   
+   
+
+   
+   
+   

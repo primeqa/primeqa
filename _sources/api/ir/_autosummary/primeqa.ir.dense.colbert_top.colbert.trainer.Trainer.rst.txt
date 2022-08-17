@@ -1,0 +1,27 @@
+primeqa.ir.dense.colbert\_top.colbert.trainer.Trainer
+=====================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.trainer
+
+.. autoclass:: Trainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Trainer.best_checkpoint_path
+      ~Trainer.configure
+      ~Trainer.train
+   
+   
+
+   
+   
+   

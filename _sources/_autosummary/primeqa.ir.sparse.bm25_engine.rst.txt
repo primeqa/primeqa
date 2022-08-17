@@ -1,0 +1,32 @@
+bm25\_engine
+============
+
+.. automodule:: primeqa.ir.sparse.bm25_engine
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BM25Engine
+   
+   
+
+   
+   
+   
+
+
+

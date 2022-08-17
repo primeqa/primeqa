@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.gzip\_str
+==================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: gzip_str

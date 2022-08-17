@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.write\_open
+====================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: write_open

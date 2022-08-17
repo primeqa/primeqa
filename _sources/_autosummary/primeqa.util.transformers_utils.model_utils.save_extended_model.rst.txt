@@ -1,0 +1,6 @@
+primeqa.util.transformers\_utils.model\_utils.save\_extended\_model
+===================================================================
+
+.. currentmodule:: primeqa.util.transformers_utils.model_utils
+
+.. autofunction:: save_extended_model

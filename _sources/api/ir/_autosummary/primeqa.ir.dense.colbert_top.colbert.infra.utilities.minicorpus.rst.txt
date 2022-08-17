@@ -1,0 +1,31 @@
+minicorpus
+==========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.infra.utilities.minicorpus
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      sample_minicorpus
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

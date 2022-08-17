@@ -1,0 +1,27 @@
+primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+===================================================================================
+
+.. currentmodule:: primeqa.boolqa.processors.postprocessors.extractive
+
+.. autoclass:: ExtractivePipelinePostProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ExtractivePipelinePostProcessor.prepare_examples_as_references
+      ~ExtractivePipelinePostProcessor.process
+      ~ExtractivePipelinePostProcessor.process_references_and_predictions
+   
+   
+
+   
+   
+   

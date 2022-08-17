@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.tydi\_f1.eval\_utils.gold\_has\_minimal\_answer
+===================================================================
+
+.. currentmodule:: primeqa.mrc.metrics.tydi_f1.eval_utils
+
+.. autofunction:: gold_has_minimal_answer

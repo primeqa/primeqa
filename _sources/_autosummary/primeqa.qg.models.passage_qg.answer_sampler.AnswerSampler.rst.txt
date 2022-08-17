@@ -1,0 +1,27 @@
+primeqa.qg.models.passage\_qg.answer\_sampler.AnswerSampler
+===========================================================
+
+.. currentmodule:: primeqa.qg.models.passage_qg.answer_sampler
+
+.. autoclass:: AnswerSampler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~AnswerSampler.create_qg_input
+      ~AnswerSampler.detect_language
+      ~AnswerSampler.get_named_entities
+   
+   
+
+   
+   
+   

@@ -1,0 +1,31 @@
+primeqa.qg.models.table\_qg.sql\_sampler.SimpleSqlSampler
+=========================================================
+
+.. currentmodule:: primeqa.qg.models.table_qg.sql_sampler
+
+.. autoclass:: SimpleSqlSampler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SimpleSqlSampler.add_column_types
+      ~SimpleSqlSampler.controlled_sample_sql
+      ~SimpleSqlSampler.convert_sql_to_string
+      ~SimpleSqlSampler.get_where_clauses
+      ~SimpleSqlSampler.readable_sql
+      ~SimpleSqlSampler.sample_sql
+      ~SimpleSqlSampler.sql_execution
+   
+   
+
+   
+   
+   

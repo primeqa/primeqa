@@ -1,0 +1,33 @@
+primeqa.ir.run\_ir.ProcessArguments
+===================================
+
+.. currentmodule:: primeqa.ir.run_ir
+
+.. autoclass:: ProcessArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ProcessArguments.do_index
+      ~ProcessArguments.do_search
+      ~ProcessArguments.do_train
+      ~ProcessArguments.engine_type
+   
+   

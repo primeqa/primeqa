@@ -1,0 +1,32 @@
+residual\_embeddings\_strided
+=============================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.indexing.codecs.residual_embeddings_strided
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ResidualEmbeddingsStrided
+   
+   
+
+   
+   
+   
+
+
+

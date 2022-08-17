@@ -1,0 +1,32 @@
+data\_loader
+============
+
+.. automodule:: primeqa.qg.processors.data_loader
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      QGDataLoader
+   
+   
+
+   
+   
+   
+
+
+

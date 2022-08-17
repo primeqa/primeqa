@@ -1,0 +1,32 @@
+eager\_batcher\_v2
+==================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      EagerBatcher
+   
+   
+
+   
+   
+   
+
+
+

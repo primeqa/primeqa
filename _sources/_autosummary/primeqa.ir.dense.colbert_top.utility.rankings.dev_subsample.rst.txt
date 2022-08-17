@@ -1,0 +1,31 @@
+dev\_subsample
+==============
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.rankings.dev_subsample
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

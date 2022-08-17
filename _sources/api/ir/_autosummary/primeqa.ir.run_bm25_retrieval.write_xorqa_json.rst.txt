@@ -1,0 +1,6 @@
+primeqa.ir.run\_bm25\_retrieval.write\_xorqa\_json
+==================================================
+
+.. currentmodule:: primeqa.ir.run_bm25_retrieval
+
+.. autofunction:: write_xorqa_json

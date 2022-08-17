@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.modeling.factory.get\_query\_tokenizer
+============================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.modeling.factory
+
+.. autofunction:: get_query_tokenizer

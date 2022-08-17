@@ -1,0 +1,63 @@
+utils
+=====
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      batch
+      create_directory
+      f7
+      file_tqdm
+      flatten
+      groupby_first_item
+      grouper
+      int_or_float
+      lengths2offsets
+      load_batch_backgrounds
+      load_checkpoint
+      load_checkpoint_raw
+      load_ranking
+      print_message
+      process_grouped_by_first_item
+      remove_first_and_last_quote
+      save_checkpoint
+      save_ranking
+      timestamp
+      torch_load_dnn
+      zip_first
+      zipstar
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      NullContextManager
+      dotdict
+      dotdict_lax
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,31 @@
+split\_by\_queries
+==================
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.rankings.split_by_queries
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

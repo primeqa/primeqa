@@ -1,0 +1,31 @@
+utils
+=====
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.utils
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.utility.utils.qa_loaders
+   primeqa.ir.dense.colbert_top.utility.utils.save_metadata
+

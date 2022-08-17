@@ -1,0 +1,32 @@
+extractive
+==========
+
+.. automodule:: primeqa.mrc.processors.postprocessors.extractive
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ExtractivePostProcessor
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,30 @@
+dataset
+=======
+
+.. automodule:: primeqa.boolqa.processors.dataset
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.boolqa.processors.dataset.mrc2dataset
+

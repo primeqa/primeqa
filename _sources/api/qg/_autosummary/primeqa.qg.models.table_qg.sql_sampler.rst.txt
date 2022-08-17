@@ -1,0 +1,32 @@
+sql\_sampler
+============
+
+.. automodule:: primeqa.qg.models.table_qg.sql_sampler
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      SimpleSqlSampler
+   
+   
+
+   
+   
+   
+
+
+

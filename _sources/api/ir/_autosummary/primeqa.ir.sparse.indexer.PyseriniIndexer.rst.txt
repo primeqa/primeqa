@@ -1,0 +1,25 @@
+primeqa.ir.sparse.indexer.PyseriniIndexer
+=========================================
+
+.. currentmodule:: primeqa.ir.sparse.indexer
+
+.. autoclass:: PyseriniIndexer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~PyseriniIndexer.index_collection
+   
+   
+
+   
+   
+   

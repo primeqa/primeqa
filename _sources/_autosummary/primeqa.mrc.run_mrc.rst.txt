@@ -1,0 +1,43 @@
+run\_mrc
+========
+
+.. automodule:: primeqa.mrc.run_mrc
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+      object_reference
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DataTrainingArguments
+      ModelArguments
+      TaskArguments
+   
+   
+
+   
+   
+   
+
+
+

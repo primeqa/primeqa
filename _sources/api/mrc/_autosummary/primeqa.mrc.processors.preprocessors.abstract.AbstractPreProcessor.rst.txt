@@ -1,0 +1,30 @@
+primeqa.mrc.processors.preprocessors.abstract.AbstractPreProcessor
+==================================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.abstract
+
+.. autoclass:: AbstractPreProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~AbstractPreProcessor.adapt_dataset
+      ~AbstractPreProcessor.label_features_for_subsampling
+      ~AbstractPreProcessor.process_eval
+      ~AbstractPreProcessor.process_train
+      ~AbstractPreProcessor.subsample_features
+      ~AbstractPreProcessor.validate_schema
+   
+   
+
+   
+   
+   

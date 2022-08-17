@@ -1,0 +1,26 @@
+primeqa.boolqa.processors.preprocessors.boolqa\_classifier.BoolQAClassifierPreProcessor
+=======================================================================================
+
+.. currentmodule:: primeqa.boolqa.processors.preprocessors.boolqa_classifier
+
+.. autoclass:: BoolQAClassifierPreProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BoolQAClassifierPreProcessor.process_eval
+      ~BoolQAClassifierPreProcessor.process_train
+   
+   
+
+   
+   
+   

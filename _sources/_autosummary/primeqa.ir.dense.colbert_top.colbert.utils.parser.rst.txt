@@ -1,0 +1,32 @@
+parser
+======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utils.parser
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Arguments
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,39 @@
+primeqa.boolqa.run\_boolqa\_classifier.DataTrainingArguments
+============================================================
+
+.. currentmodule:: primeqa.boolqa.run_boolqa_classifier
+
+.. autoclass:: DataTrainingArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DataTrainingArguments.balanced
+      ~DataTrainingArguments.max_eval_samples
+      ~DataTrainingArguments.max_predict_samples
+      ~DataTrainingArguments.max_seq_length
+      ~DataTrainingArguments.max_train_samples
+      ~DataTrainingArguments.overwrite_cache
+      ~DataTrainingArguments.pad_to_max_length
+      ~DataTrainingArguments.test_file
+      ~DataTrainingArguments.train_file
+      ~DataTrainingArguments.validation_file
+   
+   

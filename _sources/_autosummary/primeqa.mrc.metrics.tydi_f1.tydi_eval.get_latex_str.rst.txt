@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.tydi\_f1.tydi\_eval.get\_latex\_str
+=======================================================
+
+.. currentmodule:: primeqa.mrc.metrics.tydi_f1.tydi_eval
+
+.. autofunction:: get_latex_str

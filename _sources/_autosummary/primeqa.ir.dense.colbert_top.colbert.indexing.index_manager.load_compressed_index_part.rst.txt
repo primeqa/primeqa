@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.indexing.index\_manager.load\_compressed\_index\_part
+===========================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.indexing.index_manager
+
+.. autofunction:: load_compressed_index_part

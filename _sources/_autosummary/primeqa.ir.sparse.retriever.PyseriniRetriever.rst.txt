@@ -1,0 +1,26 @@
+primeqa.ir.sparse.retriever.PyseriniRetriever
+=============================================
+
+.. currentmodule:: primeqa.ir.sparse.retriever
+
+.. autoclass:: PyseriniRetriever
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~PyseriniRetriever.batch_retrieve
+      ~PyseriniRetriever.retrieve
+   
+   
+
+   
+   
+   

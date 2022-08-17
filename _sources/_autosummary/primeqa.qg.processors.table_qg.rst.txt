@@ -1,0 +1,30 @@
+table\_qg
+=========
+
+.. automodule:: primeqa.qg.processors.table_qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.processors.table_qg.wikisql_processor
+

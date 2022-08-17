@@ -1,0 +1,32 @@
+eval\_prediction\_with\_processing
+==================================
+
+.. automodule:: primeqa.mrc.data_models.eval_prediction_with_processing
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      EvalPredictionWithProcessing
+   
+   
+
+   
+   
+   
+
+
+

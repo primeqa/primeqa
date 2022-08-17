@@ -1,0 +1,47 @@
+primeqa.calibration.train\_confidence\_calibrator.DataTrainingArguments
+=======================================================================
+
+.. currentmodule:: primeqa.calibration.train_confidence_calibrator
+
+.. autoclass:: DataTrainingArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DataTrainingArguments.confidence_dataset_dir
+      ~DataTrainingArguments.dataset_config_name
+      ~DataTrainingArguments.dataset_name
+      ~DataTrainingArguments.doc_stride
+      ~DataTrainingArguments.max_answer_length
+      ~DataTrainingArguments.max_contexts
+      ~DataTrainingArguments.max_eval_samples
+      ~DataTrainingArguments.max_q_char_len
+      ~DataTrainingArguments.max_seq_length
+      ~DataTrainingArguments.max_train_samples
+      ~DataTrainingArguments.n_best_logits
+      ~DataTrainingArguments.n_best_size
+      ~DataTrainingArguments.negative_sampling_prob_when_has_answer
+      ~DataTrainingArguments.negative_sampling_prob_when_no_answer
+      ~DataTrainingArguments.overwrite_cache
+      ~DataTrainingArguments.preprocessing_num_workers
+      ~DataTrainingArguments.relative_confidence_train_size
+      ~DataTrainingArguments.single_context_multiple_passages
+   
+   

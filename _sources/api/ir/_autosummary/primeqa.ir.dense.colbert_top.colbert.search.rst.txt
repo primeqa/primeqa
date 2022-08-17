@@ -1,0 +1,34 @@
+search
+======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.search
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.colbert.search.candidate_generation
+   primeqa.ir.dense.colbert_top.colbert.search.index_loader
+   primeqa.ir.dense.colbert_top.colbert.search.index_storage
+   primeqa.ir.dense.colbert_top.colbert.search.strided_tensor
+   primeqa.ir.dense.colbert_top.colbert.search.strided_tensor_core
+

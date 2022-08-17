@@ -1,0 +1,32 @@
+boolqa\_classifier
+==================
+
+.. automodule:: primeqa.boolqa.processors.postprocessors.boolqa_classifier
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BoolQAClassifierPostProcessor
+   
+   
+
+   
+   
+   
+
+
+

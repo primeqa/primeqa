@@ -1,0 +1,6 @@
+primeqa.ir.sparse.utils.load\_queries
+=====================================
+
+.. currentmodule:: primeqa.ir.sparse.utils
+
+.. autofunction:: load_queries

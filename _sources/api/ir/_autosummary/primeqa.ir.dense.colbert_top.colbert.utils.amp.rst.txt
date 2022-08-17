@@ -1,0 +1,32 @@
+amp
+===
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utils.amp
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      MixedPrecisionManager
+   
+   
+
+   
+   
+   
+
+
+

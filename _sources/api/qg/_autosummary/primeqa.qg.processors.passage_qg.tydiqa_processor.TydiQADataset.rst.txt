@@ -1,0 +1,25 @@
+primeqa.qg.processors.passage\_qg.tydiqa\_processor.TydiQADataset
+=================================================================
+
+.. currentmodule:: primeqa.qg.processors.passage_qg.tydiqa_processor
+
+.. autoclass:: TydiQADataset
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TydiQADataset.preprocess_data_for_qg
+   
+   
+
+   
+   
+   

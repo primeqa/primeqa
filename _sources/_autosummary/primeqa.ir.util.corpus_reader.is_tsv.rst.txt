@@ -1,0 +1,6 @@
+primeqa.ir.util.corpus\_reader.is\_tsv
+======================================
+
+.. currentmodule:: primeqa.ir.util.corpus_reader
+
+.. autofunction:: is_tsv

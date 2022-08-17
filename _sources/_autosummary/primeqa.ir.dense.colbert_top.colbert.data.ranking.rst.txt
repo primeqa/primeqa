@@ -1,0 +1,41 @@
+ranking
+=======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.data.ranking
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      load_ranking
+      numericize
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Ranking
+   
+   
+
+   
+   
+   
+
+
+

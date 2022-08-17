@@ -1,0 +1,35 @@
+﻿mrc
+===
+
+.. automodule:: primeqa.mrc
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.data_models
+   primeqa.mrc.metrics
+   primeqa.mrc.models
+   primeqa.mrc.processors
+   primeqa.mrc.run_mrc
+   primeqa.mrc.trainers
+

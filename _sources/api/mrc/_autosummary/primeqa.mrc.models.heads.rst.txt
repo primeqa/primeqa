@@ -1,0 +1,31 @@
+heads
+=====
+
+.. automodule:: primeqa.mrc.models.heads
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.models.heads.abstract
+   primeqa.mrc.models.heads.extractive
+

@@ -1,0 +1,30 @@
+primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor
+============================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.squad
+
+.. autoclass:: SQUADPreprocessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SQUADPreprocessor.adapt_dataset
+      ~SQUADPreprocessor.label_features_for_subsampling
+      ~SQUADPreprocessor.process_eval
+      ~SQUADPreprocessor.process_train
+      ~SQUADPreprocessor.subsample_features
+      ~SQUADPreprocessor.validate_schema
+   
+   
+
+   
+   
+   

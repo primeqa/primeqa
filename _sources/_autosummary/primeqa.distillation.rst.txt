@@ -1,0 +1,30 @@
+distillation
+============
+
+.. automodule:: primeqa.distillation
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.distillation.distillation
+

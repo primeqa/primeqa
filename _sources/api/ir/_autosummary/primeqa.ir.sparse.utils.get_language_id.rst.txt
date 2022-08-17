@@ -1,0 +1,6 @@
+primeqa.ir.sparse.utils.get\_language\_id
+=========================================
+
+.. currentmodule:: primeqa.ir.sparse.utils
+
+.. autofunction:: get_language_id

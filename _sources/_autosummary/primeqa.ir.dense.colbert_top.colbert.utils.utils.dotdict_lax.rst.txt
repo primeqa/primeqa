@@ -1,0 +1,35 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.dotdict\_lax
+==============================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autoclass:: dotdict_lax
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~dotdict_lax.clear
+      ~dotdict_lax.copy
+      ~dotdict_lax.fromkeys
+      ~dotdict_lax.get
+      ~dotdict_lax.items
+      ~dotdict_lax.keys
+      ~dotdict_lax.pop
+      ~dotdict_lax.popitem
+      ~dotdict_lax.setdefault
+      ~dotdict_lax.update
+      ~dotdict_lax.values
+   
+   
+
+   
+   
+   

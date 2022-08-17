@@ -1,0 +1,32 @@
+provenance
+==========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.infra.provenance
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Provenance
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.process\_grouped\_by\_first\_item
+===================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autofunction:: process_grouped_by_first_item

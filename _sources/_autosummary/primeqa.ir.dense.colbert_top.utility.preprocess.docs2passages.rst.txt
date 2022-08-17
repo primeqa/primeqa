@@ -1,0 +1,32 @@
+docs2passages
+=============
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.preprocess.docs2passages
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+      process_page
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

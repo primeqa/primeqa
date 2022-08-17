@@ -1,0 +1,30 @@
+util
+====
+
+.. automodule:: primeqa.ir.util
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.util.corpus_reader
+

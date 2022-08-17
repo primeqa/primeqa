@@ -1,0 +1,31 @@
+processors
+==========
+
+.. automodule:: primeqa.mrc.processors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.processors.postprocessors
+   primeqa.mrc.processors.preprocessors
+

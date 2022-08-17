@@ -1,0 +1,6 @@
+primeqa.util.transformers\_utils.model\_utils.load\_only\_extended\_model
+=========================================================================
+
+.. currentmodule:: primeqa.util.transformers_utils.model_utils
+
+.. autofunction:: load_only_extended_model

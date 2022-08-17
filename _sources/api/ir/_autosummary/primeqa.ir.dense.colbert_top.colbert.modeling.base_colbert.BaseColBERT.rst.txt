@@ -1,0 +1,78 @@
+primeqa.ir.dense.colbert\_top.colbert.modeling.base\_colbert.BaseColBERT
+========================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.modeling.base_colbert
+
+.. autoclass:: BaseColBERT
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BaseColBERT.add_module
+      ~BaseColBERT.apply
+      ~BaseColBERT.bfloat16
+      ~BaseColBERT.buffers
+      ~BaseColBERT.children
+      ~BaseColBERT.cpu
+      ~BaseColBERT.cuda
+      ~BaseColBERT.double
+      ~BaseColBERT.eval
+      ~BaseColBERT.extra_repr
+      ~BaseColBERT.float
+      ~BaseColBERT.forward
+      ~BaseColBERT.get_buffer
+      ~BaseColBERT.get_extra_state
+      ~BaseColBERT.get_parameter
+      ~BaseColBERT.get_submodule
+      ~BaseColBERT.half
+      ~BaseColBERT.load_state_dict
+      ~BaseColBERT.modules
+      ~BaseColBERT.named_buffers
+      ~BaseColBERT.named_children
+      ~BaseColBERT.named_modules
+      ~BaseColBERT.named_parameters
+      ~BaseColBERT.parameters
+      ~BaseColBERT.register_backward_hook
+      ~BaseColBERT.register_buffer
+      ~BaseColBERT.register_forward_hook
+      ~BaseColBERT.register_forward_pre_hook
+      ~BaseColBERT.register_full_backward_hook
+      ~BaseColBERT.register_module
+      ~BaseColBERT.register_parameter
+      ~BaseColBERT.requires_grad_
+      ~BaseColBERT.save
+      ~BaseColBERT.set_extra_state
+      ~BaseColBERT.share_memory
+      ~BaseColBERT.state_dict
+      ~BaseColBERT.to
+      ~BaseColBERT.to_empty
+      ~BaseColBERT.train
+      ~BaseColBERT.type
+      ~BaseColBERT.xpu
+      ~BaseColBERT.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BaseColBERT.T_destination
+      ~BaseColBERT.bert
+      ~BaseColBERT.device
+      ~BaseColBERT.dump_patches
+      ~BaseColBERT.linear
+      ~BaseColBERT.score_scaler
+      ~BaseColBERT.training
+   
+   

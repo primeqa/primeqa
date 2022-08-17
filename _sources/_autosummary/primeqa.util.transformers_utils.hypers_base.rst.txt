@@ -1,0 +1,40 @@
+hypers\_base
+============
+
+.. automodule:: primeqa.util.transformers_utils.hypers_base
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      dist_initialize
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      HypersBase
+   
+   
+
+   
+   
+   
+
+
+

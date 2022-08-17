@@ -1,0 +1,33 @@
+primeqa.qg.run\_qg.ModelArguments
+=================================
+
+.. currentmodule:: primeqa.qg.run_qg
+
+.. autoclass:: ModelArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ModelArguments.cache_dir
+      ~ModelArguments.modality
+      ~ModelArguments.model_name_or_path
+      ~ModelArguments.tokenizer_name
+   
+   

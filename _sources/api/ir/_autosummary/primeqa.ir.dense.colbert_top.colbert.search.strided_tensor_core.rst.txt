@@ -1,0 +1,32 @@
+strided\_tensor\_core
+=====================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.search.strided_tensor_core
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      StridedTensorCore
+   
+   
+
+   
+   
+   
+
+
+

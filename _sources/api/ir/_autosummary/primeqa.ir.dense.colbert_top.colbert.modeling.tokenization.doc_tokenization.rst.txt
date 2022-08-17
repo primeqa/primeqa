@@ -1,0 +1,32 @@
+doc\_tokenization
+=================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DocTokenizer
+   
+   
+
+   
+   
+   
+
+
+

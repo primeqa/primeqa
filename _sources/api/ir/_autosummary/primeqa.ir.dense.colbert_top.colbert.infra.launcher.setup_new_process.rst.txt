@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.infra.launcher.setup\_new\_process
+========================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.infra.launcher
+
+.. autofunction:: setup_new_process

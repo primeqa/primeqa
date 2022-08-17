@@ -1,0 +1,34 @@
+mrc2dataset
+===========
+
+.. automodule:: primeqa.boolqa.processors.dataset.mrc2dataset
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      create_dataset_from_json_str
+      create_dataset_from_run_mrc_output
+      unpack_span_answer
+      unpack_target_type
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

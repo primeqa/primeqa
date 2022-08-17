@@ -1,0 +1,30 @@
+preprocess
+==========
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.preprocess
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.utility.preprocess.docs2passages
+

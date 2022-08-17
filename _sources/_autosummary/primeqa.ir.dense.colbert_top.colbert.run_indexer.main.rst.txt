@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.run\_indexer.main
+=======================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.run_indexer
+
+.. autofunction:: main

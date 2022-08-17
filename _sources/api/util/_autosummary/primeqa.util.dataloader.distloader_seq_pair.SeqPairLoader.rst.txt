@@ -1,0 +1,31 @@
+primeqa.util.dataloader.distloader\_seq\_pair.SeqPairLoader
+===========================================================
+
+.. currentmodule:: primeqa.util.dataloader.distloader_seq_pair
+
+.. autoclass:: SeqPairLoader
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SeqPairLoader.all_batches
+      ~SeqPairLoader.batch_dict
+      ~SeqPairLoader.display_batch
+      ~SeqPairLoader.get_checkpoint_info
+      ~SeqPairLoader.get_dataloader
+      ~SeqPairLoader.quick_test
+      ~SeqPairLoader.reset
+   
+   
+
+   
+   
+   

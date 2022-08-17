@@ -1,0 +1,6 @@
+primeqa.util.metrics.score\_metrics
+===================================
+
+.. currentmodule:: primeqa.util.metrics
+
+.. autofunction:: score_metrics

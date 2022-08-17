@@ -1,0 +1,32 @@
+hf\_colbert
+===========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      HF_ColBERT
+   
+   
+
+   
+   
+   
+
+
+

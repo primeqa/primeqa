@@ -1,0 +1,32 @@
+dataset
+=======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.data.dataset
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Dataset
+   
+   
+
+   
+   
+   
+
+
+

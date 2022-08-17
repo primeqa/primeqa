@@ -1,0 +1,26 @@
+primeqa.qg.processors.data\_loader.QGDataLoader
+===============================================
+
+.. currentmodule:: primeqa.qg.processors.data_loader
+
+.. autoclass:: QGDataLoader
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~QGDataLoader.convert_to_features
+      ~QGDataLoader.create
+   
+   
+
+   
+   
+   

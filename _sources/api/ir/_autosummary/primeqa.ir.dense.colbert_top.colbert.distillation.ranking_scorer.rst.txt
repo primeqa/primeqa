@@ -1,0 +1,32 @@
+ranking\_scorer
+===============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.distillation.ranking_scorer
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      RankingScorer
+   
+   
+
+   
+   
+   
+
+
+

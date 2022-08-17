@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.tydi\_f1.tydi\_eval.print\_r\_at\_p\_table
+==============================================================
+
+.. currentmodule:: primeqa.mrc.metrics.tydi_f1.tydi_eval
+
+.. autofunction:: print_r_at_p_table

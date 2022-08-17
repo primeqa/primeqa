@@ -1,0 +1,27 @@
+primeqa.ir.dense.colbert\_top.colbert.training.eager\_batcher\_v2.EagerBatcher
+==============================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.training.eager_batcher_v2
+
+.. autoclass:: EagerBatcher
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~EagerBatcher.collate
+      ~EagerBatcher.shuffle
+      ~EagerBatcher.skip_to_batch
+   
+   
+
+   
+   
+   

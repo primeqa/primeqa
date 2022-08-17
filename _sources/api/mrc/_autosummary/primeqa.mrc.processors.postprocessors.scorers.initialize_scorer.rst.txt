@@ -1,0 +1,6 @@
+primeqa.mrc.processors.postprocessors.scorers.initialize\_scorer
+================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.scorers
+
+.. autofunction:: initialize_scorer

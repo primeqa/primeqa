@@ -1,0 +1,32 @@
+base\_colbert
+=============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.modeling.base_colbert
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BaseColBERT
+   
+   
+
+   
+   
+   
+
+
+

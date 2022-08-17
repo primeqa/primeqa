@@ -1,0 +1,6 @@
+primeqa.mrc.processors.postprocessors.scorers.compute\_short\_answer\_type\_weighted\_score\_diff\_between\_span\_and\_cls
+==========================================================================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.scorers
+
+.. autofunction:: compute_short_answer_type_weighted_score_diff_between_span_and_cls

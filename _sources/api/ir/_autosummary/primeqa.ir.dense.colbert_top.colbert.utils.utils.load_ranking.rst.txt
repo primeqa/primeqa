@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.load\_ranking
+===============================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autofunction:: load_ranking

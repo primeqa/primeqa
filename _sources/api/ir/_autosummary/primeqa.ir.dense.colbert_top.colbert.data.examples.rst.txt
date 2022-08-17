@@ -1,0 +1,32 @@
+examples
+========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.data.examples
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Examples
+   
+   
+
+   
+   
+   
+
+
+

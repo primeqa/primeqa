@@ -1,0 +1,32 @@
+mrc
+===
+
+.. automodule:: primeqa.mrc.trainers.mrc
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      MRCTrainer
+   
+   
+
+   
+   
+   
+
+
+

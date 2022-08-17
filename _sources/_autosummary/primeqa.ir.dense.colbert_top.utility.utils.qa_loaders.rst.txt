@@ -1,0 +1,32 @@
+qa\_loaders
+===========
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.utils.qa_loaders
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      load_collection_
+      load_qas_
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

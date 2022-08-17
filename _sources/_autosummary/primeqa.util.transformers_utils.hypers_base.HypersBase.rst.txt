@@ -1,0 +1,30 @@
+primeqa.util.transformers\_utils.hypers\_base.HypersBase
+========================================================
+
+.. currentmodule:: primeqa.util.transformers_utils.hypers_base
+
+.. autoclass:: HypersBase
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HypersBase.fill_from_args
+      ~HypersBase.from_dict
+      ~HypersBase.kofn
+      ~HypersBase.set_gradient_accumulation_steps
+      ~HypersBase.set_seed
+      ~HypersBase.to_dict
+   
+   
+
+   
+   
+   

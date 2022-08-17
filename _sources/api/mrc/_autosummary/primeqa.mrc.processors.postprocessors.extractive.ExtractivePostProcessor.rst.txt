@@ -1,0 +1,27 @@
+primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor
+========================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.extractive
+
+.. autoclass:: ExtractivePostProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ExtractivePostProcessor.prepare_examples_as_references
+      ~ExtractivePostProcessor.process
+      ~ExtractivePostProcessor.process_references_and_predictions
+   
+   
+
+   
+   
+   

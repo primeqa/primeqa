@@ -1,0 +1,6 @@
+primeqa.ir.run\_bm25\_retrieval.get\_language\_id
+=================================================
+
+.. currentmodule:: primeqa.ir.run_bm25_retrieval
+
+.. autofunction:: get_language_id

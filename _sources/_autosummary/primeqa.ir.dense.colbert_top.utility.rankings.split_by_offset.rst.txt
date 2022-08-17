@@ -1,0 +1,31 @@
+split\_by\_offset
+=================
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.rankings.split_by_offset
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

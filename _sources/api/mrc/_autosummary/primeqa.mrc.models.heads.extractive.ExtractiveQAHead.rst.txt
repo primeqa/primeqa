@@ -1,0 +1,73 @@
+primeqa.mrc.models.heads.extractive.ExtractiveQAHead
+====================================================
+
+.. currentmodule:: primeqa.mrc.models.heads.extractive
+
+.. autoclass:: ExtractiveQAHead
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ExtractiveQAHead.add_module
+      ~ExtractiveQAHead.apply
+      ~ExtractiveQAHead.bfloat16
+      ~ExtractiveQAHead.buffers
+      ~ExtractiveQAHead.children
+      ~ExtractiveQAHead.cpu
+      ~ExtractiveQAHead.cuda
+      ~ExtractiveQAHead.double
+      ~ExtractiveQAHead.eval
+      ~ExtractiveQAHead.extra_repr
+      ~ExtractiveQAHead.float
+      ~ExtractiveQAHead.forward
+      ~ExtractiveQAHead.get_buffer
+      ~ExtractiveQAHead.get_extra_state
+      ~ExtractiveQAHead.get_parameter
+      ~ExtractiveQAHead.get_submodule
+      ~ExtractiveQAHead.half
+      ~ExtractiveQAHead.load_state_dict
+      ~ExtractiveQAHead.modules
+      ~ExtractiveQAHead.named_buffers
+      ~ExtractiveQAHead.named_children
+      ~ExtractiveQAHead.named_modules
+      ~ExtractiveQAHead.named_parameters
+      ~ExtractiveQAHead.parameters
+      ~ExtractiveQAHead.register_backward_hook
+      ~ExtractiveQAHead.register_buffer
+      ~ExtractiveQAHead.register_forward_hook
+      ~ExtractiveQAHead.register_forward_pre_hook
+      ~ExtractiveQAHead.register_full_backward_hook
+      ~ExtractiveQAHead.register_module
+      ~ExtractiveQAHead.register_parameter
+      ~ExtractiveQAHead.requires_grad_
+      ~ExtractiveQAHead.set_extra_state
+      ~ExtractiveQAHead.share_memory
+      ~ExtractiveQAHead.state_dict
+      ~ExtractiveQAHead.to
+      ~ExtractiveQAHead.to_empty
+      ~ExtractiveQAHead.train
+      ~ExtractiveQAHead.type
+      ~ExtractiveQAHead.xpu
+      ~ExtractiveQAHead.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ExtractiveQAHead.T_destination
+      ~ExtractiveQAHead.dump_patches
+      ~ExtractiveQAHead.training
+   
+   

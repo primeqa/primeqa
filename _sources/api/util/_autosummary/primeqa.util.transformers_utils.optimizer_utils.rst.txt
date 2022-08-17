@@ -1,0 +1,33 @@
+optimizer\_utils
+================
+
+.. automodule:: primeqa.util.transformers_utils.optimizer_utils
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      LossHistory
+      TransformerOptimize
+   
+   
+
+   
+   
+   
+
+
+

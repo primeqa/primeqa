@@ -1,0 +1,34 @@
+training
+========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.training.training
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      align
+      calculate_distance
+      set_bert_grad
+      train
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

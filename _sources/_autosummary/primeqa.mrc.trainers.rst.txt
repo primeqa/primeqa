@@ -1,0 +1,30 @@
+trainers
+========
+
+.. automodule:: primeqa.mrc.trainers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.trainers.mrc
+

@@ -1,0 +1,26 @@
+primeqa.qg.processors.table\_qg.wikisql\_processor.WikiSqlDataset
+=================================================================
+
+.. currentmodule:: primeqa.qg.processors.table_qg.wikisql_processor
+
+.. autoclass:: WikiSqlDataset
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~WikiSqlDataset.load_tables
+      ~WikiSqlDataset.preprocess_data_for_qg
+   
+   
+
+   
+   
+   

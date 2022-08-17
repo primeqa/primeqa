@@ -1,0 +1,48 @@
+colbert
+=======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.colbert.data
+   primeqa.ir.dense.colbert_top.colbert.distillation
+   primeqa.ir.dense.colbert_top.colbert.evaluation
+   primeqa.ir.dense.colbert_top.colbert.index
+   primeqa.ir.dense.colbert_top.colbert.indexer
+   primeqa.ir.dense.colbert_top.colbert.indexing
+   primeqa.ir.dense.colbert_top.colbert.infra
+   primeqa.ir.dense.colbert_top.colbert.modeling
+   primeqa.ir.dense.colbert_top.colbert.parameters
+   primeqa.ir.dense.colbert_top.colbert.ranking
+   primeqa.ir.dense.colbert_top.colbert.run_indexer
+   primeqa.ir.dense.colbert_top.colbert.run_searcher
+   primeqa.ir.dense.colbert_top.colbert.run_trainer
+   primeqa.ir.dense.colbert_top.colbert.search
+   primeqa.ir.dense.colbert_top.colbert.searcher
+   primeqa.ir.dense.colbert_top.colbert.trainer
+   primeqa.ir.dense.colbert_top.colbert.training
+   primeqa.ir.dense.colbert_top.colbert.utilities
+   primeqa.ir.dense.colbert_top.colbert.utils
+

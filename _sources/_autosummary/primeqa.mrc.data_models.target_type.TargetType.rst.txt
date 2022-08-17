@@ -1,0 +1,35 @@
+primeqa.mrc.data\_models.target\_type.TargetType
+================================================
+
+.. currentmodule:: primeqa.mrc.data_models.target_type
+
+.. autoclass:: TargetType
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TargetType.from_bool_label
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TargetType.NO_ANSWER
+      ~TargetType.SPAN_ANSWER
+      ~TargetType.PASSAGE_ANSWER
+      ~TargetType.YES
+      ~TargetType.NO
+   
+   

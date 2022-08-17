@@ -1,0 +1,6 @@
+primeqa.boolqa.run\_score\_normalizer.main
+==========================================
+
+.. currentmodule:: primeqa.boolqa.run_score_normalizer
+
+.. autofunction:: main

@@ -1,0 +1,38 @@
+run\_bm25\_retrieval
+====================
+
+.. automodule:: primeqa.ir.run_bm25_retrieval
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      get_language_id
+      handle_args
+      load_queries
+      main
+      run_search
+      write_colbert_ranking_tsv
+      write_search_results
+      write_xorqa_json
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

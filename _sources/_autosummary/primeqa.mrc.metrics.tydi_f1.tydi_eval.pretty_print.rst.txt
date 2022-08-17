@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.tydi\_f1.tydi\_eval.pretty\_print
+=====================================================
+
+.. currentmodule:: primeqa.mrc.metrics.tydi_f1.tydi_eval
+
+.. autofunction:: pretty_print

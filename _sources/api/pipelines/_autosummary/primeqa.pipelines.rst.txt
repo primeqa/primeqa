@@ -1,0 +1,30 @@
+﻿pipelines
+=========
+
+.. automodule:: primeqa.pipelines
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.pipelines.extractive_mrc_pipeline
+

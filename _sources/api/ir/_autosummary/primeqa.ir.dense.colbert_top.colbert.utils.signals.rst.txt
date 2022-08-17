@@ -1,0 +1,31 @@
+signals
+=======
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utils.signals
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      checkpoint_on_exit
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

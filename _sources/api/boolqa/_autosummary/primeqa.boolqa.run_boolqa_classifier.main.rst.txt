@@ -1,0 +1,6 @@
+primeqa.boolqa.run\_boolqa\_classifier.main
+===========================================
+
+.. currentmodule:: primeqa.boolqa.run_boolqa_classifier
+
+.. autofunction:: main

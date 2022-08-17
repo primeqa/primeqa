@@ -1,0 +1,6 @@
+primeqa.util.args\_helper.name\_value\_list
+===========================================
+
+.. currentmodule:: primeqa.util.args_helper
+
+.. autofunction:: name_value_list

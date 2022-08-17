@@ -1,0 +1,6 @@
+primeqa.ir.run\_bm25\_retrieval.handle\_args
+============================================
+
+.. currentmodule:: primeqa.ir.run_bm25_retrieval
+
+.. autofunction:: handle_args

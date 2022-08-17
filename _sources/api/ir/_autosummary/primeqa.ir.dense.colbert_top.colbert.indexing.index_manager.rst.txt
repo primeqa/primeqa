@@ -1,0 +1,41 @@
+index\_manager
+==============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.indexing.index_manager
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      load_compressed_index_part
+      load_index_part
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      IndexManager
+   
+   
+
+   
+   
+   
+
+
+

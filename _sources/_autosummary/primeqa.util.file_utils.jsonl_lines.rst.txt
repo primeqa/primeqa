@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.jsonl\_lines
+=====================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: jsonl_lines

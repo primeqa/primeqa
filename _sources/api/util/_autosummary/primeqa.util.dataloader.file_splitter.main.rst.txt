@@ -1,0 +1,6 @@
+primeqa.util.dataloader.file\_splitter.main
+===========================================
+
+.. currentmodule:: primeqa.util.dataloader.file_splitter
+
+.. autofunction:: main

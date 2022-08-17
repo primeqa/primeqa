@@ -1,0 +1,32 @@
+index\_storage
+==============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.search.index_storage
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      IndexScorer
+   
+   
+
+   
+   
+   
+
+
+

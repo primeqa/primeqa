@@ -1,0 +1,32 @@
+searcher
+========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.searcher
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Searcher
+   
+   
+
+   
+   
+   
+
+
+

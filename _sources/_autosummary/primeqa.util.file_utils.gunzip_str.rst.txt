@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.gunzip\_str
+====================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: gunzip_str

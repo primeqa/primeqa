@@ -1,0 +1,31 @@
+primeqa.ir.dense.colbert\_top.colbert.data.ranking.Ranking
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.data.ranking
+
+.. autoclass:: Ranking
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Ranking.cast
+      ~Ranking.items
+      ~Ranking.provenance
+      ~Ranking.save
+      ~Ranking.toDict
+      ~Ranking.todict
+      ~Ranking.tolist
+   
+   
+
+   
+   
+   

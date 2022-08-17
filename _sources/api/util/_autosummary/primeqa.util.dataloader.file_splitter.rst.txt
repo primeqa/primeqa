@@ -1,0 +1,40 @@
+file\_splitter
+==============
+
+.. automodule:: primeqa.util.dataloader.file_splitter
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Options
+   
+   
+
+   
+   
+   
+
+
+

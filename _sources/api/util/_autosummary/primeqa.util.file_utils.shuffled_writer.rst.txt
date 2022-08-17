@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.shuffled\_writer
+=========================================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: shuffled_writer

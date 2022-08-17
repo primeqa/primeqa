@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.groupby\_first\_item
+======================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autofunction:: groupby_first_item

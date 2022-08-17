@@ -1,0 +1,25 @@
+primeqa.qg.processors.passage\_qg.squad\_processor.SquadDataset
+===============================================================
+
+.. currentmodule:: primeqa.qg.processors.passage_qg.squad_processor
+
+.. autoclass:: SquadDataset
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SquadDataset.preprocess_data_for_qg
+   
+   
+
+   
+   
+   

@@ -1,0 +1,110 @@
+primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
+================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.infra.config
+
+.. autoclass:: ColBERTConfig
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ColBERTConfig.assign_defaults
+      ~ColBERTConfig.configure
+      ~ColBERTConfig.export
+      ~ColBERTConfig.from_deprecated_args
+      ~ColBERTConfig.from_existing
+      ~ColBERTConfig.from_path
+      ~ColBERTConfig.help
+      ~ColBERTConfig.load_from_checkpoint
+      ~ColBERTConfig.load_from_index
+      ~ColBERTConfig.save
+      ~ColBERTConfig.save_for_checkpoint
+      ~ColBERTConfig.set
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ColBERTConfig.accumsteps
+      ~ColBERTConfig.amp
+      ~ColBERTConfig.attend_to_mask_tokens
+      ~ColBERTConfig.bsize
+      ~ColBERTConfig.checkpoint
+      ~ColBERTConfig.collection
+      ~ColBERTConfig.device_
+      ~ColBERTConfig.dim
+      ~ColBERTConfig.distill_query_passage_separately
+      ~ColBERTConfig.distillation_alpha
+      ~ColBERTConfig.doc_maxlen
+      ~ColBERTConfig.epochs
+      ~ColBERTConfig.experiment
+      ~ColBERTConfig.gpus
+      ~ColBERTConfig.gpus_
+      ~ColBERTConfig.ignore_scores
+      ~ColBERTConfig.index_name
+      ~ColBERTConfig.index_path
+      ~ColBERTConfig.index_path_
+      ~ColBERTConfig.index_root
+      ~ColBERTConfig.index_root_
+      ~ColBERTConfig.init_from_lm
+      ~ColBERTConfig.input_arguments
+      ~ColBERTConfig.interaction
+      ~ColBERTConfig.kmeans_niters
+      ~ColBERTConfig.local_models_repository
+      ~ColBERTConfig.loss_function
+      ~ColBERTConfig.lr
+      ~ColBERTConfig.mask_punctuation
+      ~ColBERTConfig.maxsteps
+      ~ColBERTConfig.model_type
+      ~ColBERTConfig.name
+      ~ColBERTConfig.nbits
+      ~ColBERTConfig.ncandidates
+      ~ColBERTConfig.nprobe
+      ~ColBERTConfig.nranks
+      ~ColBERTConfig.num_partitions_max
+      ~ColBERTConfig.nway
+      ~ColBERTConfig.overwrite
+      ~ColBERTConfig.path_
+      ~ColBERTConfig.queries
+      ~ColBERTConfig.query_maxlen
+      ~ColBERTConfig.query_only
+      ~ColBERTConfig.query_weight
+      ~ColBERTConfig.rank
+      ~ColBERTConfig.ranks_fn
+      ~ColBERTConfig.relu
+      ~ColBERTConfig.reranker
+      ~ColBERTConfig.resume
+      ~ColBERTConfig.resume_optimizer
+      ~ColBERTConfig.root
+      ~ColBERTConfig.save_epochs
+      ~ColBERTConfig.save_every
+      ~ColBERTConfig.save_steps
+      ~ColBERTConfig.script_name_
+      ~ColBERTConfig.shuffle_every_epoch
+      ~ColBERTConfig.similarity
+      ~ColBERTConfig.student_teacher_temperature
+      ~ColBERTConfig.student_teacher_top_loss_weight
+      ~ColBERTConfig.teacher_checkpoint
+      ~ColBERTConfig.teacher_doc_maxlen
+      ~ColBERTConfig.teacher_model_type
+      ~ColBERTConfig.teacher_triples
+      ~ColBERTConfig.topK
+      ~ColBERTConfig.total_visible_gpus
+      ~ColBERTConfig.triples
+      ~ColBERTConfig.use_ib_negatives
+      ~ColBERTConfig.warmup
+      ~ColBERTConfig.warmup_bert
+   
+   

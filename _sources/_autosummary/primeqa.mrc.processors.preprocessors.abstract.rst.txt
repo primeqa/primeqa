@@ -1,0 +1,32 @@
+abstract
+========
+
+.. automodule:: primeqa.mrc.processors.preprocessors.abstract
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      AbstractPreProcessor
+   
+   
+
+   
+   
+   
+
+
+

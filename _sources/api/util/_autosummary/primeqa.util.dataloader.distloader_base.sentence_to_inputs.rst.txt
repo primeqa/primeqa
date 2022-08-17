@@ -1,0 +1,6 @@
+primeqa.util.dataloader.distloader\_base.sentence\_to\_inputs
+=============================================================
+
+.. currentmodule:: primeqa.util.dataloader.distloader_base
+
+.. autofunction:: sentence_to_inputs

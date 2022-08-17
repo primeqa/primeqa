@@ -1,0 +1,30 @@
+score\_normalizer
+=================
+
+.. automodule:: primeqa.boolqa.score_normalizer
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.boolqa.score_normalizer.score_normalizer
+

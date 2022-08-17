@@ -1,0 +1,121 @@
+primeqa.ir.dense.colbert\_top.colbert.modeling.hf\_colbert\_xlmr.HF\_ColBERT\_XLMR
+==================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr
+
+.. autoclass:: HF_ColBERT_XLMR
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HF_ColBERT_XLMR.add_memory_hooks
+      ~HF_ColBERT_XLMR.add_module
+      ~HF_ColBERT_XLMR.adjust_logits_during_generation
+      ~HF_ColBERT_XLMR.apply
+      ~HF_ColBERT_XLMR.beam_sample
+      ~HF_ColBERT_XLMR.beam_search
+      ~HF_ColBERT_XLMR.bfloat16
+      ~HF_ColBERT_XLMR.buffers
+      ~HF_ColBERT_XLMR.children
+      ~HF_ColBERT_XLMR.compute_transition_beam_scores
+      ~HF_ColBERT_XLMR.constrained_beam_search
+      ~HF_ColBERT_XLMR.cpu
+      ~HF_ColBERT_XLMR.create_extended_attention_mask_for_decoder
+      ~HF_ColBERT_XLMR.cuda
+      ~HF_ColBERT_XLMR.double
+      ~HF_ColBERT_XLMR.estimate_tokens
+      ~HF_ColBERT_XLMR.eval
+      ~HF_ColBERT_XLMR.extra_repr
+      ~HF_ColBERT_XLMR.float
+      ~HF_ColBERT_XLMR.floating_point_ops
+      ~HF_ColBERT_XLMR.forward
+      ~HF_ColBERT_XLMR.from_pretrained
+      ~HF_ColBERT_XLMR.generate
+      ~HF_ColBERT_XLMR.get_buffer
+      ~HF_ColBERT_XLMR.get_extended_attention_mask
+      ~HF_ColBERT_XLMR.get_extra_state
+      ~HF_ColBERT_XLMR.get_head_mask
+      ~HF_ColBERT_XLMR.get_input_embeddings
+      ~HF_ColBERT_XLMR.get_output_embeddings
+      ~HF_ColBERT_XLMR.get_parameter
+      ~HF_ColBERT_XLMR.get_position_embeddings
+      ~HF_ColBERT_XLMR.get_submodule
+      ~HF_ColBERT_XLMR.gradient_checkpointing_disable
+      ~HF_ColBERT_XLMR.gradient_checkpointing_enable
+      ~HF_ColBERT_XLMR.greedy_search
+      ~HF_ColBERT_XLMR.group_beam_search
+      ~HF_ColBERT_XLMR.half
+      ~HF_ColBERT_XLMR.init_weights
+      ~HF_ColBERT_XLMR.invert_attention_mask
+      ~HF_ColBERT_XLMR.load_state_dict
+      ~HF_ColBERT_XLMR.modules
+      ~HF_ColBERT_XLMR.named_buffers
+      ~HF_ColBERT_XLMR.named_children
+      ~HF_ColBERT_XLMR.named_modules
+      ~HF_ColBERT_XLMR.named_parameters
+      ~HF_ColBERT_XLMR.num_parameters
+      ~HF_ColBERT_XLMR.parameters
+      ~HF_ColBERT_XLMR.post_init
+      ~HF_ColBERT_XLMR.prepare_inputs_for_generation
+      ~HF_ColBERT_XLMR.prune_heads
+      ~HF_ColBERT_XLMR.push_to_hub
+      ~HF_ColBERT_XLMR.raw_tokenizer_from_pretrained
+      ~HF_ColBERT_XLMR.register_backward_hook
+      ~HF_ColBERT_XLMR.register_buffer
+      ~HF_ColBERT_XLMR.register_for_auto_class
+      ~HF_ColBERT_XLMR.register_forward_hook
+      ~HF_ColBERT_XLMR.register_forward_pre_hook
+      ~HF_ColBERT_XLMR.register_full_backward_hook
+      ~HF_ColBERT_XLMR.register_module
+      ~HF_ColBERT_XLMR.register_parameter
+      ~HF_ColBERT_XLMR.requires_grad_
+      ~HF_ColBERT_XLMR.reset_memory_hooks_state
+      ~HF_ColBERT_XLMR.resize_position_embeddings
+      ~HF_ColBERT_XLMR.resize_token_embeddings
+      ~HF_ColBERT_XLMR.retrieve_modules_from_names
+      ~HF_ColBERT_XLMR.sample
+      ~HF_ColBERT_XLMR.save_pretrained
+      ~HF_ColBERT_XLMR.set_extra_state
+      ~HF_ColBERT_XLMR.set_input_embeddings
+      ~HF_ColBERT_XLMR.share_memory
+      ~HF_ColBERT_XLMR.state_dict
+      ~HF_ColBERT_XLMR.tie_weights
+      ~HF_ColBERT_XLMR.to
+      ~HF_ColBERT_XLMR.to_empty
+      ~HF_ColBERT_XLMR.train
+      ~HF_ColBERT_XLMR.type
+      ~HF_ColBERT_XLMR.update_keys_to_ignore
+      ~HF_ColBERT_XLMR.xpu
+      ~HF_ColBERT_XLMR.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HF_ColBERT_XLMR.T_destination
+      ~HF_ColBERT_XLMR.base_model
+      ~HF_ColBERT_XLMR.base_model_prefix
+      ~HF_ColBERT_XLMR.device
+      ~HF_ColBERT_XLMR.dtype
+      ~HF_ColBERT_XLMR.dummy_inputs
+      ~HF_ColBERT_XLMR.dump_patches
+      ~HF_ColBERT_XLMR.framework
+      ~HF_ColBERT_XLMR.is_gradient_checkpointing
+      ~HF_ColBERT_XLMR.is_parallelizable
+      ~HF_ColBERT_XLMR.main_input_name
+      ~HF_ColBERT_XLMR.supports_gradient_checkpointing
+      ~HF_ColBERT_XLMR.training
+   
+   

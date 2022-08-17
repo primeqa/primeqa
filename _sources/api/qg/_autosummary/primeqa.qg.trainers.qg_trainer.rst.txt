@@ -1,0 +1,32 @@
+qg\_trainer
+===========
+
+.. automodule:: primeqa.qg.trainers.qg_trainer
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      QGTrainer
+   
+   
+
+   
+   
+   
+
+
+

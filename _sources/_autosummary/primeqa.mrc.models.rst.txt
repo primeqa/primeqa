@@ -1,0 +1,31 @@
+models
+======
+
+.. automodule:: primeqa.mrc.models
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.models.heads
+   primeqa.mrc.models.task_model
+

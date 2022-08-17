@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utilities.minicorpus.sample\_minicorpus
+=============================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utilities.minicorpus
+
+.. autofunction:: sample_minicorpus

@@ -1,0 +1,6 @@
+primeqa.ir.util.corpus\_reader.list\_corpus\_files
+==================================================
+
+.. currentmodule:: primeqa.ir.util.corpus_reader
+
+.. autofunction:: list_corpus_files

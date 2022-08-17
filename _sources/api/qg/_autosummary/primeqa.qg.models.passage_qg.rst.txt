@@ -1,0 +1,30 @@
+passage\_qg
+===========
+
+.. automodule:: primeqa.qg.models.passage_qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.models.passage_qg.answer_sampler
+

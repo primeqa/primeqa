@@ -1,0 +1,27 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.amp.MixedPrecisionManager
+=====================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.amp
+
+.. autoclass:: MixedPrecisionManager
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MixedPrecisionManager.backward
+      ~MixedPrecisionManager.context
+      ~MixedPrecisionManager.step
+   
+   
+
+   
+   
+   

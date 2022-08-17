@@ -1,0 +1,34 @@
+qg
+==
+
+.. automodule:: primeqa.qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.models
+   primeqa.qg.processors
+   primeqa.qg.run_qg
+   primeqa.qg.trainers
+   primeqa.qg.utils
+

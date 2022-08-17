@@ -1,0 +1,32 @@
+candidate\_generation
+=====================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.search.candidate_generation
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      CandidateGeneration
+   
+   
+
+   
+   
+   
+
+
+

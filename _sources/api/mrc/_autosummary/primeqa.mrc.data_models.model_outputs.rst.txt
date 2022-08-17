@@ -1,0 +1,30 @@
+model\_outputs
+==============
+
+.. automodule:: primeqa.mrc.data_models.model_outputs
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.data_models.model_outputs.extractive
+

@@ -1,0 +1,31 @@
+run\_indexer
+============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.run_indexer
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

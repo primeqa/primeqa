@@ -1,0 +1,26 @@
+primeqa.ir.dense.colbert\_top.colbert.infra.provenance.Provenance
+=================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.infra.provenance
+
+.. autoclass:: Provenance
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Provenance.stacktrace
+      ~Provenance.toDict
+   
+   
+
+   
+   
+   

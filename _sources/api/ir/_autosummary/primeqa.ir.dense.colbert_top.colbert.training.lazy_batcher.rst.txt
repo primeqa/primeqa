@@ -1,0 +1,32 @@
+lazy\_batcher
+=============
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.training.lazy_batcher
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      LazyBatcher
+   
+   
+
+   
+   
+   
+
+
+

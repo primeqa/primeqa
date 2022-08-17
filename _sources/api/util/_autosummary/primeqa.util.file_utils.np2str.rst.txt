@@ -1,0 +1,6 @@
+primeqa.util.file\_utils.np2str
+===============================
+
+.. currentmodule:: primeqa.util.file_utils
+
+.. autofunction:: np2str

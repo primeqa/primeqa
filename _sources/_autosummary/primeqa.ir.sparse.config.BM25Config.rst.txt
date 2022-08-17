@@ -1,0 +1,41 @@
+primeqa.ir.sparse.config.BM25Config
+===================================
+
+.. currentmodule:: primeqa.ir.sparse.config
+
+.. autoclass:: BM25Config
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BM25Config.additional_indexing_args
+      ~BM25Config.b
+      ~BM25Config.corpus_path
+      ~BM25Config.fieldnames
+      ~BM25Config.index_path
+      ~BM25Config.k1
+      ~BM25Config.nhits
+      ~BM25Config.output_dir
+      ~BM25Config.overwrite
+      ~BM25Config.queries_path
+      ~BM25Config.threads
+      ~BM25Config.use_bm25
+   
+   

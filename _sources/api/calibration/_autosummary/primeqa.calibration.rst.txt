@@ -1,0 +1,31 @@
+﻿calibration
+===========
+
+.. automodule:: primeqa.calibration
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.calibration.confidence_scorer
+   primeqa.calibration.train_confidence_calibrator
+

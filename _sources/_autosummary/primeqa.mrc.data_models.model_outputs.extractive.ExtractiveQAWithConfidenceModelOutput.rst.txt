@@ -1,0 +1,51 @@
+primeqa.mrc.data\_models.model\_outputs.extractive.ExtractiveQAWithConfidenceModelOutput
+========================================================================================
+
+.. currentmodule:: primeqa.mrc.data_models.model_outputs.extractive
+
+.. autoclass:: ExtractiveQAWithConfidenceModelOutput
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ExtractiveQAWithConfidenceModelOutput.clear
+      ~ExtractiveQAWithConfidenceModelOutput.copy
+      ~ExtractiveQAWithConfidenceModelOutput.fromkeys
+      ~ExtractiveQAWithConfidenceModelOutput.get
+      ~ExtractiveQAWithConfidenceModelOutput.items
+      ~ExtractiveQAWithConfidenceModelOutput.keys
+      ~ExtractiveQAWithConfidenceModelOutput.move_to_end
+      ~ExtractiveQAWithConfidenceModelOutput.pop
+      ~ExtractiveQAWithConfidenceModelOutput.popitem
+      ~ExtractiveQAWithConfidenceModelOutput.setdefault
+      ~ExtractiveQAWithConfidenceModelOutput.to_tuple
+      ~ExtractiveQAWithConfidenceModelOutput.update
+      ~ExtractiveQAWithConfidenceModelOutput.values
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ExtractiveQAWithConfidenceModelOutput.attentions
+      ~ExtractiveQAWithConfidenceModelOutput.end_logits
+      ~ExtractiveQAWithConfidenceModelOutput.end_stdev
+      ~ExtractiveQAWithConfidenceModelOutput.hidden_states
+      ~ExtractiveQAWithConfidenceModelOutput.loss
+      ~ExtractiveQAWithConfidenceModelOutput.query_passage_similarity
+      ~ExtractiveQAWithConfidenceModelOutput.start_logits
+      ~ExtractiveQAWithConfidenceModelOutput.start_stdev
+      ~ExtractiveQAWithConfidenceModelOutput.target_type_logits
+   
+   

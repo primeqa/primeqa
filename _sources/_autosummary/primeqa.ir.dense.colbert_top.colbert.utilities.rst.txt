@@ -1,0 +1,30 @@
+utilities
+=========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.utilities
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.colbert.utilities.minicorpus
+

@@ -1,0 +1,30 @@
+table\_qg
+=========
+
+.. automodule:: primeqa.qg.models.table_qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.models.table_qg.sql_sampler
+

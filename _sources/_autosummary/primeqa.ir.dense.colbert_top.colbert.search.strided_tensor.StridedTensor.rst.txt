@@ -1,0 +1,35 @@
+primeqa.ir.dense.colbert\_top.colbert.search.strided\_tensor.StridedTensor
+==========================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.search.strided_tensor
+
+.. autoclass:: StridedTensor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~StridedTensor.as_packed_tensor
+      ~StridedTensor.as_padded_tensor
+      ~StridedTensor.as_tensors_list
+      ~StridedTensor.from_nested_list
+      ~StridedTensor.from_packed_tensor
+      ~StridedTensor.from_padded_tensor
+      ~StridedTensor.from_tensors_list
+      ~StridedTensor.lookup
+      ~StridedTensor.lookup_packed_unordered
+      ~StridedTensor.lookup_staggered
+      ~StridedTensor.pad_packed
+   
+   
+
+   
+   
+   

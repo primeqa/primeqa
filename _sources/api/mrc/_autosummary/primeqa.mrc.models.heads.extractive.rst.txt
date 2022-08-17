@@ -1,0 +1,33 @@
+extractive
+==========
+
+.. automodule:: primeqa.mrc.models.heads.extractive
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ExtractiveQAHead
+      ExtractiveQAWithConfidenceHead
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.utility.preprocess.docs2passages.process\_page
+============================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.utility.preprocess.docs2passages
+
+.. autofunction:: process_page

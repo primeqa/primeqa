@@ -1,0 +1,34 @@
+preprocessors
+=============
+
+.. automodule:: primeqa.mrc.processors.preprocessors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.processors.preprocessors.abstract
+   primeqa.mrc.processors.preprocessors.base
+   primeqa.mrc.processors.preprocessors.squad
+   primeqa.mrc.processors.preprocessors.tydiqa
+   primeqa.mrc.processors.preprocessors.tydiqa_google
+

@@ -1,0 +1,43 @@
+run\_boolqa\_classifier
+=======================
+
+.. automodule:: primeqa.boolqa.run_boolqa_classifier
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      create_a_backup_file_if_file_exists
+      main
+      save_to_json_file
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DataTrainingArguments
+      ModelArguments
+   
+   
+
+   
+   
+   
+
+
+

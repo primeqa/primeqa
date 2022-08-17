@@ -1,0 +1,35 @@
+indexing
+========
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.indexing
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.colbert.indexing.codecs
+   primeqa.ir.dense.colbert_top.colbert.indexing.collection_encoder
+   primeqa.ir.dense.colbert_top.colbert.indexing.collection_indexer
+   primeqa.ir.dense.colbert_top.colbert.indexing.index_manager
+   primeqa.ir.dense.colbert_top.colbert.indexing.index_saver
+   primeqa.ir.dense.colbert_top.colbert.indexing.loaders
+

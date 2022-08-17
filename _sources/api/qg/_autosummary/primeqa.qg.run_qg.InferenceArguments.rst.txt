@@ -1,0 +1,35 @@
+primeqa.qg.run\_qg.InferenceArguments
+=====================================
+
+.. currentmodule:: primeqa.qg.run_qg
+
+.. autoclass:: InferenceArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~InferenceArguments.data_path
+      ~InferenceArguments.do_generate
+      ~InferenceArguments.gen_output_path
+      ~InferenceArguments.generate_aggregate
+      ~InferenceArguments.max_where_clauses
+      ~InferenceArguments.num_questions_per_instance
+   
+   
