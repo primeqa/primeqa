@@ -2,9 +2,9 @@ name: SphinxDoc Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "issue279-redesign-doc" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "issue279-redesign-doc" ]
 
 permissions:
   contents: write
@@ -24,6 +24,7 @@ jobs:
         python -m pip install flake8 pytest
         python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
         if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
+      # python setup.py bdist_wheel --python-tag py39x
     - name: SphinxDoc Make HTML
       run: |
         cd docs
