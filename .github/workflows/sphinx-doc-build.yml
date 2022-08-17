@@ -1,6 +1,10 @@
 name: SphinxDoc Build
 
-on: push
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -33,7 +37,7 @@ jobs:
         path: docs/log_file
     - name: Deploy Documentation (gh-pages branch)
       uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/issue279-redesign-doc'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
