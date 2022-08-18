@@ -1,5 +1,5 @@
 # Calibration
-[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/calibration/index.md)        
+<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/calibration/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 

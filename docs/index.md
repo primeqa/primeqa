@@ -16,7 +16,8 @@ limitations under the License.
 -->
 
 # PrimeQA     
-[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/index.md)         
+<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/index.md)          -->
+
 <h3 align="center">
     <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
@@ -77,7 +78,7 @@ to erroneous or unexpected input argument.
 
 | Section | Description |
 |-|-|
-| [Documentation](https://github.com/primeqa/primeqa/tree/main/docs) | Full API documentation and tutorials |
+| [Documentation](https://github.com/primeqa/primeqa/tree/main/docs) | Full doc. & config. doc. files |
 | [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
 | [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
 | [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |

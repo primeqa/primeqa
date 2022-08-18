@@ -247,26 +247,27 @@ html {
 
 .highlight pre {
     color: white !important;
+    background-color: #292929 !important;
 }
 
 .highlight pre .nb {
-    color: #2e83ff !important;
+    color: #ff639b !important;
 }
 
 .highlight pre .bp {
-    color: #2e83ff !important;
+    color: #2fbccd !important;
 }
 
 .highlight pre .m {
-    color: #2e83ff !important;
+    color: white !important;
 }
 
 .highlight pre .mf {
-    color: #2e83ff !important;
+    color: #ae81ff !important;
 }
 
 .highlight pre .mi {
-    color: #2e83ff !important;
+    color: #ae81ff !important;
 }
 
 .highlight pre .nv {
@@ -282,5 +283,37 @@ html {
 }
 
 .highlight pre .p {
+    color: white !important;
+}
+
+.highlight pre .c1 {
+    color: #ababab !important;
+}
+
+.highlight pre .s1 {
+    color: #ed9d13 !important;
+}
+
+.highlight pre .o {
+    color: white !important;
+}
+
+.highlight pre .s2 {
+    color: #a6e22e !important;
+}
+
+.highlight pre .se {
+    color: #ed9d13 !important;
+}
+
+.highlight pre .si {
+    color: #a6e22e !important;
+}
+
+.highlight pre .kn {
+    color: #ff639b !important;
+}
+
+.highlight pre .nn {
     color: white !important;
 }

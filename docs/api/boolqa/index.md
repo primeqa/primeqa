@@ -1,5 +1,5 @@
 # Boolean Question Answer
-[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/boolqa/index.md)        
+<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/boolqa/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 
