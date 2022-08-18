@@ -1,5 +1,5 @@
 # Testing
-[<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/testing.md)        
+<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/testing.md)         -->
 
 ## Unit Tests
 
