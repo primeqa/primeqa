@@ -203,6 +203,50 @@ xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
 xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
 ```
 
+### PrimeQA also supports answering questions over tables
+
+Currently supported TableQA datasets :
+- WikiSQL
+- SQA
+- User's Custom Data
+
+Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
+
+For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
+```shell
+       python primeqa/mrc/run_mrc.py --modality "table" \
+       --dataset_name "wikisql" \
+       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
+       --output_dir "models/wikisql/" \
+       --model_name_or_path "google/tapas-base" \
+       --do_train \
+       --do_eval
+```
+This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
+
+The current performance on wikisql dev set is:
+```shell
+***** eval metrics *****
+Eval denotation accuracy: 86.78%
+
+```
+You can also train the tableqa model on your own custom data by proving own train_file and eval_file. Train the TableQA model on custom data using the above script with the following additional parameters:
+
+```shell
+       --train_file "<path_to_train.tsv file" \
+       --eval_file "<path_to_eval.tsv file" \
+
+```
+
+The format of dataset required for training and evaluation is:
+
+`Question_id\tquestion\ttable_path\tanswer_coordinates\tanswer_text`    
+
+The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
+
+
+Our python [notebook](../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+
 
 ### Task Arguments
 

@@ -34,12 +34,12 @@ class Searcher:
         self.collection = Collection.cast(collection or self.config.collection)
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
 
-        if torch.cuda.is_available():
-            self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config).cuda()
-        else:
-            self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config).cpu()
+        self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config)
+        use_gpu = torch.cuda.is_available()
+        if use_gpu:
+            self.checkpoint = self.checkpoint.cuda()
 
-        self.ranker = IndexScorer(self.index)
+        self.ranker = IndexScorer(self.index, use_gpu)
 
         print_memory_stats()
 
@@ -81,6 +81,28 @@ class Searcher:
         return Ranking(data=data, provenance=provenance)
 
     def dense_search(self, Q: torch.Tensor, k=10):
+        if k <= 10:
+            if self.config.ncells is None:
+                self.configure(ncells=1)
+            if self.config.centroid_score_threshold is None:
+                self.configure(centroid_score_threshold=0.5)
+            if self.config.ndocs is None:
+                self.configure(ndocs=256)
+        elif k <= 100:
+            if self.config.ncells is None:
+                self.configure(ncells=2)
+            if self.config.centroid_score_threshold is None:
+                self.configure(centroid_score_threshold=0.45)
+            if self.config.ndocs is None:
+                self.configure(ndocs=1024)
+        else:
+            if self.config.ncells is None:
+                self.configure(ncells=4)
+            if self.config.centroid_score_threshold is None:
+                self.configure(centroid_score_threshold=0.4)
+            if self.config.ndocs is None:
+                self.configure(ndocs=max(k * 4, 4096))
+
         pids, scores = self.ranker.rank(self.config, Q, k)
 
         return pids[:k], list(range(1, k+1)), scores[:k]
