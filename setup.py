@@ -47,6 +47,7 @@ _deps = {
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
+    "pyarrow~=8.0.0": ["install"],
     "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
