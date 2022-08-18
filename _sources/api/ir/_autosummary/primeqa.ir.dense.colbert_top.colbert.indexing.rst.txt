@@ -32,4 +32,5 @@ indexing
    primeqa.ir.dense.colbert_top.colbert.indexing.index_manager
    primeqa.ir.dense.colbert_top.colbert.indexing.index_saver
    primeqa.ir.dense.colbert_top.colbert.indexing.loaders
+   primeqa.ir.dense.colbert_top.colbert.indexing.utils
 

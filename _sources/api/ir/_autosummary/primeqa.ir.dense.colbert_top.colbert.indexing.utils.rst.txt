@@ -1,0 +1,31 @@
+utils
+=====
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.indexing.utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      optimize_ivf
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

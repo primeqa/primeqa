@@ -17,8 +17,10 @@ primeqa.ir.dense.colbert\_top.colbert.search.candidate\_generation.CandidateGene
       :nosignatures:
    
       ~CandidateGeneration.generate_candidate_eids
+      ~CandidateGeneration.generate_candidate_pids
       ~CandidateGeneration.generate_candidate_scores
       ~CandidateGeneration.generate_candidates
+      ~CandidateGeneration.get_cells
    
    
 

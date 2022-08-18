@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.utils.utils.print\_torch\_extension\_error\_message
+=========================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.utils.utils
+
+.. autofunction:: print_torch_extension_error_message

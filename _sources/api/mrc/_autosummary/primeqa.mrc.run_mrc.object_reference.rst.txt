@@ -1,6 +1,0 @@
-primeqa.mrc.run\_mrc.object\_reference
-======================================
-
-.. currentmodule:: primeqa.mrc.run_mrc
-
-.. autofunction:: object_reference

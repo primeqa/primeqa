@@ -20,10 +20,10 @@ primeqa.ir.dense.colbert\_top.colbert.indexing.codecs.residual.ResidualCodec
       ~ResidualCodec.compress
       ~ResidualCodec.compress_into_codes
       ~ResidualCodec.decompress
-      ~ResidualCodec.decompress_residuals
       ~ResidualCodec.load
       ~ResidualCodec.lookup_centroids
       ~ResidualCodec.save
+      ~ResidualCodec.try_load_torch_extensions
    
    
 

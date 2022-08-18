@@ -27,6 +27,7 @@ primeqa.ir.dense.colbert\_top.colbert.search.strided\_tensor.StridedTensor
       ~StridedTensor.lookup_packed_unordered
       ~StridedTensor.lookup_staggered
       ~StridedTensor.pad_packed
+      ~StridedTensor.try_load_torch_extensions
    
    
 

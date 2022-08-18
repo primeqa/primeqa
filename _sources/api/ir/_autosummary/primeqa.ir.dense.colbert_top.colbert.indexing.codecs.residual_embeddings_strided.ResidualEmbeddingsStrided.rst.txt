@@ -16,6 +16,7 @@ primeqa.ir.dense.colbert\_top.colbert.indexing.codecs.residual\_embeddings\_stri
    .. autosummary::
       :nosignatures:
    
+      ~ResidualEmbeddingsStrided.lookup_codes
       ~ResidualEmbeddingsStrided.lookup_eids
       ~ResidualEmbeddingsStrided.lookup_pids
    

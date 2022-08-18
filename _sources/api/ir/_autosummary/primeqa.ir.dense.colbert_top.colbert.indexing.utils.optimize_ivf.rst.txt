@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.colbert.indexing.utils.optimize\_ivf
+==================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.indexing.utils
+
+.. autofunction:: optimize_ivf

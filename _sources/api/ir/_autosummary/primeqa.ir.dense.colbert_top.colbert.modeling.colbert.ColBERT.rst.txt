@@ -60,6 +60,7 @@ primeqa.ir.dense.colbert\_top.colbert.modeling.colbert.ColBERT
       ~ColBERT.to
       ~ColBERT.to_empty
       ~ColBERT.train
+      ~ColBERT.try_load_torch_extensions
       ~ColBERT.type
       ~ColBERT.xpu
       ~ColBERT.zero_grad

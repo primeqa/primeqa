@@ -1,6 +1,0 @@
-primeqa.mrc.run\_mrc.main
-=========================
-
-.. currentmodule:: primeqa.mrc.run_mrc
-
-.. autofunction:: main

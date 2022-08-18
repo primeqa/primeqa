@@ -63,6 +63,7 @@ primeqa.ir.dense.colbert\_top.colbert.modeling.checkpoint.Checkpoint
       ~Checkpoint.to
       ~Checkpoint.to_empty
       ~Checkpoint.train
+      ~Checkpoint.try_load_torch_extensions
       ~Checkpoint.type
       ~Checkpoint.xpu
       ~Checkpoint.zero_grad

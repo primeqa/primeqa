@@ -41,6 +41,7 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.amp
       ~ColBERTConfig.attend_to_mask_tokens
       ~ColBERTConfig.bsize
+      ~ColBERTConfig.centroid_score_threshold
       ~ColBERTConfig.checkpoint
       ~ColBERTConfig.collection
       ~ColBERTConfig.device_
@@ -70,8 +71,8 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.model_type
       ~ColBERTConfig.name
       ~ColBERTConfig.nbits
-      ~ColBERTConfig.ncandidates
-      ~ColBERTConfig.nprobe
+      ~ColBERTConfig.ncells
+      ~ColBERTConfig.ndocs
       ~ColBERTConfig.nranks
       ~ColBERTConfig.num_partitions_max
       ~ColBERTConfig.nway
