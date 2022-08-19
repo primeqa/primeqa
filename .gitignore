@@ -84,6 +84,7 @@ docs/api/mrc/_autosummary/
 docs/api/pipelines/_autosummary/
 docs/api/qg/_autosummary/
 docs/api/util/_autosummary/
+docs/api/tableqa/_autosummary/
 
 # PyBuilder
 target/

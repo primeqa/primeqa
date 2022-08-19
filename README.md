@@ -38,9 +38,9 @@ Some examples of models (applicable on benchmark datasets) supported are :
 
 
 
-## Getting Started
+## ✔️ Getting Started
 
-## Installation
+### Installation
 
 ```shell
 # cd to project root
@@ -63,7 +63,7 @@ pip install -e .[all]
 Please note that dependencies (specified in [setup.py](./setup.py)) are pinned to provide a stable experience.
 When installing from source these can be modified, however this is not officially supported.
 
-## JAVA requirements
+### JAVA requirements
 Java 11 is required for BM25 retrieval. 
 
 Download Java 11 package from https://jdk.java.net/archive/ and uncompress
@@ -74,18 +74,7 @@ export JAVA_HOME=<jdk-dir>
 export PATH=$JAVA_HOME/bin:$PATH
 ```
 
-## Learn more
-
-| Section | Description |
-|-|-|
-| [Documentation](https://github.com/primeqa/docs/) | TODO: Full API documentation and tutorials |
-| [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
-| [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
-| [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
-| [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
-
-
-## Unit Tests
+## 🧪 Unit Tests
 
 To run the unit tests you first need to [install PrimeQA](#Installation).
 Make sure to install with the `[tests]` or `[all]` extras from pip.
@@ -97,4 +86,15 @@ pytest --cov PrimeQA --cov-config .coveragerc tests/
 
 For more information, see:
 - Our [tox.ini](./tox.ini)
-- The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation
+- The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation    
+
+
+## 🔭 Learn more
+
+| Section | Description |
+|-|-|
+| 📒 [Documentation](https://primeqa.github.io/primeqa) | Full API documentation and tutorials |
+| 🏁 [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
+| 📓 [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
+| 💻 [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
+| 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
