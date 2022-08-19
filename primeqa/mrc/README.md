@@ -1,8 +1,25 @@
-# Machine Reading Comprehension (MRC)
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+# Machine Reading Comprehension
 
-Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
+<p><strong>API Reference</strong></p>
 
-## Inference Example Usage
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
+   
+    primeqa.mrc
+
+```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+
+### Machine Reading Comprehension (MRC)
+
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
+
+### Inference Example Usage
 The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
 
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
@@ -38,8 +55,8 @@ The above statements will generate an output in the form of a dictionary:
     }
 ]
 ```
-## Train and Evaluate
-If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
+### Train and Evaluate
+If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 
 ### Supported Datasets
 Currently supported datasets include:
@@ -165,7 +182,7 @@ This yields the following results:
 
  -  PrimeQA also supports special Features for MRC systems as follows:
 
- -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
+ -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
@@ -189,7 +206,7 @@ eval_samples = 18670
 
  - PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
-For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
        --learning_rate 5e-05 \
@@ -210,7 +227,7 @@ Currently supported TableQA datasets :
 - SQA
 - User's Custom Data
 
-Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
 ```shell
@@ -245,7 +262,7 @@ The format of dataset required for training and evaluation is:
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
 
-Our python [notebook](../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+Our python [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
 
 
 ### Task Arguments

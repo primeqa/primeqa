@@ -1,5 +1,5 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-# Pipelines
+# Table QA
 
 <p><strong>API Reference</strong></p>
 
@@ -10,9 +10,9 @@
     :template: custom-module-template.rst
     :recursive:
    
-    primeqa.pipelines
+    primeqa.tableqa
 
 ```
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
-### Pipelines
+### Table QA

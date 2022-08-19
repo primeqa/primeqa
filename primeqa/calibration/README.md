@@ -1,6 +1,23 @@
-# Machine Reading Comprehension with Confidence Calibration
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+# Calibration
 
-## train_confidence_calibrator.py
+<p><strong>API Reference</strong></p>
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
+   
+    primeqa.calibration
+
+```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+
+### Machine Reading Comprehension with Confidence Calibration
+
+**train_confidence_calibrator.py**
 
 This script trains a confidence calibration model which can be 
 used by the run_mrc pipeline to generate a confidence score for each answer.
@@ -60,4 +77,3 @@ directory "confidence_model_dir".
 The dataset is saved in "confidence_dataset_dir".
 - Prediction file of validation set including confidence score. The file
 "eval_predictions.rescored.json" is saved in the directory "output_dir".
-

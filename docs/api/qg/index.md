@@ -1,5 +1,5 @@
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 # Question Generation
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/qg/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 
@@ -13,6 +13,7 @@
     primeqa.qg
 
 ```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
 ### Question Generation (QG)
 The task of QG can be summarized as given a table pr passage, generate <question, answer> pairs such that the answer for that question can be deduced from the table/passage.  
@@ -23,7 +24,7 @@ The primary script for QG is [run_qg.py](https://github.com/primeqa/primeqa/blob
 The above pipeline shows the pipeline for generating questions from a table. PasageQG follows a similar pipleine, except SQL generator [sql_sampler.py](https://github.com/primeqa/primeqa/blob/main/primeqa/qg/models/table_qg/sql_sampler.py) over a table is replaced by Answer Sampler [answer_sampler.py](https://github.com/primeqa/primeqa/blob/main/primeqa/qg/models/passage_qg/answer_sampler.py) over a passage which tries to sample answer token(s) from the given passage and then generate questions having those answer(s). 
 
 
-Before continuing below make sure you have PrimeQA [installed](../../installation).
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 ### Supported datasets
 Currently supported datasets for training include:

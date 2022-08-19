@@ -1,4 +1,21 @@
-# TyDiQA with support for Boolean questions
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+# Boolean Question Answer
+
+<p><strong>API Reference</strong></p>
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
+   
+    primeqa.boolqa
+
+```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+
+### TyDiQA with support for Boolean questions
 
 The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways:
 First, as a single command line argument in `run_mrc.py` to run all steps, and secondly, as a step-by-step process detailed in the 
@@ -12,7 +29,7 @@ python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-x
 ```
 The option `--do_boolean` supercedes the `--do_eval` option, and runs the following four-stage process:
 
-- **M**achine **R**eading **C**omprehension: given a question and answer, find a representative span that may contain a short answer. This is analyzed in detail [here](../../notebooks/mrc/tydiqa.ipynb)
+- **M**achine **R**eading **C**omprehension: given a question and answer, find a representative span that may contain a short answer. This is analyzed in detail [here](https://github.com/primeqa/primeqa/blob/main/notebooks/mrc/tydiqa.ipynb)
 - **Q**uestion **T**ype **C**lassification: given the question, decide if it is boolean or short_answer
 - Answer classification (or **Ev**idence **C**lassification): given a question and an answer span, decide whether the span supports yes or no. 
 - **S**core **N**ormalization - span scores may have different dynamic ranges according to whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
@@ -23,16 +40,16 @@ We provide pretrained models for each of these downstream components.
 
 ### Jupyter notebooks and further details
 
-The output of each individual step is analyzed in more detail this jupyter [notebook](../../notebooks/boolqa/eval_predictions.ipynb).
+The output of each individual step is analyzed in more detail this jupyter [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/eval_predictions.ipynb).
 
-The inner details of the machine reading comprehension for TydiQA are analyzed in more detail in [notebook](../../notebooks/mrc/tydiqa.ipynb).
+The inner details of the machine reading comprehension for TydiQA are analyzed in more detail in [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/mrc/tydiqa.ipynb).
 
-The inner details of the answer classifier are analyzed in more detail in [notebook](../../notebooks/boolqa/evc.ipynb).
+The inner details of the answer classifier are analyzed in more detail in [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/evc.ipynb).
 
 Some of this system has been described in the papers [Do Answers to Boolean Questions Need Explanations? Yes](https://arxiv.org/abs/2112.07772) 
 and [GAAMA 2.0: An Integrated System that Answers Boolean and Extractive Questions](https://arxiv.org/abs/2206.08441)
 
-## Configuration file
+### Configuration file
 
 The configuration file contains the parameters for each of the post-MRC steps
 ```
@@ -69,9 +86,9 @@ and consists of blocks for each of the downstream components.  The individual ar
 
 
 
-## Machine Reading Comprehension
+### Machine Reading Comprehension
 
-The machine reading comprehension differs from the default invocation of `run_mrc.py` (see [readme](../mrc/README.md))
+The machine reading comprehension differs from the default invocation of `run_mrc.py` (see [readme](../../api/mrc/index))
 as follows: the postprocessor provides additional information (language, question)
 needed by the downstream components
 
@@ -85,7 +102,7 @@ python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-x
         --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 ```
 
-## Question type classification
+### Question type classification
 
 Given a question (obtained from the `eval_predictions.json` file created in the previous step, predict
 whether the question is `boolean` or `short_answer`.
@@ -102,11 +119,11 @@ python primeqa/boolqa/run_boolqa_classifier.py \
     --output_dir ${OUTDIR}/qtc \
     --use_auth_token
 ```
-## Answer classification
+### Answer classification
 
 Given a question and the passage predicted by the first step, predict whether the span supports
 a `yes` or `no` answer to question.  Both question and span are passed through the `eval_predictions.json`
-file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](../../notebooks/boolqa/evc.ipynb).
+file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/evc.ipynb).
 
 ```shell
 python primeqa/boolqa/run_boolqa_classifier.py \
@@ -123,7 +140,7 @@ python primeqa/boolqa/run_boolqa_classifier.py \
     --use_auth_token
 ```
 
-## Score normalization
+### Score normalization
 
 Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 and output a file suitable for the TyDiQA evaluation script.
