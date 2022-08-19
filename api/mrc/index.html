@@ -212,6 +212,13 @@
                 </svg>
                 <strong><a href="../util/index.html">Util</a></strong>
         </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../tableqa/index.html">Table QA</a></strong>
+        </p>
 </div>
   </div>
   <div class="sidebar-end-items">
@@ -296,6 +303,11 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#primeqa-also-supports-answering-questions-over-tables">
+   PrimeQA also supports answering questions over tables
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#task-arguments">
    Task Arguments
   </a>
@@ -315,9 +327,9 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="machine-reading-comprehension">
+  <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+<section id="machine-reading-comprehension">
 <h1>Machine Reading Comprehension<a class="headerlink" href="#machine-reading-comprehension" title="Permalink to this headline">#</a></h1>
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/mrc/index.md)         -->
 <p><strong>API Reference</strong></p>
 <table class="longtable table autosummary">
 <colgroup>
@@ -330,9 +342,10 @@
 </tr>
 </tbody>
 </table>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 <section id="machine-reading-comprehension-mrc">
 <h2>Machine Reading Comprehension (MRC)<a class="headerlink" href="#machine-reading-comprehension-mrc" title="Permalink to this headline">#</a></h2>
-<p>Before continuing below make sure you have PrimeQA <a class="reference internal" href="../../installation.html"><span class="doc std std-doc">installed</span></a>.</p>
+<p>Before continuing below make sure you have PrimeQA <a class="reference external" href="https://primeqa.github.io/primeqa/installation.html">installed</a>.</p>
 </section>
 <section id="inference-example-usage">
 <h2>Inference Example Usage<a class="headerlink" href="#inference-example-usage" title="Permalink to this headline">#</a></h2>
@@ -340,21 +353,21 @@
 <ul class="simple">
 <li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.pipelines.extractive_mrc_pipeline</span> <span class="kn">import</span> <span class="n">MRCPipeline</span>
-<span class="n">reader</span> <span class="o">=</span> <span class="n">MRCPipeline</span><span class="p">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="p">)</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import json
+from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
+<span class="nv">reader</span> <span class="o">=</span> MRCPipeline<span class="o">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="o">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Step 2: Execute the reader in inference mode:</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;Which country is Canberra located in?&quot;</span>
-<span class="n">context</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">question</span> <span class="o">=</span> <span class="s2">&quot;Which country is Canberra located in?&quot;</span>
+<span class="nv">context</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
 <span class="s2">Founded following the federation of the colonies of Australia </span>
 <span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
 <span class="s2">largest inland city&quot;&quot;&quot;</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
-<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>  
+<span class="nv">answers</span> <span class="o">=</span> reader.predict<span class="o">(</span>question,context<span class="o">)</span>  
+print<span class="o">(</span>json.dumps<span class="o">(</span>answers, <span class="nv">indent</span><span class="o">=</span><span class="m">4</span><span class="o">))</span>  
 </pre></div>
 </div>
 <p>The above statements will generate an output in the form of a dictionary:</p>
@@ -570,7 +583,7 @@ For the MLQA configuration with context language EN and question language DE use
 </table>
 <ul class="simple">
 <li><p>PrimeQA also supports special Features for MRC systems as follows:</p></li>
-<li><p>Answering <a class="reference external" href="https://arxiv.org/abs/1905.10044">Boolean Questions</a> for TyDI (currently in an inference-only setup). Please read the <a class="reference internal" href="../boolqa/index.html"><span class="doc std std-doc">details</span></a>:</p></li>
+<li><p>Answering <a class="reference external" href="https://arxiv.org/abs/1905.10044">Boolean Questions</a> for TyDI (currently in an inference-only setup). Please read the <a class="reference external" href="https://primeqa.github.io/primeqa/api/boolqa/index.html">details</a>):</p></li>
 </ul>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large <span class="se">\</span>
        --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --overwrite_cache <span class="se">\</span>
@@ -607,6 +620,41 @@ For the MLQA configuration with context language EN and question language DE use
 <span class="n">xlm</span><span class="o">-</span><span class="n">roberta</span><span class="o">-</span><span class="n">large</span> <span class="o">-&gt;</span> <span class="n">PrimeQA</span><span class="o">/</span><span class="n">tydiqa</span><span class="o">-</span><span class="n">primary</span><span class="o">-</span><span class="n">task</span><span class="o">-</span><span class="n">xlm</span><span class="o">-</span><span class="n">roberta</span><span class="o">-</span><span class="n">large</span> <span class="o">-&gt;</span> <span class="n">NQ</span> <span class="n">Lists</span><span class="p">:</span> <span class="n">Minimal</span> <span class="n">F1</span> <span class="o">=</span> <span class="mf">57.44</span>
 </pre></div>
 </div>
+</section>
+<section id="primeqa-also-supports-answering-questions-over-tables">
+<h2>PrimeQA also supports answering questions over tables<a class="headerlink" href="#primeqa-also-supports-answering-questions-over-tables" title="Permalink to this headline">#</a></h2>
+<p>Currently supported TableQA datasets :</p>
+<ul class="simple">
+<li><p>WikiSQL</p></li>
+<li><p>SQA</p></li>
+<li><p>User’s Custom Data</p></li>
+</ul>
+<p>Before continuing below make sure you have PrimeQA <a class="reference external" href="https://primeqa.github.io/primeqa/installation.html">installed</a>.</p>
+<p>For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       python primeqa/mrc/run_mrc.py --modality <span class="s2">&quot;table&quot;</span> <span class="se">\</span>
+       --dataset_name <span class="s2">&quot;wikisql&quot;</span> <span class="se">\</span>
+       --tableqa_config_file <span class="s2">&quot;primeqa/tableqa/tableqa_config.json&quot;</span> <span class="se">\</span>
+       --output_dir <span class="s2">&quot;models/wikisql/&quot;</span> <span class="se">\</span>
+       --model_name_or_path <span class="s2">&quot;google/tapas-base&quot;</span> <span class="se">\</span>
+       --do_train <span class="se">\</span>
+       --do_eval
+</pre></div>
+</div>
+<p>This runs a <a class="reference external" href="https://aclanthology.org/2020.acl-main.398.pdf">TAPAS</a> based tableQA pipeline.</p>
+<p>The current performance on wikisql dev set is:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>***** <span class="nb">eval</span> metrics *****
+Eval denotation accuracy: <span class="m">86</span>.78%
+</pre></div>
+</div>
+<p>You can also train the tableqa model on your own custom data by proving own train_file and eval_file. Train the TableQA model on custom data using the above script with the following additional parameters:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>       --train_file <span class="s2">&quot;&lt;path_to_train.tsv file&quot;</span> <span class="se">\</span>
+       --eval_file <span class="s2">&quot;&lt;path_to_eval.tsv file&quot;</span> <span class="se">\</span>
+</pre></div>
+</div>
+<p>The format of dataset required for training and evaluation is:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Question_id\tquestion\ttable_path\tanswer_coordinates\tanswer_text</span></code></p>
+<p>The tables in csv format should be placed under <code class="docutils literal notranslate"><span class="pre">data_path_root/tables/</span></code>. The tables should have first row as column headers.</p>
+<p>Our python <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tableqa_inference.ipynb">notebook</a> shows how to test the pre-trained model available <a class="reference external" href="https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup">here</a>.</p>
 </section>
 <section id="task-arguments">
 <h2>Task Arguments<a class="headerlink" href="#task-arguments" title="Permalink to this headline">#</a></h2>

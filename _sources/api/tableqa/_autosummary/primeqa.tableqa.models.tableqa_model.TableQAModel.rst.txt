@@ -1,0 +1,32 @@
+primeqa.tableqa.models.tableqa\_model.TableQAModel
+==================================================
+
+.. currentmodule:: primeqa.tableqa.models.tableqa_model
+
+.. autoclass:: TableQAModel
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TableQAModel.predict_from_dict
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TableQAModel.model
+      ~TableQAModel.tokenizer
+   
+   

@@ -18,7 +18,8 @@ API
 +----------------------------------+----------------+
 | `Util`_                          | (util)         |
 +----------------------------------+----------------+
-
+| `Table QA`_                      | (tableqa)      |
++----------------------------------+----------------+
 .. _Boolean Question Answer: boolqa/index.html
 .. _Calibration: calibration/index.html
 .. _Distillation: distillation/index.html
@@ -27,3 +28,4 @@ API
 .. _Pipelines: pipelines/index.html
 .. _Question Generation: qg/index.html
 .. _Util: util/index.html
+.. _Table QA: tableqa/index.html

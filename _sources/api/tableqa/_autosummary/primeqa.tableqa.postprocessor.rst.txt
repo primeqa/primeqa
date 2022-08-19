@@ -1,0 +1,30 @@
+postprocessor
+=============
+
+.. automodule:: primeqa.tableqa.postprocessor
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.postprocessor.wikisql
+

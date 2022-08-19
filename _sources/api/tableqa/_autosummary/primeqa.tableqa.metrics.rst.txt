@@ -1,0 +1,30 @@
+metrics
+=======
+
+.. automodule:: primeqa.tableqa.metrics
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.metrics.answer_accuracy
+

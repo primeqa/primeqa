@@ -1,5 +1,5 @@
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 # Boolean Question Answer
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/boolqa/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 
@@ -13,6 +13,7 @@
     primeqa.boolqa
 
 ```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
 ### TyDiQA with support for Boolean questions
 

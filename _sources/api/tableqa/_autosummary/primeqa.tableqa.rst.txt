@@ -1,0 +1,36 @@
+﻿tableqa
+=======
+
+.. automodule:: primeqa.tableqa
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.metrics
+   primeqa.tableqa.models
+   primeqa.tableqa.postprocessor
+   primeqa.tableqa.preprocessors
+   primeqa.tableqa.run_tableqa
+   primeqa.tableqa.trainers
+   primeqa.tableqa.utils
+

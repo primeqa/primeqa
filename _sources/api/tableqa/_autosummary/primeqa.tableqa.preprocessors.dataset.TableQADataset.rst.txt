@@ -1,0 +1,25 @@
+primeqa.tableqa.preprocessors.dataset.TableQADataset
+====================================================
+
+.. currentmodule:: primeqa.tableqa.preprocessors.dataset
+
+.. autoclass:: TableQADataset
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TableQADataset.load_data
+   
+   
+
+   
+   
+   

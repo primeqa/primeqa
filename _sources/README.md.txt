@@ -103,4 +103,10 @@ jobs:
 
 * And finally, you are ready to enable [GitHub Pages on your repository](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). For that, go to Settings, then Pages on the left sidebar, select the gh-pages branch in the “Source” dropdown menu, and click Save. After a few minutes, you should be able to see your HTML at the designated URL.        
 
+### New package added to PrimeQA    
+- go to `/docs/api` and create a new folder with same package name  
+- add `index.md` file and copy there the README text (keep same structure used into others packages)  
+- modify `/docs/api/index.rst` to add new package link access 
+- modify `/docs/_templates_/custom-left-section-api-pkg.html` to add new package link access 
+- modify `.gitignore` to avoid commit _autosummary generated files for the new package   
 

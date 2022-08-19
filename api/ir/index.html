@@ -212,6 +212,13 @@
                 </svg>
                 <strong><a href="../util/index.html">Util</a></strong>
         </p>
+        <p style="color: #c9d1d9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 1em; height: 1em;">
+                        <path style="fill: #c9d1d9"
+                                d="M232.5 5.171C247.4-1.718 264.6-1.718 279.5 5.171L498.1 106.2C506.6 110.1 512 118.6 512 127.1C512 137.3 506.6 145.8 498.1 149.8L279.5 250.8C264.6 257.7 247.4 257.7 232.5 250.8L13.93 149.8C5.438 145.8 0 137.3 0 127.1C0 118.6 5.437 110.1 13.93 106.2L232.5 5.171zM498.1 234.2C506.6 238.1 512 246.6 512 255.1C512 265.3 506.6 273.8 498.1 277.8L279.5 378.8C264.6 385.7 247.4 385.7 232.5 378.8L13.93 277.8C5.438 273.8 0 265.3 0 255.1C0 246.6 5.437 238.1 13.93 234.2L67.13 209.6L219.1 279.8C242.5 290.7 269.5 290.7 292.9 279.8L444.9 209.6L498.1 234.2zM292.9 407.8L444.9 337.6L498.1 362.2C506.6 366.1 512 374.6 512 383.1C512 393.3 506.6 401.8 498.1 405.8L279.5 506.8C264.6 513.7 247.4 513.7 232.5 506.8L13.93 405.8C5.438 401.8 0 393.3 0 383.1C0 374.6 5.437 366.1 13.93 362.2L67.13 337.6L219.1 407.8C242.5 418.7 269.5 418.7 292.9 407.8V407.8z" />
+                </svg>
+                <strong><a href="../tableqa/index.html">Table QA</a></strong>
+        </p>
 </div>
   </div>
   <div class="sidebar-end-items">
@@ -309,6 +316,13 @@
   <a class="reference internal nav-link" href="#dense-index-retrieval">
    Dense Index Retrieval
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#plaid-hyperparameters">
+     PLAID hyperparameters
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#sparse-index-retrieval">
@@ -319,26 +333,28 @@
   <a class="reference internal nav-link" href="#scoring">
    Scoring
   </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#obtain-xortydi-groundtruth-data-and-eval-scripts">
-   Obtain XORTyDI GroundTruth data and Eval scripts
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#convert-for-evaluation">
-   Convert for evaluation
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#run-evaluation-script">
-   Run Evaluation Script
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#sample-evaluation-results">
-   Sample Evaluation Results
-  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#obtain-xortydi-groundtruth-data-and-eval-scripts">
+     Obtain XORTyDI GroundTruth data and Eval scripts
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#convert-for-evaluation">
+     Convert for evaluation
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#run-evaluation-script">
+     Run Evaluation Script
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sample-evaluation-results">
+     Sample Evaluation Results
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -355,9 +371,9 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="information-retrieval">
+  <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+<section id="information-retrieval">
 <h1>Information Retrieval<a class="headerlink" href="#information-retrieval" title="Permalink to this headline">#</a></h1>
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/ir/index.md)         -->
 <p><strong>API Reference</strong></p>
 <table class="longtable table autosummary">
 <colgroup>
@@ -370,9 +386,10 @@
 </tr>
 </tbody>
 </table>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 <section id="information-retrieval-ir">
 <h2>Information Retrieval (IR)<a class="headerlink" href="#information-retrieval-ir" title="Permalink to this headline">#</a></h2>
-<p>Before continuing below make sure you have PrimeQA <a class="reference internal" href="../../installation.html"><span class="doc std std-doc">installed</span></a>.</p>
+<p>Before continuing below make sure you have PrimeQA <a class="reference external" href="https://primeqa.github.io/primeqa/installation.html">installed</a>.</p>
 <p>PrimeQA provides both dense and sparse IR components.</p>
 <ul class="simple">
 <li><p><strong>Dense IR</strong> is a ColBERT-based IR Engine enabling scalable BERT-based search</p></li>
@@ -422,7 +439,7 @@ This table shows two lines from the file, with the positive and negative passage
     --model_type xlm-roberta-base <span class="se">\</span>
     --triples &lt;training_data&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt; 
+    --experiment &lt;experiment_label&gt;
 </pre></div>
 </div>
 <p>The trained model is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/none/&lt;year_month/&lt;day&gt;/&lt;time&gt;/checkpoints/colbert-LAST.dnn</span></code>, with intermediate model files in the same <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> directory.</p>
@@ -457,7 +474,7 @@ An example of a collection file is <a class="reference external" href="https://g
 </section>
 <section id="dense-index-using-colbert">
 <h2>Dense Index using ColBERT<a class="headerlink" href="#dense-index-using-colbert" title="Permalink to this headline">#</a></h2>
-<p>Using a model trained as described <a class="reference internal" href="#"><span class="doc std std-doc">here</span></a> (<code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Training</span></code> section), the following command builds the index.</p>
+<p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training">here</a>, the following command builds the index.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_index <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
@@ -468,7 +485,7 @@ An example of a collection file is <a class="reference external" href="https://g
     --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
     --collection &lt;document_collection&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt; <span class="se">\ </span>
+    --experiment &lt;experiment_label&gt; <span class="se">\</span>
     --index_name &lt;index_label&gt; <span class="se">\</span>
     --compression_level <span class="m">2</span>
 </pre></div>
@@ -508,13 +525,17 @@ An example of a queries data file is <a class="reference external" href="https:/
     --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
     --collection &lt;document_collection&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt; <span class="se">\ </span>
+    --experiment &lt;experiment_label&gt; <span class="se">\</span>
     --index_name &lt;index_label&gt; <span class="se">\</span>
     --ranks_fn &lt;scores_and_ranks&gt; <span class="se">\</span>
-    --nprobe <span class="m">4</span>
 </pre></div>
 </div>
 <p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
+<section id="plaid-hyperparameters">
+<h3>PLAID hyperparameters<a class="headerlink" href="#plaid-hyperparameters" title="Permalink to this headline">#</a></h3>
+<p>The hyperparameters <code class="docutils literal notranslate"><span class="pre">ncells</span></code>, <code class="docutils literal notranslate"><span class="pre">centroid_score_threshold</span></code>, and <code class="docutils literal notranslate"><span class="pre">ndocs</span></code> can optionally be used to trade off between retrieval accuracy and speed. If these are not set explicitly they instead default to pre-configured values based on <code class="docutils literal notranslate"><span class="pre">k</span></code>, with different configurations for <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">&lt;=</span> <span class="pre">10</span></code>, <code class="docutils literal notranslate"><span class="pre">10</span> <span class="pre">&lt;</span> <span class="pre">k</span> <span class="pre">&lt;=</span> <span class="pre">100</span></code>, and <code class="docutils literal notranslate"><span class="pre">100</span> <span class="pre">&lt;</span> <span class="pre">k</span></code>. See the <a class="reference external" href="https://arxiv.org/abs/2205.09707">PLAID paper</a> for more details.</p>
+<p>Note that the previous ColBERTv2 hyperparameters <code class="docutils literal notranslate"><span class="pre">nprobe</span></code> and <code class="docutils literal notranslate"><span class="pre">ncandidates</span></code> are now deprecated.</p>
+</section>
 </section>
 <section id="sparse-index-retrieval">
 <h2>Sparse Index Retrieval<a class="headerlink" href="#sparse-index-retrieval" title="Permalink to this headline">#</a></h2>
@@ -522,7 +543,7 @@ An example of a queries data file is <a class="reference external" href="https:/
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
       --do_search <span class="se">\</span>
       --engine_type BM25 <span class="se">\</span>
-      --index_path &lt;index-dir&gt; <span class="se">\ </span> 
+      --index_path &lt;index-dir&gt; <span class="se">\</span>
       --queries_path  &lt;query_file&gt; <span class="se">\</span>
       --nhits &lt;num-hits&gt; <span class="se">\</span>
       --use_bm25 <span class="se">\</span>
@@ -570,34 +591,33 @@ An example of a queries data file is <a class="reference external" href="https:/
 <h2>Scoring<a class="headerlink" href="#scoring" title="Permalink to this headline">#</a></h2>
 <p>The scoring steps depend on the task and metric used.
 The following describes the steps to evaluate retrieval on the <a class="reference external" href="https://nlp.cs.washington.edu/xorqa/">XOR-TyDi task</a></p>
-</section>
 <section id="obtain-xortydi-groundtruth-data-and-eval-scripts">
-<h2>Obtain XORTyDI GroundTruth data and Eval scripts<a class="headerlink" href="#obtain-xortydi-groundtruth-data-and-eval-scripts" title="Permalink to this headline">#</a></h2>
+<h3>Obtain XORTyDI GroundTruth data and Eval scripts<a class="headerlink" href="#obtain-xortydi-groundtruth-data-and-eval-scripts" title="Permalink to this headline">#</a></h3>
 <ol class="arabic simple">
 <li><p>Clone the XORTyDI repo here: https://github.com/AkariAsai/XORQA</p></li>
 <li><p>Download ground truth data file here: https://nlp.cs.washington.edu/xorqa/XORQA_site/data/xor_dev_full_v1_1.jsonl</p></li>
 </ol>
 </section>
 <section id="convert-for-evaluation">
-<h2>Convert for evaluation<a class="headerlink" href="#convert-for-evaluation" title="Permalink to this headline">#</a></h2>
+<h3>Convert for evaluation<a class="headerlink" href="#convert-for-evaluation" title="Permalink to this headline">#</a></h3>
 <p>Convert the search results obtained from the retrieval step into the format required by the evaluation script.  This is done by running the conversion script:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py <span class="se">\</span>
     -c &lt;document_collection&gt; <span class="se">\</span>
     -q &lt;ground_truth_data&gt;
     -p &lt;scores_and_ranks&gt; <span class="se">\</span>
-    -o &lt;ranking_xortydi_format.json&gt; 
+    -o &lt;ranking_xortydi_format.json&gt;
 </pre></div>
 </div>
 </section>
 <section id="run-evaluation-script">
-<h2>Run Evaluation Script<a class="headerlink" href="#run-evaluation-script" title="Permalink to this headline">#</a></h2>
+<h3>Run Evaluation Script<a class="headerlink" href="#run-evaluation-script" title="Permalink to this headline">#</a></h3>
 <p>Run:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python &lt;path-to-xorqa-repo&gt;/evals/eval_xor_retrieve.py --data_file &lt;ground_truth_data&gt; --pred_file &lt;ranking_xortydi_format.json&gt; 
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python &lt;path-to-xorqa-repo&gt;/evals/eval_xor_retrieve.py --data_file &lt;ground_truth_data&gt; --pred_file &lt;ranking_xortydi_format.json&gt;
 </pre></div>
 </div>
 </section>
 <section id="sample-evaluation-results">
-<h2>Sample Evaluation Results<a class="headerlink" href="#sample-evaluation-results" title="Permalink to this headline">#</a></h2>
+<h3>Sample Evaluation Results<a class="headerlink" href="#sample-evaluation-results" title="Permalink to this headline">#</a></h3>
 <p>The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:</p>
 <ol class="arabic simple">
 <li><p>Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages
@@ -640,6 +660,7 @@ wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz</p></li
 <span class="mf">58.72438362740563</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 

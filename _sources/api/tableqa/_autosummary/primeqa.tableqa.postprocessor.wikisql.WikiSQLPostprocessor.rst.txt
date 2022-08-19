@@ -1,0 +1,26 @@
+primeqa.tableqa.postprocessor.wikisql.WikiSQLPostprocessor
+==========================================================
+
+.. currentmodule:: primeqa.tableqa.postprocessor.wikisql
+
+.. autoclass:: WikiSQLPostprocessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~WikiSQLPostprocessor.get_predicted_answer_text
+      ~WikiSQLPostprocessor.postprocess_prediction
+   
+   
+
+   
+   
+   

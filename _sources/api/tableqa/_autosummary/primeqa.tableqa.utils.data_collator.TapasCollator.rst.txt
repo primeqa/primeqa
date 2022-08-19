@@ -1,0 +1,24 @@
+primeqa.tableqa.utils.data\_collator.TapasCollator
+==================================================
+
+.. currentmodule:: primeqa.tableqa.utils.data_collator
+
+.. autoclass:: TapasCollator
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   

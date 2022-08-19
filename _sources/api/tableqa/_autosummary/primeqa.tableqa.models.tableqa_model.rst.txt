@@ -1,0 +1,32 @@
+tableqa\_model
+==============
+
+.. automodule:: primeqa.tableqa.models.tableqa_model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      TableQAModel
+   
+   
+
+   
+   
+   
+
+
+

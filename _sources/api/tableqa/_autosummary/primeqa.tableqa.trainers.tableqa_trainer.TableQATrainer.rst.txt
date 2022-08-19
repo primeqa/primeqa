@@ -1,0 +1,59 @@
+primeqa.tableqa.trainers.tableqa\_trainer.TableQATrainer
+========================================================
+
+.. currentmodule:: primeqa.tableqa.trainers.tableqa_trainer
+
+.. autoclass:: TableQATrainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TableQATrainer.add_callback
+      ~TableQATrainer.autocast_smart_context_manager
+      ~TableQATrainer.call_model_init
+      ~TableQATrainer.compute_loss
+      ~TableQATrainer.create_model_card
+      ~TableQATrainer.create_optimizer
+      ~TableQATrainer.create_optimizer_and_scheduler
+      ~TableQATrainer.create_scheduler
+      ~TableQATrainer.evaluate
+      ~TableQATrainer.evaluation_loop
+      ~TableQATrainer.floating_point_ops
+      ~TableQATrainer.get_eval_dataloader
+      ~TableQATrainer.get_optimizer_cls_and_kwargs
+      ~TableQATrainer.get_test_dataloader
+      ~TableQATrainer.get_train_dataloader
+      ~TableQATrainer.hyperparameter_search
+      ~TableQATrainer.init_git_repo
+      ~TableQATrainer.is_local_process_zero
+      ~TableQATrainer.is_world_process_zero
+      ~TableQATrainer.log
+      ~TableQATrainer.log_metrics
+      ~TableQATrainer.metrics_format
+      ~TableQATrainer.num_examples
+      ~TableQATrainer.pop_callback
+      ~TableQATrainer.predict
+      ~TableQATrainer.prediction_loop
+      ~TableQATrainer.prediction_step
+      ~TableQATrainer.push_to_hub
+      ~TableQATrainer.remove_callback
+      ~TableQATrainer.save_metrics
+      ~TableQATrainer.save_model
+      ~TableQATrainer.save_state
+      ~TableQATrainer.store_flos
+      ~TableQATrainer.train
+      ~TableQATrainer.training_step
+   
+   
+
+   
+   
+   

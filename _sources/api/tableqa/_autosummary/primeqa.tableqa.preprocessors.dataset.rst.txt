@@ -1,0 +1,33 @@
+dataset
+=======
+
+.. automodule:: primeqa.tableqa.preprocessors.dataset
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DatasetProcessor
+      TableQADataset
+   
+   
+
+   
+   
+   
+
+
+

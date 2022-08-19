@@ -228,6 +228,13 @@
   <a class="reference internal nav-link" href="#publishing-your-documentation-sources-on-github-pages">
    Publishing your documentation sources on GitHub Pages:
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#new-package-added-to-primeqa">
+     New package added to PrimeQA
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -349,6 +356,16 @@ jobs:
 <li><p>Next, you need to specify the dependencies for the make html step to be successful. For that, create a file <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/docs/requirements.txt">docs/requirements.txt</a></p></li>
 <li><p>And finally, you are ready to enable <a class="reference external" href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site">GitHub Pages on your repository</a>. For that, go to Settings, then Pages on the left sidebar, select the gh-pages branch in the “Source” dropdown menu, and click Save. After a few minutes, you should be able to see your HTML at the designated URL.</p></li>
 </ul>
+<section id="new-package-added-to-primeqa">
+<h3>New package added to PrimeQA<a class="headerlink" href="#new-package-added-to-primeqa" title="Permalink to this headline">#</a></h3>
+<ul class="simple">
+<li><p>go to <code class="docutils literal notranslate"><span class="pre">/docs/api</span></code> and create a new folder with same package name</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">index.md</span></code> file and copy there the README text (keep same structure used into others packages)</p></li>
+<li><p>modify <code class="docutils literal notranslate"><span class="pre">/docs/api/index.rst</span></code> to add new package link access</p></li>
+<li><p>modify <code class="docutils literal notranslate"><span class="pre">/docs/_templates_/custom-left-section-api-pkg.html</span></code> to add new package link access</p></li>
+<li><p>modify <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> to avoid commit _autosummary generated files for the new package</p></li>
+</ul>
+</section>
 </section>
 </section>
 

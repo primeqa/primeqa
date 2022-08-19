@@ -1,0 +1,32 @@
+preprocessors
+=============
+
+.. automodule:: primeqa.tableqa.preprocessors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.preprocessors.convert_to_sqa_format
+   primeqa.tableqa.preprocessors.dataset
+   primeqa.tableqa.preprocessors.wikisql_preprocessor
+

@@ -1,5 +1,5 @@
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 # Machine Reading Comprehension
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/mrc/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 
@@ -13,22 +13,23 @@
     primeqa.mrc
 
 ```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
 ### Machine Reading Comprehension (MRC)
 
-Before continuing below make sure you have PrimeQA [installed](../../installation).
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 ### Inference Example Usage
 The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
 
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
-```python
+```shell
 import json
 from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
 reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
 ```
 - Step 2: Execute the reader in inference mode:
-```python
+```shell
 question = "Which country is Canberra located in?"
 context = """Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
@@ -56,6 +57,7 @@ The above statements will generate an output in the form of a dictionary:
 ```
 ### Train and Evaluate
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
+
 ### Supported Datasets
 Currently supported datasets include:
 - TyDiQA
@@ -180,7 +182,7 @@ This yields the following results:
 
  -  PrimeQA also supports special Features for MRC systems as follows:
 
- -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../../api/boolqa/index):
+ -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
@@ -218,6 +220,50 @@ xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
 xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
 ```
 
+### PrimeQA also supports answering questions over tables
+
+Currently supported TableQA datasets :
+- WikiSQL
+- SQA
+- User's Custom Data
+
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
+
+For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
+```shell
+       python primeqa/mrc/run_mrc.py --modality "table" \
+       --dataset_name "wikisql" \
+       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
+       --output_dir "models/wikisql/" \
+       --model_name_or_path "google/tapas-base" \
+       --do_train \
+       --do_eval
+```
+This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
+
+The current performance on wikisql dev set is:
+```shell
+***** eval metrics *****
+Eval denotation accuracy: 86.78%
+
+```
+You can also train the tableqa model on your own custom data by proving own train_file and eval_file. Train the TableQA model on custom data using the above script with the following additional parameters:
+
+```shell
+       --train_file "<path_to_train.tsv file" \
+       --eval_file "<path_to_eval.tsv file" \
+
+```
+
+The format of dataset required for training and evaluation is:
+
+`Question_id\tquestion\ttable_path\tanswer_coordinates\tanswer_text`    
+
+The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
+
+
+Our python [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+
 
 ### Task Arguments
 
@@ -234,7 +280,3 @@ outputs would be needed.
 Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
 This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
 for the `NewPreProcessor` corresponding to this dataset and schema.
-
-
-
-

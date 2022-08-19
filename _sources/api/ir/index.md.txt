@@ -1,5 +1,5 @@
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 # Information Retrieval
-<!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/api/ir/index.md)         -->
 
 <p><strong>API Reference</strong></p>
 
@@ -13,10 +13,11 @@
     primeqa.ir
 
 ```
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
 ### Information Retrieval (IR)
 
-Before continuing below make sure you have PrimeQA [installed](../../installation.md).
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 PrimeQA provides both dense and sparse IR components. 
 - **Dense IR** is a ColBERT-based IR Engine enabling scalable BERT-based search
@@ -62,11 +63,11 @@ python primeqa/ir/run_ir.py \
     --model_type xlm-roberta-base \
     --triples <training_data> \
     --root <experiments_root_directory> \
-    --experiment <experiment_label> 
+    --experiment <experiment_label>
 ```
 
 The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
- 
+
 ### Indexing
 
 The following are examples of how to index a corpus using the `run_ir.py` script.
@@ -82,7 +83,7 @@ This table shows the three lines from the file, with _text_ fields truncated:
 | 2 | Yao. The Bamboo Annals says that when Emperor Zhuanxu died ... | Emperor Zhi |
 
 ### Dense Index using ColBERT
-Using a model trained as described [here](../../api/ir/index) (`Model Training` section), the following command builds the index.
+Using a model trained as described [here](https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training), the following command builds the index.
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -95,7 +96,7 @@ python primeqa/ir/run_ir.py \
     --checkpoint <model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
-    --experiment <experiment_label> \ 
+    --experiment <experiment_label> \
     --index_name <index_label> \
     --compression_level 2
 ```
@@ -103,7 +104,7 @@ The index is stored in `<experiments_root_directory>/<experiment_label>/<index_l
 
 ### Sparse Index using Pyserini
 
-The following command builds an index for BM25 retrieval.  
+The following command builds an index for BM25 retrieval.
 
 ```shell
 python primeqa/ir/run_ir.py \
@@ -135,13 +136,18 @@ python primeqa/ir/run_ir.py \
     --checkpoint <model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
-    --experiment <experiment_label> \ 
+    --experiment <experiment_label> \
     --index_name <index_label> \
     --ranks_fn <scores_and_ranks> \
-    --nprobe 4
 ```
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
+
+#### PLAID hyperparameters
+
+The hyperparameters `ncells`, `centroid_score_threshold`, and `ndocs` can optionally be used to trade off between retrieval accuracy and speed. If these are not set explicitly they instead default to pre-configured values based on `k`, with different configurations for `k <= 10`, `10 < k <= 100`, and `100 < k`. See the [PLAID paper](https://arxiv.org/abs/2205.09707) for more details.
+
+Note that the previous ColBERTv2 hyperparameters `nprobe` and `ncandidates` are now deprecated.
 
 ### Sparse Index Retrieval
 
@@ -150,7 +156,7 @@ The command requires an index and a queries tsv file as input.
 python primeqa/ir/run_ir.py \
       --do_search \
       --engine_type BM25 \
-      --index_path <index-dir> \  
+      --index_path <index-dir> \
       --queries_path  <query_file> \
       --nhits <num-hits> \
       --use_bm25 \
@@ -171,8 +177,8 @@ This table shows the sample lines from the search results tsv file:
 7606160988275694755|  529090|  4|  7.807199954986572|
 
 
-### Scoring
-The scoring steps depend on the task and metric used. 
+## Scoring
+The scoring steps depend on the task and metric used.
 The following describes the steps to evaluate retrieval on the [XOR-TyDi task](https://nlp.cs.washington.edu/xorqa/)
 
 ### Obtain XORTyDI GroundTruth data and Eval scripts
@@ -188,21 +194,21 @@ Convert the search results obtained from the retrieval step into the format requ
     -c <document_collection> \
     -q <ground_truth_data>
     -p <scores_and_ranks> \
-    -o <ranking_xortydi_format.json> 
+    -o <ranking_xortydi_format.json>
 ```
 
 ### Run Evaluation Script
 
 Run:
    ```shell
-   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <ground_truth_data> --pred_file <ranking_xortydi_format.json> 
+   python <path-to-xorqa-repo>/evals/eval_xor_retrieve.py --data_file <ground_truth_data> --pred_file <ranking_xortydi_format.json>
    ```
 
 ### Sample Evaluation Results
 The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:
-1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages 
+1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages
    wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
-2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).  
+2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).
 
 ```
 Evaluating R@2kt

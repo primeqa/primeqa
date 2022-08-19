@@ -1,0 +1,30 @@
+utils
+=====
+
+.. automodule:: primeqa.tableqa.utils
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.utils.data_collator
+

@@ -1,0 +1,6 @@
+primeqa.tableqa.metrics.answer\_accuracy.compute\_denotation\_accuracy
+======================================================================
+
+.. currentmodule:: primeqa.tableqa.metrics.answer_accuracy
+
+.. autofunction:: compute_denotation_accuracy

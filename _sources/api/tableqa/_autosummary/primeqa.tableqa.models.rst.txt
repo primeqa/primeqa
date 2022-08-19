@@ -1,0 +1,30 @@
+models
+======
+
+.. automodule:: primeqa.tableqa.models
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.models.tableqa_model
+
