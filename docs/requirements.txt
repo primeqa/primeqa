@@ -44,3 +44,8 @@ wheel==0.37.1
 bitarray==2.3.7
 transformers==4.17.0
 primeqa
+cupy-cuda113==10.4.0
+torch==1.11.0
+packaging==21.3
+psutil==5.9.0
+pyarrow==8.0.0
