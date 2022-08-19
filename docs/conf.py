@@ -190,4 +190,7 @@ html_sidebars = {
         "api/util/index": [
             "search-field.html","custom-left-section-api-pkg.html"
         ],
+        "api/tableqa/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
      }
