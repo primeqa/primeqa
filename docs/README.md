@@ -51,53 +51,19 @@ docker run -p 80:80 --rm -d --name primeqa-docs primeqa-docs:${VERSION}
 ```
 name: SphinxDoc Build
 
-on:
-  push:
-    branches: [ "main"]
-  pull_request:
-    branches: [ "main"]
+...
 
-permissions:
-  contents: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.9
-    - name: Install dependencies (docs/requirements.txt)
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
-        python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
-        if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
-    - name: SphinxDoc Make HTML
-      run: |
-        cd docs
-        make html -e SPHINXOPTS='--keep-going --no-color -w "log_file"'   
-    - name: Upload artifacts (docs/log_file)
-      uses: actions/upload-artifact@v3
-      with:
-        name: html-docs-log_file
-        path: docs/log_file
-    - name: Deploy Documentation from main (gh-pages branch)
-      uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/main'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/_build/html
-        commit_message: -automatic commit- Sphinx Doc Build
 ```
+
+[workflowfile](https://github.com/primeqa/primeqa/blob/main/.github/workflows/sphinx-doc-build.yml)    
 
 * This contains a GitHub Actions workflow with a single job of four steps:
     1. Checkout the code.
-    2. Build the HTML documentation using Sphinx.
-    3. Attach the HTML output the artifacts to the GitHub Actions job, for easier inspection.
-    4. If the change happens on the default branch, take the contents of docs/build/html and push it to the gh-pages branch.
+    2. Install python and project dependencies.
+    3. Copy README files into docs/ to maintain same info between docs page and packages instructions [file](https://github.com/primeqa/primeqa/blob/main/docs/scripts/copy-readme-to-docs.sh)
+    4. Build the HTML documentation using Sphinx.
+    5. Attach the HTML output the artifacts to the GitHub Actions job, for easier inspection.
+    6. If the change happens on the default branch, take the contents of docs/build/html and push it to the gh-pages branch.
 
 * Next, you need to specify the dependencies for the make html step to be successful. For that, create a file [docs/requirements.txt](https://github.com/primeqa/primeqa/tree/main/docs/requirements.txt) 
 
@@ -109,4 +75,5 @@ jobs:
 - modify `/docs/api/index.rst` to add new package link access 
 - modify `/docs/_templates_/custom-left-section-api-pkg.html` to add new package link access 
 - modify `.gitignore` to avoid commit _autosummary generated files for the new package   
+- modify `docs/scripts/copy-readme-to-docs.sh`and add the new package readme to be copied to docs automatically   
 

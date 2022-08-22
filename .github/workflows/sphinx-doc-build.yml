@@ -1,18 +1,23 @@
 name: SphinxDoc Build
 
 on:
-  push:
-    branches: [ "main", "issue279-redesign-doc" ]
+  # push:
+    # branches: [ "main" ]
   pull_request:
-    branches: [ "main", "issue279-redesign-doc" ]
+    branches: [ "main" ]
+    types:
+      - closed
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build_if_merged:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+    - run: |
+        echo The PR was merged - Sphinx docs build started
     - uses: actions/checkout@v3
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
@@ -25,6 +30,12 @@ jobs:
         python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
         if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
       # python setup.py bdist_wheel --python-tag py39x
+    - name: Copy README changes (docs/scripts/copy-readme-to-docs.sh)
+      # if: github.ref != 'refs/heads/main'
+      run: |
+        chmod +x ./docs/scripts/copy-readme-to-docs.sh
+        ./docs/scripts/copy-readme-to-docs.sh
+      shell: bash
     - name: SphinxDoc Make HTML
       run: |
         cd docs
@@ -41,7 +52,7 @@ jobs:
         path: docs/log_file
     - name: Deploy Documentation (gh-pages branch)
       uses: peaceiris/actions-gh-pages@v3
-      if: github.ref == 'refs/heads/issue279-redesign-doc'
+      if: ${{ github.ref || github.head_ref }} == 'refs/heads/main'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
