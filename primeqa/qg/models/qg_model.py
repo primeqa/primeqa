@@ -10,7 +10,8 @@ class QGModel():
         the model name. One example could be 't5-base'.
 
         Args:
-            model_path (String): Either Name of the model or the path to the pre-trained model
+            model_path (str): Either Name of the model or the path to the pre-trained model
+            modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'.
         """        
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)

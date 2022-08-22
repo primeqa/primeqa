@@ -118,7 +118,6 @@ class SqlProcessor():
 			sql (_type_): _description_
 			table (_type_): _description_
 			answer (_type_): _description_
-			tokenizer (str, optional): _description_. Defaults to 'T5'.
 
 		Returns:
 			str: _description_
@@ -151,7 +150,7 @@ class SqlProcessor():
 		"""_summary_
 
 		Args:
-			data_split (str, optional): _description_. Defaults to 'train'.
+			example_batch (Dict): _description_
 		"""
 		processed_data_dict = {'label': [], 'input': []}
 

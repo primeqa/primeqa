@@ -193,10 +193,10 @@ def main(raw_args):
     )
     if training_args.do_train or training_args.do_eval:
         train_dataset = qgdl.create(
-            data_split="train", data_config=data_args.dataset_config
+            dataset_split="train", dataset_config=data_args.dataset_config
         )
         valid_dataset = qgdl.create(
-            data_split="validation", data_config=data_args.dataset_config
+            dataset_split="validation", dataset_config=data_args.dataset_config
         )
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)

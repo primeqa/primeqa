@@ -20,7 +20,7 @@ def test_qg_dataloader(model_name):
         target_max_len=target_max_len
     )
 
-    valid_dataset = qgdl.create(data_split="validation[:50]")
+    valid_dataset = qgdl.create(dataset_split="validation[:50]")
     
     assert (len(valid_dataset)>0)
 
