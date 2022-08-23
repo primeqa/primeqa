@@ -163,6 +163,12 @@ html_sidebars = {
         "testing": [
             "search-field.html","custom-left-section.html"
         ],
+        "pull_request_template": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "README": [
+            "search-field.html","custom-left-section.html"
+        ],
         "api/index": [
             "search-field.html"
         ],
