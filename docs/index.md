@@ -95,4 +95,4 @@ to erroneous or unexpected input argument.
 | [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | [Pull Request](pull_request_template.md) | PrimeQA Pull Request |
-| [Docs](README.md) | How Documentation works |
+| [Generate Documentation](README.md) | How Documentation works |

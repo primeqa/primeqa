@@ -21,6 +21,7 @@ limitations under the License.
 
 ![Build Status](https://github.com/primeqa/primeqa/actions/workflows/primeqa-ci.yml/badge.svg)
 [![LICENSE|Apache2.0](https://img.shields.io/github/license/saltstack/salt?color=blue)](https://www.apache.org/licenses/LICENSE-2.0.txt)
+[![sphinx-doc-build](https://github.com/primeqa/primeqa/actions/workflows/sphinx-doc-build.yml/badge.svg)](https://github.com/primeqa/primeqa/actions/workflows/sphinx-doc-build.yml)   
 
 PrimeQA is a public open source repository that enables researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher can replicate the experiments outlined in a paper published in the latest NLP conference while also enjoying the capability to download pre-trained models (from an online repository) and run them on their own custom data. PrimeQA is built on top of the [Transformers](https://github.com/huggingface/transformers) toolkit and uses [datasets](https://huggingface.co/datasets/viewer/) and [models](https://huggingface.co/PrimeQA) that are directly downloadable.
 
@@ -98,3 +99,5 @@ For more information, see:
 | 📓 [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
 | 💻 [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
+| ✅ [Pull Request](https://primeqa.github.io/primeqa/pull_request_template.html) | PrimeQA Pull Request |
+| 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |
