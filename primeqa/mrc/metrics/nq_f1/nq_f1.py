@@ -9,10 +9,7 @@ from primeqa.mrc.data_models.target_type import TargetType
 
 _DESCRIPTION = """
 The F1 score is the harmonic mean of the precision and recall. It can be computed with:
-F1 = 2 * (precision * recall) / (precision + recall).  This implementation of F1 is based
-on the TyDi QA leaderboard.
-
-Adapted from https://github.com/google-research-datasets/tydiqa/blob/master/tydi_eval.py.
+F1 = 2 * (precision * recall) / (precision + recall).
 """
 
 _KWARGS_DESCRIPTION = """
@@ -31,12 +28,11 @@ Returns: metrics dict comprising:
 """
 
 _CITATION = """\
-@article{tydiqa,
-title   = {TyDi QA: A Benchmark for Information-Seeking Question Answering in Typologically Diverse Languages},
-author  = {Jonathan H. Clark and Eunsol Choi and Michael Collins and Dan Garrette and Tom Kwiatkowski and 
-           Vitaly Nikolaev and Jennimaria Palomaki}
-year    = {2020},
-journal = {Transactions of the Association for Computational Linguistics}
+@article{47761,
+title	= {Natural Questions: a Benchmark for Question Answering Research},
+author	= {Tom Kwiatkowski and Jennimaria Palomaki and Olivia Redfield and Michael Collins and Ankur Parikh and Chris Alberti and Danielle Epstein and Illia Polosukhin and Matthew Kelcey and Jacob Devlin and Kenton Lee and Kristina N. Toutanova and Llion Jones and Ming-Wei Chang and Andrew Dai and Jakob Uszkoreit and Quoc Le and Slav Petrov},
+year	= {2019},
+journal	= {Transactions of the Association of Computational Linguistics}
 }
 """
 
