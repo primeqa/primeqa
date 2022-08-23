@@ -25,11 +25,6 @@
 </div>
 
 <script>
-        function getURL() {
-                console.log("The URL of this page is: " + window.location.href);
-                // window.open('https://github.com/primeqa/primeqa/edit/main/docs/index.rst','_blank');
-        }
-
         function showSource() {
                 window.open("{{ pathto('_sources/' + sourcename, true)|e }}", '_blank');
         }

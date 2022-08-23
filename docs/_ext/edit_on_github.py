@@ -14,27 +14,28 @@ __licence__ = 'BSD (3 clause)'
 def custom_api_url(project, branch, view, path):
     # redirect the url to link into package to edit readme file and not edit the doc file
     # this script and then action workflow maintains the same information between readme and docs page
-
-    if path != None and '/api/index' in path:
+    original_url = 'https://github.com/'+project+'/'+view+'/'+branch+'/docs/'+path
+    if path != None and 'api/index' in path:
         return 'https://github.com/'+project+'/'+view+'/'+branch+'/docs/api/index.rst'
-    elif path != None and '/api/' in path:
+    elif path != None and 'api/' in path:
         start = 'api/'
-        end = 'index'
-        package = re.search('%s(.*)%s' % (start, end), path).group(1)
-        if package is None:
-            return 'https://github.com/'+project+'/'+view+'/'+branch+'/docs/'+path
+        end = '/index'
+        str_result = re.search('%s(.*)%s' % (start, end), path)
+        if str_result:
+            package = str_result.groups()
+            return 'https://github.com/'+project+'/'+view+'/'+branch+'/primeqa/'+package[0]+'/README.md'
         else:
-            return 'https://github.com/'+project+'/'+view+'/'+branch+'/primeqa/'+package+'README.md'
+            return original_url
     else:
-        return 'https://github.com/'+project+'/'+view+'/'+branch+'/docs/'+path
+        return original_url
 
 
-def get_github_url(app, view, path):
-    return 'https://github.com/{project}/{view}/{branch}/{path}'.format(
-        project=app.config.edit_on_github_project,
-        view=view,
-        branch=app.config.edit_on_github_branch,
-        path=path)
+# def get_github_url(app, view, path):
+#     return 'https://github.com/{project}/{view}/{branch}/{path}'.format(
+#         project=app.config.edit_on_github_project,
+#         view=view,
+#         branch=app.config.edit_on_github_branch,
+#         path=path)
 
 
 def html_page_context(app, pagename, templatename, context, doctree):

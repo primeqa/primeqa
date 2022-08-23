@@ -28,14 +28,14 @@ cp primeqa/util/README.md docs/api/util/index.md
 echo "----------------------------------"
 echo "Git add"
 git add docs/api/boolqa/index.md
-git add docs/api/calibration
-git add docs/api/distillation
-git add docs/api/ir
-git add docs/api/mrc
-git add docs/api/pipelines
-git add docs/api/qg
-git add docs/api/tableqa
-git add docs/api/util
+git add docs/api/calibration/index.md
+git add docs/api/distillation/index.md
+git add docs/api/ir/index.md
+git add docs/api/mrc/index.md
+git add docs/api/pipelines/index.md
+git add docs/api/qg/index.md
+git add docs/api/tableqa/index.md
+git add docs/api/util/index.md
 echo "----------------------------------"
 echo "Git commit & push"
 git commit -m "github-actions[update api readme files in docs]"

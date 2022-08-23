@@ -1,7 +1,7 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 # Machine Reading Comprehension
 
-<p><strong>API Reference</strong></p>
+<p><strong>API Reference</strong><span class="readme-msg">&nbsp;(sphinx doc instructions - do not modify next code block)</span></p>        
 
 ```{eval-rst}
 
@@ -23,13 +23,13 @@ Before continuing below make sure you have PrimeQA [installed](https://primeqa.g
 The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
 
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
-```shell
+```python
 import json
 from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
 reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
 ```
 - Step 2: Execute the reader in inference mode:
-```shell
+```python
 question = "Which country is Canberra located in?"
 context = """Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 

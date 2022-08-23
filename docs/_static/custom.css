@@ -317,3 +317,11 @@ html {
 .highlight pre .nn {
     color: white !important;
 }
+
+.highlight pre .k {
+    color: #6ebf26 !important;
+}
+
+.bd-article .readme-msg {
+    visibility: hidden !important;
+}

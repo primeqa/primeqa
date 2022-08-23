@@ -42,6 +42,7 @@ Some examples of models (applicable on benchmark datasets) supported are :
 ## ✔️ Getting Started
 
 ### Installation
+[installation-doc-link](https://primeqa.github.io/primeqa/installation.html)       
 
 ```shell
 # cd to project root
@@ -76,7 +77,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 ```
 
 ## 🧪 Unit Tests
-
+[testing-doc-link](https://primeqa.github.io/primeqa/testing.html)       
 To run the unit tests you first need to [install PrimeQA](#Installation).
 Make sure to install with the `[tests]` or `[all]` extras from pip.
 
