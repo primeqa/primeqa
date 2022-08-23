@@ -203,11 +203,11 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
              Annotations in preprocessor format.
         """
 
-        tydi_annotations = {}
-        tydi_annotations['end_positions'] = []
-        tydi_annotations['start_positions'] = []
-        tydi_annotations['passage_indices'] = []
-        tydi_annotations['yes_no_answer'] = []
+        nq_annotations = {}
+        nq_annotations['end_positions'] = []
+        nq_annotations['start_positions'] = []
+        nq_annotations['passage_indices'] = []
+        nq_annotations['yes_no_answer'] = []
         for i in range(len(annotations['id'])):
             start_byte, end_byte = annotations['short_answers'][i]['start_byte'],annotations['short_answers'][i]['end_byte']
             
@@ -225,9 +225,9 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             yes_no_answer = annotations['yes_no_answer'][i]
             yes_no_answer = self._yes_no_answer_to_str[yes_no_answer]
                 
-            tydi_annotations['end_positions'].append(end_byte)
-            tydi_annotations['start_positions'].append(start_byte)
-            tydi_annotations['passage_indices'].append(candidate_index)
-            tydi_annotations['yes_no_answer'].append(yes_no_answer)
-        return tydi_annotations
+            nq_annotations['end_positions'].append(end_byte)
+            nq_annotations['start_positions'].append(start_byte)
+            nq_annotations['passage_indices'].append(candidate_index)
+            nq_annotations['yes_no_answer'].append(yes_no_answer)
+        return nq_annotations
 
