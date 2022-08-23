@@ -363,12 +363,20 @@ def main():
             data_files=data_files,
             cache_dir=model_args.cache_dir)
     else:
-        raw_datasets = datasets.load_dataset(
-            data_args.dataset_name,
-            data_args.dataset_config_name,
-            cache_dir=model_args.cache_dir,
-            beam_runner=data_args.beam_runner
-        )
+        if data_args.dataset_name == "natural_questions":
+            raw_datasets = datasets.load_dataset(
+                data_args.dataset_name,
+                data_args.dataset_config_name,
+                cache_dir=model_args.cache_dir,
+                beam_runner=data_args.beam_runner,
+                revision="main"
+            )
+        else:
+            raw_datasets = datasets.load_dataset(
+                data_args.dataset_name,
+                data_args.dataset_config_name,
+                cache_dir=model_args.cache_dir
+            )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
