@@ -19,12 +19,8 @@ Args:
 
 Returns: metrics dict comprising:
 
-  * minimal_f1: Minimal Answer F1.
-  * minimal_precision: Minimal Answer Precision.
-  * minimal_recall: Minimal Answer Recall.
-  * passage_f1: Passage Answer F1.
-  * passage_precision: Passage Answer Precision.
-  * passage_recall: Passage Answer Recall.
+  * LONG ANSWER R@P TABLE.
+  * SHORT ANSWER R@P TABLE.
 """
 
 _CITATION = """\
