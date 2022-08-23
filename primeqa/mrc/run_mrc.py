@@ -36,6 +36,8 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
+from primeqa.tableqa.run_tableqa import run_table_qa
+
 def object_reference(reference_as_str: str) -> object:
     """
     Given a fully qualified path to a class reference, return a pointer to the reference.
@@ -105,6 +107,9 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
+    tableqa_config_file: Optional[str] = field(
+        default=None, metadata={"help": "TableQA additional arguments"}
+    )
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
@@ -215,6 +220,13 @@ class TaskArguments:
     """
     Task specific arguments.
     """
+    modality: str = field(
+        default='text',
+        metadata={"help": "whether modality is table or text",
+        "choices": ["text", "table"]
+                  }
+    )
+
     scorer_type: str = field(
         default='weighted_sum_target_type_and_score_diff',
         metadata={"help": "The name of the scorer to compute answer score.",
@@ -325,6 +337,11 @@ def main():
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
+
+    # Run Table Question Answering        
+    if task_args.modality=="table":
+        run_table_qa(data_args,model_args,training_args)
+        sys.exit(0)
 
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(

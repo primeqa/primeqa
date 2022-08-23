@@ -27,6 +27,15 @@ def print_message(*s, condition=True, pad=False):
 
     return msg
 
+def print_torch_extension_error_message():
+    msg = """Troubleshooting possible causes for failed PyTorch extension compilation:
+
+    - PyTorch is using the system CUDA installation instead of environment CUDA (possible fix: set CUDA_PATH environment variable)
+    - Incompatible gcc and nvcc compiler versions (possible fix: manually install a different gcc/gxx version, e.g. 9.4.0)
+    - Compilation hangs indefinitely (possible fix: remove /path/to/.cache/torch_extensions directory)
+    """
+
+    return print_message(msg, pad=True)
 
 def timestamp(daydir=False):
     format_str = f"%Y-%m{'/' if daydir else '-'}%d{'/' if daydir else '_'}%H.%M.%S"
@@ -50,7 +59,7 @@ def torch_load_dnn(path):
         dnn = torch.hub.load_state_dict_from_url(path, map_location='cpu')
     else:
         dnn = torch.load(path, map_location='cpu')
-    
+
     return dnn
 
 # def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, arguments=None):
@@ -219,7 +228,7 @@ def zip_first(L1, L2):
 def int_or_float(val):
     if '.' in val:
         return float(val)
-        
+
     return int(val)
 
 def load_ranking(path, types=None, lazy=False):
@@ -330,5 +339,5 @@ def load_batch_backgrounds(args, qids):
 
         x = ' [SEP] '.join(x)
         qbackgrounds.append(x)
-    
+
     return qbackgrounds
