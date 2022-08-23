@@ -9,11 +9,11 @@ import datasets
 from datasets import list_datasets, load_dataset
 from primeqa.qg.metrics.generation_metrics import rouge_metrics
 from primeqa.qg.models.qg_model import QGModel
+from primeqa.qg.trainers.qg_trainer import QGTrainer
 from primeqa.qg.processors.data_loader import QGDataLoader
 from primeqa.qg.utils.data_collator import T2TDataCollator
 from transformers import (
     HfArgumentParser,
-    Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
     set_seed,
 )
@@ -201,7 +201,7 @@ def main(raw_args):
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)
 
-        trainer = Seq2SeqTrainer(
+        trainer = QGTrainer(
             model=qg_model.model,
             tokenizer=qg_model.tokenizer,
             args=training_args,
