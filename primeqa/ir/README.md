@@ -129,7 +129,15 @@ The resulting .tsv file, containing query IDs, document IDs, ranks, and scores i
 
 #### PLAID hyperparameters
 
-The hyperparameters `ncells`, `centroid_score_threshold`, and `ndocs` can optionally be used to trade off between retrieval accuracy and speed. If these are not set explicitly they instead default to pre-configured values based on `k`, with different configurations for `k <= 10`, `10 < k <= 100`, and `100 < k`. See the [PLAID paper](https://arxiv.org/abs/2205.09707) for more details.
+The hyperparameters `ncells`, `centroid_score_threshold`, and `ndocs` can optionally be used to trade off between retrieval accuracy and speed. If these are not set explicitly they instead default to pre-configured values based on `k` as shown in the following table:
+
+|       `k`       | `ncells` | `centroid_score_threshold` |       `ndocs`      |
+|:---------------:|:--------:|:--------------------------:|:------------------:|
+|    `k` <= 10    |     1    |             0.5            |         256        |
+| 10 < `k` <= 100 |     2    |            0.45            |        1024        |
+|    100 < `k`    |     4    |             0.4            | max(`k` * 4, 4096) |
+
+See the [PLAID paper](https://arxiv.org/abs/2205.09707) for more details.
 
 Note that the previous ColBERTv2 hyperparameters `nprobe` and `ncandidates` are now deprecated.
 
