@@ -19,6 +19,7 @@ class Arguments():
         self.add_argument('--run', dest='run', default=Run.name)
 
         self.add_argument('--local_rank', dest='rank', default=-1, type=int)
+        self.add_argument('--rng_seed', dest='rng_seed', default=12345, type=int)
 
     def add_model_parameters(self):
         # Core Arguments
