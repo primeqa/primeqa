@@ -43,10 +43,10 @@ class ListNQSubset:
     """
 
     def __init__(self) -> None:
-        self._LIST_TAGS = {'<ol', '<ul', '<dl', '<li', '<dd', '<dt'}
-        self.keep_list = True
-        self.keep_sa = False
-        self.avoid_overlap = True
+        self._LIST_TAGS = {'<ol', '<ul', '<dl'}
+        self.keep_list = False
+        self.keep_sa = True
+        self.avoid_overlap = False
         pass
 
     @staticmethod
@@ -130,7 +130,12 @@ class ListNQSubset:
             is_list = False
             if html_tokens[long_span_start_token]['html_token']:
                 if html_tokens[long_span_start_token]['token'] == "*":
-                    is_list = True
+                    text = ""
+                    answer_tokens = html_tokens[long_span_start_token:annotation['long_answer']['end_token']]
+                    for t in answer_tokens:
+                        text += t['token'] + " "
+                    if len(text.split("*")) > 2:
+                        is_list = True
                 else:
                     for list_tag in self._LIST_TAGS:
                         if html_tokens[long_span_start_token]['token'].lower().startswith(list_tag):
