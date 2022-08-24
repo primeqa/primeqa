@@ -25,7 +25,6 @@ from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProce
 from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
-from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
