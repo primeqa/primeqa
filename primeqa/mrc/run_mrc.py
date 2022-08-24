@@ -233,11 +233,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-<<<<<<< HEAD:primeqa/mrc/run_mrc.py
                   "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor]
-=======
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor,TyDiQAGooglePreprocessor]
->>>>>>> c616d6e... full training experiment:examples/mrc/run_mrc.py
                   }
     )
     postprocessor: object_reference = field(
