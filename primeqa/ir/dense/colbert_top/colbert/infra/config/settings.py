@@ -170,6 +170,8 @@ class TrainingSettings:
     loss_function: str = DefaultVal(None)
     query_weight: float = DefaultVal(0.5)
 
+    rng_seed: int = DefaultVal(12345)
+
 @dataclass
 class IndexingSettings:
     index_path: str = DefaultVal(None)
