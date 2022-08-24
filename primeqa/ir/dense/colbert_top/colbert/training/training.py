@@ -94,10 +94,10 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     print_message(f"model type: {config.model_type}")
 
-    random.seed(12345)
-    np.random.seed(12345)
-    torch.manual_seed(12345)
-    torch.cuda.manual_seed_all(12345)
+    random.seed(config.rng_seed)
+    np.random.seed(config.rng_seed)
+    torch.manual_seed(config.rng_seed)
+    torch.cuda.manual_seed_all(config.rng_seed)
 
     assert config.bsize % config.nranks == 0, (config.bsize, config.nranks)
     config.bsize = config.bsize // config.nranks
