@@ -28,7 +28,8 @@ from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
+from primeqa.mrc.processors.preprocessors.mlqa import MLQAPreprocessor
+from primeqa.mrc.processors.postprocessors.mlqa import MLQAPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
@@ -233,11 +234,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-<<<<<<< HEAD:primeqa/mrc/run_mrc.py
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor]
-=======
                   "choices": [TyDiQAPreprocessor,SQUADPreprocessor,MLQAPreprocessor,TyDiQAGooglePreprocessor]
->>>>>>> c616d6e... full training experiment:examples/mrc/run_mrc.py
                   }
     )
     postprocessor: object_reference = field(
@@ -517,6 +514,14 @@ def main():
         references = postprocessor.prepare_examples_as_references(eval_examples)
         boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
         boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+        trainer.log_metrics("eval", boolean_eval_metric)
+        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+        with open(path, "w") as f:
+            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
+
+
+if __name__ == '__main__':
+    main()boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
         trainer.log_metrics("eval", boolean_eval_metric)
         path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
         with open(path, "w") as f:
