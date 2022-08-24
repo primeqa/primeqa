@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from itertools import chain
 
 from setuptools import setup, find_packages
@@ -9,12 +10,12 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-    
+
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
 
-include_package_roots = ["primeqa", "examples"]  # only include these packages and their subpackages
+include_package_roots = ["primeqa"]  # only include these packages and their subpackages
 include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"], include_package_roots)))
 
 keywords = [
@@ -44,7 +45,6 @@ _deps = {
     "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install"],
-    "cupy-cuda113~=10.4.0": ["install"],
     "datasets~=2.0.0": ["install"],
     "myst-parser~=0.17.2": ["docs"],
     "faiss-cpu~=1.7.2": ["install"],
@@ -53,6 +53,7 @@ _deps = {
     "ipykernel~=6.13.0": ["notebooks"],
     "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
+    "ninja~=1.10.2.3": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
     "myst-parser~=0.17.2": ["docs"],
@@ -79,9 +80,11 @@ _deps = {
     "transformers~=4.17.0": ["install"],
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
+    "tqdm~=4.64.0": ["install"],
+    "frozendict": ["install"],
+    "nlp": ["install"],
     "sentencepiece~=0.1.96": ["install"],
     "protobuf~=3.20.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
     "rouge_score":["install"]
@@ -103,6 +106,17 @@ for package_name, package_required_by in _deps.items():
 extras["all"] = list(_deps)
 
 install_requires = extras["install"]
+
+python_version = sys.version_info.major,sys.version_info.minor
+
+"""
+if python_version == (3,7):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl")
+elif python_version == (3,8):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp38-cp38-linux_x86_64.whl")
+elif python_version == (3,9):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp39-cp39-linux_x86_64.whl")
+"""
 
 setup(
     name="primeqa",
