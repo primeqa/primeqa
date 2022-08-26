@@ -16,6 +16,7 @@ from transformers import PreTrainedTokenizerFast, BatchEncoding
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
+from primeqa.mrc.processors.preprocessors.base import workaround_for_dataset_cast_decorator
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,7 @@ class BoolQAClassifierPreProcessor:
 
 
     # TODO maybe this should be _process_batch, but that has more args that I don't understand
+    @workaround_for_dataset_cast_decorator
     def _preprocess_function(self, examples):
         # Tokenize the texts
         args = (

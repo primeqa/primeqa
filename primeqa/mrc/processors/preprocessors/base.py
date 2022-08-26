@@ -3,7 +3,7 @@ from lib2to3.pgen2.tokenize import tokenize
 import random
 import uuid
 from operator import sub
-from typing import List, Iterable, Tuple, Any, Dict, Union
+from typing import Callable, List, Iterable, Tuple, Any, Dict, Union
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
@@ -13,6 +13,18 @@ from datasets.features.features import Sequence, Value
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
+import numpy as np
+
+
+def workaround_for_dataset_cast_decorator( process_fn : Callable ):
+    ''' dataset map recursively calls _cast_to_python_objects creating substantial overhead during preprocessing
+        this behavior is avoided by contructing a numpy array for each return type
+        process_fn is assumed to return a dict-like object (transformers.tokenization_utils_base.BatchEncoding)
+    '''
+    def inner(self, examples: Dataset, *args, **kwargs):
+        r=process_fn(self, examples, *args, **kwargs)
+        return { k : np.array(r[k], dtype=object) for k in r.keys() }
+    return inner
 
 
 class BasePreProcessor(AbstractPreProcessor):
@@ -99,6 +111,7 @@ class BasePreProcessor(AbstractPreProcessor):
             features = self.subsample_features(features)
         return examples, features
 
+    @workaround_for_dataset_cast_decorator
     def _process_batch(self, examples: Batch, indices: List[int], is_train: bool) -> BatchEncoding:
         """
         Process a batch of examples into features
@@ -154,7 +167,6 @@ class BasePreProcessor(AbstractPreProcessor):
 
         for key in self._del_keys:
             tokenized_examples.pop(key, None)
-        
         return tokenized_examples
 
     def _create_train_targets(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:
