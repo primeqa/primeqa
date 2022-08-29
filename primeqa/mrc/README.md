@@ -65,6 +65,7 @@ Currently supported datasets include:
 - SQuAD 1.1
 - XQuAD
 - MLQA
+- NaturalQuestions(NQ)
 
 ### Example Usage
 
@@ -180,6 +181,38 @@ This yields the following results:
 |--| ---- | -----|------|-----|------|-----|-----|
 |F1| 84.8 | 75.9 | 68.8 |67.7 | 72.1 | 71.8| 69.8|
 |EM| 72.9 | 57.2 | 52.7 |46.6 | 55.6 | 52.1| 50.0|
+
+ - Dataset: [NQ](https://ai.google.com/research/NaturalQuestions)
+
+For the NQ dataset use the following additional command line arguments for train + eval :
+```shell
+       --dataset_name natural_questions \
+       --dataset_config_name default \
+       --postprocessor primeqa.mrc.processors.postprocessors.natural_questions.NaturalQuestionsPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.natural_questions.NaturalQuestionsPreProcessor \
+       --beam_runner DirectRunner \
+       --num_train_epochs 1 \
+       --learning_rate 3e-5 \
+       --eval_metrics NQF1
+```
+This yields the following results:
+```
+LONG ANSWER R@P TABLE:
+Optimal threshold: 4.0808
+F1 / P / R
+65.09% / 64.54% / 65.65%
+R@P=0.5: 77.76% (actual p=50.12%, score threshold=1.979)
+R@P=0.75: 41.85% (actual p=75.01%, score threshold=5.523)
+R@P=0.9: 4.20% (actual p=90.32%, score threshold=8.189)
+
+SHORT ANSWER R@P TABLE:
+Optimal threshold: 4.0822
+F1 / P / R
+56.76% / 57.24% / 56.28%
+R@P=0.5: 61.23% (actual p=50.01%, score threshold=3.235)
+R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
+R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
+```
 
  -  PrimeQA also supports special Features for MRC systems as follows:
 
