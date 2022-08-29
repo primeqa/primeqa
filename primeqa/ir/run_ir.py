@@ -144,10 +144,10 @@ def main():
             # raise NotImplementedError(f"Indexing using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
 
         if hasattr(process_args, 'do_search') and process_args.do_search:
-            #from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
-            #searcher = DPRSearcher()
-            #earcher.search()
-            raise NotImplementedError(f"Search using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
+            from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+            searcher = DPRSearcher()
+            searcher.search()
+            #raise NotImplementedError(f"Search using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
 
     elif process_args.engine_type == 'BM25':
         logger.info(f"Running BM25")

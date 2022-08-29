@@ -34,6 +34,7 @@ class Options(IndexOptions):
         self.engine_type = 'DPR'
         self.do_index = False
 
+        self.max_doc_length=128 # to match dataloader_biencoder.make_batch : self.ctx_tokenizer(ctx_titles, ctx_texts
 
 class DPRIndexer():
     def __init__(self):
@@ -58,7 +59,7 @@ class DPRIndexer():
         documents = {"title": [doci.title for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
         """Compute the DPR embeddings of document passages"""
         input_ids = ctx_tokenizer(
-            documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt"
+            documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
         )["input_ids"]
         embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
         return embeddings.detach().cpu().to(dtype=torch.float16).numpy()

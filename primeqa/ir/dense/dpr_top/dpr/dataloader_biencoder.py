@@ -165,8 +165,11 @@ class BiEncoderLoader(MultiFileLoader):
         logger.info(f'{input_ids_q.shape} queries and {input_ids_c.shape} contexts\n{positive_indices}')
         qndx = random.randint(0, input_ids_q.shape[0]-1)
         logger.info(f'   query: {self.qry_tokenizer.decode(input_ids_q[qndx])}')
+        logger.info(f'   query: {input_ids_q[qndx]}')
         logger.info(f'positive: {self.ctx_tokenizer.decode(input_ids_c[positive_indices[qndx]])}')
+        logger.info(f'positive: {input_ids_c[positive_indices[qndx]]}')
         logger.info(f'negative: {self.ctx_tokenizer.decode(input_ids_c[1+positive_indices[qndx]])}')
+        logger.info(f'negative: {input_ids_c[1+positive_indices[qndx]]}')
 
     def _one_load(self, lines):
         insts = []
@@ -226,6 +229,13 @@ class BiEncoderLoader(MultiFileLoader):
                 negative_title, negative_text = re.split(r" \| ", negative, maxsplit=1)
                 ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
                 pos_pids = []
+
+                # to deal with data based on quoted tsv
+                [positive_title] = next(csv.reader([positive_title], delimiter="\n", quotechar='"'))
+                [positive_text] = next(csv.reader([positive_text], delimiter="\n", quotechar='"'))
+                [negative_title] = next(csv.reader([negative_title], delimiter="\n", quotechar='"'))
+                [negative_text] = next(csv.reader([negative_text], delimiter="\n", quotechar='"'))
+
                 positive = positive_title, positive_text  # NOTE: the titles are not delimited in the .tsv files
                 hard_neg = negative_title, negative_text
                 insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
@@ -236,6 +246,13 @@ class BiEncoderLoader(MultiFileLoader):
                 # because of title and text handling in colbert.evaluation.loaders.load_collection
                 positive_title, positive_text = re.split(r" \| ", self.collection[positive_id], maxsplit=1)
                 negative_title, negative_text = re.split(r" \| ", self.collection[negative_id], maxsplit=1)
+
+                # to deal with data based on quoted tsv
+                [positive_title] = next(csv.reader([positive_title], delimiter="\n", quotechar='"'))
+                [positive_text] = next(csv.reader([positive_text], delimiter="\n", quotechar='"'))
+                [negative_title] = next(csv.reader([negative_title], delimiter="\n", quotechar='"'))
+                [negative_text] = next(csv.reader([negative_text], delimiter="\n", quotechar='"'))
+
                 ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
                 pos_pids = []
                 positive = positive_title, positive_text  # NOTE: the titles are not delimited in the .tsv files
