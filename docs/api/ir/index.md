@@ -1,7 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 <details>
 <summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
-<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span>        
 
 ```{eval-rst}
 
@@ -217,7 +216,7 @@ Run:
 ### Sample Evaluation Results
 The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:
 1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages
-   wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
+   `wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz`
 2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).
 
 ```

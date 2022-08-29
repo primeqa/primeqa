@@ -1,7 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-# Calibration
-
-<p><strong>API Reference</strong><span class="readme-msg">&nbsp;(sphinx doc instructions - do not modify next code block)</span></p>    
+<details>
+<summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
 
 ```{eval-rst}
 
@@ -13,11 +12,13 @@
     primeqa.calibration
 
 ```
-<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+</details>          
+<br>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-### Machine Reading Comprehension with Confidence Calibration
+# Machine Reading Comprehension with Confidence Calibration
 
-**train_confidence_calibrator.py**
+## train_confidence_calibrator.py     
 
 This script trains a confidence calibration model which can be 
 used by the run_mrc pipeline to generate a confidence score for each answer.

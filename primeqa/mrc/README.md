@@ -1,7 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-# Machine Reading Comprehension
-
-<p><strong>API Reference</strong><span class="readme-msg">&nbsp;(sphinx doc instructions - do not modify next code block)</span></p>        
+<details>
+<summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
 
 ```{eval-rst}
 
@@ -13,13 +12,15 @@
     primeqa.mrc
 
 ```
-<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+</details>          
+<br>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-### Machine Reading Comprehension (MRC)
+# Machine Reading Comprehension (MRC)
 
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
-### Inference Example Usage
+## Inference Example Usage
 The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
 
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
@@ -55,7 +56,7 @@ The above statements will generate an output in the form of a dictionary:
     }
 ]
 ```
-### Train and Evaluate
+## Train and Evaluate
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 
 ### Supported Datasets

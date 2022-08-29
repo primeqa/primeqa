@@ -1,7 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-# Information Retrieval
-
-<p><strong>API Reference</strong><span class="readme-msg">&nbsp;(sphinx doc instructions - do not modify next code block)</span></p>        
+<details>
+<summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
 
 ```{eval-rst}
 
@@ -13,9 +12,11 @@
     primeqa.ir
 
 ```
-<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+</details>          
+<br>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-### Information Retrieval (IR)
+# Information Retrieval (IR)
 
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
@@ -32,7 +33,7 @@ The steps involved in training a model using the DR.DECR (Dense Retrieval with D
 The [Jupyter notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/ir/sparse/bm25_retrieval.ipynb) shows how to use the Sparse retriever API.
 
 
-### Model Training
+## Model Training
 
 Dense IR requires training a model.  The following is an example of training a ColBERT model using the `run_ir.py` script.
 
@@ -68,7 +69,7 @@ python primeqa/ir/run_ir.py \
 
 The trained model is stored in `<experiments_root_directory>/<experiment_label>/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn`, with intermediate model files in the same `checkpoints` directory.
 
-### Indexing
+## Indexing
 
 The following are examples of how to index a corpus using the `run_ir.py` script.
 ### Corpus Format
@@ -115,7 +116,7 @@ python primeqa/ir/run_ir.py \
     --threads <num_threads>
 ```
 
-### Retrieval
+## Retrieval
 
 The command uses queries (questions) in a _.tsv_ file in the form of _[ID, text]_ records.
 An example of a queries data file is [here](https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv).
@@ -215,7 +216,7 @@ Run:
 ### Sample Evaluation Results
 The following is an example of evaluation script output obtained by running Sparse Retrival using the following collection and query set:
 1. Index the DPR corpus of English Wikpedia (December 20, 2018 dump) split 100 word passages
-   wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
+   `wget https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz`
 2. English MT translation of XORTyDI DEV queries from [here](https://drive.google.com/file/d/1JzlNDijDZmDlT42ABVJK53gwk7_mKHGt/view?usp=sharing).
 
 ```

@@ -16,9 +16,9 @@ API
 +----------------------------------+----------------+
 | `Question Generation`_           | (qg)           |
 +----------------------------------+----------------+
-| `Util`_                          | (util)         |
-+----------------------------------+----------------+
 | `Table QA`_                      | (tableqa)      |
++----------------------------------+----------------+
+| `Util`_                          | (util)         |
 +----------------------------------+----------------+
 .. _Boolean Question Answer: boolqa/index.html
 .. _Calibration: calibration/index.html
@@ -27,5 +27,5 @@ API
 .. _Machine Reading Comprehension: mrc/index.html
 .. _Pipelines: pipelines/index.html
 .. _Question Generation: qg/index.html
-.. _Util: util/index.html
 .. _Table QA: tableqa/index.html
+.. _Util: util/index.html

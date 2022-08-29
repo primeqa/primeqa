@@ -1,7 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-# Util
-
-<p><strong>API Reference</strong><span class="readme-msg">&nbsp;(sphinx doc instructions - do not modify next code block)</span></p>        
+<details>
+<summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
 
 ```{eval-rst}
 
@@ -13,6 +12,8 @@
     primeqa.util
 
 ```
-<!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
+</details>          
+<br>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-### Util
+# Util
