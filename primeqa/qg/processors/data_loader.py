@@ -1,9 +1,8 @@
 import logging
 
 from datasets import Dataset, DatasetDict, load_dataset
+from primeqa.qg.processors.passage_qg.qg_processor import QGProcessor
 from primeqa.qg.processors.table_qg.sql_processor import SqlProcessor
-
-from .passage_qg.qg_processor import QGProcessor
 
 logger = logging.getLogger(__name__)
 
