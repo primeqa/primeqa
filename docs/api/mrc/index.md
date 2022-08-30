@@ -1,6 +1,6 @@
 <!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 <details>
-<summary>API Reference<span class="readme-msg">&nbsp;(Sphinx documentation instruction - do not modify next code block)</span></summary>    
+<summary>API Reference</summary>    
 
 ```{eval-rst}
 
