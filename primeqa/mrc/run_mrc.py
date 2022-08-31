@@ -24,6 +24,7 @@ from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.metrics.rouge.rouge import ROUGE
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.heads.generative import FID_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.models.fid_task_model import FiDModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -39,7 +40,7 @@ from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePrepr
 from primeqa.mrc.processors.preprocessors.eli5_fid import ELI5FiDPreprocessor
 from primeqa.mrc.data_models.data_collator import FiDDataCollator
 from primeqa.mrc.trainers.mrc import MRCTrainer
-from primeqa.mrc.trainers.seq2seq_qa import QuestionAnsweringSeq2SeqTrainer
+from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
@@ -243,7 +244,25 @@ class TaskArguments:
     task_heads: object_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
-                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD]
+                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD, FID_HEAD]
+                  }
+    )
+    task_model: object_reference = field(
+        default=ModelForDownstreamTasks,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [ModelForDownstreamTasks, FiDModelForDownstreamTasks]
+                  }
+    )
+    task_data_collator: object_reference = field(
+        default=DataCollatorWithPadding,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [DataCollatorWithPadding, FiDDataCollator]
+                  }
+    )
+    task_trainer: object_reference = field(
+        default=MRCTrainer,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [MRCTrainer, MRCSeq2SeqTrainer]
                   }
     )
     preprocessor: object_reference = field(
@@ -365,12 +384,15 @@ def main():
     config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
     config.output_dropout_rate = task_args.output_dropout_rate
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
-    model = FiDModelForDownstreamTasks.from_config(
+
+    model_class = task_args.task_model
+    model = model_class.from_config(
         config,
         model_args.model_name_or_path,
-        task_heads=None,
+        task_heads=task_heads,
         cache_dir=model_args.cache_dir,
     )
+    model.set_task_head(next(iter(task_heads)))
 
     # load data
     logger.info('Loading dataset')
@@ -410,6 +432,7 @@ def main():
         max_q_char_len=data_args.max_q_char_len,
         single_context_multiple_passages=data_args.single_context_multiple_passages,
         max_contexts=data_args.max_contexts,
+        max_answer_len=data_args.max_answer_length
     )
 
     # process train data
@@ -436,8 +459,10 @@ def main():
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
-    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
-    data_collator = FiDDataCollator(tokenizer, pad_to_multiple_of=8 if using_mixed_precision else None, max_length=data_args.max_seq_length)
+    data_collator_class = task_args.task_data_collator
+    data_collator = data_collator_class(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+    #data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+    #data_collator = FiDDataCollator(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
 
@@ -460,8 +485,9 @@ def main():
             passage_non_null_threshold=task_args.passage_non_null_threshold, 
             span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
             dataset_config_name = eval_dataset.config_name)
-    
-    trainer = QuestionAnsweringSeq2SeqTrainer(
+
+    trainer_class = task_args.task_trainer
+    trainer = trainer_class(
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
@@ -472,6 +498,18 @@ def main():
         post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
         compute_metrics=compute_metrics,
     )
+    
+    # trainer = MRCSeq2SeqTrainer(
+    #     model=model,
+    #     args=training_args,
+    #     train_dataset=train_dataset if training_args.do_train else None,
+    #     eval_dataset=eval_dataset if training_args.do_eval else None,
+    #     eval_examples=eval_examples if training_args.do_eval else None,
+    #     tokenizer=tokenizer,
+    #     data_collator=data_collator,
+    #     post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
+    #     compute_metrics=compute_metrics,
+    # )
 
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:

@@ -38,7 +38,7 @@ if is_torch_tpu_available():
     import torch_xla.debug.metrics as met
 
 
-class QuestionAnsweringSeq2SeqTrainer(Seq2SeqTrainer):
+class MRCSeq2SeqTrainer(Seq2SeqTrainer):
     def __init__(self, *args, eval_examples=None, post_process_function=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples

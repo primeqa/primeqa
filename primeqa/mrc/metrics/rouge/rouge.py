@@ -26,21 +26,23 @@ https://github.com/google-research/google-research/tree/master/rouge
 """
 
 _KWARGS_DESCRIPTION = """
-Calculates average rouge scores for a list of hypotheses and references
+Calculates average rougeL scores for a list of hypotheses and references
 Args:
     predictions: list of predictions to score. Each prediction
-        should be a string with tokens separated by spaces.
+        should contain an 'id' and a 
+        'prediction_text': string with tokens separated by spaces.
     references: list of reference for each prediction. Each
-        reference should be a string with tokens separated by spaces.
+        reference should contain an 'id' and an 
+        'answers' list of string with tokens separated by spaces.
 Returns:
     rougeL: rouge_l (precision, recall, f1),
 Examples:
     >>> rouge = datasets.load_metric('rouge')
-    >>> predictions = ["hello there", "general kenobi"]
-    >>> references = ["hello there", "general kenobi"]
+    >>> predictions = [{"id":1, "prediction_text" : "hello there"}, "{"id":2, "prediction_text": "general kenobi"]
+    >>> references = [{"id":1, "answers" : ["hello there"]}, {"id":2, "answers": ["general kenobi"]}]
     >>> results = rouge.compute(predictions=predictions, references=references)
     >>> print(list(results.keys()))
-    ['rougeL']
+    ['rougeL', 'gen_len']
 """
 
 
