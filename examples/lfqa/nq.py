@@ -8,6 +8,7 @@ import gzip
 from copy import deepcopy
 from dataclasses import dataclass, field
 import logging
+from re import A
 from tabnanny import verbose
 from transformers import HfArgumentParser
 import sys, os
@@ -113,29 +114,50 @@ class LFQANQSubset:
         return document_tokens[first_non_html_token]['new_start_byte'], document_tokens[last_non_html_token]['new_end_byte']
 
 
-    def get_annotations(self, annotations, html_tokens, text_tokens, updated_indices):
+    def get_annotations(self, annotations, html_tokens, document_plaintext, question_text, updated_indices):
         """
         To Start check if answer is a long answer with no short answer.
         Skip null long answers
         """
         tydi_annotations = []
-        a_type = "na"
+        a_type = []
         for annotation in annotations:
             
             # skip short answers
-            if len(annotation['short_answers']) != 0:
-                a_type = "sa"
+            if len(annotation['short_answers']) != 0 and len(html_tokens[annotation['short_answers'][0]['start_token']:annotation['short_answers'][-1]['end_token']]) < 10:
+                short_answer_text = html_tokens[annotation['short_answers'][0]['start_token']:annotation['short_answers'][-1]['end_token']]
+                if len(annotation['short_answers']) > 4:
+                    logging.info("Short Answer that is slightly long")
+                    logging.info(question_text)
+                    tokens = ""
+                    for token in short_answer_text:
+                        tokens += token['token'] + " "
+                    logging.info(tokens)
+                    logging.info(len(tokens))
+                a_type.append("sa")
                 continue
             # skip null long answers
             if annotation['long_answer']['candidate_index'] == -1:
-                a_type = "null"
+                if len(annotation['short_answers']) != 0:
+                    logging.info("Short Answer w/o LA")
+                    logging.info(question_text)
+                    tokens = ""
+                    for token in short_answer_text:
+                        tokens += token['token'] + " "
+                    logging.info(tokens)
+                    logging.info(len(tokens))
+                a_type.append("null")
                 continue
 
             # check type of long answer
             long_span_start_token = annotation['long_answer']['start_token']
             is_list = False
             is_table = False
-            if html_tokens[long_span_start_token]['html_token']:
+            is_boolean = False
+
+            if annotation['yes_no_answer'] != "NONE":
+                is_boolean = True
+            elif html_tokens[long_span_start_token]['html_token']:
                 if not html_tokens[long_span_start_token]['token'].lower().startswith("<p"):
                     for list_tag in self._LIST_TAGS:
                         if html_tokens[long_span_start_token]['token'].lower().startswith(list_tag):
@@ -147,15 +169,31 @@ class LFQANQSubset:
                                 is_table = True
                                 break
                     if not is_table and not is_list:
-                        print(html_tokens[long_span_start_token]['token'].lower())
+                        logging.info("other html token: " + html_tokens[long_span_start_token]['token'].lower())
                         
-            a_type = "la"
+            if is_boolean:
+                a_type.append("boolean")
             if is_list:
-                a_type = "list"
+                a_type.append("list")
             elif is_table:
-                a_type = "table"
+                a_type.append("table")
+            else:
+                a_type.append("la")
            
-            minimal_answer = {"plaintext_start_byte":-1,"plaintext_end_byte":-1}
+            if len(annotation['short_answers']) != 0:
+                if is_boolean:
+                    logging.info("Boolean with short answer (evidence??)")
+
+                end_token = annotation['short_answers'][-1]['end_token']
+                start_token = annotation['short_answers'][0]['start_token']
+                while 'new_end_byte' not in html_tokens[end_token]:
+                     end_token = end_token - 1
+                # if end_token - annotation['short_answers'][0]['start_token'] < 10:
+                #     minimal_answer = {"plaintext_start_byte":-1,"plaintext_end_byte":-1}
+                # else:
+                minimal_answer = {"plaintext_start_byte":html_tokens[start_token]['new_start_byte'],"plaintext_end_byte":html_tokens[end_token]['new_end_byte']}
+            else:
+                minimal_answer = {"plaintext_start_byte":-1,"plaintext_end_byte":-1}
             passage_answer = {"candidate_index":updated_indices[annotation['long_answer']['candidate_index']]}
 
             tydi_annotations.append({'annotation_id':annotation['annotation_id'], 'minimal_answer': minimal_answer, 'passage_answer': passage_answer, 'yes_no_answer':annotation['yes_no_answer']})
@@ -205,21 +243,15 @@ class LFQANQSubset:
         tydi_format['language'] = 'english'
         tydi_format['question_text'] = example['question_text']
         tydi_format['passage_answer_candidates'], updated_indices = self.get_paragraphs(example['long_answer_candidates'], text_tokens)
-        tydi_format['annotations'], a_type = self.get_annotations(example['annotations'], example['document_tokens'], text_tokens, updated_indices)
+        tydi_format['annotations'], a_type = self.get_annotations(example['annotations'], example['document_tokens'], document_plaintext, tydi_format['question_text'], updated_indices)
         tydi_format['type'] = a_type
         if len(tydi_format['annotations']) == 0:
             return None, a_type
         if verbose:
-            short_answer_text = []
-
-            if a_type == "sa":
-                short_answer_text = document_plaintext.encode('utf-8')[tydi_format['annotations'][0]['minimal_answer']['plaintext_start_byte']:tydi_format['annotations'][0]['minimal_answer']['plaintext_end_byte']].split()
-            if a_type != "sa" or len(short_answer_text) > 4:
+            if "sa" not in a_type:
                 logging.info(a_type)
                 logging.info(example['example_id'])
                 logging.info(example['question_text'])
-                if len(short_answer_text) > 4:
-                    logging.info(document_plaintext.encode('utf-8')[tydi_format['annotations'][0]['minimal_answer']['plaintext_start_byte']:tydi_format['annotations'][0]['minimal_answer']['plaintext_end_byte']])
                 logging.info("-----------------")
         return tydi_format, a_type
         
@@ -228,8 +260,7 @@ class LFQANQSubset:
         """
         Process NQ dataset to get list answers and return in TyDi format 
         """
-        avg_gold_length = 0
-        avg_list_length = 0
+        list_count = 0
         count = 0
 
         logger = logging.getLogger(__name__)
@@ -238,7 +269,7 @@ class LFQANQSubset:
         logging.info("Loading NQ data...")
         files = glob.glob(input_file)
 
-        answer_types = {"list" : 0, "table" : 0, "la": 0, "na": 0, "null": 0, "sa": 0}
+        answer_types = {"list" : 0, "table" : 0, "la": 0, "null": 0, "sa": 0, "boolean": 0}
 
         for file in files:
             nq_data = self.load_json_from_file(file, num_lines)
@@ -247,22 +278,29 @@ class LFQANQSubset:
 
             logging.info("Converting to tydi")
             for example in tqdm(nq_data):
-                item, a_type = self.lfqa(example, verbose)
+                item, a_types = self.lfqa(example, verbose)
                 if item is not None:
                     tydi_data.append(item)
-                answer_types[a_type] += 1
+                has_list = False
+                for a_type in a_types:
+                    if a_type == "list":
+                        has_list = True
+                    answer_types[a_type] += 1
+                if has_list:
+                    list_count += 1
             logging.info("data size: " + str(len(nq_data)))
             count += len(tydi_data)
             logging.info("lfqa answer types: " + str(answer_types))
             logging.info("lfqa count: " + str(count))
+            logging.info("list count: " + str(list_count))
             with open(output_file,'ab') as writer:
                 for data in tydi_data:
                     writer.write((json.dumps(data) + "\n").encode())
 
         logging.info("lfqa answer types: " + str(answer_types))
         logging.info("lfqa count: " + str(count))
-        logging.info("average answer length: " + str(avg_gold_length/count))
-        logging.info("average list length: " + str(avg_list_length/count))
+        logging.info("list count: " + str(list_count))
+
 
 def main():
 
