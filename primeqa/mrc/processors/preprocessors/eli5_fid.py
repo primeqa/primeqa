@@ -42,7 +42,7 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                 batched=True,
                 num_proc=self._num_workers,
                 remove_columns=examples.column_names,
-                load_from_cache_file=not self._load_from_cache_file,
+                load_from_cache_file=self._load_from_cache_file,
                 desc=f"Running tokenizer on {mode} dataset",
             )
          return examples, dataset
@@ -53,8 +53,7 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
         #TODO:  padding is set to True, should be in the input args
         padding = "max_length"
         with self._tokenizer.as_target_tokenizer():
-            # use max_seq_length in stead of max_answer_length, should be in hte input args
-            labels = self._tokenizer(targets, max_length=self._max_seq_len, padding=padding, truncation=True)
+            labels = self._tokenizer(targets, max_length=self._max_answer_len, padding=padding, truncation=True)
         if padding == "max_length" and self._ignore_pad_token_for_loss:
             labels["input_ids"] = [
                 [(l if l != self._tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]

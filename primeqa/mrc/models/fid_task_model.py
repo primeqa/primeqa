@@ -52,17 +52,11 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
                             f"See {self.model_class_from_config.__name__} or {self.from_config.__name__} "
                             f"for creating and instantiating these subclasses.")
 
-        # if not task_heads:
-        #     raise ValueError("No task heads provided")
-
         self._task_head = None
 
         # Set the model to match the pre-trained name (e.g. self.roberta) so it can be loaded from pretrained
         setattr(self, self.base_model_prefix, MODEL_MAPPING[config.__class__](config))
 
-        # self.task_heads = torch.nn.ModuleDict({
-        #     name: model(config) for name, model in task_heads.items()
-        # })
         self.init_weights()
 
     @property
@@ -77,17 +71,13 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
         """
         Return the current task head or raises a `ValueError` if it has not yet been set.
         """
-        if self._task_head is not None:
-            # noinspection PyTypeChecker
-            return self.task_heads[self._task_head]
-        else:
-            raise ValueError(f"Task head is not set.  Call {FiDModelForDownstreamTasks.set_task_head.__name__} to set it")
+        return None
 
     def forward(self,
                 input_ids=None,
                 attention_mask=None,
                 labels=None,
-                return_dict=None,
+                return_dict=False,
                 **kwargs):
     
         if input_ids != None:
@@ -137,17 +127,10 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
         return model
 
     def set_task_head(self, task_head: str) -> None:
-        """
-        Args:
-            task_head: name of the task head to activate.
-
-        Raises:
-            KeyError: model does not have task head with name `task_head`.
-        """
-        if task_head not in self.task_heads:
-            raise KeyError(f"Task head '{task_head}' not in task_heads: {list(self.task_heads)}")
-        elif self._task_head is not None:
-            self._logger.info(f"Changing default task head from '{self._task_head}' to '{task_head}'")
-        else:
-            self._logger.info(f"Setting task head for first time to '{self._task_head}'")
-        self._task_head = task_head
+        pass
+    
+    def save_pretrained( self, *args, **kwargs,):
+        encoder_wrapper = self.model.encoder
+        self.model.encoder = encoder_wrapper.encoder
+        super().save_pretrained(*args,**kwargs) 
+        self.model.encoder = encoder_wrapper
