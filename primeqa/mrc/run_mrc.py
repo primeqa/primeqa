@@ -461,8 +461,6 @@ def main():
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator_class = task_args.task_data_collator
     data_collator = data_collator_class(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
-    #data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
-    #data_collator = FiDDataCollator(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
 
@@ -498,18 +496,6 @@ def main():
         post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
         compute_metrics=compute_metrics,
     )
-    
-    # trainer = MRCSeq2SeqTrainer(
-    #     model=model,
-    #     args=training_args,
-    #     train_dataset=train_dataset if training_args.do_train else None,
-    #     eval_dataset=eval_dataset if training_args.do_eval else None,
-    #     eval_examples=eval_examples if training_args.do_eval else None,
-    #     tokenizer=tokenizer,
-    #     data_collator=data_collator,
-    #     post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-    #     compute_metrics=compute_metrics,
-    # )
 
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:
