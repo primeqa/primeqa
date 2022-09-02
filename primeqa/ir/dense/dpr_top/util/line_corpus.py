@@ -176,35 +176,6 @@ class ShuffledWriter:
             f.close()
 
 
-@contextlib.contextmanager
-def shuffled_writer(output_dir, *, extension='.jsonl.gz', num_files=16, rand: random.Random=None):
-    sw = ShuffledWriter(output_dir, extension=extension, num_files=num_files, rand=rand)
-    try:
-        yield sw
-    finally:
-        sw.close()
-
-
-@contextlib.contextmanager
-def stdout_or_file_open(filename=None):
-    """
-    Opens the file (or stdout if filename is False or '-') for writing.
-    Used in 'with' statement.
-    :param filename:
-    :return:
-    """
-    if filename and filename != '-':
-        fh = write_open(filename)
-    else:
-        fh = sys.stdout
-
-    try:
-        yield fh
-    finally:
-        if fh is not sys.stdout:
-            fh.close()
-
-
 def np2str(nda, *, dtype=np.float16):
     """
     Convert numpy ndarray to compact string representation

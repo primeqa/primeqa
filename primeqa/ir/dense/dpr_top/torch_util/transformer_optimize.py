@@ -73,21 +73,6 @@ class TransformerOptimize:
             num_training_steps=self.t_total
         )
 
-        # Check if saved optimizer or scheduler states exist
-        if args.resume_from and os.path.isfile(os.path.join(args.resume_from, "optimizer.pt")) and \
-                os.path.isfile(os.path.join(args.resume_from, "scheduler.pt")):
-            resume_from = args.resume_from
-        elif os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and \
-                os.path.isfile(os.path.join(args.model_name_or_path, "scheduler.pt")):
-            resume_from = args.model_name_or_path
-        else:
-            resume_from = None
-        if resume_from is not None:
-            # Load in optimizer and scheduler states
-            self.optimizer.load_state_dict(torch.load(os.path.join(resume_from, "optimizer.pt"), map_location='cpu'))
-            self.scheduler.load_state_dict(torch.load(os.path.join(resume_from, "scheduler.pt"), map_location='cpu'))
-            logger.info(f'loaded optimizer and scheduler from {resume_from}')
-
         if args.fp16:
             self.model, optimizer = amp.initialize(self.model, self.optimizer, opt_level=args.fp16_opt_level)
 

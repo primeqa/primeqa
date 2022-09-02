@@ -27,6 +27,44 @@ class TestDprEngine(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
         os.makedirs(output_dir, exist_ok=True)
 
+        print("===== DPR TRAINING, -training_data_type text_triples")
+
+        test_args = [
+            "prog",
+            "--train_dir", os.path.join(test_files_location, "xorqa.train_ir_negs_5_poss_1_001pct_at_0pct_en.tsv"),
+            "--output_dir", output_dir,
+            "--num_train_epochs", "2",
+            "--sample_negative_from_top_k", "5",
+            "--encoder_gpu_train_limit", "32",
+            "--full_train_batch_size", "1",
+            "--max_grad_norm", "1.0",
+            "--learning_rate", "5e-5",
+            "--training_data_type", "text_triples",
+            "--disable_confict_free_batches"]
+
+        with patch.object(sys, 'argv', test_args):
+            trainer = BiEncoderTrainer()
+            trainer.train()
+
+        print("===== DPR TRAINING, -training_data_type text_triples_with_title")
+
+        test_args = [
+            "prog",
+            "--train_dir", os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_10.tsv"),
+            "--output_dir", output_dir,
+            "--num_train_epochs", "2",
+            "--sample_negative_from_top_k", "5",
+            "--encoder_gpu_train_limit", "32",
+            "--full_train_batch_size", "1",
+            "--max_grad_norm", "1.0",
+            "--learning_rate", "5e-5",
+            "--training_data_type", "text_triples_with_title",
+            "--disable_confict_free_batches"]
+
+        with patch.object(sys, 'argv', test_args):
+            trainer = BiEncoderTrainer()
+            trainer.train()
+
         print("===== DPR TRAINING, -training_data_type num_triples")
 
         test_args = [
@@ -47,6 +85,7 @@ class TestDprEngine(UnitTest):
         with patch.object(sys, 'argv', test_args):
             trainer = BiEncoderTrainer()
             trainer.train()
+
 
         print("===== DPR INDEXING")
 

@@ -204,8 +204,6 @@ class MultiFileLoader:
         if not self.first_batches_loaded:
             self.first_batches_loaded = True
             displayer = self.display_batch
-        #batches.post_init(batch_size=self.per_gpu_batch_size * self.hypers.n_gpu, displayer=displayer,
-        #                  uneven_batches=self.uneven_batches, random=random.Random(123 * self.on_epoch))
         batches.post_init(batch_size=self.per_gpu_batch_size * max(self.hypers.n_gpu, 1), displayer=displayer,
                           uneven_batches=self.uneven_batches, random=random.Random(123 * self.on_epoch))
         return batches
