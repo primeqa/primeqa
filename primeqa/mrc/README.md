@@ -296,3 +296,4 @@ The tables in csv format should be placed under `data_path_root/tables/`. The ta
 
 
 Our python [notebook](../../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+
