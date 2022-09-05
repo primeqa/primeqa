@@ -236,6 +236,23 @@ xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
 xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
 ```
 
+### Task Arguments
+
+Some task arguments take references which allow for dynamic imports of existing or
+user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
+`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
+Alternatively, a new postprocessor could be written and selected with 
+`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+
+For example, if one was implementing a new model which made predictions by means other than
+an extractive head then a `NewPostProcessor` which derived predictions from the model
+outputs would be needed.
+
+Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
+This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
+for the `NewPreProcessor` corresponding to this dataset and schema.
+
+
 ### PrimeQA also supports answering questions over tables
 
 Currently supported TableQA datasets :
@@ -278,21 +295,4 @@ The format of dataset required for training and evaluation is:
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
 
-Our python [notebook](../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
-
-
-### Task Arguments
-
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
-
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
-
-Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
-for the `NewPreProcessor` corresponding to this dataset and schema.
+Our python [notebook](../../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
