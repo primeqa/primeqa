@@ -10,6 +10,12 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_Col
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
 
+# custom imports
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom import HF_ColBERT_custom
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_custom import DocTokenizerCustom
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_custom import QueryTokenizerCustom
+
+
 import os
 import json
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
@@ -53,6 +59,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         # e.g. from https://huggingface.co/huawei-noah/TinyBERT_General_4L_312D/tree/main
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         colbert = HF_ColBERT_XLMR.from_pretrained(name, colbert_config)
+    elif model_type=='custom':
+        colbert = HF_ColBERT_custom.from_pretrained(name, colbert_config)
     else:
         raise NotImplementedError
 
@@ -79,6 +87,8 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
         return QueryTokenizer(maxlen, 'bert-base-uncased',attend_to_mask_tokens)
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return QueryTokenizerXLMR(maxlen, model_type)
+    elif model_type=='custom':
+        return QueryTokenizerCustom(maxlen, model_type)
     else:
         raise NotImplementedError
 
@@ -103,5 +113,7 @@ def get_doc_tokenizer(model_type, maxlen):
         return DocTokenizer(maxlen, 'bert-base-uncased')
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return DocTokenizerXLMR(maxlen, model_type)
+    elif model_type=='custom':
+        return DocTokenizerCustom(maxlen, model_type)
     else:
         raise NotImplementedError

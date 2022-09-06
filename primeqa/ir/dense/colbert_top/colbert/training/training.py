@@ -134,7 +134,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             # we don't need the keys in the lm head
             keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
                             'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.decoder.bias', 'lm_head.bias']
-            if config.model_type == 'xlm-roberta-base':
+            if config.model_type == 'xlm-roberta-base' or config.model_type == 'custom':
                 # TODO other model types may have a few extra keys to handle also ...
 
                 # resolve conflict between bert and roberta
@@ -155,9 +155,14 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                                 "fit_denses.4.bias"]
 
             for k in keys_to_drop:
-                lmweights_new.pop(k)
+                if k in lmweights_new:
+                    lmweights_new.pop(k)
 
-            colbert.load_state_dict(lmweights_new,False)
+            try:
+                colbert.load_state_dict(lmweights_new)
+            except:
+                print_message("[WARNING] Loading LM with strict=False")
+                colbert.load_state_dict(lmweights_new,False)
 
         # load from checkpoint if checkpoint is an actual model
         if config.checkpoint is not None:
