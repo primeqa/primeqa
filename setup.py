@@ -24,7 +24,20 @@ keywords = [
 ]
 
 authors = [
-    "TODO"
+    "Bhavani Iyer <bsiyer@us.ibm.com>",
+    "Avirup Sil <avi@us.ibm.com>",
+    "Martin Franz <franzm@us.ibm.com>",
+    "Mihaela Bornea <mabornea@us.ibm.com>",
+    "Sara Rosenthal <sjrosenthal@us.ibm.com>",
+    "Avirup Sil <avi@us.ibm.com>",
+    "Scott McCarley <jsmc@us.ibm.com>",
+    "Rong Zhang <zhangr@us.ibm.com>",
+    "Jaydeep Sen <jaydesen@in.ibm.com>",
+    "Yulong Li <yulongli@us.ibm.com>",
+    "Md. Arafat Sultan <Arafat.Sultan@ibm.com>",
+    "Vishwajeet Kumar024 <vishk024@in.ibm.com>",
+    "Saneem A Chemmengath <saneem.cg@in.ibm.com>",
+    "Anthony Ferritto",
 ]
 
 _deps = {
@@ -68,7 +81,6 @@ _deps = {
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
     "tqdm~=4.64.0": ["install"],
-    # "torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl": ["install"],
     "frozendict": ["install"],
     "nlp": ["install"],
     "sentencepiece~=0.1.96": ["install"],
@@ -107,24 +119,23 @@ elif python_version == (3,9):
 """
 
 setup(
-    name="prime-qa",
+    name="primeqa",
     version=version,
     author=", ".join(authors),
-    author_email="TODO",
+    author_email="primeqa@us.ibm.com",
     description="State-of-the-art Question Answering",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="TODO",
-    license="TODO",
+    url="https://github.com/primeqa/primeqa",
+    license="Apache",
     keywords=" ".join(keywords),
     packages=find_packages(".", include=include_packages),
-    python_requires=">=3.7.0",
+    python_requires=">=3.7.0, <3.10.0",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "TODO"
     ],
 )
