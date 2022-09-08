@@ -51,7 +51,7 @@ Currently supported datasets include:
 
 ### Example Usage
 
- - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
+ #### [TyDiQA](https://ai.google.com/research/tydiqa)
 
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
@@ -109,7 +109,7 @@ For eval with confidence calibration, add the following additional command line 
        --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
        --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 ```
- - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
+ #### [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
@@ -125,7 +125,7 @@ This yields the following results:
 eval_exact_match = 88.7133
 eval_f1          = 94.3525
 ```
- - Dataset: [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
+ #### [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
 
 
 For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
@@ -145,7 +145,7 @@ This yields the following results:
 |F1| 87.5 | 82.1 | 80.7 |81.5 | 80.0 | 75.0| 75.1| 80.0|75.3|70.3|77.2|
 |EM| 76.7 | 63.4 | 65.4 |64.2 | 63.6 | 59.3| 59.1| 61.3|65.5|62.2|61.8|
 
- - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
+ #### [MLQA](https://github.com/facebookresearch/MLQA)
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all language combinations are supported.
@@ -164,7 +164,7 @@ This yields the following results:
 |F1| 84.8 | 75.9 | 68.8 |67.7 | 72.1 | 71.8| 69.8|
 |EM| 72.9 | 57.2 | 52.7 |46.6 | 55.6 | 52.1| 50.0|
 
- - Dataset: [NQ](https://ai.google.com/research/NaturalQuestions)
+ #### [Natural Questions](https://ai.google.com/research/NaturalQuestions)
 
 For the NQ dataset use the following additional command line arguments for train + eval :
 ```shell
