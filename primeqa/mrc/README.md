@@ -230,10 +230,11 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --passage_non_null_threshold 1 \
        --minimal_non_null_threshold 1 \
 ```
-This yields the following results on English only using the TyDi evaluation script with two training strategies:
+This yields the following results on English only using the TyDi evaluation script with two training strategies. Please note the ListQA models use the NQ list data by using the long answers offsets as the short answer. Further details can be found in `examples/listqa/README.md`:
 ```
-xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
-xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
+xlm-roberta-large -> NQ Lists: Minimal F1 = 47.88
+xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 58.44 
+
 ```
 
 ### PrimeQA also supports answering questions over tables
