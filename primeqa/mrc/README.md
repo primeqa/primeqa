@@ -196,9 +196,29 @@ R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
 
- -  PrimeQA also supports special Features for MRC systems as follows:
+### Task Arguments
 
- -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
+Some task arguments take references which allow for dynamic imports of existing or
+user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
+`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
+Alternatively, a new postprocessor could be written and selected with 
+`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+
+For example, if one was implementing a new model which made predictions by means other than
+an extractive head then a `NewPostProcessor` which derived predictions from the model
+outputs would be needed.
+
+Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
+This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
+for the `NewPreProcessor` corresponding to this dataset and schema.
+
+
+## Special MRC Features:
+
+PrimeQA also supports special features for MRC systems as follows:
+
+### Boolean Questions
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
@@ -220,7 +240,8 @@ eval_avg_passage_recall = 0.7433
 eval_samples = 18670
 ```
 
- - PrimeQA also supports answering questions to which answers are collective e.g. lists.
+### List Answers
+Answering questions to which answers are collective e.g. lists.
 
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
 ```
@@ -237,7 +258,10 @@ xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: 
 
 ```
 
-### PrimeQA also supports answering questions over tables
+The trained models are available on HuggingFace: [xlm-r->NQ lists](https://huggingface.co/PrimeQA/listqa_nq-task-xlm-roberta-large) and [xlm-r->TyDi->NQ lists](https://huggingface.co/PrimeQA/tydiqa-ft-listqa_nq-task-xlm-roberta-large).
+
+### Table QA
+PrimeQA also supports answering questions over tables.
 
 Currently supported TableQA datasets :
 - WikiSQL
@@ -280,20 +304,3 @@ The tables in csv format should be placed under `data_path_root/tables/`. The ta
 
 
 Our python [notebook](../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
-
-
-### Task Arguments
-
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
-
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
-
-Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
-for the `NewPreProcessor` corresponding to this dataset and schema.
