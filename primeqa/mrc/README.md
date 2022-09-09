@@ -42,12 +42,18 @@ The above statements will generate an output in the form of a dictionary:
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
 
 ### Supported Datasets
-Currently supported datasets include:
+Currently supported MRC datasets include:
 - TyDiQA
 - SQuAD 1.1
 - XQuAD
 - MLQA
-- NaturalQuestions(NQ)
+- Natural Questions(NQ)
+
+Currently supported TableQA datasets :
+- WikiSQL
+- SQA
+
+User's can also provide data in a different format by creating their own custom processor.
 
 ### Example Usage
 
@@ -99,16 +105,6 @@ python primeqa/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
 
-- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) estimate of your fine-tuned model use the following:
-
-
-For eval with confidence calibration, add the following additional command line arguments:
-```shell
-       --output_dropout_rate 0.25 \
-       --decoding_times_with_dropout 5 \
-       --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
-       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
-```
  #### [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
@@ -196,7 +192,7 @@ R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
 
-### Task Arguments
+### Custom Processors
 
 Some task arguments take references which allow for dynamic imports of existing or
 user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
@@ -240,6 +236,17 @@ eval_avg_passage_recall = 0.7433
 eval_samples = 18670
 ```
 
+### Confidence Calibration
+
+To run [confidence calibration](https://arxiv.org/abs/2101.07942) on your fine-tuned model during inference use the following additional command line arguments:
+
+```shell
+       --output_dropout_rate 0.25 \
+       --decoding_times_with_dropout 5 \
+       --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
+       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+```
+
 ### List Answers
 Answering questions to which answers are collective e.g. lists.
 
@@ -262,13 +269,6 @@ The trained models are available on HuggingFace: [xlm-r->NQ lists](https://huggi
 
 ### Table QA
 PrimeQA also supports answering questions over tables.
-
-Currently supported TableQA datasets :
-- WikiSQL
-- SQA
-- User's Custom Data
-
-Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
 For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
 ```shell
