@@ -38,6 +38,9 @@ The above statements will generate an output in the form of a dictionary:
     }
 ]
 ```
+
+Additional inference examples can be found in the python [notebook](../../notebooks/mrc/mrc_usage_predict_mode.ipynb).
+
 ## Train and Evaluate
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
 
