@@ -36,14 +36,18 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx_design',
     # 'recommonmark',
-    'edit_on_github'
+    'edit_on_github',
+    'sphinx.ext.coverage'
 ]
 
+# Enable myst extensions
 myst_enable_extensions = ["colon_fence"]
 
-# Enable extensions
+# Turn on sphinx.ext.autosummary
+autosummary_generate = True 
 
-autosummary_generate = True  # Turn on sphinx.ext.autosummary
+# Configuration of sphinx.ext.coverage
+coverage_show_missing_items = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
