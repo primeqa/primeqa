@@ -33,14 +33,15 @@ class MRCPipeline():
         model.set_task_head(next(iter(task_heads)))        
 
         self.preprocessor = BasePreProcessor(
-            stride=128,
+            stride=256,
+            max_seq_len=512,
             tokenizer=tokenizer,)
         
         data_collator = DataCollatorWithPadding(tokenizer)
         postprocessor = ExtractivePostProcessor(
             k=3,
             n_best_size=20,
-            max_answer_length=30,
+            max_answer_length=1000,
             scorer_type=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF,
             single_context_multiple_passages=self.preprocessor._single_context_multiple_passages,
         )
