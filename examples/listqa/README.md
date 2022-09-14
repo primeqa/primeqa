@@ -1,6 +1,6 @@
 ## Description
 
-Instructions for running question answering when the answer is known to be a list. The first part processes the NQ dataset to get the list subset and convert into the TyDi Google format. A short answer model fine-tuned on list answers is ideal to achieve good performance. 
+Instructions for running question answering when the answer is known to be a list. The first part processes the NQ dataset to get the list subset and convert into the TyDi Google format. A short answer model fine-tuned on list answers is ideal to achieve good performance. Our MRC model uses short answer offsets to make predictions. Since in the original dataset the list answers are long answers without short answers, we adjust the outputted data to include the long answer offsets as the short answer offsets.
 
 ## Get the NQ train and dev list subsets from the full NQ dataset and convert to TyDi Google format (TyDiQAGooglePreprocessor):
 ```

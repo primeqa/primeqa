@@ -43,7 +43,10 @@ class ListNQSubset:
     """
 
     def __init__(self) -> None:
-        self._LIST_TAGS = {'<ol', '<ul', '<dl', '<li', '<dd', '<dt'}
+        self._LIST_TAGS = {'<ol', '<ul', '<dl'}
+        self.keep_list = False
+        self.keep_sa = True
+        self.avoid_overlap = False
         pass
 
     @staticmethod
@@ -116,6 +119,9 @@ class ListNQSubset:
         Get NQ annotations and return in TyDi format if its a list answer. 
         An answer is a list answer if the long answer starts with a list tag and the short answer is null
         """
+        is_list_count = 0
+        is_sa_count = 0
+
         tydi_annotations = []
         for annotation in annotations:
 
@@ -124,24 +130,45 @@ class ListNQSubset:
             is_list = False
             if html_tokens[long_span_start_token]['html_token']:
                 if html_tokens[long_span_start_token]['token'] == "*":
-                    is_list = True
-                    break
+                    text = ""
+                    answer_tokens = html_tokens[long_span_start_token:annotation['long_answer']['end_token']]
+                    for t in answer_tokens:
+                        text += t['token'] + " "
+                    if len(text.split("*")) > 2:
+                        is_list = True
                 else:
                     for list_tag in self._LIST_TAGS:
                         if html_tokens[long_span_start_token]['token'].lower().startswith(list_tag):
                             is_list = True
                             break
-            if not is_list:
-                continue
 
             if is_list and len(annotation['short_answers']) == 0:
-                start_byte, end_byte = self.drop_html_tokens_from_span(annotation['long_answer'],text_tokens)
+                is_list_count += 1
+                if self.keep_list:
+                    start_byte, end_byte = self.drop_html_tokens_from_span(annotation['long_answer'],text_tokens)
+                else:
+                    continue
+            elif self.keep_sa and len(annotation['short_answers']) == 0:
+                start_byte = end_byte = -1
+            elif self.keep_sa:
+                is_sa_count += 1
+                start_byte, end_byte = self.drop_html_tokens_from_span(annotation['short_answers'][0],text_tokens)
             else:
-                continue            
+                continue
+
+            if end_byte < start_byte:
+                logging.Error("error! end < start " + str(start_byte) + "," + str(end_byte))
+            ## non-lists end
+                    
             minimal_answer = {"plaintext_start_byte":start_byte,"plaintext_end_byte":end_byte}
             passage_answer = {"candidate_index":updated_indices[annotation['long_answer']['candidate_index']]}
 
-            tydi_annotations.append({'annotation_id':annotation['annotation_id'], 'minimal_answer': minimal_answer, 'passage_answer': passage_answer, 'yes_no_answer':annotation['yes_no_answer']})
+            tydi_annotations.append({'annotation_id':str(annotation['annotation_id']), 'minimal_answer': minimal_answer, 'passage_answer': passage_answer, 'yes_no_answer':annotation['yes_no_answer']})
+        
+        # may want to change this, but for now if its in the list subset, don't put in the sa subset (even if both types of answers)
+        if self.avoid_overlap and is_list_count >= 1 and self.keep_sa and not self.keep_list:
+            logging.info("list and short answer")
+            return []
         return tydi_annotations
 
     def get_paragraphs(self, candidates_json, text_tokens):
@@ -185,7 +212,7 @@ class ListNQSubset:
         tydi_format['document_plaintext'] = document_plaintext
         tydi_format['document_title'] = example['document_title']
         tydi_format['document_url'] = example['document_url']
-        tydi_format['example_id'] = example['example_id']
+        tydi_format['example_id'] = str(example['example_id'])
         tydi_format['language'] = 'english'
         tydi_format['question_text'] = example['question_text']
         tydi_format['passage_answer_candidates'], updated_indices = self.get_paragraphs(example['long_answer_candidates'], text_tokens)
@@ -193,11 +220,11 @@ class ListNQSubset:
         if len(tydi_format['annotations']) == 0:
             return None
         if verbose:
-            logging.info(example['example_id'])
-            logging.info(example['question_text'])
-            logging.info(document_plaintext.encode('utf-8')[tydi_format['annotations'][0]['minimal_answer']['plaintext_start_byte']:tydi_format['annotations'][0]['minimal_answer']['plaintext_end_byte']])
-            logging.info("-----------------")
-            logging.info()
+            if tydi_format['annotations'][0]['minimal_answer']['plaintext_start_byte'] != -1:
+                logging.info(example['example_id'])
+                logging.info(example['question_text'])
+                logging.info(document_plaintext.encode('utf-8')[tydi_format['annotations'][0]['minimal_answer']['plaintext_start_byte']:tydi_format['annotations'][0]['minimal_answer']['plaintext_end_byte']])
+                logging.info("-----------------")
         return tydi_format
 
     def process(self, input_file, output_file, num_lines=-1, verbose=False):

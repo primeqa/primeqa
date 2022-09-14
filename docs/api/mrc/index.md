@@ -56,6 +56,9 @@ The above statements will generate an output in the form of a dictionary:
     }
 ]
 ```
+
+Additional inference examples can be found in the python [notebook](../../notebooks/mrc/mrc_usage_predict_mode.ipynb).
+
 ## Train and Evaluate
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 
@@ -266,6 +269,7 @@ To run [confidence calibration](https://arxiv.org/abs/2101.07942) on your fine-t
 ```
 
 ### List Answers
+
 PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
@@ -276,11 +280,15 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --passage_non_null_threshold 1 \
        --minimal_non_null_threshold 1 \
 ```
-This yields the following results on English only using the TyDi evaluation script with two training strategies:
+
+This yields the following results on English only using the TyDi evaluation script with two training strategies. Please note the ListQA models use the NQ list data by using the long answers offsets as the short answer. Further details can be found in `examples/listqa/README.md`:
+
 ```
-xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
-xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
+xlm-roberta-large -> NQ Lists: Minimal F1 = 47.88
+xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 58.44 
 ```
+
+The trained models are available on HuggingFace: [xlm-r->NQ lists](https://huggingface.co/PrimeQA/listqa_nq-task-xlm-roberta-large) and [xlm-r->TyDi->NQ lists](https://huggingface.co/PrimeQA/tydiqa-ft-listqa_nq-task-xlm-roberta-large).
 
 ### Table QA
 PrimeQA also supports answering questions over tables.
@@ -317,22 +325,4 @@ The format of dataset required for training and evaluation is:
 
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
-
 Our python [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
-
-
-### Task Arguments
-
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
-
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
-
-Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
-for the `NewPreProcessor` corresponding to this dataset and schema.
