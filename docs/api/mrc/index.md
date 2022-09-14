@@ -60,15 +60,22 @@ The above statements will generate an output in the form of a dictionary:
 If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 
 ### Supported Datasets
-Currently supported datasets include:
+Currently supported MRC datasets include:
 - TyDiQA
 - SQuAD 1.1
 - XQuAD
 - MLQA
+- Natural Questions(NQ)
+
+Currently supported TableQA datasets :
+- WikiSQL
+- SQA
+
+User's can also provide data in a different format by creating their own [custom processor](#custom-processors) 
 
 ### Example Usage
 
- - Dataset: [TyDiQA](https://ai.google.com/research/tydiqa)
+ #### [TyDiQA](https://ai.google.com/research/tydiqa)
 
 An example usage for train + eval command on the TyDiQA dataset (default) is:
 ```shell
@@ -116,17 +123,7 @@ python primeqa/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
        --per_device_eval_batch_size 128 --overwrite_output_dir --overwrite_cache
 ```
 
-- if you want to do [confidence calibration](https://arxiv.org/abs/2101.07942) estimate of your fine-tuned model use the following:
-
-
-For eval with confidence calibration, add the following additional command line arguments:
-```shell
-       --output_dropout_rate 0.25 \
-       --decoding_times_with_dropout 5 \
-       --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
-       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
-```
- - Dataset: [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
+ #### [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
 For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
@@ -142,7 +139,7 @@ This yields the following results:
 eval_exact_match = 88.7133
 eval_f1          = 94.3525
 ```
- - Dataset: [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
+ #### [XQuAD](https://arxiv.org/pdf/1910.11856v3.pdf)
 
 
 For the XQuAD dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
@@ -162,7 +159,7 @@ This yields the following results:
 |F1| 87.5 | 82.1 | 80.7 |81.5 | 80.0 | 75.0| 75.1| 80.0|75.3|70.3|77.2|
 |EM| 76.7 | 63.4 | 65.4 |64.2 | 63.6 | 59.3| 59.1| 61.3|65.5|62.2|61.8|
 
- - Dataset: [MLQA](https://github.com/facebookresearch/MLQA)
+ #### [MLQA](https://github.com/facebookresearch/MLQA)
 
 For the MLQA dataset run the evaluation script after the model has been trained on SQuAD 1.1. 
 The dataset configurations for all language combinations are supported.
@@ -181,9 +178,61 @@ This yields the following results:
 |F1| 84.8 | 75.9 | 68.8 |67.7 | 72.1 | 71.8| 69.8|
 |EM| 72.9 | 57.2 | 52.7 |46.6 | 55.6 | 52.1| 50.0|
 
- -  PrimeQA also supports special Features for MRC systems as follows:
+ #### [Natural Questions](https://ai.google.com/research/NaturalQuestions)
 
- -  Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
+For the NQ dataset use the following additional command line arguments for train + eval :
+```shell
+       --dataset_name natural_questions \
+       --dataset_config_name default \
+       --postprocessor primeqa.mrc.processors.postprocessors.natural_questions.NaturalQuestionsPostProcessor \
+       --preprocessor primeqa.mrc.processors.preprocessors.natural_questions.NaturalQuestionsPreProcessor \
+       --beam_runner DirectRunner \
+       --num_train_epochs 1 \
+       --learning_rate 3e-5 \
+       --eval_metrics NQF1
+```
+This yields the following results:
+```
+LONG ANSWER R@P TABLE:
+Optimal threshold: 4.0808
+F1 / P / R
+65.09% / 64.54% / 65.65%
+R@P=0.5: 77.76% (actual p=50.12%, score threshold=1.979)
+R@P=0.75: 41.85% (actual p=75.01%, score threshold=5.523)
+R@P=0.9: 4.20% (actual p=90.32%, score threshold=8.189)
+
+SHORT ANSWER R@P TABLE:
+Optimal threshold: 4.0822
+F1 / P / R
+56.76% / 57.24% / 56.28%
+R@P=0.5: 61.23% (actual p=50.01%, score threshold=3.235)
+R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
+R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
+```
+
+### Custom Processors
+
+Some task arguments take references which allow for dynamic imports of existing or
+user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
+`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
+Alternatively, a new postprocessor could be written and selected with 
+`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+
+For example, if one was implementing a new model which made predictions by means other than
+an extractive head then a `NewPostProcessor` which derived predictions from the model
+outputs would be needed.
+
+Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
+This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
+for the `NewPreProcessor` corresponding to this dataset and schema.
+
+
+## Special MRC Features:
+
+PrimeQA also supports special features for MRC systems as follows:
+
+### Boolean Questions
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
@@ -205,7 +254,19 @@ eval_avg_passage_recall = 0.7433
 eval_samples = 18670
 ```
 
- - PrimeQA also supports answering questions to which answers are collective e.g. lists.
+### Confidence Calibration
+
+To run [confidence calibration](https://arxiv.org/abs/2101.07942) on your fine-tuned model during inference use the following additional command line arguments:
+
+```shell
+       --output_dropout_rate 0.25 \
+       --decoding_times_with_dropout 5 \
+       --confidence_model_path ${CONFIDENCE_MODEL_PATH} \
+       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+```
+
+### List Answers
+PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
 For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
 ```
@@ -221,14 +282,8 @@ xlm-roberta-large -> NQ Lists: Minimal F1 = 46.95
 xlm-roberta-large -> PrimeQA/tydiqa-primary-task-xlm-roberta-large -> NQ Lists: Minimal F1 = 57.44
 ```
 
-### PrimeQA also supports answering questions over tables
-
-Currently supported TableQA datasets :
-- WikiSQL
-- SQA
-- User's Custom Data
-
-Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
+### Table QA
+PrimeQA also supports answering questions over tables.
 
 For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
 ```shell
