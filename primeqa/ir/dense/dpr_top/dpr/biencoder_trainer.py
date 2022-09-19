@@ -32,7 +32,8 @@ class BiEncoderTrainArgs(BiEncoderHypers):
         super()._post_init()
         if self.num_instances <= 0:
             if self.training_data_type == 'dpr':      # .json, as in https://dl.fbaipublicfiles.com/dpr/data/retriever/biencoder-nq-dev.json.gz
-                self.num_instances = sum(1 for _ in jsonl_records(self.train_dir))
+                for rec in jsonl_records(self.train_dir):
+                    self.num_instances += len(rec['positive_ctxs']) # as expanded in _one_load(self, lines)
             elif self.training_data_type == 'jsonl':  # ,jsonl, as in the original code in https://github.com/IBM/kgi-slot-filling/tree/re2g
                 self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*.jsonl*'))
             elif self.training_data_type == 'text_triples':    # .tsv, containing [query, positive, negative] triples
@@ -127,6 +128,10 @@ class BiEncoderTrainer():
         while True:
             self.batches = self.loader.get_dataloader()
             if not self.optimizer.should_continue() or self.batches is None:
+                if not self.optimizer.should_continue():
+                    logger.info(f'Breaking, self.optimizer.should_continue() is False')
+                if self.batches is None:
+                    logger.info(f'Breaking, self.batches is None')
                 break
             logger.info(f'len(self.batches) {len(self.batches)}')
 
@@ -135,6 +140,7 @@ class BiEncoderTrainer():
                     raise NotImplementedError(f'Resuming training from a checkpoint is not supported (yet) for world_size != 1.')
 
                 self.load_checkpoint(self.args.resume_from_checkpoint)
+                self.args.resume_from_checkpoint = ''
 
             for batch_num in list(range(self.first_batch_num, self.batches.num_batches)):
                 batch = self.batches[batch_num]
@@ -150,7 +156,7 @@ class BiEncoderTrainer():
                     self.optimizer.optimizer_report()
 
                 if time.time() - self.last_save_time > 60 * 60 or \
-                        (self.args.save_every_num_batches > 0 and (batch_num % self.args.save_every_num_batches) == 0):
+                        (self.args.save_every_num_batches > 0 and batch_num > 0 and (batch_num % self.args.save_every_num_batches) == 0):
                     # save once an hour or after each "save_every_num_batches" (whichever is more frequent)
                     self.save_checkpoint(os.path.join(self.args.output_dir, "latest_checkpoint"), batch_num)
                     model_to_save = (self.optimizer.model.module if hasattr(self.optimizer.model, "module") else self.optimizer.model)
@@ -164,6 +170,7 @@ class BiEncoderTrainer():
             logger.info(f'saving to {self.args.output_dir}')
             model_to_save.save(self.args.output_dir)
             self.last_save_time = time.time()
+            self.first_batch_num = 0
 
         # save after running out of files or target num_instances
         logger.info(f'All done')

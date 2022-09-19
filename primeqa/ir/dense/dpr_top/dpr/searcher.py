@@ -35,6 +35,8 @@ class Options(DPROptions):
         self.qry_tokenizer_path = ''
         self.queries = ''
 
+        self.query_file_type = 'id_text'
+
         self.__required_args__ = ['corpus_dir', 'output']
 
         # for compatibility with run_ir.py
@@ -233,7 +235,13 @@ class DPRSearcher():
                 output = output_fh
             id_batch, query_batch = [], []
             for line_ndx, line in enumerate(read_lines(self.opts.queries)):
-                [qry_id, qry_text] = next(csv.reader([line], delimiter="\t", quotechar='"'))
+                if self.opts.query_file_type == 'id_text':
+                    [qry_id, qry_text] = next(csv.reader([line], delimiter="\t", quotechar='"'))
+                elif self.opts.query_file_type == 'text_answers':
+                    [qry_text, answers] = next(csv.reader([line], delimiter="\t", quotechar='"'))
+                    qry_id = line_ndx
+                else:
+                    raise NotImplementedError(f"Query file type {self.opts.query_file_type} is not implemented (yet).")
                 id_batch.append(qry_id)
                 query_batch.append(qry_text)
                 if len(query_batch) == self.opts.retrieve_batch_size:
