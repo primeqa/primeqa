@@ -46,7 +46,6 @@ _deps = {
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install"],
     "datasets[apache-beam]~=2.3.2": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
     "faiss-cpu~=1.7.2": ["install"],
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
@@ -56,11 +55,9 @@ _deps = {
     "ninja~=1.10.2.3": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
-    "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
@@ -70,7 +67,6 @@ _deps = {
     "signals~=0.0.2": ["install"],
     "spacy~=3.2.2": ["install"],
     "stanza~=1.4.0":["install"],
-    "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
@@ -87,8 +83,12 @@ _deps = {
     "protobuf~=3.20.0": ["install"],
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
-    "rouge_score":["install"]
-
+    "rouge_score":["install"], 
+    "myst-parser~=0.17.2": ["docs"],
+    "pydata-sphinx-theme~=0.9.0": ["docs"],
+    "sphinx~=4.4.0": ["docs"],
+    "sphinx_design~=0.2.0": ["docs"],
+    "recommonmark~=0.7.1":["docs"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]

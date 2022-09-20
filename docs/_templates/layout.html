@@ -1,0 +1,6 @@
+{% extends "pydata_sphinx_theme/layout.html" %}
+
+{%- block css %}
+<link rel="stylesheet" href="{{pathto('_static/plex.css', 1)|e}}" type="text/css">
+{{ super() }}
+{%- endblock %}
