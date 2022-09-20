@@ -195,21 +195,41 @@ R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
 
-### Custom Processors
+### Custom Data
 
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+Users can also train and evaluate the MRC model on custom data by proving train_file and eval_file. 
+To run MRC on custom data use the following parameters:
 
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
+```shell
+       --train_file "<path_to_train.json>" \
+       --eval_file "<path_to_eval.json>" \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --eval_metrics SQUAD 
+
+```
+
+The format of dataset required for training and evaluation is:
+
+```shell
+{"id":"1","title":"Pets","context":"Bob walks the dog and Alice walks the cat.","question":"Who walked the dog?","answers":{"text":["Bob"],"answer_start":[0]}}
+
+```
 
 Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
 This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
 for the `NewPreProcessor` corresponding to this dataset and schema.
+
+PrimeQA allows for dynamic imports of existing or user-defined functionality using the task arguments.
+
+For example, to select the `ExtractivePostProcessor` use
+`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
+Alternatively, a new postprocessor could be written and selected with 
+`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+
+If one was implementing a new model which made predictions by means other than
+an extractive head then a `NewPostProcessor` which derived predictions from the model
+outputs would be needed.
 
 
 ## Special MRC Features:
