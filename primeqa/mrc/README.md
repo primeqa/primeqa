@@ -56,7 +56,7 @@ Currently supported TableQA datasets :
 - WikiSQL
 - SQA
 
-User's can also provide data in a different format by creating their own [custom processor](#custom-processors) 
+User's can also provide their own [custom data](#custom-data) 
 
 ### Example Usage
 
