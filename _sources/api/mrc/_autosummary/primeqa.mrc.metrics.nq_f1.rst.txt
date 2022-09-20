@@ -1,0 +1,32 @@
+nq\_f1
+======
+
+.. automodule:: primeqa.mrc.metrics.nq_f1
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.metrics.nq_f1.eval_utils
+   primeqa.mrc.metrics.nq_f1.nq_eval
+   primeqa.mrc.metrics.nq_f1.nq_f1
+

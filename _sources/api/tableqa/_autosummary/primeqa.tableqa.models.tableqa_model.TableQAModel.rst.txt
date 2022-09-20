@@ -16,7 +16,7 @@ primeqa.tableqa.models.tableqa\_model.TableQAModel
    .. autosummary::
       :nosignatures:
    
-      ~TableQAModel.predict_from_dict
+      ~TableQAModel.predict
    
    
 

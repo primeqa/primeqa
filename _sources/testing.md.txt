@@ -14,7 +14,7 @@ For more information, see:
 - Our [tox.ini](https://github.com/primeqa/primeqa/blob/main/tox.ini)
 - The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation
 
-### Continuous Integration
+## Continuous Integration
 
 PrimeQA uses GitHub Actions to ensure all unit tests pass before a PR can be merged.
 Further, multiple versions of Python are tested in parallel.

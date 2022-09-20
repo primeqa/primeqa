@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.nq\_eval.print\_r\_at\_p\_table
+==========================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+.. autofunction:: print_r_at_p_table

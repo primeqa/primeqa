@@ -28,6 +28,7 @@ postprocessors
 
    primeqa.mrc.processors.postprocessors.abstract
    primeqa.mrc.processors.postprocessors.extractive
+   primeqa.mrc.processors.postprocessors.natural_questions
    primeqa.mrc.processors.postprocessors.scorers
    primeqa.mrc.processors.postprocessors.squad
 

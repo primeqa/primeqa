@@ -88,6 +88,7 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.reranker
       ~ColBERTConfig.resume
       ~ColBERTConfig.resume_optimizer
+      ~ColBERTConfig.rng_seed
       ~ColBERTConfig.root
       ~ColBERTConfig.save_epochs
       ~ColBERTConfig.save_every

@@ -1,0 +1,31 @@
+primeqa.mrc.processors.preprocessors.natural\_questions.NaturalQuestionsPreProcessor
+====================================================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.natural_questions
+
+.. autoclass:: NaturalQuestionsPreProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NaturalQuestionsPreProcessor.adapt_dataset
+      ~NaturalQuestionsPreProcessor.get_annotations
+      ~NaturalQuestionsPreProcessor.label_features_for_subsampling
+      ~NaturalQuestionsPreProcessor.process_eval
+      ~NaturalQuestionsPreProcessor.process_train
+      ~NaturalQuestionsPreProcessor.subsample_features
+      ~NaturalQuestionsPreProcessor.validate_schema
+   
+   
+
+   
+   
+   

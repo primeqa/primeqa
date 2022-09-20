@@ -1,0 +1,44 @@
+nq\_eval
+========
+
+.. automodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      compute_f1
+      compute_final_f1
+      compute_optimal_metrics
+      compute_pr_curves
+      extract_metrics_at_optimal_threshold
+      get_metrics_as_dict
+      get_metrics_with_answer_stats
+      load_gt_lookup_as_dict
+      pretty_print
+      print_r_at_p_table
+      safe_divide
+      score_answers
+      score_long_answer
+      score_short_answer
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

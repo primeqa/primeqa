@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.eval\_utils.is\_null\_span\_list
+===========================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.eval_utils
+
+.. autofunction:: is_null_span_list

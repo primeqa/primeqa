@@ -1,0 +1,37 @@
+primeqa.mrc.metrics.nq\_f1.eval\_utils.NQLabel
+==============================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.eval_utils
+
+.. autoclass:: NQLabel
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NQLabel.count
+      ~NQLabel.index
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NQLabel.example_id
+      ~NQLabel.long_answer_span
+      ~NQLabel.long_score
+      ~NQLabel.short_answer_span_list
+      ~NQLabel.short_score
+      ~NQLabel.yes_no_answer
+   
+   

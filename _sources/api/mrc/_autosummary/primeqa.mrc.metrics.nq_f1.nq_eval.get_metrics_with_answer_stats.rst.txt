@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.nq\_eval.get\_metrics\_with\_answer\_stats
+=====================================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+.. autofunction:: get_metrics_with_answer_stats

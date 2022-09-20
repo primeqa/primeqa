@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.nq\_eval.extract\_metrics\_at\_optimal\_threshold
+============================================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+.. autofunction:: extract_metrics_at_optimal_threshold

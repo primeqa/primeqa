@@ -1,0 +1,38 @@
+primeqa.mrc.metrics.nq\_f1.eval\_utils.NQSpan
+=============================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.eval_utils
+
+.. autoclass:: NQSpan
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NQSpan.contains
+      ~NQSpan.is_null_span
+      ~NQSpan.null_span
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NQSpan.start_byte
+      ~NQSpan.end_byte
+      ~NQSpan.start_token
+      ~NQSpan.end_token
+      ~NQSpan.score
+      ~NQSpan.long_score
+   
+   

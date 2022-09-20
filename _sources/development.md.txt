@@ -1,4 +1,3 @@
-(development)=
 # Development
 <!-- [<i class="fas fa-edit"></i> Edit on GitHub](https://github.com/primeqa/primeqa/edit/main/docs/development.md)         -->
 
@@ -127,4 +126,4 @@ An example for MRC on Tydi is [here](https://github.com/primeqa/primeqa/blob/mai
 Documentation pages (such as this one) are generated from a collection of Markdown files located
 in `docs`. It also contains a subfolder calles `_static/img` which contains any (legally usable) images needed for documentation purposes. 
 
-#### [Deploying Sphinx Docs as project online](https://github.com/primeqa/primeqa/blob/main/docs/README.md#deploying-a-sphinx-project) 
+#### [Deploying Sphinx Docs as project online](README.md) 

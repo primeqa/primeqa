@@ -1,0 +1,57 @@
+eval\_utils
+===========
+
+.. automodule:: primeqa.mrc.metrics.nq_f1.eval_utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      gold_has_long_answer
+      gold_has_short_answer
+      is_null_span_list
+      nonnull_span_equal
+      parse_json_as_predictions
+      parse_json_as_topk_predictions
+      read_annotation
+      read_annotation_from_one_split
+      read_prediction_json_from_file
+      span_set_equal
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      NQLabel
+      NQSpan
+   
+   
+
+   
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+      :toctree:
+   
+      InconsistentSpanError
+   
+   
+
+
+

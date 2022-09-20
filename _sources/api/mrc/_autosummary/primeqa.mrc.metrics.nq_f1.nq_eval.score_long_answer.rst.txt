@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.nq\_eval.score\_long\_answer
+=======================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+.. autofunction:: score_long_answer

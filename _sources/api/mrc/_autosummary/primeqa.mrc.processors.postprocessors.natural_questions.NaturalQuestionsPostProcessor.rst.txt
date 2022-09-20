@@ -1,0 +1,27 @@
+primeqa.mrc.processors.postprocessors.natural\_questions.NaturalQuestionsPostProcessor
+======================================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.natural_questions
+
+.. autoclass:: NaturalQuestionsPostProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NaturalQuestionsPostProcessor.prepare_examples_as_references
+      ~NaturalQuestionsPostProcessor.process
+      ~NaturalQuestionsPostProcessor.process_references_and_predictions
+   
+   
+
+   
+   
+   

@@ -1,0 +1,46 @@
+primeqa.mrc.metrics.nq\_f1.nq\_f1.NQF1
+======================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_f1
+
+.. autoclass:: NQF1
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NQF1.add
+      ~NQF1.add_batch
+      ~NQF1.compute
+      ~NQF1.download_and_prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~NQF1.citation
+      ~NQF1.codebase_urls
+      ~NQF1.description
+      ~NQF1.experiment_id
+      ~NQF1.features
+      ~NQF1.format
+      ~NQF1.homepage
+      ~NQF1.info
+      ~NQF1.inputs_description
+      ~NQF1.license
+      ~NQF1.name
+      ~NQF1.reference_urls
+      ~NQF1.streamable
+   
+   

@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.nq\_f1.nq\_eval.pretty\_print
+=================================================
+
+.. currentmodule:: primeqa.mrc.metrics.nq_f1.nq_eval
+
+.. autofunction:: pretty_print
