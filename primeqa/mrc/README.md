@@ -51,6 +51,7 @@ Currently supported MRC datasets include:
 - XQuAD
 - MLQA
 - Natural Questions(NQ)
+- Custom Data
 
 Currently supported TableQA datasets :
 - WikiSQL
@@ -197,7 +198,7 @@ R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 
 ### Custom Data
 
-Users can also train and evaluate the MRC model on custom data by proving train_file and eval_file. 
+Users can also train (fine-tune) and evaluate the MRC model on custom data by proving train_file and eval_file. 
 To run MRC on custom data use the following parameters:
 
 ```shell
@@ -211,10 +212,20 @@ To run MRC on custom data use the following parameters:
 
 The format of dataset required for training and evaluation is:
 
-```shell
-{"id":"1","title":"Pets","context":"Bob walks the dog and Alice walks the cat.","question":"Who walked the dog?","answers":{"text":["Bob"],"answer_start":[0]}}
+```json
+{
+    "id": "1",
+    "title": "Pets",
+    "context": "Bob walks the dog and Alice walks the cat.",
+    "question": "Who walked the dog?",
+    "answers": {
+        "text": ["Bob"],
+        "answer_start": [0]
+    }
+}
 
 ```
+The starting point of fine-tuning on some custom data can be an already trained model available on our [model hub](https://huggingface.co/PrimeQA), for example, this [model](https://huggingface.co/PrimeQA/squad-v1-roberta-large) trained on [SQuAD 1.1](https://aclanthology.org/D16-1264/). On the other hand, one can completely start fresh with a model initialized with a large pre-trained language model e.g. [RoBERTa](https://huggingface.co/roberta-large/) and fine-tune on their custom data. Note: typically, starting with an already fine-tuned model on SQuAD 1.1 is better than starting fresh on your own custom data.
 
 Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
 This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
