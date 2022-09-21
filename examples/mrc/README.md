@@ -76,4 +76,4 @@ To run MRC on custom data in PrimeQA Base format, use the following additional p
 
 ### Custom Data in own Custom format
 
-Alternatively, a user can create their own pre-processor to be used with their custom data format. The preprocessor must inherit from the BasePreProcessor. The existing pre-processors can be used as a template to get started.
+Alternatively, a user can create their own pre-processor to be used with their custom data format. The preprocessor must inherit from the [BasePreProcessor](https://github.com/primeqa/primeqa/blob/mrc-user-data/primeqa/mrc/processors/preprocessors/base.py). The existing pre-processors can be used as a template to get started.
