@@ -11,7 +11,7 @@ class EncoderWrapper(torch.nn.Module):
     def __init__(self, encoder, use_checkpoint=False):
         super().__init__()
         self.encoder = encoder
-        # TODO checkpointing
+        self.main_input_name = encoder.main_input_name
     
     def forward(self, input_ids=None, attention_mask=None, return_dict=False, **kwargs):
         # total_length = n_passages * passage_length
@@ -52,26 +52,21 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
                             f"See {self.model_class_from_config.__name__} or {self.from_config.__name__} "
                             f"for creating and instantiating these subclasses.")
 
-        self._task_head = None
+        self._task_head = task_heads
 
-        # Set the model to match the pre-trained name (e.g. self.roberta) so it can be loaded from pretrained
-        setattr(self, self.base_model_prefix, MODEL_MAPPING[config.__class__](config))
+    # @property
+    # def model_(self) -> PreTrainedModel:  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
+    #     """
+    #     Returns the underlying language model. This is an alias to simplify access.
+    #     """
+    #     return getattr(self, self.base_model_prefix)
 
-        self.init_weights()
-
-    @property
-    def model_(self) -> PreTrainedModel:  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
-        """
-        Returns the underlying language model. This is an alias to simplify access.
-        """
-        return getattr(self, self.base_model_prefix)
-
-    @property
-    def task_head(self) -> AbstractTaskHead:
-        """
-        Return the current task head or raises a `ValueError` if it has not yet been set.
-        """
-        return None
+    # @property
+    # def task_head(self) -> AbstractTaskHead:
+    #     """
+    #     Return the current task head or raises a `ValueError` if it has not yet been set.
+    #     """
+    #     return None
 
     def forward(self,
                 input_ids=None,
@@ -82,7 +77,8 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
     
         if input_ids != None:
             if input_ids.dim() == 3:
-                self.model.encoder.n_passages = input_ids.size(1)
+                encoder = self.get_encoder()
+                encoder.n_passages = input_ids.size(1)
             input_ids = input_ids.view(input_ids.size(0), -1)
         if attention_mask != None:
             attention_mask = attention_mask.view(attention_mask.size(0), -1)
@@ -96,7 +92,8 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
         return outputs
         
     def generate(self, input_ids, **gen_kwargs):
-        self.model.encoder.n_passages = input_ids.size(1)
+        encoder = self.get_encoder()
+        encoder.n_passages = input_ids.size(1)
         return super().generate(
             input_ids,
             **gen_kwargs
@@ -123,14 +120,31 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
         """
         model_class = cls.model_class_from_config(config)
         model = model_class.from_pretrained(*args, config=config, **kwargs)
-        model.model.encoder = EncoderWrapper(model.model.encoder)
+        encoder_model = model.get_encoder()
+        model.set_encoder(EncoderWrapper(encoder_model))
         return model
 
     def set_task_head(self, task_head: str) -> None:
         pass
     
-    def save_pretrained( self, *args, **kwargs,):
-        encoder_wrapper = self.model.encoder
-        self.model.encoder = encoder_wrapper.encoder
+    def save_pretrained(self, *args, **kwargs,):
+        encoder_wrapper = self.get_encoder()
+        self.set_encoder(encoder_wrapper.encoder)
         super().save_pretrained(*args,**kwargs) 
-        self.model.encoder = encoder_wrapper
+        self.set_encoder(encoder_wrapper)
+
+    def get_encoder(self):
+        if hasattr(self, "model"):
+            return self.model.encoder
+        elif hasattr(self, "encoder"):
+            return self.encoder
+        else:
+            raise NotImplementedError
+        
+    def set_encoder(self, encoder_model):
+        if hasattr(self, "model"):
+            self.model.encoder = encoder_model
+        elif hasattr(self, "encoder"):
+            self.encoder = encoder_model
+        else:
+            raise NotImplementedError            
