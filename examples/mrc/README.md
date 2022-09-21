@@ -7,11 +7,12 @@ Usage with benchmark datasets is described [here](../../primeqa/mrc/README.md#ex
 
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
-
 ### Getting Started
 Users can train (fine-tune) and evaluate the MRC model on custom data by providing a train_file and eval_file. 
 
-Custom training and evaluation data may be provided in one of the formats supported by any of the available preprocessors such as SQUADPreprocessor or the BasePreProcessor. A sample [run script](run_mrc.sh) has been provided to get started using data in SQuAD format. The [SQuADPreprocessor format](./README.md#Custom-Data-in-Huggingface-SQUAD-format) only supports the basic setup where the answer is a span in the provided passage. For more complex datasets (e.g. boolean question, multiple passages) use the [BasePreprocessor format](./README.md#Custom-Data-in-PrimeQA-Base-format). Finally, if the existing preprocessors do not support your data you must make a [custom preprocessor format](./README.md#Custom-Data-in-own-custom-format).  
+Custom training and evaluation data may be provided in one of the formats supported by any of the available preprocessors such as SQUADPreprocessor or the BasePreProcessor. A sample [run script](run_mrc.sh) has been provided to get started using data in SQuAD format. The [SQuADPreprocessor format](./README.md#Custom-Data-in-Huggingface-SQUAD-format) only supports the basic setup where the answer is a span in the provided passage. For more complex datasets (e.g. boolean question, multiple passages) use the [BasePreprocessor format](./README.md#Custom-Data-in-PrimeQA-Base-format). Finally, if the existing preprocessors do not support your data you must make a [custom preprocessor](./README.md#Custom-Data-in-own-custom-format).  
+
+The starting point of fine-tuning on custom data can use an already trained model available in our [model hub](https://huggingface.co/PrimeQA). For example, this [model](https://huggingface.co/PrimeQA/squad-v1-roberta-large) trained on [SQuAD 1.1](https://aclanthology.org/D16-1264/). On the other hand, one can completely start fresh with a model initialized with a large pre-trained language model e.g. [RoBERTa](https://huggingface.co/roberta-large/) and fine-tune on their custom data. Note: typically, starting with an already fine-tuned model on SQuAD 1.1 is better than starting fresh on your own custom data.
 
 #### Custom Data in Huggingface SQUAD format
 
