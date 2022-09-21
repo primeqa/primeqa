@@ -18,12 +18,12 @@ The starting point of fine-tuning on custom data can use an already trained mode
 
 #### [PrimeQA SQuAD 1.1](https://huggingface.co/PrimeQA/squad-v1-roberta-large)
 ```shell
---model_name_or_path roberta-large
+--model_name_or_path PrimeQA/squad-v1-roberta-large
 ```
 
 #### [RoBERTa](https://huggingface.co/roberta-large/)
 ```shell
---model_name_or_path PrimeQA/squad-v1-roberta-large
+--model_name_or_path roberta-large
 ```
 
 ### Custom Data in Huggingface SQUAD format
