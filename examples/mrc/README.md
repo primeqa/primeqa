@@ -34,7 +34,7 @@ This is an example of data in SQUAD format.
 ```
 
 The examples must be provided in a file where each line is an example in JSON format.
-Example files are [training data](./custom_data/examples_train_squad.json) [evaluation data](./custom_data/examples_eval_squad.json).
+Example files are [training data file](./custom_data/examples_train_squad.json) and [evaluation data](./custom_data/examples_eval_squad.json).
 
 A sample [run script](run_mrc.sh) has been provided to get started using data in SQuAD format. 
 
@@ -62,7 +62,7 @@ This is an example in the PrimeQA base format:
     "example_id":"a00d476e-22c4-4fcd-9e89-f1fee10bd110"}
 ```
 The examples must be provided in a file where each line is an example in JSON format.
-Example files are: [training data](./custom_data/examples_train_base.json), and [evaluation data](./custom_data/examples_eval_base.json)
+Example files are: [training data file ](./custom_data/examples_train_base.json), and [evaluation data file](./custom_data/examples_eval_base.json)
 
 To run MRC on custom data in PrimeQA Base format, use the following additional parameters:
 
@@ -76,4 +76,4 @@ To run MRC on custom data in PrimeQA Base format, use the following additional p
 
 ### Custom Data in own Custom format
 
-Alternatively, a user can create their own pre- processor to be used with their custom data format. The preprocessor must inherit from the BasePreProcessor. The existing pre-processors can be used as a template to get started.
+Alternatively, a user can create their own pre-processor to be used with their custom data format. The preprocessor must inherit from the BasePreProcessor. The existing pre-processors can be used as a template to get started.
