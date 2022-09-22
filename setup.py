@@ -84,6 +84,7 @@ _deps = {
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
     "rouge_score":["install"], 
+    "rouge":["install"],
     "myst-parser~=0.17.2": ["docs"],
     "pydata-sphinx-theme~=0.9.0": ["docs"],
     "sphinx~=4.4.0": ["docs"],
