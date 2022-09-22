@@ -10,7 +10,6 @@ class AbstractPostProcessor(metaclass=ABCMeta):
     Base class for post processors.
     """
     def __init__(self,
-                 *args,
                  k: int,
                  max_answer_length: int, 
                  single_context_multiple_passages: bool = False,
