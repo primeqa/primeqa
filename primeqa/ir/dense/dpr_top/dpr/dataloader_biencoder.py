@@ -181,20 +181,16 @@ class BiEncoderLoader(MultiFileLoader):
                 # using all positives, one negative per positive, hard negative if available
                 for positive_ctx in line['positive_ctxs']:
                     positive = positive_ctx['title'], positive_ctx['text']
-                    if len(line['hard_negative_ctxs']) > 0:
-                        negs = line['hard_negative_ctxs']
-                    else:
-                        negs = line['negative_ctxs']
-                    if self.hypers.sample_negative_from_top_k > 0:
+
+                    for negs, max_negs_num in [(line['negative_ctxs'], self.hypers.max_negatives), (line['hard_negative_ctxs'], self.hypers.max_hard_negatives)]:
+                        for pos in range(min(len(negs), max_negs_num)):
                             neg_ndx = random.randint(0, min(len(negs), self.hypers.sample_negative_from_top_k)-1)
-                    else:
-                        neg_ndx = 0
-                    hard_neg = negs[neg_ndx]['title'], negs[neg_ndx]['text']
-                    ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
-                    pos_pids = []
-                    assert len(positive) == 2
-                    assert len(hard_neg) == 2
-                    insts.append(BiEncoderInst(qry, positive, hard_neg, pos_pids, ctx_pids))
+                            neg = negs[neg_ndx]['title'], negs[neg_ndx]['text']
+                            ctx_pids = [-1, -1]  # TODO: just a hack to avoid the assert in BiEncoderInst.__init__
+                            pos_pids = []
+                            assert len(positive) == 2
+                            assert len(neg) == 2
+                            insts.append(BiEncoderInst(qry, positive, neg, pos_pids, ctx_pids))
         elif self.hypers.training_data_type == 'jsonl':
             for line in lines:
                 jobj = json.loads(line)

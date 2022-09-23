@@ -26,6 +26,8 @@ class BiEncoderTrainArgs(BiEncoderHypers):
         self.save_every_num_batches = 0
         self.log_every_num_batches = 0
         self.log_all_losses = False
+        self.max_negatives = 0
+        self.max_hard_negatives = 1
         self.__required_args__ = ['train_dir', 'output_dir']
 
     def _post_init(self):
@@ -33,7 +35,7 @@ class BiEncoderTrainArgs(BiEncoderHypers):
         if self.num_instances <= 0:
             if self.training_data_type == 'dpr':      # .json, as in https://dl.fbaipublicfiles.com/dpr/data/retriever/biencoder-nq-dev.json.gz
                 for rec in jsonl_records(self.train_dir):
-                    self.num_instances += len(rec['positive_ctxs']) # as expanded in _one_load(self, lines)
+                    self.num_instances += len(rec['positive_ctxs']) * (min(self.max_negatives, len(rec['negative_ctxs'])) + min(self.max_hard_negatives, len(rec['hard_negative_ctxs']))) # as expanded in _one_load(self, lines)
             elif self.training_data_type == 'jsonl':  # ,jsonl, as in the original code in https://github.com/IBM/kgi-slot-filling/tree/re2g
                 self.num_instances = sum(1 for _ in jsonl_lines(self.train_dir, file_suffix='*.jsonl*'))
             elif self.training_data_type == 'text_triples':    # .tsv, containing [query, positive, negative] triples

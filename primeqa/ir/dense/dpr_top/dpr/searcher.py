@@ -1,4 +1,4 @@
-from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer)
+from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
 import torch
 import csv
 from typing import List
@@ -32,7 +32,7 @@ class Options(DPROptions):
         self.corpus_dir = ''
         # ^ from corpus_server_direct.__init__
 
-        self.qry_tokenizer_path = ''
+        self.qry_tokenizer_path = 'facebook/dpr-question_encoder-multiset-base'
         self.queries = ''
 
         self.query_file_type = 'id_text'
@@ -61,6 +61,7 @@ class DPRSearcher():
         self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_path)
         self.qencoder.eval()
         self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_tokenizer_path)
+        #self.tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.opts.qry_encoder_path)
 
         # from corpus_server_direct.run
         # we either have a single index.faiss or we have an index for each offsets/passages
