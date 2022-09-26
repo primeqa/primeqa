@@ -126,4 +126,12 @@ An example for MRC on Tydi is [here](https://github.com/primeqa/primeqa/blob/mai
 Documentation pages (such as this one) are generated from a collection of Markdown files located
 in `docs`. It also contains a subfolder calles `_static/img` which contains any (legally usable) images needed for documentation purposes. 
 
+### Wheel build
+
+The PrimeQA wheel can be built with the command
+
+```shell
+python setup.py bdist_wheel --universal
+```
+
 #### [Deploying Sphinx Docs as project online](README.md) 
