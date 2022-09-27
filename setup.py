@@ -40,7 +40,6 @@ _deps = {
     "ipykernel~=6.13.0": ["notebooks"],
     "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
-    "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
     "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
@@ -54,7 +53,6 @@ _deps = {
     "pytest-rerunfailures~=10.2": ["tests"],
     "scikit-learn~=1.0.2": ["install"],
     "signals~=0.0.2": ["install"],
-    "spacy~=3.2.2": ["install"],
     "stanza~=1.4.0":["install"],
     "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
@@ -69,7 +67,6 @@ _deps = {
     "sentencepiece~=0.1.96": ["install"],
     "protobuf~=3.20.0": ["install"],
     "tqdm~=4.64.0": ["install"],
-    "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
     "rouge_score":["install"]
 
