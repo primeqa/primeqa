@@ -322,6 +322,47 @@ html {
     color: #6ebf26 !important;
 }
 
+.highlight pre .ow {
+    color: #6ebf26 !important;
+}
+
+.highlight pre .kc {
+    color: #6ebf26 !important;
+}
+
 .bd-article .readme-msg {
     visibility: hidden !important;
+}
+
+.nd {
+    color: #ffa500 !important;
+}
+
+.nf {
+    color: #71adff !important;
+}
+
+.gp {
+    color: #aaaaaa !important;
+}
+
+.go {
+    color: #cccccc !important;
+}
+
+.admonition.note p {
+    color: #c9d1d9 !important;
+}
+
+.admonition.warning p {
+    color: #c9d1d9 !important;
+}
+
+.admonition-title {
+    color: #c9d1d9 !important;
+}
+
+.admonition.note>.admonition-title:before,
+div.admonition.note>.admonition-title:before {
+    color: #459db9 !important;
 }
