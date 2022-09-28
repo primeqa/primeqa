@@ -107,6 +107,8 @@ For more information, see:
 
 | | | | |
 |:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
-|<img width="75" alt="stanford" src="docs/_static/img/collab-stanford.png">|<img width="60" height="75" alt="i" src="docs/_static/img/collab-i.png">|<img width="200" alt="stuttgart" src="docs/_static/img/collab-stuttgart-black.png">|<img width="120" alt="utdallas" src="docs/_static/img/collab-utdallas.png">|
-|<img width="100" alt="ohio" src="docs/_static/img/collab-ohio.png">|<img width="100" alt="carnegie" src="docs/_static/img/collab-carnegie.png">|<img width="100" alt="massachusetts" src="docs/_static/img/collab-massachusetts.png">|<img width="150" alt="notredame" src="docs/_static/img/collab-notredame.png">|
-| | | | |   
+|<img width="75" alt="stanford" src="docs/_static/img/collab-stanford-circle.png">| Stanford NLP |<img width="75" alt="i" src="docs/_static/img/collab-i-circle.png">| University of Illinois |
+|<img width="75" alt="stuttgart" src="docs/_static/img/collab-stuttgart-circle.png">| University of Stuttgart |<img width="75" alt="utdallas" src="docs/_static/img/collab-utdallas-circle.png">| University of Texas at Dallas |
+|<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
+|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |<img width="75" alt="notredame" src="docs/_static/img/collab-notredame-circle.png">| University of Notre Dame |
+| | | | |
