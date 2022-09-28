@@ -101,4 +101,12 @@ For more information, see:
 | 💻 [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | ✅ [Pull Request](https://primeqa.github.io/primeqa/pull_request_template.html) | PrimeQA Pull Request |
-| 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |
+| 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |        
+
+## ❤️ PrimeQA collaborators include       
+
+| | | |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img width="150" alt="stanford" src="docs/_static/img/collab-stanford.png">|<img width="80" height="100" alt="i" src="docs/_static/img/collab-i.png">|<img width="300" alt="stuttgart" src="docs/_static/img/collab-stuttgart-black.png">|
+|<img width="150" alt="ohio" src="docs/_static/img/collab-ohio.png">  |  <img width="150" alt="carnegie" src="docs/_static/img/collab-carnegie.png">|<img width="150" alt="massachusetts" src="docs/_static/img/collab-massachusetts.png">|
+|<img width="300" alt="notredame" src="docs/_static/img/collab-notredame.png">  |  <img width="150" alt="utdallas" src="docs/_static/img/collab-utdallas.png">|

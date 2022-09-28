@@ -96,4 +96,48 @@ to erroneous or unexpected input argument.
 | [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | [Pull Request](pull_request_template.md) | PrimeQA Pull Request |
-| [Generate Documentation](README.md) | How Documentation works |
+| [Generate Documentation](README.md) | How Documentation works |       
+
+## PrimeQA collaborators include       
+
+````{grid} 1 1 2 3
+```{grid-item-card}
+:img-top: _static/img/collab-stanford.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-i.png
+:class-item: collab-item-large
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-stuttgart-black.png
+:class-item: collab-item-small
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-ohio.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-carnegie.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-massachusetts.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-notredame.png
+:class-item: collab-item-small
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-utdallas.png
+:class-item: collab-item-small
+```
+````

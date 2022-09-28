@@ -366,3 +366,36 @@ html {
 div.admonition.note>.admonition-title:before {
     color: #459db9 !important;
 }
+
+.collab-item img {
+    width: 45%;
+    margin: auto;
+    display: block;
+    padding: 10px;
+}
+
+.collab-item-large img {
+    width: 30%;
+    margin: auto;
+    display: block;
+    padding: 10px;
+}
+
+.collab-item-small img {
+    width: 70%;
+    margin: auto;
+    display: block;
+    padding: 10px;
+}
+
+.collab-item .sd-card-body.docutils {
+    display: none;
+}
+
+.collab-item-large .sd-card-body.docutils {
+    display: none;
+}
+
+.collab-item-small .sd-card-body.docutils {
+    display: none;
+}
