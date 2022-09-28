@@ -105,9 +105,8 @@ For more information, see:
 
 ## ❤️ PrimeQA collaborators include       
 
-| | | |
-|:-------------------------:|:-------------------------:|:-------------------------:|
-|<img width="75" alt="stanford" src="docs/_static/img/collab-stanford.png">|<img width="60" height="75" alt="i" src="docs/_static/img/collab-i.png">|<img width="200" alt="stuttgart" src="docs/_static/img/collab-stuttgart-black.png">|
-|<img width="100" alt="ohio" src="docs/_static/img/collab-ohio.png">  |  <img width="100" alt="carnegie" src="docs/_static/img/collab-carnegie.png">|<img width="100" alt="massachusetts" src="docs/_static/img/collab-massachusetts.png">|
-|<img width="150" alt="notredame" src="docs/_static/img/collab-notredame.png">  |  <img width="120" alt="utdallas" src="docs/_static/img/collab-utdallas.png">|
-| | | | 
+| | | | |
+|:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img width="75" alt="stanford" src="docs/_static/img/collab-stanford.png">|<img width="60" height="75" alt="i" src="docs/_static/img/collab-i.png">|<img width="200" alt="stuttgart" src="docs/_static/img/collab-stuttgart-black.png">|<img width="120" alt="utdallas" src="docs/_static/img/collab-utdallas.png">|
+|<img width="100" alt="ohio" src="docs/_static/img/collab-ohio.png">|<img width="100" alt="carnegie" src="docs/_static/img/collab-carnegie.png">|<img width="100" alt="massachusetts" src="docs/_static/img/collab-massachusetts.png">|<img width="150" alt="notredame" src="docs/_static/img/collab-notredame.png">|
+| | | | |   
