@@ -78,6 +78,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 ## 🧪 Unit Tests
 [Testing doc](https://primeqa.github.io/primeqa/testing.html)       
+
 To run the unit tests you first need to [install PrimeQA](#Installation).
 Make sure to install with the `[tests]` or `[all]` extras from pip.
 
