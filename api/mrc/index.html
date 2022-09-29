@@ -329,8 +329,8 @@
     </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#custom-processors">
-     Custom Processors
+    <a class="reference internal nav-link" href="#custom-data">
+     Custom Data
     </a>
    </li>
   </ul>
@@ -451,13 +451,14 @@
 <li><p>XQuAD</p></li>
 <li><p>MLQA</p></li>
 <li><p>Natural Questions(NQ)</p></li>
+<li><p>Custom Data</p></li>
 </ul>
 <p>Currently supported TableQA datasets :</p>
 <ul class="simple">
 <li><p>WikiSQL</p></li>
 <li><p>SQA</p></li>
 </ul>
-<p>User’s can also provide data in a different format by creating their own <span class="xref myst">custom processor</span></p>
+<p>User’s can also provide their own <span class="xref myst">custom data</span></p>
 </section>
 <section id="example-usage">
 <h3>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">#</a></h3>
@@ -661,19 +662,9 @@ For the MLQA configuration with context language EN and question language DE use
 </div>
 </section>
 </section>
-<section id="custom-processors">
-<h3>Custom Processors<a class="headerlink" href="#custom-processors" title="Permalink to this headline">#</a></h3>
-<p>Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the <code class="docutils literal notranslate"><span class="pre">ExtractivePostProcessor</span></code> use
-<code class="docutils literal notranslate"><span class="pre">--postprocessor</span> <span class="pre">primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor</span></code>.
-Alternatively, a new postprocessor could be written and selected with
-<code class="docutils literal notranslate"><span class="pre">--postprocessor</span> <span class="pre">qualified.path.to.new.postprocessor.NewPostProcessor</span></code>.</p>
-<p>For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a <code class="docutils literal notranslate"><span class="pre">NewPostProcessor</span></code> which derived predictions from the model
-outputs would be needed.</p>
-<p>Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying <code class="docutils literal notranslate"><span class="pre">--preprocessor</span> <span class="pre">qualified.path.to.new.postprocessor.NewPreProcessor</span></code>
-for the <code class="docutils literal notranslate"><span class="pre">NewPreProcessor</span></code> corresponding to this dataset and schema.</p>
+<section id="custom-data">
+<h3>Custom Data<a class="headerlink" href="#custom-data" title="Permalink to this headline">#</a></h3>
+<p>Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available <span class="xref myst">here</span>.</p>
 </section>
 </section>
 <section id="special-mrc-features">

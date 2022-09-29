@@ -69,12 +69,13 @@ Currently supported MRC datasets include:
 - XQuAD
 - MLQA
 - Natural Questions(NQ)
+- Custom Data
 
 Currently supported TableQA datasets :
 - WikiSQL
 - SQA
 
-User's can also provide data in a different format by creating their own [custom processor](#custom-processors) 
+User's can also provide their own [custom data](#custom-data) 
 
 ### Example Usage
 
@@ -213,22 +214,9 @@ R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
 
-### Custom Processors
+### Custom Data
 
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
-
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
-
-Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
-for the `NewPreProcessor` corresponding to this dataset and schema.
-
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](/examples/mrc/README.md).
 
 ## Special MRC Features:
 
