@@ -30,7 +30,7 @@ The starting point of fine-tuning on custom data can use an already trained mode
 
 The custom data must be provided in a file where each line is an example in JSON format.
 Example files are [training data](./custom_data/examples_train_squad.jsonl) and [evaluation data](./custom_data/examples_eval_squad.jsonl).
-This is an example of data in SQUAD format. 
+This is an example of data in SQUAD format from [HF datasets](https://huggingface.co/datasets/squad/viewer/plain_text/train). 
 
 ```shell
     {"id": "4", 
