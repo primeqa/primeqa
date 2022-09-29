@@ -60,14 +60,14 @@ class RunSettings:
 
             if script_path.startswith(cwd):
                 script_path = script_path[len(cwd):]
-            
+
             else:
                 try:
                     commonpath = os.path.commonpath([script_path, root_path])
                     script_path = script_path[len(commonpath):]
                 except:
                     pass
-            
+
 
             if script_path.endswith('bin/pytest'):
                 script_path = script_path + '.py'
@@ -75,9 +75,9 @@ class RunSettings:
             script_name = script_path.replace('/', '.').strip('.')[:-3]
 
             assert len(script_name) > 0, (script_name, script_path, cwd)
-            
+
             return script_name
-        
+
         return 'none'
 
     @property
@@ -133,7 +133,7 @@ class TrainingSettings:
 
     ## NEW:
     warmup: int = DefaultVal(None)
-    
+
     warmup_bert: int = DefaultVal(None)
 
     relu: bool = DefaultVal(False)
@@ -170,6 +170,8 @@ class TrainingSettings:
     loss_function: str = DefaultVal(None)
     query_weight: float = DefaultVal(0.5)
 
+    rng_seed: int = DefaultVal(12345)
+
 @dataclass
 class IndexingSettings:
     index_path: str = DefaultVal(None)
@@ -185,6 +187,6 @@ class IndexingSettings:
 
 @dataclass
 class SearchSettings:
-    nprobe: int = DefaultVal(2)
-    
-    ncandidates: int = DefaultVal(8192)
+    ncells: int = DefaultVal(None)
+    centroid_score_threshold: float = DefaultVal(None)
+    ndocs: int = DefaultVal(None)

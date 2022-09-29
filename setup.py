@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from itertools import chain
 
 from setuptools import setup, find_packages
@@ -9,7 +10,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Get the long description from the README file
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
     long_description = readme_file.read()
-    
+
 # Get the version for the project
 with open(os.path.join(here, 'VERSION')) as version_file:
     version = version_file.read().strip()
@@ -23,7 +24,20 @@ keywords = [
 ]
 
 authors = [
-    "TODO"
+    "Bhavani Iyer <bsiyer@us.ibm.com>",
+    "Avirup Sil <avi@us.ibm.com>",
+    "Martin Franz <franzm@us.ibm.com>",
+    "Mihaela Bornea <mabornea@us.ibm.com>",
+    "Sara Rosenthal <sjrosenthal@us.ibm.com>",
+    "Avirup Sil <avi@us.ibm.com>",
+    "Scott McCarley <jsmc@us.ibm.com>",
+    "Rong Zhang <zhangr@us.ibm.com>",
+    "Jaydeep Sen <jaydesen@in.ibm.com>",
+    "Yulong Li <yulongli@us.ibm.com>",
+    "Md. Arafat Sultan <Arafat.Sultan@ibm.com>",
+    "Vishwajeet Kumar024 <vishk024@in.ibm.com>",
+    "Saneem A Chemmengath <saneem.cg@in.ibm.com>",
+    "Anthony Ferritto",
 ]
 
 _deps = {
@@ -31,22 +45,19 @@ _deps = {
     "bitarray~=2.3.7": ["install"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install"],
-    "cupy-cuda113~=10.4.0": ["install"],
-    "datasets~=2.0.0": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
+    "datasets[apache-beam]~=2.3.2": ["install"],
     "faiss-cpu~=1.7.2": ["install"],
     "faiss-gpu~=1.7.2": ["install"],
     "gitpython~=3.1.27": ["install"],
     "ipykernel~=6.13.0": ["notebooks"],
     "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install"],
+    "ninja~=1.10.2.3": ["install"],
     "nltk~=3.7": ["install"],
     "numpy~=1.21.5": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
     "packaging~=21.3": ["install"],
     "pandas~=1.3.5": ["install"],
     "psutil~=5.9.0": ["install"],
-    "pydata-sphinx-theme~=0.8.0": ["docs"],
     "pyserini~=0.16.0": ["install"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
@@ -56,7 +67,6 @@ _deps = {
     "signals~=0.0.2": ["install"],
     "spacy~=3.2.2": ["install"],
     "stanza~=1.4.0":["install"],
-    "sphinx~=4.4.0": ["docs"],
     "torch~=1.11.0": ["install"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.17.0": ["install"],
@@ -66,13 +76,19 @@ _deps = {
     "transformers~=4.17.0": ["install"],
     "ujson~=5.1.0": ["install"],
     "transformers~=4.17.0": ["install"],
+    "tqdm~=4.64.0": ["install"],
+    "frozendict": ["install"],
+    "nlp": ["install"],
     "sentencepiece~=0.1.96": ["install"],
     "protobuf~=3.20.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
     "nltk~=3.6":["install"],
     "tabulate~=0.8.9":["install"],
-    "rouge_score":["install"]
-
+    "rouge_score":["install"], 
+    "myst-parser~=0.17.2": ["docs"],
+    "pydata-sphinx-theme~=0.9.0": ["docs"],
+    "sphinx~=4.4.0": ["docs"],
+    "sphinx_design~=0.2.0": ["docs"],
+    "recommonmark~=0.7.1":["docs"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests"]
@@ -91,25 +107,35 @@ extras["all"] = list(_deps)
 
 install_requires = extras["install"]
 
+python_version = sys.version_info.major,sys.version_info.minor
+
+"""
+if python_version == (3,7):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl")
+elif python_version == (3,8):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp38-cp38-linux_x86_64.whl")
+elif python_version == (3,9):
+    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp39-cp39-linux_x86_64.whl")
+"""
+
 setup(
-    name="prime-qa",
+    name="primeqa",
     version=version,
     author=", ".join(authors),
-    author_email="TODO",
+    author_email="primeqa@us.ibm.com",
     description="State-of-the-art Question Answering",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="TODO",
-    license="TODO",
+    url="https://github.com/primeqa/primeqa",
+    license="Apache",
     keywords=" ".join(keywords),
     packages=find_packages(".", include=include_packages),
-    python_requires=">=3.7.0",
+    python_requires=">=3.7.0, <3.10.0",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "TODO"
     ],
 )

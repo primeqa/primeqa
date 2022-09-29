@@ -12,6 +12,7 @@ from operator import attrgetter
 from typing import Optional, Type
 
 import datasets
+import apache_beam as beam
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
@@ -19,6 +20,7 @@ from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredicti
 from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from primeqa.mrc.metrics.mlqa.mlqa import MLQA
 from primeqa.mrc.metrics.squad.squad import SQUAD
+from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -27,10 +29,14 @@ from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
+from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
+
+from primeqa.tableqa.run_tableqa import run_table_qa
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -101,6 +107,9 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
+    tableqa_config_file: Optional[str] = field(
+        default=None, metadata={"help": "TableQA additional arguments"}
+    )
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
     )
@@ -198,6 +207,12 @@ class DataTrainingArguments:
                     "Otherwise it will be discarded."
         },
     )
+    beam_runner: str = field(
+        default=None,
+        metadata={"help": "The beam runner for loading large dataset.",
+                  "choices": ['DirectRunner'],
+                  }
+    )
 
 
 @dataclass
@@ -205,6 +220,13 @@ class TaskArguments:
     """
     Task specific arguments.
     """
+    modality: str = field(
+        default='text',
+        metadata={"help": "whether modality is table or text",
+        "choices": ["text", "table"]
+                  }
+    )
+
     scorer_type: str = field(
         default='weighted_sum_target_type_and_score_diff',
         metadata={"help": "The name of the scorer to compute answer score.",
@@ -220,19 +242,19 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor]
+                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor]
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor, NaturalQuestionsPostProcessor]
                   }
     )
     eval_metrics: str = field(
         default="TyDiF1",
         metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
-                  "choices": ["TyDiF1","SQUAD","MLQA"]
+                  "choices": ["TyDiF1","SQUAD","MLQA","NQF1"]
                  }
     )
     do_boolean: bool = field(
@@ -316,6 +338,11 @@ def main():
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
+    # Run Table Question Answering        
+    if task_args.modality=="table":
+        run_table_qa(data_args,model_args,training_args)
+        sys.exit(0)
+
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(
         model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -353,11 +380,20 @@ def main():
             data_files=data_files,
             cache_dir=model_args.cache_dir)
     else:
-        raw_datasets = datasets.load_dataset(
-            data_args.dataset_name,
-            data_args.dataset_config_name,
-            cache_dir=model_args.cache_dir,
-        )
+        if data_args.dataset_name == "natural_questions":
+            raw_datasets = datasets.load_dataset(
+                data_args.dataset_name,
+                data_args.dataset_config_name,
+                cache_dir=model_args.cache_dir,
+                beam_runner=data_args.beam_runner,
+                revision="main"
+            )
+        else:
+            raw_datasets = datasets.load_dataset(
+                data_args.dataset_name,
+                data_args.dataset_config_name,
+                cache_dir=model_args.cache_dir
+            )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
