@@ -121,7 +121,7 @@ class DataTrainingArguments:
         default=None, metadata={"help": "local file(s) to test on."}
     )
     data_file_format: str = field(
-        default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
+        default="json", metadata={"help": "the format of the local dataset files (json, jsonl, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={

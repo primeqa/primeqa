@@ -3,8 +3,8 @@ set -xeo pipefail
 
 python primeqa/mrc/run_mrc.py \
 --model_name_or_path xlm-roberta-large \
---train_file examples/mrc/custom_data/examples_train_squad.json \
---eval_file examples/mrc/custom_data/examples_eval_squad.json \
+--train_file examples/mrc/custom_data/examples_train_squad.jsonl \
+--eval_file examples/mrc/custom_data/examples_eval_squad.jsonl \
 --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
 --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
 --eval_metrics SQUAD \
