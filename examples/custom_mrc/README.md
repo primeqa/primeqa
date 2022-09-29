@@ -29,7 +29,7 @@ The starting point of fine-tuning on custom data can use an already trained mode
 ### Custom Data in Huggingface SQUAD format
 
 The custom data must be provided in a file where each line is an example in JSON format.
-Example files are [training data](./custom_data/examples_train_squad.json) and [evaluation data](./custom_data/examples_eval_squad.json).
+Example files are [training data](./custom_data/examples_train_squad.jsonl) and [evaluation data](./custom_data/examples_eval_squad.jsonl).
 This is an example of data in SQUAD format. 
 
 ```shell
@@ -42,8 +42,8 @@ This is an example of data in SQUAD format.
 To run MRC on custom data in SQUAD format, specify the parameters as follows (A sample run script has been provided to get started using data in SQuAD format (You can use the [training and inference](run_mrc_train_eval.sh) and [inference only](run_mrc_eval.sh) run scripts to get started):
 
 ```shell
-        --train_file "<path_to_train.json>" \
-        --eval_file "<path_to_eval.json>" \
+        --train_file "<path_to_train.jsonl>" \
+        --eval_file "<path_to_eval.jsonl>" \
         --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
         --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
         --eval_metrics SQUAD 
@@ -52,7 +52,7 @@ To run MRC on custom data in SQUAD format, specify the parameters as follows (A 
 ### Custom Data in PrimeQA Base format
 
 The custom data must be provided in a file where each line is an example in JSON format.
-Example files are: [training data](./custom_data/examples_train_base.json), and [evaluation data](./custom_data/examples_eval_base.json).
+Example files are: [training data](./custom_data/examples_train_base.jsonl), and [evaluation data](./custom_data/examples_eval_base.jsonl).
  This is an example in the PrimeQA base format:
 ```shell
     {"question":"What is the oldest state highway in Georgia?",
@@ -68,8 +68,8 @@ Example files are: [training data](./custom_data/examples_train_base.json), and 
 To run MRC on custom data in PrimeQA Base format, use the following parameters (You can modify the preprocessor in [training and inference](run_mrc_train_eval.sh) and [inference only](run_mrc_eval.sh) to get started):
 
 ```shell
-       --train_file "<path_to_train.json>" \
-       --eval_file "<path_to_eval.json>" \
+       --train_file "<path_to_train.jsonl>" \
+       --eval_file "<path_to_eval.jsonl>" \
        --preprocessor primeqa.mrc.processors.preprocessors.base.BasePreProcessor \
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics SQUAD 
