@@ -23,6 +23,7 @@ limitations under the License.
 ![Build Status](https://github.com/primeqa/primeqa/actions/workflows/primeqa-ci.yml/badge.svg)
 [![LICENSE|Apache2.0](https://img.shields.io/github/license/saltstack/salt?color=blue)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 [![sphinx-doc-build](https://github.com/primeqa/primeqa/actions/workflows/sphinx-doc-build.yml/badge.svg)](https://github.com/primeqa/primeqa/actions/workflows/sphinx-doc-build.yml)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fprimeqa.github.io%2Fprimeqa&count_bg=%23953DC8&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitors&edge_flat=false)]()
 
 PrimeQA is a public open source repository that enables researchers and developers to train state-of-the-art models for question answering (QA). By using PrimeQA, a researcher can replicate the experiments outlined in a paper published in the latest NLP conference while also enjoying the capability to download pre-trained models (from an online repository) and run them on their own custom data. PrimeQA is built on top of the [Transformers](https://github.com/huggingface/transformers) toolkit and uses [datasets](https://huggingface.co/datasets/viewer/) and [models](https://huggingface.co/PrimeQA) that are directly downloadable.
 
@@ -95,4 +96,48 @@ to erroneous or unexpected input argument.
 | [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | [Pull Request](pull_request_template.md) | PrimeQA Pull Request |
-| [Generate Documentation](README.md) | How Documentation works |
+| [Generate Documentation](README.md) | How Documentation works |       
+
+## PrimeQA collaborators include       
+
+````{grid} 1 1 2 3
+```{grid-item-card}
+:img-top: _static/img/collab-stanford.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-i.png
+:class-item: collab-item-large
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-stuttgart-black.png
+:class-item: collab-item-small
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-ohio.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-carnegie.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-massachusetts.png
+:class-item: collab-item
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-notredame.png
+:class-item: collab-item-small
+```
+
+```{grid-item-card}
+:img-top: _static/img/collab-utdallas.png
+:class-item: collab-item-small
+```
+````

@@ -1,4 +1,4 @@
-# Documentation     
+# Documentation (Sphinx)             
 
 PrimeQA uses Sphinx for documentation.  Before continuing make sure you have installed PrimeQA
 with `docs` extras.  For example, from the top level of the project:
@@ -63,6 +63,8 @@ docker run -p 80:80 --rm -d --name primeqa-docs primeqa-docs:${VERSION}
 
 * And finally, you are ready to enable [GitHub Pages on your repository](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). For that, go to Settings, then Pages on the left sidebar, select the gh-pages branch in the “Source” dropdown menu, and click Save. After a few minutes, you should be able to see your HTML at the designated URL.        
 
+* If GitHub Page URL has changed, it is necessary to change all the places where that URL is used (check all markdwon -md- and rst files)       
+
 ## New package added to PrimeQA    
 After a new package is added to `/primeqa`:      
 - go to `/docs/api` and create a new folder with same package name  
@@ -70,5 +72,10 @@ After a new package is added to `/primeqa`:
 - modify `/docs/api/index.rst` to add new package link access 
 - modify `/docs/_templates_/custom-left-section-api-pkg.html` to add new package link access 
 - modify `.gitignore` to avoid commit _autosummary generated files for the new package   
-- modify `docs/scripts/copy-readme-to-docs.sh`and add the new package readme to be copied to docs automatically   
+- modify `docs/scripts/copy-readme-to-docs.sh`and add the new package readme to be copied to docs automatically         
+
+### Visitors counter        
+- [Hits](https://github.com/gjbae1212/hit-counter)      
+- [CountAPI](https://countapi.xyz/#api)     
+    - if this approach is implemented, it is necessary to add the script call into **extrahead** block, `layout.html` file and then the callback in the desired HTML file inside **script** tag.        
 

@@ -42,7 +42,7 @@ Some examples of models (applicable on benchmark datasets) supported are :
 ## ✔️ Getting Started
 
 ### Installation
-[installation-doc-link](https://primeqa.github.io/primeqa/installation.html)       
+[Installation doc](https://primeqa.github.io/primeqa/installation.html)       
 
 ```shell
 # cd to project root
@@ -77,7 +77,8 @@ export PATH=$JAVA_HOME/bin:$PATH
 ```
 
 ## 🧪 Unit Tests
-[testing-doc-link](https://primeqa.github.io/primeqa/testing.html)       
+[Testing doc](https://primeqa.github.io/primeqa/testing.html)       
+
 To run the unit tests you first need to [install PrimeQA](#Installation).
 Make sure to install with the `[tests]` or `[all]` extras from pip.
 
@@ -101,4 +102,14 @@ For more information, see:
 | 💻 [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | ✅ [Pull Request](https://primeqa.github.io/primeqa/pull_request_template.html) | PrimeQA Pull Request |
-| 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |
+| 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |        
+
+## ❤️ PrimeQA collaborators include       
+
+| | | | |
+|:-------------------------:|:-------------------------:|:-------------------------:|:-------------------------:|
+|<img width="75" alt="stanford" src="docs/_static/img/collab-stanford-circle.png">| Stanford NLP |<img width="75" alt="i" src="docs/_static/img/collab-i-circle.png">| University of Illinois |
+|<img width="75" alt="stuttgart" src="docs/_static/img/collab-stuttgart-circle.png">| University of Stuttgart |<img width="75" alt="utdallas" src="docs/_static/img/collab-utdallas-circle.png">| University of Texas at Dallas |
+|<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
+|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |<img width="75" alt="notredame" src="docs/_static/img/collab-notredame-circle.png">| University of Notre Dame |
+| | | | |
