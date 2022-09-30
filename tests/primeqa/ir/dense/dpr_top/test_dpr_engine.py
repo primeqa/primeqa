@@ -27,6 +27,28 @@ class TestDprEngine(UnitTest):
             output_dir=os.path.join(working_dir, 'output_dir')
         os.makedirs(output_dir, exist_ok=True)
 
+        print("===== DPR TRAINING, -training_data_type kgi_jsonl")
+
+        test_args = [
+            "prog",
+            "--train_dir", os.path.join(test_files_location, "kgi_jsonl_2_lines.jsonl"),
+            "--positive_pids", os.path.join(test_files_location, "kgi_jsonl_2_lines_positive_pids.jsonl"),
+            "--output_dir", output_dir,
+            "--num_train_epochs", "2",
+            "--sample_negative_from_top_k", "5",
+            "--encoder_gpu_train_limit", "32",
+            "--full_train_batch_size", "1",
+            "--max_grad_norm", "1.0",
+            "--learning_rate", "5e-5",
+            "--training_data_type", "kgi_jsonl",
+            "--force_confict_free_batches"
+        ]
+
+        with patch.object(sys, 'argv', test_args):
+            trainer = BiEncoderTrainer()
+            trainer.train()
+
+
         print("===== DPR TRAINING, -training_data_type text_triples")
 
         test_args = [
@@ -39,8 +61,8 @@ class TestDprEngine(UnitTest):
             "--full_train_batch_size", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
-            "--training_data_type", "text_triples",
-            "--disable_confict_free_batches"]
+            "--training_data_type", "text_triples"
+        ]
 
         with patch.object(sys, 'argv', test_args):
             trainer = BiEncoderTrainer()
@@ -58,8 +80,8 @@ class TestDprEngine(UnitTest):
             "--full_train_batch_size", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
-            "--training_data_type", "text_triples_with_title",
-            "--disable_confict_free_batches"]
+            "--training_data_type", "text_triples_with_title"
+        ]
 
         with patch.object(sys, 'argv', test_args):
             trainer = BiEncoderTrainer()
@@ -79,8 +101,8 @@ class TestDprEngine(UnitTest):
             "--full_train_batch_size", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
-            "--training_data_type", "num_triples",
-            "--disable_confict_free_batches"]
+            "--training_data_type", "num_triples"
+        ]
 
         with patch.object(sys, 'argv', test_args):
             trainer = BiEncoderTrainer()

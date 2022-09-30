@@ -49,7 +49,7 @@ class BiEncoderBatches(DistBatchesBase):
         leftover_insts = []
         current_batch = []
         current_batch_leftover = []
-        if self.hypers.training_data_type != 'kgi_jsonl' and not self.hypers.disable_confict_free_batches:
+        if self.hypers.training_data_type != 'kgi_jsonl' and self.hypers.force_confict_free_batches:
             raise NotImplementedError(f"Confict free batches for {self.hypers.training_data_type} data are not implemented (yet).")
 
         while len(self.insts) + len(leftover_insts) >= self.batch_size:
@@ -60,7 +60,7 @@ class BiEncoderBatches(DistBatchesBase):
                 inst = self.insts.pop()
             # adding it to our batch should not violate our hard negative constraint:
             #  no positive or hard negative for one instance should be a positive for another instance
-            if self.hypers.disable_confict_free_batches or \
+            if not self.hypers.force_confict_free_batches or \
                 (all([pp not in batch_neg_pids for pp in inst.pos_pids]) and
                     all([np not in batch_pos_pids for np in inst.ctx_pids])):
                 current_batch.append(inst)
