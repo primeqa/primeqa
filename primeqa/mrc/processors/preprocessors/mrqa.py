@@ -18,7 +18,18 @@ class MRQAPreprocessor(BasePreProcessor):
             self._logger.info(f"{self.__class__.__name__} only supports single context multiple passages -- enabling")
             self._single_context_multiple_passages = True
 
-    def _rename_examples(self, example: Example):
+    def adapt_dataset(self, dataset: Dataset, is_train: bool, subset: list = None) -> Dataset:
+        if subset != None:
+            dataset = dataset.filter(lambda example: example["subset"] in (subset))
+        dataset = dataset.map(self._augment_examples,
+                              load_from_cache_file=self._load_from_cache_file,
+                              num_proc=self._num_workers
+                              )
+        dataset = super().adapt_dataset(dataset, is_train)
+        return dataset
+    
+
+    def _augment_examples(self, example: Example):
         """Rename examples from MRQA schema to `BasePreProcessor` schema."""
         
         example["example_id"] = example['id'] if 'id' in example else example['qid']
@@ -50,12 +61,3 @@ class MRQAPreprocessor(BasePreProcessor):
         context = [ example['context'] ]
         example['context'] = context        
         return example
-
-    def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
-        dataset = dataset.map(self._rename_examples,
-                              load_from_cache_file=self._load_from_cache_file,
-                              num_proc=self._num_workers
-                              )
-        dataset = super().adapt_dataset(dataset, is_train)
-        return dataset
-        
