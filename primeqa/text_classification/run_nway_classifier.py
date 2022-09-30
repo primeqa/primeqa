@@ -529,6 +529,8 @@ def main():
         output_label_prefix=data_args.output_label_prefix
     )
 
+    training_args.metric_for_best_model='eval_all_avg_f1'
+
     # Initialize our Trainer
     trainer = NWayTrainer(
         model=model,
