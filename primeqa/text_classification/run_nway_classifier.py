@@ -438,7 +438,7 @@ def main():
         )
     max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
-    preprocessor_class = BoolQAClassifierPreProcessor # TODO task_args.preprocssor
+    preprocessor_class = TextClassifierPreProcessor # TODO task_args.preprocssor
     preprocessor = preprocessor_class(
         example_id_key=data_args.example_id_key,
         sentence1_key=data_args.sentence1_key,
@@ -501,7 +501,7 @@ def main():
     else:
         data_collator = None
 
-    postprocessor_class = BoolQAClassifierPostProcessor  # TODO # taskargs.
+    postprocessor_class = TextClassifierPostProcessor  # TODO # taskargs.
     postprocessor = postprocessor_class(
         k=10, 
         drop_label=data_args.drop_label,
@@ -509,6 +509,8 @@ def main():
         id_key=data_args.example_id_key,
         output_label_prefix=data_args.output_label_prefix
     )
+
+    training_args.metric_for_best_model='eval_all_avg_f1'
 
     # Initialize our Trainer
     trainer = NWayTrainer(

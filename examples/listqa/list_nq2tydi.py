@@ -8,7 +8,6 @@ import gzip
 from copy import deepcopy
 from dataclasses import dataclass, field
 import logging
-from tabnanny import verbose
 from transformers import HfArgumentParser
 import sys, os
 from tqdm import tqdm
