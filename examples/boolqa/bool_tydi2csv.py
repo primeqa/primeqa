@@ -76,9 +76,9 @@ class BoolTyDiSubset:
                 continue
             question_text, passage_text, label = self.get_data(example, lower_case=lower_case)
             if label == "YES" or label == "NO":
-                qtype_writer.writerow([str(count), question_text,example['language'],"YN"])
+                qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
             else:
-                qtype_writer.writerow([str(count), question_text,example['language'],"NONE"])
+                qtype_writer.writerow([str(count), question_text,example['language'],"other"])
             evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
@@ -88,9 +88,9 @@ class BoolTyDiSubset:
             count += 1
             question_text, passage_text, label = self.get_data(example,lower_case=lower_case)
             if label == "YES" or label == "NO":
-                qtype_writer.writerow([str(count), question_text,example['language'],"YN"])
+                qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
             else:
-                qtype_writer.writerow([str(count), question_text,example['language'],"NONE"])
+                qtype_writer.writerow([str(count), question_text,example['language'],"other"])
             evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
