@@ -100,44 +100,39 @@ to erroneous or unexpected input argument.
 
 ## PrimeQA collaborators include       
 
-````{grid} 1 1 2 3
-```{grid-item-card}
-:img-top: _static/img/collab-stanford.png
+````{grid} 1 1 2 4
+```{grid-item-card} Stanford NLP
+:img-top: _static/img/collab-stanford-circle.png
 :class-item: collab-item
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-i.png
+```{grid-item-card} University of Illinois
+:img-top: _static/img/collab-i-circle.png
 :class-item: collab-item-large
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-stuttgart-black.png
+```{grid-item-card} University of Stuttgart
+:img-top: _static/img/collab-stuttgart-circle.png
 :class-item: collab-item-small
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-ohio.png
+```{grid-item-card} Ohio State University
+:img-top: _static/img/collab-ohio-circle.png
 :class-item: collab-item
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-carnegie.png
+```{grid-item-card} Carnegie Mellon University
+:img-top: _static/img/collab-carnegie-circle.png
 :class-item: collab-item
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-massachusetts.png
+```{grid-item-card} University of Massachusetts
+:img-top: _static/img/collab-massachusetts-circle.png
 :class-item: collab-item
 ```
 
-```{grid-item-card}
-:img-top: _static/img/collab-notredame.png
-:class-item: collab-item-small
-```
-
-```{grid-item-card}
-:img-top: _static/img/collab-utdallas.png
+```{grid-item-card} University of Notre Dame
+:img-top: _static/img/collab-notredame-circle.png
 :class-item: collab-item-small
 ```
 ````
