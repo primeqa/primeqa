@@ -55,7 +55,7 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
             label = {
                 'label': example['label'],
                 'example_id': example['example_id'],
-                'language': example['language'],
+                'language': example['language'] if 'language' in example else 'default',
                 'question': example['question']
             }
             references.append(label)
@@ -101,7 +101,7 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
                 "confidence":str(scores[item]),
                 "example_id":str(example_id),
                 "question":example["question"],
-                "language":example["language"],
+                "language":example["language"] if "language" in example else "default",
                 "scores":str_scores
             }
             preds_for_metric.append(p)
