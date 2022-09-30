@@ -186,7 +186,7 @@ class MultiFileLoader:
             return None
         if self.hypers.training_data_type == 'dpr':
             lines = jsonl_records(input_files)
-        elif self.hypers.training_data_type == 'jsonl':
+        elif self.hypers.training_data_type == 'kgi_jsonl':
             lines = jsonl_lines(input_files, file_suffix='*.jsonl*')
         elif self.hypers.training_data_type == 'text_triples' or self.hypers.training_data_type == 'text_triples_with_title' :
             lines = jsonl_lines(input_files, file_suffix='*.tsv')

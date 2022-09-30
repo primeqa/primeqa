@@ -57,14 +57,14 @@ python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --amp \
-    --doc_maxlen 180 \
-    --bsize 192 \
-    --accum 6 \
-    --maxsteps 100000 \
-    --save_steps 20000
+    --doc_maxlen <maximum_number_of_document_tokens> \
+    --bsize <training_batch_size> \
+    --accum <number_of_gradient_accumulation_steps> \
+    --maxsteps <number_of_training_steps> \
+    --save_steps <number_of_training_steps_between_saving_checkpoins>
     --mask-punctuation \
-    --lr 6e-06 \
-    --similarity l2 \
+    --lr <learnig_rate> \
+    --similarity <l2_or_cosine> \
     --model_type xlm-roberta-base \
     --triples <training_data> \
     --root <experiments_root_directory> \
@@ -90,13 +90,27 @@ python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --train_dir <training_file_or_directory> \
     --output_dir <output_directory> \
-    --num_train_epochs 5 \
-    --full_train_batch_size 16 \
-    --training_data_type dpr \
-    --disable_confict_free_batches 
+    --num_train_epochs <number_of_training_epochs \
+    --full_train_batch_size <training_batch_size> \
+    --training_data_type text_triples
 ```
 
+The `--train_dir` contains either a name of a single file, or a directory. If we specify a directory, the script runs training using all files in the directory with the filename extension matching the expected file type (e.g. _.tsv_).
+
 The trained models are stored in `<output_directory>/qry_encoder` and `<output_directory>/ctx_encoder`.
+
+#### Additional Training File Formats for Model Training With DPR Engine
+
+The engine supports the following data formats:
+
+| _-training_data_type_ value | filename extension(s) | description                                                                                                                                                                                                                                                                                                                             |
+|-----------------------------|------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| dpr                         | .json, .json.gz | JSON file as in https://dl.fbaipublicfiles.com/dpr/data/retriever/biencoder-nq-train.json.gz                                                                                                                                                                                                                                            |
+| text_triples                | .tsv | [query, positive_passage, negative_passage] triples                                                                                                                                                                                                                                                                                     |
+| text_triples_with_title     | .tsv | [query, positive_passage, negative_passage] triples, with the passage fiels containing title and text divided be a vertical bar character                                                                                                                                                                                               |
+| num_triples                 | .tsv | [query, positive_passage, negative_passage] triples stored as numerical IDs. <br/>The _.tsv_ file containing the text of queries in the form of [ID, text] is specified in the `--queries` argument. <br/>The _.tsv_ file containing the text of document in the form of [ID, text, title] is specified in the `--collection` argument. |                                                    
+| kgi_jsonl                   | .jsonl* | JSONL file containing training examples, as described in https://github.com/IBM/kgi-slot-filling                                                                                                                                                                                                                                        |
+ 
 
 ## Indexing
 
@@ -120,16 +134,16 @@ Using a model trained as described [here](https://github.com/primeqa/primeqa/tre
 python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
-    --doc_maxlen 180 \
+    --doc_maxlen <maximum_number_of_document_tokens> \
     --mask-punctuation \
-    --bsize 256 \
-    --similarity l2 \
+    --bsize <indexing_batch_size> \
+    --similarity <l2_or_cosine> \
     --checkpoint <model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \
     --index_name <index_label> \
-    --compression_level 2
+    --compression_level <number_of_bits_in_residual_representations>
 ```
 
 The resulting index is stored in the `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
@@ -146,7 +160,7 @@ python primeqa/ir/run_ir.py \
     --sharded_index \
     --corpus <document_collection>  \
     --output_dir <output_directory> \
-    --batch_size 16 \
+    --batch_size <indexing_batch_size> \
 ```
 Indexing can be parallelized using the `--embed` argument. To accomplish that, we specify the same `parts_total` value (e.g. 16) for all the parallel indexing commands, and specify the `part_number` values (from 1 to `parts_total`) used in the individual commands, e.g. `1of16`, `2of16` to `16of16`.
 
@@ -179,10 +193,10 @@ python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
     --amp \
-    --doc_maxlen 180 \
+    --doc_maxlen <maximum_number_of_document_tokens> \
     --mask-punctuation \
-    --bsize 16 \
-    --similarity l2 \
+    --bsize <search_batch_size> \
+    --similarity <l2_or_cosine> \
     --retrieve_only \
     --queries <query_file> \
     --checkpoint <model_checkpoint> \
@@ -218,7 +232,7 @@ python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --queries <query_file> \
     --qry_encoder_path <context_encoder_model> \
-    --retrieve_batch_size 16 \
+    --retrieve_batch_size <search_batch_size> \
     --corpus_dir <index_directory> \
     --output <scores_and_ranks> \ 
     --n_docs_for_provenance <number_of_items_per_query_retrieved> \

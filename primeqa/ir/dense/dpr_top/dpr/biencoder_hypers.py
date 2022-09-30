@@ -20,7 +20,7 @@ class BiEncoderHypers(HypersBase):
         self.seq_len_c = 128  # max length for context
         self.debug_location = ''  # where to save debug info
         self.sample_negative_from_top_k = -1  # always take the first negative if <= 0, otherwise sample a negative from the top-k
-        self.disable_confict_free_batches = False  # we check that batches do not contain instances s.t. batch negatives will actually be positives
+        self.disable_confict_free_batches = True  # we check that batches do not contain instances s.t. batch negatives will actually be positives
         self.training_data_type = 'dpr'
         self.collection = '' # used with training_data_type == 'num_triples'
         self.queries = ''    # used with training_data_type == 'num_triples'

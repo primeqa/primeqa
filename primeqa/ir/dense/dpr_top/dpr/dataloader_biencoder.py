@@ -49,7 +49,7 @@ class BiEncoderBatches(DistBatchesBase):
         leftover_insts = []
         current_batch = []
         current_batch_leftover = []
-        if self.hypers.training_data_type != 'jsonl' and not self.hypers.disable_confict_free_batches:
+        if self.hypers.training_data_type != 'kgi_jsonl' and not self.hypers.disable_confict_free_batches:
             raise NotImplementedError(f"Confict free batches for {self.hypers.training_data_type} data are not implemented (yet).")
 
         while len(self.insts) + len(leftover_insts) >= self.batch_size:
@@ -140,7 +140,7 @@ class BiEncoderLoader(MultiFileLoader):
         self.qry_tokenizer = qry_tokenizer
         self.ctx_tokenizer = ctx_tokenizer
         self.id2pos_pids = dict()
-        if self.hypers.training_data_type == 'jsonl':
+        if self.hypers.training_data_type == 'kgi_jsonl':
             for line in jsonl_lines(positive_pid_file, file_suffix='*.jsonl*'):
                 jobj = json.loads(line)
                 self.id2pos_pids[jobj['id']] = jobj['positive_pids']
@@ -191,7 +191,7 @@ class BiEncoderLoader(MultiFileLoader):
                             assert len(positive) == 2
                             assert len(neg) == 2
                             insts.append(BiEncoderInst(qry, positive, neg, pos_pids, ctx_pids))
-        elif self.hypers.training_data_type == 'jsonl':
+        elif self.hypers.training_data_type == 'kgi_jsonl':
             for line in lines:
                 jobj = json.loads(line)
                 qry = jobj['query']
