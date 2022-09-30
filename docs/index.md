@@ -135,9 +135,4 @@ to erroneous or unexpected input argument.
 :img-top: _static/img/collab-notredame-circle.png
 :class-item: collab-item-small
 ```
-
-```{grid-item-card} University of Texas at Dallas
-:img-top: _static/img/collab-utdallas-circle.png
-:class-item: collab-item-small
-```
 ````
