@@ -24,7 +24,8 @@ class BoolTyDiCSVArguments:
         metadata={"help": "Path to directory to store the pretrained models downloaded from huggingface.co"},
     )
     lower_case: bool = field(
-        default=False, metadata="{"help": "lowercase all text"}
+        default=False, 
+        metadata={"help": "lowercase all text"}
     )
 class BoolTyDiSubset:
     """
@@ -71,8 +72,8 @@ class BoolTyDiSubset:
         for example in dataset['train']:
             count += 1
             # skip NA since we don't know if they are boolean or short answer
-            if example['annotations']['passage_answer_candidate_index'] == -1 or \
-             (example['annotations']['minimal_answers_start_byte'] == -1 and example['annotations']['yes_no_answer'][0] == 'NONE'):
+            if example['annotations']['passage_answer_candidate_index'][0] == -1 or \
+             (example['annotations']['minimal_answers_start_byte'][0] == -1 and example['annotations']['yes_no_answer'][0] == 'NONE'):
                 continue
             question_text, passage_text, label = self.get_data(example, lower_case=lower_case)
             if label == "YES" or label == "NO":
@@ -82,18 +83,32 @@ class BoolTyDiSubset:
             evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
-        # dev
+        # dev and eval
         qtype_file, evc_file, qtype_writer, evidence_span_writer = self.get_writers(output_dir, "dev")
+        qtype_file_e, evc_file_e, qtype_writer_e, evidence_span_writer_e = self.get_writers(output_dir, "eval")
         for example in dataset['validation']:
             count += 1
             question_text, passage_text, label = self.get_data(example,lower_case=lower_case)
+            is_dev = True
+            # skip NA since we don't know if they are boolean or short answer
+            if example['annotations']['passage_answer_candidate_index'][0] == -1 or \
+             (example['annotations']['minimal_answers_start_byte'][0] == -1 and example['annotations']['yes_no_answer'][0] == 'NONE'):
+                is_dev = False
             if label == "YES" or label == "NO":
-                qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
+                if is_dev:
+                    qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
+                qtype_writer_e.writerow([str(count), question_text,example['language'],"boolean"])
             else:
-                qtype_writer.writerow([str(count), question_text,example['language'],"other"])
-            evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
+                if is_dev:
+                    qtype_writer.writerow([str(count), question_text,example['language'],"other"])
+                qtype_writer_e.writerow([str(count), question_text,example['language'],"other"])
+            if is_dev:
+                evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
+            evidence_span_writer_e.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
+        qtype_file_e.close()
+        evc_file_e.close()
 
 def main():
 
