@@ -36,6 +36,7 @@ from primeqa.text_classification.processors.preprocessors.text_classifier import
 from primeqa.text_classification.metrics.classification import Classification
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.text_classification.trainers.nway import NWayTrainer
+from primeqa.mrc.run_mrc import object_reference # TODO this should be a utils file
 
 import transformers
 from transformers import (
@@ -145,7 +146,7 @@ class DataTrainingArguments:
         metadata={"help": "a field that can be used as a unique identifier of input records"}
     )
     language_key: str = field(
-        default="language",
+        default=None,
         metadata={"help": "a field that can be used as a unique identifier of input records"}
     )
     output_label_prefix: str = field(
@@ -206,6 +207,24 @@ class ModelArguments:
         },
     )
 
+@dataclass
+class TaskArguments:
+    """
+    Task specific arguments.
+    """
+    preprocessor: object_reference = field(
+        default=TextClassifierPreProcessor,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [TextClassifierPreProcessor]
+                  }
+    )
+    postprocessor: object_reference = field(
+        default=TextClassifierPostProcessor,
+        metadata={"help": "The name of the postprocessor to use.",
+                  "choices": [TextClassifierPostProcessor]
+                  }
+    )
+
 def create_a_backup_file_if_file_exists(original_file: str):
     if path.isfile(original_file):
         backup_file = '%s.bak' % original_file
@@ -226,13 +245,13 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args, task_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
     # Detecting last checkpoint.
     last_checkpoint = None
@@ -315,19 +334,18 @@ def main():
     if not data_args.overwrite_cache:
         cache_dir=model_args.cache_dir
 
+    features_input={
+        data_args.example_id_key: Value('string'), 
+        data_args.sentence1_key: Value('string'), 
+        'label': Value('string')
+    }
+    if data_args.language_key is not None:
+        features_input[ data_args.language_key ] = Value('string')
     if data_args.sentence2_key is not None:
-        features = Features(
-            {data_args.example_id_key: Value('string'), 
-            data_args.sentence1_key: Value('string'), 
-            data_args.sentence2_key: Value('string'),
-            data_args.language_key: Value('string'), 
-            'label': Value('string')})
-    else:
-        features = Features(
-            {data_args.example_id_key: Value('string'), 
-            data_args.sentence1_key: Value('string'), 
-            data_args.language_key: Value('string'), 
-            'label': Value('string')})
+        features_input[ data_args.sentence2_key ] = Value('string')
+    features = Features( features_input )
+
+
     
     if data_args.train_file is not None and data_args.train_file.endswith(".csv") or data_args.test_file is not None and data_args.test_file.endswith(".csv"):
         # Loading a dataset from local csv files
@@ -361,6 +379,7 @@ def main():
             raise ValueError("No training data left with labels provided in label list")
 
     # balance the dataset
+    # TODO move to subroutine
     if training_args.do_train and data_args.balanced:
         examples_by_label = {}
 
@@ -438,7 +457,7 @@ def main():
         )
     max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
-    preprocessor_class = TextClassifierPreProcessor # TODO task_args.preprocssor
+    preprocessor_class = task_args.preprocessor
     preprocessor = preprocessor_class(
         example_id_key=data_args.example_id_key,
         sentence1_key=data_args.sentence1_key,
@@ -501,7 +520,7 @@ def main():
     else:
         data_collator = None
 
-    postprocessor_class = TextClassifierPostProcessor  # TODO # taskargs.
+    postprocessor_class = task_args.postprocessor
     postprocessor = postprocessor_class(
         k=10, 
         drop_label=data_args.drop_label,
