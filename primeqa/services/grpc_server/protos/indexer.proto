@@ -1,0 +1,47 @@
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+import "pipelines.proto";
+
+package index;
+
+/**
+    Service to build index
+*/
+service Indexer {
+    rpc GenerateIndex(stream GenerateIndexRequest) returns (GenerateIndexResponse);
+    rpc GetIndexStatus(GetIndexStatusRequest) returns (IndexStatusResponse);
+}
+
+message Document {
+    string document_id = 1;
+    string text = 2;
+    google.protobuf.Struct metadata = 3;
+}
+
+message GenerateIndexRequest {
+    pipelines.Pipeline pipeline = 1;
+    repeated Document documents = 2;
+    string index_id = 3;
+    google.protobuf.Struct metadata = 4;
+}
+
+enum IndexStatus {
+    READY = 0;
+    INDEXING = 1;
+    DOES_NOT_EXISTS = 2;
+    CORRUPT = 3;
+}
+
+message GenerateIndexResponse {
+    string index_id = 1;
+    IndexStatus status = 2;
+    google.protobuf.Struct metadata = 3;
+}
+
+message GetIndexStatusRequest {
+    string index_id = 1;
+}
+
+message IndexStatusResponse {
+    IndexStatus status = 1;
+}

@@ -172,3 +172,6 @@ tags
 
 # .lock
 *.lock
+
+# services
+store

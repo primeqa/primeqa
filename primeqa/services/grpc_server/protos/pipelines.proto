@@ -1,0 +1,55 @@
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+
+package pipelines;
+
+/**
+    Service to inform all available models on the server
+*/
+service Pipelines {
+    rpc GetPipelines(GetPipelinesRequest) returns (stream Pipeline);
+    rpc GetPipeline(GetPipelineRequest) returns (Pipeline);
+}
+
+message GetPipelinesRequest {
+    bool with_parameters = 1;
+}
+
+// Defined following pattern shown in "google/protobuf/struct.proto" for message Value
+// `Value` represents a dynamically typed value which can be either
+// a number, a string, a boolean. 
+// Reference: message Value in "google/protobuf/struct.proto" 
+message Value {
+  // The kind of value.
+  oneof kind {
+    // Represents a double value.
+    double number_value = 1;
+    // Represents a string value.
+    string string_value = 2;
+    // Represents a boolean value.
+    bool bool_value = 3;
+  }
+}
+
+message PipelineParameter {
+    string parameter_id = 1;
+    string name = 2;
+    string type = 3;
+    Value value = 4;
+    repeated Value options = 5;
+    repeated double range = 6;
+}
+
+message Pipeline {
+    string pipeline_id = 1;
+    string name = 2;
+    string type = 3;
+    string description = 4;
+    repeated PipelineParameter parameters = 5;
+    google.protobuf.Struct metadata = 6;
+}
+
+message GetPipelineRequest {
+    string pipeline_id = 1;
+    bool with_parameters = 2;
+}
