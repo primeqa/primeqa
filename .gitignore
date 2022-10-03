@@ -173,5 +173,5 @@ tags
 # .lock
 *.lock
 
-# service data directory
+# services
 store

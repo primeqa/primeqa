@@ -22,7 +22,6 @@ EXTN_TSV = ".tsv"
 EXTN_TXT = ".txt"
 EXTN_SQL_LITE = ".sqlite"
 
-
 #############################################################################################
 # indexes/
 #        <index-id>/
@@ -32,6 +31,11 @@ EXTN_SQL_LITE = ".sqlite"
 # checkpoints/
 #            <checkpoint>/
 #                       <model-id>.dnn|<model-id>.model
+# models/
+#        <model-id>/
+#                   details.json
+#                   data.json
+
 #############################################################################################
 class Store:
     def __init__(self):
