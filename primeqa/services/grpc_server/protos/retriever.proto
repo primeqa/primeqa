@@ -1,0 +1,27 @@
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+import "pipelines.proto";
+import "indexer.proto";
+
+package retrieve;
+
+/**
+    Service to process and retrieve documents
+*/
+service Retriever {
+    rpc Search(SearchRequest) returns (stream Hit);
+}
+
+message SearchRequest {
+    pipelines.Pipeline pipeline = 1;
+    string index_id = 2; 
+    string query = 3;
+    google.protobuf.Struct metadata = 6;
+}
+
+message Hit {
+    index.Document document = 1;
+    double score = 2;
+    google.protobuf.Struct metadata = 3;
+}
+

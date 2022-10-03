@@ -1,0 +1,46 @@
+syntax = "proto3";
+import "google/protobuf/struct.proto";
+import "pipelines.proto";
+
+package reader;
+
+/**
+   The service for getting answer(s) to a question
+*/
+service Reader {
+    rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
+}
+
+
+/**
+    Given a question and one or more passage, returns up to max_num_answers answers
+    for each passage, represented as message Answer instances in the AnswersForPassage.
+*/
+message GetAnswersRequest {
+    pipelines.Pipeline pipeline = 1;
+    string question = 2;
+    repeated string passages = 3;
+    google.protobuf.Struct metadata = 5;
+}
+
+message Answer {
+    string text = 1;
+    uint32 start_char_offset = 2;
+    uint32 end_char_offset = 3;
+    double confidence_score = 4;
+    uint32 passage_index = 5;
+    google.protobuf.Struct metadata = 6;
+};
+
+message AnswersForPassage {
+    repeated Answer answers = 1;
+}
+
+/**
+    An answer or answers to a question containing the text,
+    byte/token offsets, score and source passage index for each answer.
+*/
+message GetAnswersResponse {
+    repeated AnswersForPassage answers = 1;
+}
+
