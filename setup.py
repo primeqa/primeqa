@@ -15,9 +15,9 @@ if sys.platform == "win32" and sys.maxsize.bit_length() == 31:
 python_min_version = (3, 7, 0)
 python_max_version = (3, 10, 0)
 
-if python_min_version > sys.version_info or python_max_version < sys.version_info:
+if python_min_version >= sys.version_info or python_max_version < sys.version_info:
     print(
-        f"You are using Python {platform.python_version()}. {'.'.join(map(str, python_min_version))} >= Python <= {'.'.join(map(str, python_max_version))} is required."
+        f"You are using Python {platform.python_version()}. {'.'.join(map(str, python_min_version))} >= Python < {'.'.join(map(str, python_max_version))} is required."
     )
     sys.exit(-1)
 
