@@ -1,3 +1,5 @@
+import os
+
 import fitz
 
 import torch
@@ -40,7 +42,7 @@ class DocVQAModel():
             max(0, min(1000, int(1000 * (box[3] / height)))),
         ]
 
-    def preprocess_pdf(self, pdf, tolerance=2, is_form=False, page=1):
+    def preprocess_pdf(self, pdf, tolerance=2, page_no=1):
         """
             This function uses pymupdf to extract text from the input pdf document.
         Args: 
@@ -52,11 +54,14 @@ class DocVQAModel():
             bboxes (list): List of bounding boxes for each word in the page
         """
         document = fitz.open(pdf)
-        page = document[page-1 if page>0 else 0]
+        if page_no > len(document):
+            raise AssertionError("Input document has only %s pages. Please use page number within this range." % len(document))
+
+        page = document[page_no-1 if page_no>0 else 0]
         width, height = page.rect.width, page.rect.height
         text_words = page.get_text_words()
     
-        if is_form is False:
+        if document.is_form_pdf is False:
             # The words should be ordered by block number
             sorted_words = sorted(text_words, key=lambda x: x[5])
         else:
@@ -65,7 +70,7 @@ class DocVQAModel():
     
         blocks = []
         for wid, word in enumerate(sorted_words):
-            if is_form == False:
+            if document.is_form_pdf == False:
                 blocks.append([word])
             else:
                 if wid == 0:
@@ -134,8 +139,12 @@ class DocVQAModel():
         
         query_answer_dicts = []
         for image, queries in images_queries_list:
+            _, extention = os.path.splitext(image)
+            if extention.lower() not in ['.png', '.pdf', '.jpeg', '.jpg', '.ps', '.jp2']:
+                raise AssertionError('File format of type %s not supported' % (extention))
+
             if image.endswith("pdf"):
-                words, bboxes = self.preprocess_pdf(image)
+                words, bboxes = self.preprocess_pdf(image, page_no=page)
             else:
                 words, bboxes = self.preprocess_image(image)
 
