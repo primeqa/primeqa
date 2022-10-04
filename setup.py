@@ -85,7 +85,7 @@ _deps = {
     "tabulate~=0.8.9":["install"],
     "opencv-python~=4.6.0":["install"],
     "pytesseract~=0.3.10":["install"],
-    "fitz~=1.20.2":["install"],
+    "pymupdf~=1.20.2":["install"],
     "rouge_score":["install"], 
     "myst-parser~=0.17.2": ["docs"],
     "pydata-sphinx-theme~=0.9.0": ["docs"],
