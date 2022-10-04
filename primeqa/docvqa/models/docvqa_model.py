@@ -143,7 +143,7 @@ class DocVQAModel():
             if extention.lower() not in ['.png', '.pdf', '.jpeg', '.jpg', '.ps', '.jp2']:
                 raise AssertionError('File format of type %s not supported' % (extention))
 
-            if image.endswith("pdf"):
+            if extention in [".pdf", ".ps"]:
                 words, bboxes = self.preprocess_pdf(image, page_no=page)
             else:
                 words, bboxes = self.preprocess_image(image)
