@@ -240,9 +240,9 @@ R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
        --dataset_config_name plain_text \
        --preprocessor primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor 
 ```
-Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `TriviaQA`, use the command line argments 
+Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `TriviaQA`, use the command line argments  `--dataset_filter_column_name` to specify a column name and `--dataset_filter_column_values` to specify a list of column values.  The example below selects `SQuAD` and `HotpotQA` examples using the column `subset` in the MRQA dataset.  The script `run_mrc.py` shuffles the train examples, eval examples are kept in the same order as read in from the source.
  ```shell
-       --dataset_filter_column_value <subset-name>
+       --dataset_filter_column_value SQuAD HopotQA
        --dataset_filter_column_name subset
 ```
 

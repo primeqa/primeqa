@@ -11,7 +11,7 @@ from tests.primeqa.mrc.common.base import UnitTest
 class TestMRQAPreprocessor(UnitTest):
     @pytest.fixture(scope='session')
     def mrqa_subsets(self):
-        return ['SQuAD', 'TriviaQA', 'NaturalQuestionsSubset', 'NewsQA', 'SearchQA']
+        return ['SQuAD', 'TriviaQA', 'NaturalQuestionsSubset', 'NewsQA', 'SearchQA', 'HotpotQA']
 
     @pytest.fixture(scope='session')
     def mrqa_examples(self):
@@ -29,6 +29,16 @@ class TestMRQAPreprocessor(UnitTest):
             'answers': Sequence(feature=Value(dtype='string', id=None), length=-1, id=None)
             }
         )
+        hotpotqa_example = {'subset': 'HotpotQA', 
+                            'context': '[PAR] [TLE] The Oberoi Group [SEP] The Oberoi Group is a hotel company with its head office in Delhi.  Founded in 1934, the company owns and/or operates 30+ luxury hotels and two river cruise ships in six countries, primarily under its Oberoi Hotels & Resorts and Trident Hotels brands. [PAR] [TLE] Oberoi family [SEP] The Oberoi family is an Indian family that is famous for its involvement in hotels, namely through The Oberoi Group.', 
+                            'context_tokens': {'tokens': ['[PAR]', '[TLE]', 'The', 'Oberoi', 'Group', '[', 'SEP', ']', 'The', 'Oberoi', 'Group', 'is', 'a', 'hotel', 'company', 'with', 'its', 'head', 'office', 'in', 'Delhi', '.', 'Founded', 'in', '1934', ',', 'the', 'company', 'owns', 'and/or', 'operates', '30', '+', 'luxury', 'hotels', 'and', 'two', 'river', 'cruise', 'ships', 'in', 'six', 'countries', ',', 'primarily', 'under', 'its', 'Oberoi', 'Hotels', '&', 'Resorts', 'and', 'Trident', 'Hotels', 'brands', '.', '[PAR]', '[TLE]', 'Oberoi', 'family', '[', 'SEP', ']', 'The', 'Oberoi', 'family', 'is', 'an', 'Indian', 'family', 'that', 'is', 'famous', 'for', 'its', 'involvement', 'in', 'hotels', ',', 'namely', 'through', 'The', 'Oberoi', 'Group', '.'], 'offsets': [0, 6, 12, 16, 23, 29, 30, 33, 35, 39, 46, 52, 55, 57, 63, 71, 76, 80, 85, 92, 95, 100, 103, 111, 114, 118, 120, 124, 132, 137, 144, 153, 155, 157, 164, 171, 175, 179, 185, 192, 198, 201, 205, 214, 216, 226, 232, 236, 243, 250, 252, 260, 264, 272, 279, 285, 287, 293, 299, 306, 313, 314, 317, 319, 323, 330, 337, 340, 343, 350, 357, 362, 365, 372, 376, 380, 392, 395, 401, 403, 410, 418, 422, 429, 434]}, 
+                            'qid': '197390227efc4f86b313a2b585cd685b', 
+                            'question': 'The Oberoi family is part of a hotel company that has a head office in what city?', 
+                            'question_tokens': {'tokens': ['The', 'Oberoi', 'family', 'is', 'part', 'of', 'a', 'hotel', 'company', 'that', 'has', 'a', 'head', 'office', 'in', 'what', 'city', '?'], 'offsets': [0, 4, 11, 18, 21, 26, 29, 31, 37, 45, 50, 54, 56, 61, 68, 71, 76, 80]}, 
+                            'detected_answers': {'text': ['Delhi'], 'char_spans': [{'start': [95], 'end': [99]}], 'token_spans': [{'start': [20], 'end': [20]}]}, 
+                            'answers': ['Delhi']}
+        
+        
         qids = ['squad-ex', 'triviaqa-ex', 'nq-ex', 'newsqa-ex', 'searchqa-ex']
         subsets = ['SQuAD', 'TriviaQA', 'NaturalQuestionsSubset', 'NewsQA', 'SearchQA']
         questions = ["Who was the main performer at this year's halftime show?"] * 5
@@ -76,7 +86,19 @@ class TestMRQAPreprocessor(UnitTest):
         detected_answers_list = [detected_answers] * 5
         answers = ['Coldplay', 'Coldplay', 'Coldplay']
         answer_list = [answers] * 5
-
+        
+        # add HotpotQA example
+        qids.append('hotpotqa-ex')
+        subsets.append(hotpotqa_example['subset'])
+        questions.append(hotpotqa_example['question'])
+        qtokens_list.append(hotpotqa_example['question_tokens'])
+        contexts.append(hotpotqa_example['context'])
+        ctokens_list.append(hotpotqa_example['context_tokens'])
+        detected_answers_list.append(hotpotqa_example['detected_answers'])
+        answer_list.append(hotpotqa_example['answers'])
+        
+        
+        
         examples_dict = dict(qid=qids, subset=subsets, question=questions, context=contexts, 
                                 question_tokens=qtokens_list,context_tokens=ctokens_list, 
                                 detected_answers=detected_answers_list,answers=answer_list)
@@ -110,4 +132,11 @@ class TestMRQAPreprocessor(UnitTest):
             mrqa_subset_examples =  mrqa_examples.filter(lambda example: example['subset'] in [subset])
             assert mrqa_subset_examples.num_rows == 1
             assert mrqa_subset_examples[0]['subset'] == subset
+    
+    def test_filter_multiple_subsets(self, mrqa_examples, mrqa_subsets):
+        subsets = [mrqa_subsets[0], mrqa_subsets[-1]]
+        mrqa_subset_examples =  mrqa_examples.filter(lambda example: example['subset'] in subsets)
+        assert mrqa_subset_examples.num_rows == 2
+        assert mrqa_subset_examples[0]['subset'] == subsets[0]
+        assert mrqa_subset_examples[1]['subset'] == subsets[1]
 
