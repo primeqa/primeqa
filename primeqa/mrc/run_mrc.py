@@ -131,12 +131,12 @@ class DataTrainingArguments:
     )
     dataset_filter_column_name: str = field(
         default=None, metadata={
-            "help": "Dataset column name to filter on"
+            "help": "Dataset column name to filter on, e.g. 'subset'"
         }
     )
-    dataset_filter_column_value: List[str] = field(
+    dataset_filter_column_values: List[str] = field(
         default=None, metadata={
-            "help": "Dataset column values to match when filtering"
+            "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
     overwrite_cache: bool = field(
@@ -426,8 +426,8 @@ def main():
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
         if data_args.dataset_filter_column_value is not None:
-            logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_value}")
-            train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_value))
+            logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
             train_dataset = train_dataset.shuffle(seed=training_args.seed)
             logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
         max_train_samples = data_args.max_train_samples
@@ -442,8 +442,8 @@ def main():
     if training_args.do_eval:
         eval_examples = raw_datasets["validation"]
         if data_args.dataset_filter_column_value is not None:
-            logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_value}")
-            eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_value))
+            logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
             logger.info(f"Filtered EVAL dataset size {train_dataset.num_rows}")
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:
