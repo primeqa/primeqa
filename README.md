@@ -66,7 +66,7 @@ Please note that dependencies (specified in [setup.py](./setup.py)) are pinned t
 When installing from source these can be modified, however this is not officially supported.
 
 ### Install Tesseract
-Follow the [instructions](https://tesseract-ocr.github.io/tessdoc/Installation.html) to install tesseract.
+Follow the [instructions](https://tesseract-ocr.github.io/tessdoc/Installation.html) to install tesseract. `Tesseract` is needed for running Visual Document question answering models.
 
 ### JAVA requirements
 Java 11 is required for BM25 retrieval. 
