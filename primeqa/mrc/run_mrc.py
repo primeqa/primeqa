@@ -425,7 +425,7 @@ def main():
     # process train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
-        if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_value is not None:
             logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
             train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
             train_dataset = train_dataset.shuffle(seed=training_args.seed)
@@ -441,7 +441,7 @@ def main():
     # process val data
     if training_args.do_eval:
         eval_examples = raw_datasets["validation"]
-        if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_value is not None:
             logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
             eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
             logger.info(f"Filtered EVAL dataset size {train_dataset.num_rows}")
