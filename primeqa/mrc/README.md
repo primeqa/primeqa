@@ -86,6 +86,7 @@ Currently supported MRC datasets include:
 - MLQA
 - Natural Questions(NQ)
 - Custom Data
+- MRQA
 
 Currently supported TableQA datasets :
 - WikiSQL
@@ -229,6 +230,23 @@ R@P=0.5: 61.23% (actual p=50.01%, score threshold=3.235)
 R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
+ #### [MRQA](https://huggingface.co/datasets/mrqa)
+
+ The dataset is a collection of 18 existing QA dataset (carefully selected subset of them) and converted to the same format (SQuAD like format)
+
+ For the MRQA dataset use the following additional command line arguments:
+ ```shell
+       --dataset_name mrqa \
+       --dataset_config_name plain_text \
+       --preprocessor primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor 
+```
+Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `TriviaQA`, use the command line argments 
+ ```shell
+       --dataset_filter_column_value <subset-name>
+       --dataset_filter_column_name subset
+```
+
+
 
 ### Custom Data
 
