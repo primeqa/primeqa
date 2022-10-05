@@ -58,6 +58,9 @@ pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/c
 # Minimal install (non-editable)
 pip install .
 
+# GPU support
+pip install .[gpu]
+
 # Full install (editable)
 pip install -e .[all]
 ```
