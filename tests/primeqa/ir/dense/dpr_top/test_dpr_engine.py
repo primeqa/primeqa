@@ -19,10 +19,6 @@ class TestDprEngine(UnitTest):
         return location
 
     def test_engine(self, test_files_location):
-        #test_files_location = 'tests/resources/ir_dense'
-        #if 'DATA_FILES_FOR_DENSE_IR_TESTS_PATH' in os.environ:
-        #    test_files_location = os.environ['DATA_FILES_FOR_DENSE_IR_TESTS_PATH']
-
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
         os.makedirs(output_dir, exist_ok=True)
@@ -141,6 +137,6 @@ class TestDprEngine(UnitTest):
         with patch.object(sys, 'argv', test_args):
             searcher = DPRSearcher()
             searcher.search()
-
+            searcher.search(query_batch = ['Who maintained the throne for the longest time in China?'], mode = 'query_list')
 
         print("===== DPR ALL DONE")

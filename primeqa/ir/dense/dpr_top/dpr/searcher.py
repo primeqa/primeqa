@@ -1,7 +1,7 @@
 from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
 import torch
 import csv
-from typing import List
+from typing import Union
 import os
 import numpy as np
 
@@ -87,8 +87,7 @@ class DPRSearcher():
             logger.info(f'Using sharded faiss with {len(self.shards)} shards.')
         self.dummy_doc = {'pid': 'N/A', 'title': '', 'text': '', 'vector': np.zeros(self.dim, dtype=np.float32)}
 
-    def search(self):
-
+    def search(self, query_batch = None, mode: Union['query_list', 'query_and_results_files', None] = None):
         # from corpus_server_direct.run
         def _get_docs_by_pids(pids, *, dummy_if_missing=False):
             docs = []
@@ -229,25 +228,33 @@ class DPRSearcher():
         # from dpr_apply.main
         if self.opts.world_size > 1:
             raise NotImplementedError(f'Distributed not supported (yet).')
-        with write_open(self.opts.output) as output_fh:
-            if self.opts.output_simple_tsv:
-                output = csv.writer(output_fh, delimiter="\t", quotechar='"')
-            else:
-                output = output_fh
-            id_batch, query_batch = [], []
-            for line_ndx, line in enumerate(read_lines(self.opts.queries)):
-                if self.opts.query_file_type == 'id_text':
-                    [qry_id, qry_text] = next(csv.reader([line], delimiter="\t", quotechar='"'))
-                elif self.opts.query_file_type == 'text_answers':
-                    [qry_text, answers] = next(csv.reader([line], delimiter="\t", quotechar='"'))
-                    qry_id = line_ndx
+        if mode == None or mode == 'query_and_results_files':
+            with write_open(self.opts.output) as output_fh:
+                if self.opts.output_simple_tsv:
+                    output = csv.writer(output_fh, delimiter="\t", quotechar='"')
                 else:
-                    raise NotImplementedError(f"Query file type {self.opts.query_file_type} is not implemented (yet).")
-                id_batch.append(qry_id)
-                query_batch.append(qry_text)
-                if len(query_batch) == self.opts.retrieve_batch_size:
+                    output = output_fh
+                id_batch, query_batch = [], []
+                for line_ndx, line in enumerate(read_lines(self.opts.queries)):
+                    if self.opts.query_file_type == 'id_text':
+                        [qry_id, qry_text] = next(csv.reader([line], delimiter="\t", quotechar='"'))
+                    elif self.opts.query_file_type == 'text_answers':
+                        [qry_text, answers] = next(csv.reader([line], delimiter="\t", quotechar='"'))
+                        qry_id = line_ndx
+                    else:
+                        raise NotImplementedError(f"Query file type {self.opts.query_file_type} is not implemented (yet).")
+                    id_batch.append(qry_id)
+                    query_batch.append(qry_text)
+                    if len(query_batch) == self.opts.retrieve_batch_size:
+                        one_batch(id_batch, query_batch, output)
+                        id_batch, query_batch = [], []
+                if len(query_batch) > 0:
                     one_batch(id_batch, query_batch, output)
-                    id_batch, query_batch = [], []
-            if len(query_batch) > 0:
-                one_batch(id_batch, query_batch, output)
-        logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
+            logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
+        elif mode == 'query_list':
+            retrieved_doc_ids, passages = retrieve(query_batch)
+            # retrieved_doc_ids: topN list of lists of doc IDs as strings
+            # passages: topN list of dicts {'titles', 'texts', 'scores' as floats}
+            return retrieved_doc_ids, passages
+        else:
+            raise NotImplementedError(f'Mode {mode} is not supported (yet).')
