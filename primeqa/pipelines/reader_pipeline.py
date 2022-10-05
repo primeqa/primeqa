@@ -105,7 +105,7 @@ class ExtractiveReader(ReaderPipeline):
         self.preprocessor = None
         self.trainer = None
 
-    def load(self):
+    def load(self, *args, **kwargs):
         start_t = time.time()
         task_heads = EXTRACTIVE_HEAD
         # Load configuration for model
@@ -161,6 +161,12 @@ class ExtractiveReader(ReaderPipeline):
     def set_parameter(self, parameter):
         self.parameters[parameter["parameter_id"]] = parameter
 
+    def get_parameter(self, parameter_id: str):
+        return self.parameters[parameter_id]
+
+    def get_parameter_type(self, parameter_id: str):
+        return self.parameters[parameter_id]["type"]
+
     def set_parameter_value(self, parameter_id: str, parameter_value: int):
         self.parameters[parameter_id]["value"] = parameter_value
 
@@ -199,4 +205,15 @@ class ExtractiveReader(ReaderPipeline):
             sorted(entry, key=itemgetter("confidence_score"), reverse=True)
             for entry in predictions
         ]
-        return sorted_predictions
+
+        filtered_predictions = []
+        for sorted_predictions_for_passage in sorted_predictions:
+            filtered_predictions_for_passage = []
+            for sorted_prediction in sorted_predictions_for_passage:
+                if sorted_prediction["confidence_score"] >= self.get_parameter_value(
+                    "min_score_threshold"
+                ):
+                    filtered_predictions_for_passage.append(sorted_prediction)
+
+            filtered_predictions.append(filtered_predictions_for_passage)
+        return filtered_predictions

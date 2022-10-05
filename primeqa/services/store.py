@@ -13,6 +13,7 @@ from primeqa.services.utils import generate_id, load_json, save_json
 DIR_NAME_INDEXES = "indexes"
 DIR_NAME_INDEX = "index"
 DIR_NAME_CHECKPOINTS = "checkpoints"
+DIR_NAME_MODELS = "models"
 FILENAME_INFORMATION = "information"
 FILENAME_DOCUMENTS = "documents"
 FILENAME_DOCUMENT_IDS = "document_ids"
@@ -32,10 +33,12 @@ EXTN_SQL_LITE = ".sqlite"
 #            <checkpoint>/
 #                       <model-id>.dnn|<model-id>.model
 # models/
-#        <model-id>/
-#                   details.json
-#                   data.json
-
+#        <model-id>.dnn|<model-id>.model
+# pipelines/
+#        <pipeline-id>/
+#                   checkpoints/
+#                               <timestamp>/
+#                                       *.dnn|*.model
 #############################################################################################
 class Store:
     def __init__(self):
@@ -65,7 +68,7 @@ class Store:
         )[0]
 
     #############################################################################################
-    #                       Index Documents
+    #                       models
     #############################################################################################
     def get_index_documents_file_path(self, index_id: str, extension: str = EXTN_TSV):
         return os.path.join(
@@ -81,6 +84,23 @@ class Store:
             self.get_index_documents_file_path(index_id, extension=EXTN_SQL_LITE),
             tablename="documents",
         )
+
+    def get_index_document(self, index_id: str, document_idx: int):
+        database = self.get_index_documents_database(index_id=index_id)
+        return database[str(document_idx)]
+
+    def save_index_documents(self, index_id: str, documents: List[dict]):
+        # Step 1: Create `documents.tsv` in index directory
+        documents_tsv_file_path = self.get_index_documents_file_path(
+            index_id, extension=EXTN_TSV
+        )
+        os.makedirs(os.path.dirname(documents_tsv_file_path), exist_ok=True)
+
+        # Step 2: Create `documents.sqlite` in index directory
+        documents_sqlite_file_path = self.get_index_documents_file_path(
+            index_id, extension=EXTN_SQL_LITE
+        )
+        os.makedirs(os.path.dirname(documents_sqlite_file_path), exist_ok=True)
 
     def get_index_document(self, index_id: str, document_idx: int):
         database = self.get_index_documents_database(index_id=index_id)

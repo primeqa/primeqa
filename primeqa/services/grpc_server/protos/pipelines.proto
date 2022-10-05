@@ -7,7 +7,7 @@ package pipelines;
     Service to inform all available models on the server
 */
 service Pipelines {
-    rpc GetPipelines(GetPipelinesRequest) returns (stream Pipeline);
+    rpc GetPipelines(GetPipelinesRequest) returns (GetPipelinesResponse);
     rpc GetPipeline(GetPipelineRequest) returns (Pipeline);
 }
 
@@ -49,7 +49,12 @@ message Pipeline {
     google.protobuf.Struct metadata = 6;
 }
 
+message GetPipelinesResponse {
+    repeated Pipeline pipelines = 1;
+}
+
 message GetPipelineRequest {
     string pipeline_id = 1;
     bool with_parameters = 2;
 }
+
