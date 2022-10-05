@@ -17,22 +17,22 @@ retriever.set_parameter_value()
 - Step 2:  Initialize the reader model. You can choose any the generative QA model we currently have ...
 
 ```python
-reader = MRCFiDPipeline()
+reader = GenerativeFiDPipeline()
 reader.set_parameter_value("model_name_or_path", "PrimeQA/fid_dpr_bart_large")
 ```
 
 - Step 3:  Initialize the QA pipeline model. 
 
 ```python
-qa_pipeline = ORQAPipeline(retriever, reader)
-qa_pipeline.load()
+orqa_pipeline = ORQAPipeline(retriever, reader)
+orqa_pipeline.load()
 ```
 
 - Step 4:  Execute the generative pipeline in inference mode. 
 
 ```python
 query="What causes the trail behind jets at high altitude?",
-answers = qa_pipeline.predict(query)
+answers = orqa_pipeline.predict(query)
 ```
 
 The above statements will generate an output in the form of a dictionary:
