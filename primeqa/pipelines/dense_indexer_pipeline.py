@@ -1,14 +1,15 @@
 import logging
 from typing import Union, List
+import time
 
-from primeqa.pipelines.base import RetrieverPipeline
-from primeqa.pipelines.factories import SearcherFactory
+from primeqa.pipelines.base import IndexerPipeline
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
 
-class ColBERTRetriever(RetrieverPipeline):
+class ColBERTIndexer(IndexerPipeline):
     """
-    Retriever: ColBERT
+    Indexer: ColBERT
     """
 
     def __init__(
@@ -22,11 +23,18 @@ class ColBERTRetriever(RetrieverPipeline):
 
         # Default object variables
         self.pipeline_id = self.__class__.__name__
-        self.pipeline_name = "Dense Retriever (ColBERT)"
+        self.pipeline_name = "Dense Indexer (ColBERT)"
         self.pipeline_description = ""
-        self.pipeline_type = RetrieverPipeline.__name__
+        self.pipeline_type = IndexerPipeline.__name__
 
         self.parameters = {
+            "model": {
+                "parameter_id": "model",
+                "name": "Model",
+                "type": "String",
+                "value": "colbert",
+                "options": ["colbert", "DrDecr"],
+            },
             "similarity": {
                 "parameter_id": "similarity",
                 "name": "Similarity metric",
@@ -102,51 +110,30 @@ class ColBERTRetriever(RetrieverPipeline):
                 "type": "Numeric",
                 "value": 2,
             },
-            "max_num_documents": {
-                "parameter_id": "max_num_documents",
-                "name": "Maximum number of answers",
-                "type": "Numeric",
-                "value": 100,
-                "range": [1, 200, 1],
-            },
-            "ncells": {
-                "parameter_id": "ncells",
-                "name": "Number of cells",
-                "type": "Numeric",
-                "value": 1,
-                "range": [1, 4, 1],
-            },
-            "centroid_score_threshold": {
-                "parameter_id": "centroid_score_threshold",
-                "name": "Centroid Score Threshold",
-                "type": "Numeric",
-                "value": 0.5,
-                "range": [0.0, 1.0, 0.01],
-            },
-            "min_score_threshold": {
-                "parameter_id": "min_score_threshold",
-                "name": "Minimum score threshold",
-                "type": "Numeric",
-                "value": 0.0,
-                "range": [-10.0, 10.0, 0.01],
-            },
         }
 
         # Placeholder object variables
-        self._config = ColBERTConfig(
+        self.indexer = None
+
+    def load(self, *args, **kwargs):
+        start_t = time.time()
+
+        # Step 1: Create ColBERT configurations
+        config = ColBERTConfig(
             **{
                 parameter_id: parameter["value"]
                 for parameter_id, parameter in self.parameters.items()
-                if parameter_id
-                not in [
-                    "max_num_documents",
-                    "min_score_threshold",
-                ]
+                if parameter_id not in ["model"]
             }
         )
 
-    def load(self, *args, **kwargs):
-        pass
+        self.indexer = Indexer(kwargs["checkpoint"], config=config)
+
+        self._logger.info(
+            "%s pipeline - loading took %s seconds",
+            self.pipeline_name,
+            time.time() - start_t,
+        )
 
     def get_parameters(self):
         return [self.parameters.values()]
@@ -175,14 +162,8 @@ class ColBERTRetriever(RetrieverPipeline):
             },
         }
 
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
-        self._config.configure(index_path=kwargs["index_path"])
-        searcher = SearcherFactory.get(self._config)
-        ranking_results = searcher.search_all(
-            {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
-            self.parameters["max_num_documents"]["value"],
-        )
-        return [
-            [(entry[0], entry[-1]) for entry in results_per_query]
-            for results_per_query in ranking_results.data.values()
-        ]
+    def index(
+        self, documents: Union[List[dict], str], index_path: str, *args, **kwargs
+    ):
+        self.indexer.configure(index_path=index_path)
+        self.indexer.index(name="index", collection=documents, overwrite=True)

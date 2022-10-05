@@ -22,7 +22,7 @@ class IndexerPipeline(Pipeline):
         pass
 
 
-class RetrieverPipeline(Pipeline):
+class IndexerPipeline(Pipeline):
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):
         pass

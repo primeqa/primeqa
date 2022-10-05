@@ -11,6 +11,7 @@ from primeqa.services.grpc_server.grpc_generated.pipelines_pb2 import (
     Pipeline,
     PipelineParameter,
     GetPipelinesRequest,
+    GetPipelinesResponse,
     GetPipelineRequest,
     Value,
 )
@@ -65,20 +66,25 @@ class PipelinesService(PipelinesServicer):
         """
         :param GetPipelinesRequest request:
         :param ServicerContext context: gRPC context information for method call
-        :return: Iterator
+        :return: Pipelines
+        :rtype: GetPipelinesResponse
         """
-        for pipeline in get_pipelines():
-            yield Pipeline(
-                pipeline_id=pipeline.pipeline_id,
-                name=pipeline.pipeline_name,
-                type=pipeline.pipeline_type,
-                parameters=[
-                    self._build_pipeline_parameter_obj(parameter)
-                    for parameter in pipeline.parameters.values()
-                ]
-                if request.with_parameters
-                else None,
-            )
+        return GetPipelinesResponse(
+            pipelines=[
+                Pipeline(
+                    pipeline_id=pipeline.pipeline_id,
+                    name=pipeline.pipeline_name,
+                    type=pipeline.pipeline_type,
+                    parameters=[
+                        self._build_pipeline_parameter_obj(parameter)
+                        for parameter in pipeline.parameters.values()
+                    ]
+                    if request.with_parameters
+                    else None,
+                )
+                for pipeline in get_pipelines()
+            ]
+        )
 
     def GetPipeline(self, request: GetPipelineRequest, context: ServicerContext):
         """

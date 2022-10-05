@@ -2,12 +2,19 @@ from typing import List
 import os
 import shutil
 from pathlib import Path
+import glob
 
+from cachetools.func import ttl_cache
+from sqlitedict import SqliteDict
 
 from primeqa.services.utils import generate_id, load_json, save_json
 
 
 DIR_NAME_INDEXES = "indexes"
+DIR_NAME_INDEX = "index"
+DIR_NAME_PIPELINES = "pipelines"
+DIR_NAME_MODELS = "models"
+DIR_NAME_CHECKPOINTS = "checkpoints"
 FILENAME_INFORMATION = "information"
 FILENAME_DOCUMENTS = "documents"
 FILENAME_DOCUMENT_IDS = "document_ids"
@@ -15,6 +22,7 @@ FILENAME_MODEL = "model.dnn"
 EXTN_JSON = ".json"
 EXTN_TSV = ".tsv"
 EXTN_TXT = ".txt"
+EXTN_SQL_LITE = ".sqlite"
 
 
 #############################################################################################
@@ -24,10 +32,12 @@ EXTN_TXT = ".txt"
 #                   documents.json
 #                   documents.tsv
 # models/
-#        <model-id>/
-#                   details.json
-#                   data.json
-
+#        <model-id>.dnn|<model-id>.model
+# pipelines/
+#        <pipeline-id>/
+#                   checkpoints/
+#                               <timestamp>/
+#                                       *.dnn|*.model
 #############################################################################################
 class Store:
     def __init__(self):
@@ -38,43 +48,81 @@ class Store:
             os.makedirs(self.root_dir)
 
     #############################################################################################
+    #                       models
+    #############################################################################################
+    def get_model_path(self, model_id: str):
+        return glob.glob(
+            f"{os.path.join(self.root_dir, DIR_NAME_MODELS)}/{model_id}.*"
+        )[0]
+
+    #############################################################################################
+    #                       Checkpoints
+    #############################################################################################
+    def get_checkpoint_dir_path(self, pipeline_id: str):
+        return os.path.join(
+            self.root_dir, DIR_NAME_PIPELINES, str(pipeline_id), DIR_NAME_CHECKPOINTS
+        )
+
+    def get_latest_checkpoint_path(self, pipeline_id: str):
+        list_of_checkpoints = sorted(
+            glob.glob(f"{self.get_checkpoint_dir_path(pipeline_id)}/"),
+            key=os.path.getmtime,
+        )
+        return list_of_checkpoints[0]
+
+    #############################################################################################
     #                       Index Documents
     #############################################################################################
-    def get_index_document_texts_file_path(self, index_id: str):
+    def get_index_documents_file_path(self, index_id: str, extension: str = EXTN_TSV):
         return os.path.join(
             self.root_dir,
             DIR_NAME_INDEXES,
             str(index_id),
-            FILENAME_DOCUMENTS + EXTN_TSV,
+            f"{FILENAME_DOCUMENTS}{extension}",
         )
 
-    def get_index_document_ids_file_path(self, index_id: str):
-        return os.path.join(
-            self.root_dir,
-            DIR_NAME_INDEXES,
-            str(index_id),
-            FILENAME_DOCUMENT_IDS + EXTN_TXT,
+    @ttl_cache(maxsize=10, ttl=10 * 60)
+    def get_index_documents_database(self, index_id: str):
+        return SqliteDict(
+            self.get_index_documents_file_path(index_id, extension=EXTN_SQL_LITE)
         )
 
-    def get_index_document_texts(self, index_id: str):
-        documents = list()
+    def get_index_document(self, index_id: str, document_idx: int):
+        database = self.get_index_documents_database(index_id=index_id)
+        return database[str(document_idx)]
+
+    def save_index_documents(self, index_id: str, documents: List[dict]):
+        # Step 1: Create `documents.tsv` in index directory
+        documents_tsv_file_path = self.get_index_documents_file_path(
+            index_id, extension=EXTN_TSV
+        )
+        os.makedirs(os.path.dirname(documents_tsv_file_path), exist_ok=True)
+
+        # Step 2: Create `documents.sqlite` in index directory
+        documents_sqlite_file_path = self.get_index_documents_file_path(
+            index_id, extension=EXTN_SQL_LITE
+        )
+        os.makedirs(os.path.dirname(documents_sqlite_file_path), exist_ok=True)
+
+        # Step 3: Iterate over documents in the request to save to `documents.tsv` and `documents.sqlite`
         with open(
-            self.get_index_document_texts_file_path(index_id), "r", encoding="utf-8"
-        ) as file_pointer:
-            for line in file_pointer.readlines():
-                documents.append(line.rstrip("\n").split("\t")[-1])
+            documents_tsv_file_path, "w", encoding="utf-8"
+        ) as documents_file, SqliteDict(documents_sqlite_file_path) as documents_db:
+            # Step 3.a: Add heading row to `documents.tsv`
+            documents_file.write("id\ttext\ttitle\n")
 
-        return documents
+            # Step 3.b: Iterate over documents to add rows to `documents.tsv` and entries in documents_db
+            for document_idx, document in enumerate(documents):
+                documents_file.write(
+                    f"{str(document_idx)}\t{document['text']}\t{document['title'] if 'title' in document else ''}\n"
+                )
+                documents_db[str(document_idx)] = document
 
-    def get_index_document_ids(self, index_id: str):
-        document_ids = list()
-        with open(
-            self.get_index_document_ids_file_path(index_id), "r", encoding="utf-8"
-        ) as file_pointer:
-            for line in file_pointer.readlines():
-                document_ids.append(line.rstrip("\n"))
+            # Step 3.c: Commit to save documents_db
+            documents_db.commit()
 
-        return document_ids
+        # Step 4: Clear cache
+        self.get_index_documents_database.popitem(index_id)
 
     #############################################################################################
     #                       Indexes
@@ -90,14 +138,12 @@ class Store:
 
     def get_index_ids(self) -> List[str]:
         """
-        Retrieves index id for all indexes.
+        Get list of all index ids.
 
-        Returns
-        -------
-        list:
-            index ids
-
+        Returns:
+            List[str]: list of index ids
         """
+
         return [
             index_dir.stem
             for index_dir in Path(os.path.join(self.root_dir, DIR_NAME_INDEXES)).glob(
@@ -122,6 +168,25 @@ class Store:
 
         """
         return os.path.join(self.root_dir, DIR_NAME_INDEXES, str(index_id))
+
+    def get_index_file_path(self, index_id: str) -> str:
+        """
+        Get path to index in indexs/<index_id> directory.
+
+        Parameters
+        ----------
+        index_id: str
+            unique identifier for the index.
+
+        Returns
+        -------
+        str:
+            index's file path.
+
+        """
+        return os.path.join(
+            self.root_dir, DIR_NAME_INDEXES, str(index_id), DIR_NAME_INDEX
+        )
 
     def delete_index(self, index_id: str) -> None:
         """
@@ -186,33 +251,6 @@ class Store:
                 FILENAME_INFORMATION + EXTN_JSON,
             ),
         )
-
-    def save_documents(self, index_id: str, documents: List[dict]):
-        """
-        Save documents used for indexing
-
-        Parameters
-        ----------
-        index_id: str
-            unique identifier for the index
-        documents: List
-            document used for indexing
-
-        Returns
-        -------
-        """
-        documents_file_path = self.get_index_document_texts_file_path(index_id)
-        os.makedirs(os.path.dirname(documents_file_path), exist_ok=True)
-
-        document_ids_file_path = self.get_index_document_ids_file_path(index_id)
-        os.makedirs(os.path.dirname(document_ids_file_path), exist_ok=True)
-
-        with open(documents_file_path, "w", encoding="utf-8") as documents_file, open(
-            document_ids_file_path, "w", encoding="utf-8"
-        ) as document_ids_file:
-            for document_idx, document in enumerate(documents):
-                documents_file.write(str(document_idx) + "\t" + document["text"] + "\n")
-                document_ids_file.write(document["document_id"] + "\n")
 
 
 class StoreFactory:

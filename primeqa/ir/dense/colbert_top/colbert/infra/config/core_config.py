@@ -1,22 +1,15 @@
-import os
-import torch
-import ujson
+from typing import Any
 import dataclasses
 
-from typing import Any
-from collections import defaultdict
-from dataclasses import dataclass, fields
-from primeqa.ir.dense.colbert_top.colbert.utils.utils import timestamp, torch_load_dnn
-
-from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
+import ujson
 
 
-@dataclass
+@dataclasses.dataclass
 class DefaultVal:
     val: Any
 
 
-@dataclass
+@dataclasses.dataclass
 class CoreConfig:
     def __post_init__(self):
         """
@@ -25,7 +18,7 @@ class CoreConfig:
 
         self.assigned = {}
 
-        for field in fields(self):
+        for field in dataclasses.fields(self):
             field_val = getattr(self, field.name)
 
             if isinstance(field_val, DefaultVal) or field_val is None:
@@ -33,9 +26,9 @@ class CoreConfig:
 
             if not isinstance(field_val, DefaultVal):
                 self.assigned[field.name] = True
-    
+
     def assign_defaults(self):
-        for field in fields(self):
+        for field in dataclasses.fields(self):
             setattr(self, field.name, field.default.val)
             self.assigned[field.name] = True
 
@@ -67,7 +60,7 @@ class CoreConfig:
         print(ujson.dumps(dataclasses.asdict(self), indent=4))
 
     def __export_value(self, v):
-        v = v.provenance() if hasattr(v, 'provenance') else v
+        v = v.provenance() if hasattr(v, "provenance") else v
 
         if isinstance(v, list) and len(v) > 100:
             v = (f"list with {len(v)} elements starting with...", v[:3])
@@ -78,9 +71,9 @@ class CoreConfig:
         return v
 
     def export(self):
-        d = dataclasses.asdict(self)
+        data = dataclasses.asdict(self)
 
-        for k, v in d.items():
-            d[k] = self.__export_value(v)
+        for key, value in data.items():
+            data[key] = self.__export_value(value)
 
-        return d
+        return data

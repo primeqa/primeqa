@@ -15,7 +15,8 @@ service Indexer {
 message Document {
     string document_id = 1;
     string text = 2;
-    google.protobuf.Struct metadata = 3;
+    string title = 3;
+    google.protobuf.Struct metadata = 4;
 }
 
 message GenerateIndexRequest {

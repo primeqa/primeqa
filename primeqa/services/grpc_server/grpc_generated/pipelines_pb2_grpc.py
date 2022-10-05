@@ -16,10 +16,10 @@ class PipelinesStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.GetPipelines = channel.unary_stream(
+        self.GetPipelines = channel.unary_unary(
                 '/pipelines.Pipelines/GetPipelines',
                 request_serializer=pipelines__pb2.GetPipelinesRequest.SerializeToString,
-                response_deserializer=pipelines__pb2.Pipeline.FromString,
+                response_deserializer=pipelines__pb2.GetPipelinesResponse.FromString,
                 )
         self.GetPipeline = channel.unary_unary(
                 '/pipelines.Pipelines/GetPipeline',
@@ -48,10 +48,10 @@ class PipelinesServicer(object):
 
 def add_PipelinesServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'GetPipelines': grpc.unary_stream_rpc_method_handler(
+            'GetPipelines': grpc.unary_unary_rpc_method_handler(
                     servicer.GetPipelines,
                     request_deserializer=pipelines__pb2.GetPipelinesRequest.FromString,
-                    response_serializer=pipelines__pb2.Pipeline.SerializeToString,
+                    response_serializer=pipelines__pb2.GetPipelinesResponse.SerializeToString,
             ),
             'GetPipeline': grpc.unary_unary_rpc_method_handler(
                     servicer.GetPipeline,
@@ -81,9 +81,9 @@ class Pipelines(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/pipelines.Pipelines/GetPipelines',
+        return grpc.experimental.unary_unary(request, target, '/pipelines.Pipelines/GetPipelines',
             pipelines__pb2.GetPipelinesRequest.SerializeToString,
-            pipelines__pb2.Pipeline.FromString,
+            pipelines__pb2.GetPipelinesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

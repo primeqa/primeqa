@@ -11,7 +11,7 @@ from primeqa.services.configurations import Settings
 from primeqa.pipelines import (
     get_pipelines,
     get_pipeline,
-    activate_pipeline,
+    load_pipeline,
     ReaderPipeline,
     RetrieverPipeline,
 )
@@ -216,7 +216,7 @@ class RestServer:
                         )
                     )
 
-                activate_pipeline(pipeline.pipeline_id)
+                load_pipeline(pipeline.pipeline_id)
 
                 # Step 3: Run apply method
                 predictions = pipeline.apply(
@@ -302,7 +302,7 @@ class RestServer:
                         )
                     )
 
-                activate_pipeline(pipeline.pipeline_id)
+                load_pipeline(pipeline.pipeline_id)
 
                 # Step 4: Update index information with pipeline information
                 index_information["metadata"] = {"pipeline": pipeline.serialize()}
@@ -314,7 +314,7 @@ class RestServer:
                 )
 
                 # Step 6: Save documents used in index
-                self._store.save_documents(
+                self._store.save_index_documents(
                     index_id=index_information["index_id"], documents=request.documents
                 )
 

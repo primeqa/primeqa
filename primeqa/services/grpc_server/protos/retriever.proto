@@ -9,13 +9,13 @@ package retrieve;
     Service to process and retrieve documents
 */
 service Retriever {
-    rpc Search(SearchRequest) returns (stream Hit);
+    rpc Search(SearchRequest) returns (SearchResponse);
 }
 
 message SearchRequest {
     pipelines.Pipeline pipeline = 1;
     string index_id = 2; 
-    string query = 3;
+    repeated string query = 3;
     google.protobuf.Struct metadata = 6;
 }
 
@@ -25,3 +25,10 @@ message Hit {
     google.protobuf.Struct metadata = 3;
 }
 
+message HitPerQuery {
+    repeated Hit hits = 1;
+}
+
+message SearchResponse {
+    repeated HitPerQuery hits = 1;
+}

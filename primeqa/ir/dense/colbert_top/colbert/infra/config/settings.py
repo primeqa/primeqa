@@ -1,24 +1,24 @@
 import os
+from dataclasses import dataclass
+import __main__
+
 import torch
 
-import __main__
-from dataclasses import dataclass
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import timestamp
-
 from .core_config import DefaultVal
 
 
 @dataclass
 class RunSettings:
     """
-        The defaults here have a special status in Run(), which initially calls assign_defaults(),
-        so these aren't soft defaults in that specific context.
+    The defaults here have a special status in Run(), which initially calls assign_defaults(),
+    so these aren't soft defaults in that specific context.
     """
 
     overwrite: bool = DefaultVal(False)
 
-    root: str = DefaultVal(os.path.join(os.getcwd(), 'experiments'))
-    experiment: str = DefaultVal('default')
+    root: str = DefaultVal(os.path.join(os.getcwd(), "experiments"))
+    experiment: str = DefaultVal("default")
 
     index_root: str = DefaultVal(None)
     name: str = DefaultVal(timestamp(daydir=True))
@@ -38,47 +38,48 @@ class RunSettings:
             value = list(range(value))
 
         if isinstance(value, str):
-            value = value.split(',')
+            value = value.split(",")
 
         value = list(map(int, value))
         value = sorted(list(set(value)))
 
-        assert all(device_idx in range(0, self.total_visible_gpus) for device_idx in value), value
+        assert all(
+            device_idx in range(0, self.total_visible_gpus) for device_idx in value
+        ), value
 
         return value
 
     @property
     def index_root_(self):
-        return self.index_root or os.path.join(self.root, self.experiment, 'indexes/')
+        return self.index_root or os.path.join(self.root, self.experiment, "indexes/")
 
     @property
     def script_name_(self):
-        if '__file__' in dir(__main__):
+        if "__file__" in dir(__main__):
             cwd = os.path.abspath(os.getcwd())
             script_path = os.path.abspath(__main__.__file__)
             root_path = os.path.abspath(self.root)
 
             if script_path.startswith(cwd):
-                script_path = script_path[len(cwd):]
+                script_path = script_path[len(cwd) :]
 
             else:
                 try:
                     commonpath = os.path.commonpath([script_path, root_path])
-                    script_path = script_path[len(commonpath):]
+                    script_path = script_path[len(commonpath) :]
                 except:
                     pass
 
-
-            if script_path.endswith('bin/pytest'):
-                script_path = script_path + '.py'
-            assert script_path.endswith('.py'), (script_path, cwd)
-            script_name = script_path.replace('/', '.').strip('.')[:-3]
+            if script_path.endswith("bin/pytest"):
+                script_path = script_path + ".py"
+            assert script_path.endswith(".py"), (script_path, cwd)
+            script_name = script_path.replace("/", ".").strip(".")[:-3]
 
             assert len(script_name) > 0, (script_name, script_path, cwd)
 
             return script_name
 
-        return 'none'
+        return "none"
 
     @property
     def path_(self):
@@ -110,13 +111,13 @@ class DocSettings:
 @dataclass
 class QuerySettings:
     query_maxlen: int = DefaultVal(32)
-    attend_to_mask_tokens : bool = DefaultVal(False)
-    interaction: str = DefaultVal('colbert')
+    attend_to_mask_tokens: bool = DefaultVal(False)
+    interaction: str = DefaultVal("colbert")
 
 
 @dataclass
 class TrainingSettings:
-    similarity: str = DefaultVal('cosine')
+    similarity: str = DefaultVal("cosine")
 
     bsize: int = DefaultVal(32)
 
@@ -154,7 +155,7 @@ class TrainingSettings:
     save_epochs: int = DefaultVal(-1)
     epochs: int = DefaultVal(10)
     input_arguments: dict = DefaultVal({})
-    model_type: str = DefaultVal('bert-base-uncased')
+    model_type: str = DefaultVal("bert-base-uncased")
     init_from_lm: str = DefaultVal(None)
     local_models_repository: str = DefaultVal(None)
     ranks_fn: str = DefaultVal(None)
@@ -163,7 +164,7 @@ class TrainingSettings:
     # used in distillation (Student/Teacher) training
     student_teacher_temperature: float = DefaultVal(1.0)
     student_teacher_top_loss_weight: float = DefaultVal(0.5)
-    teacher_model_type: str = DefaultVal('xlm-roberta-base')
+    teacher_model_type: str = DefaultVal("xlm-roberta-base")
     teacher_doc_maxlen: int = DefaultVal(180)
     distill_query_passage_separately: bool = DefaultVal(False)
     query_only: bool = DefaultVal(False)
@@ -171,6 +172,7 @@ class TrainingSettings:
     query_weight: float = DefaultVal(0.5)
 
     rng_seed: int = DefaultVal(12345)
+
 
 @dataclass
 class IndexingSettings:
@@ -181,9 +183,11 @@ class IndexingSettings:
     kmeans_niters: int = DefaultVal(20)
 
     num_partitions_max: int = DefaultVal(10000000)
+
     @property
     def index_path_(self):
         return self.index_path or os.path.join(self.index_root_, self.index_name)
+
 
 @dataclass
 class SearchSettings:
