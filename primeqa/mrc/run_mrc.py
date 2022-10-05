@@ -28,6 +28,7 @@ from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipeli
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
@@ -120,7 +121,7 @@ class DataTrainingArguments:
         default=None, metadata={"help": "local file(s) to test on."}
     )
     data_file_format: str = field(
-        default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
+        default="json", metadata={"help": "the format of the local dataset files (json, jsonl, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
@@ -242,7 +243,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
+                  "choices": [BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
