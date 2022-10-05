@@ -17,12 +17,14 @@ from . import pipelines_pb2 as pipelines__pb2
 from . import indexer_pb2 as indexer__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x1cgoogle/protobuf/struct.proto\x1a\x0fpipelines.proto\x1a\rindexer.proto\"\xa4\x01\n\rSearchRequest\x12%\n\x08pipeline\x18\x01 \x01(\x0b\x32\x13.pipelines.Pipeline\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\r\n\x05query\x18\x03 \x01(\t\x12\r\n\x05limit\x18\x04 \x01(\r\x12\x11\n\tthreshold\x18\x05 \x01(\x01\x12)\n\x08metadata\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\"b\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct2?\n\tRetriever\x12\x32\n\x06Search\x12\x17.retrieve.SearchRequest\x1a\r.retrieve.Hit0\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x1cgoogle/protobuf/struct.proto\x1a\x0fpipelines.proto\x1a\rindexer.proto\"\x82\x01\n\rSearchRequest\x12%\n\x08pipeline\x18\x01 \x01(\x0b\x32\x13.pipelines.Pipeline\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\r\n\x05query\x18\x03 \x03(\t\x12)\n\x08metadata\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\"b\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\"*\n\x0bHitPerQuery\x12\x1b\n\x04hits\x18\x01 \x03(\x0b\x32\r.retrieve.Hit\"5\n\x0eSearchResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2H\n\tRetriever\x12;\n\x06Search\x12\x17.retrieve.SearchRequest\x1a\x18.retrieve.SearchResponseb\x06proto3')
 
 
 
 _SEARCHREQUEST = DESCRIPTOR.message_types_by_name['SearchRequest']
 _HIT = DESCRIPTOR.message_types_by_name['Hit']
+_HITPERQUERY = DESCRIPTOR.message_types_by_name['HitPerQuery']
+_SEARCHRESPONSE = DESCRIPTOR.message_types_by_name['SearchResponse']
 SearchRequest = _reflection.GeneratedProtocolMessageType('SearchRequest', (_message.Message,), {
   'DESCRIPTOR' : _SEARCHREQUEST,
   '__module__' : 'retriever_pb2'
@@ -37,14 +39,32 @@ Hit = _reflection.GeneratedProtocolMessageType('Hit', (_message.Message,), {
   })
 _sym_db.RegisterMessage(Hit)
 
+HitPerQuery = _reflection.GeneratedProtocolMessageType('HitPerQuery', (_message.Message,), {
+  'DESCRIPTOR' : _HITPERQUERY,
+  '__module__' : 'retriever_pb2'
+  # @@protoc_insertion_point(class_scope:retrieve.HitPerQuery)
+  })
+_sym_db.RegisterMessage(HitPerQuery)
+
+SearchResponse = _reflection.GeneratedProtocolMessageType('SearchResponse', (_message.Message,), {
+  'DESCRIPTOR' : _SEARCHRESPONSE,
+  '__module__' : 'retriever_pb2'
+  # @@protoc_insertion_point(class_scope:retrieve.SearchResponse)
+  })
+_sym_db.RegisterMessage(SearchResponse)
+
 _RETRIEVER = DESCRIPTOR.services_by_name['Retriever']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _SEARCHREQUEST._serialized_start=92
-  _SEARCHREQUEST._serialized_end=256
-  _HIT._serialized_start=258
-  _HIT._serialized_end=356
-  _RETRIEVER._serialized_start=358
-  _RETRIEVER._serialized_end=421
+  _SEARCHREQUEST._serialized_end=222
+  _HIT._serialized_start=224
+  _HIT._serialized_end=322
+  _HITPERQUERY._serialized_start=324
+  _HITPERQUERY._serialized_end=366
+  _SEARCHRESPONSE._serialized_start=368
+  _SEARCHRESPONSE._serialized_end=421
+  _RETRIEVER._serialized_start=423
+  _RETRIEVER._serialized_end=495
 # @@protoc_insertion_point(module_scope)

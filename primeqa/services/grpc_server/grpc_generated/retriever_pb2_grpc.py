@@ -16,10 +16,10 @@ class RetrieverStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Search = channel.unary_stream(
+        self.Search = channel.unary_unary(
                 '/retrieve.Retriever/Search',
                 request_serializer=retriever__pb2.SearchRequest.SerializeToString,
-                response_deserializer=retriever__pb2.Hit.FromString,
+                response_deserializer=retriever__pb2.SearchResponse.FromString,
                 )
 
 
@@ -37,10 +37,10 @@ class RetrieverServicer(object):
 
 def add_RetrieverServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Search': grpc.unary_stream_rpc_method_handler(
+            'Search': grpc.unary_unary_rpc_method_handler(
                     servicer.Search,
                     request_deserializer=retriever__pb2.SearchRequest.FromString,
-                    response_serializer=retriever__pb2.Hit.SerializeToString,
+                    response_serializer=retriever__pb2.SearchResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -65,8 +65,8 @@ class Retriever(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/retrieve.Retriever/Search',
+        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/Search',
             retriever__pb2.SearchRequest.SerializeToString,
-            retriever__pb2.Hit.FromString,
+            retriever__pb2.SearchResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

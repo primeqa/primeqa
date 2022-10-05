@@ -1,8 +1,8 @@
 import os
-import torch
+from typing import Union, List, Dict
 
 from tqdm import tqdm
-from typing import Union
+import torch
 
 from primeqa.ir.dense.colbert_top.colbert.data import Collection, Queries, Ranking
 
@@ -14,7 +14,7 @@ from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
 
-TextQueries = Union[str, 'list[str]', 'dict[int, str]', Queries]
+TextQueries = Union[str, List[str], Dict[int, str], Queries]
 
 
 class Searcher:
@@ -23,13 +23,22 @@ class Searcher:
 
         initial_config = ColBERTConfig.from_existing(config, Run().config)
 
-        default_index_root = initial_config.index_root_
-        self.index = os.path.join(default_index_root, index)
+        self.index = (
+            initial_config.index_path
+            if initial_config.index_path
+            else (
+                os.path.join(initial_config.index_root, index)
+                if initial_config.index_root
+                else os.path.join(initial_config.index_root_, index)
+            )
+        )
         self.index_config = ColBERTConfig.load_from_index(self.index)
 
         self.checkpoint = checkpoint or self.index_config.checkpoint
         self.checkpoint_config = ColBERTConfig.load_from_checkpoint(self.checkpoint)
-        self.config = ColBERTConfig.from_existing(self.checkpoint_config, self.index_config, initial_config)
+        self.config = ColBERTConfig.from_existing(
+            self.checkpoint_config, self.index_config, initial_config
+        )
 
         self.collection = None
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
@@ -67,13 +76,15 @@ class Searcher:
         return self._search_all_Q(queries, Q, k)
 
     def _search_all_Q(self, queries, Q, k):
-        all_scored_pids = [list(zip(*self.dense_search(Q[query_idx:query_idx+1], k=k)))
-                           for query_idx in tqdm(range(Q.size(0)))]
+        all_scored_pids = [
+            list(zip(*self.dense_search(Q[query_idx : query_idx + 1], k=k)))
+            for query_idx in tqdm(range(Q.size(0)))
+        ]
 
         data = {qid: val for qid, val in zip(queries.keys(), all_scored_pids)}
 
         provenance = Provenance()
-        provenance.source = 'Searcher::search_all'
+        provenance.source = "Searcher::search_all"
         provenance.queries = queries.provenance()
         provenance.config = self.config.export()
         provenance.k = k
@@ -105,4 +116,4 @@ class Searcher:
 
         pids, scores = self.ranker.rank(self.config, Q, k)
 
-        return pids[:k], list(range(1, k+1)), scores[:k]
+        return pids[:k], list(range(1, k + 1)), scores[:k]

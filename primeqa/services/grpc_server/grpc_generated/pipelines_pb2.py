@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fpipelines.proto\x12\tpipelines\x1a\x1cgoogle/protobuf/struct.proto\".\n\x13GetPipelinesRequest\x12\x17\n\x0fwith_parameters\x18\x01 \x01(\x08\"U\n\x05Value\x12\x16\n\x0cnumber_value\x18\x01 \x01(\x01H\x00\x12\x16\n\x0cstring_value\x18\x02 \x01(\tH\x00\x12\x14\n\nbool_value\x18\x03 \x01(\x08H\x00\x42\x06\n\x04kind\"\x98\x01\n\x11PipelineParameter\x12\x14\n\x0cparameter_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x1f\n\x05value\x18\x04 \x01(\x0b\x32\x10.pipelines.Value\x12!\n\x07options\x18\x05 \x03(\x0b\x32\x10.pipelines.Value\x12\r\n\x05range\x18\x06 \x03(\x01\"\xad\x01\n\x08Pipeline\x12\x13\n\x0bpipeline_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x30\n\nparameters\x18\x05 \x03(\x0b\x32\x1c.pipelines.PipelineParameter\x12)\n\x08metadata\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\"B\n\x12GetPipelineRequest\x12\x13\n\x0bpipeline_id\x18\x01 \x01(\t\x12\x17\n\x0fwith_parameters\x18\x02 \x01(\x08\x32\x95\x01\n\tPipelines\x12\x45\n\x0cGetPipelines\x12\x1e.pipelines.GetPipelinesRequest\x1a\x13.pipelines.Pipeline0\x01\x12\x41\n\x0bGetPipeline\x12\x1d.pipelines.GetPipelineRequest\x1a\x13.pipelines.Pipelineb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fpipelines.proto\x12\tpipelines\x1a\x1cgoogle/protobuf/struct.proto\".\n\x13GetPipelinesRequest\x12\x17\n\x0fwith_parameters\x18\x01 \x01(\x08\"U\n\x05Value\x12\x16\n\x0cnumber_value\x18\x01 \x01(\x01H\x00\x12\x16\n\x0cstring_value\x18\x02 \x01(\tH\x00\x12\x14\n\nbool_value\x18\x03 \x01(\x08H\x00\x42\x06\n\x04kind\"\x98\x01\n\x11PipelineParameter\x12\x14\n\x0cparameter_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x1f\n\x05value\x18\x04 \x01(\x0b\x32\x10.pipelines.Value\x12!\n\x07options\x18\x05 \x03(\x0b\x32\x10.pipelines.Value\x12\r\n\x05range\x18\x06 \x03(\x01\"\xad\x01\n\x08Pipeline\x12\x13\n\x0bpipeline_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x30\n\nparameters\x18\x05 \x03(\x0b\x32\x1c.pipelines.PipelineParameter\x12)\n\x08metadata\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\">\n\x14GetPipelinesResponse\x12&\n\tpipelines\x18\x01 \x03(\x0b\x32\x13.pipelines.Pipeline\"B\n\x12GetPipelineRequest\x12\x13\n\x0bpipeline_id\x18\x01 \x01(\t\x12\x17\n\x0fwith_parameters\x18\x02 \x01(\x08\x32\x9f\x01\n\tPipelines\x12O\n\x0cGetPipelines\x12\x1e.pipelines.GetPipelinesRequest\x1a\x1f.pipelines.GetPipelinesResponse\x12\x41\n\x0bGetPipeline\x12\x1d.pipelines.GetPipelineRequest\x1a\x13.pipelines.Pipelineb\x06proto3')
 
 
 
@@ -23,6 +23,7 @@ _GETPIPELINESREQUEST = DESCRIPTOR.message_types_by_name['GetPipelinesRequest']
 _VALUE = DESCRIPTOR.message_types_by_name['Value']
 _PIPELINEPARAMETER = DESCRIPTOR.message_types_by_name['PipelineParameter']
 _PIPELINE = DESCRIPTOR.message_types_by_name['Pipeline']
+_GETPIPELINESRESPONSE = DESCRIPTOR.message_types_by_name['GetPipelinesResponse']
 _GETPIPELINEREQUEST = DESCRIPTOR.message_types_by_name['GetPipelineRequest']
 GetPipelinesRequest = _reflection.GeneratedProtocolMessageType('GetPipelinesRequest', (_message.Message,), {
   'DESCRIPTOR' : _GETPIPELINESREQUEST,
@@ -52,6 +53,13 @@ Pipeline = _reflection.GeneratedProtocolMessageType('Pipeline', (_message.Messag
   })
 _sym_db.RegisterMessage(Pipeline)
 
+GetPipelinesResponse = _reflection.GeneratedProtocolMessageType('GetPipelinesResponse', (_message.Message,), {
+  'DESCRIPTOR' : _GETPIPELINESRESPONSE,
+  '__module__' : 'pipelines_pb2'
+  # @@protoc_insertion_point(class_scope:pipelines.GetPipelinesResponse)
+  })
+_sym_db.RegisterMessage(GetPipelinesResponse)
+
 GetPipelineRequest = _reflection.GeneratedProtocolMessageType('GetPipelineRequest', (_message.Message,), {
   'DESCRIPTOR' : _GETPIPELINEREQUEST,
   '__module__' : 'pipelines_pb2'
@@ -71,8 +79,10 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _PIPELINEPARAMETER._serialized_end=348
   _PIPELINE._serialized_start=351
   _PIPELINE._serialized_end=524
-  _GETPIPELINEREQUEST._serialized_start=526
-  _GETPIPELINEREQUEST._serialized_end=592
-  _PIPELINES._serialized_start=595
-  _PIPELINES._serialized_end=744
+  _GETPIPELINESRESPONSE._serialized_start=526
+  _GETPIPELINESRESPONSE._serialized_end=588
+  _GETPIPELINEREQUEST._serialized_start=590
+  _GETPIPELINEREQUEST._serialized_end=656
+  _PIPELINES._serialized_start=659
+  _PIPELINES._serialized_end=818
 # @@protoc_insertion_point(module_scope)

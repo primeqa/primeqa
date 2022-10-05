@@ -17,7 +17,7 @@ from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from . import pipelines_pb2 as pipelines__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rindexer.proto\x12\x05index\x1a\x1cgoogle/protobuf/struct.proto\x1a\x0fpipelines.proto\"X\n\x08\x44ocument\x12\x13\n\x0b\x64ocument_id\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x9e\x01\n\x14GenerateIndexRequest\x12%\n\x08pipeline\x18\x01 \x01(\x0b\x32\x13.pipelines.Pipeline\x12\"\n\tdocuments\x18\x02 \x03(\x0b\x32\x0f.index.Document\x12\x10\n\x08index_id\x18\x03 \x01(\t\x12)\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"x\n\x15GenerateIndexResponse\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\")\n\x15GetIndexStatusRequest\x12\x10\n\x08index_id\x18\x01 \x01(\t\"9\n\x13IndexStatusResponse\x12\"\n\x06status\x18\x01 \x01(\x0e\x32\x12.index.IndexStatus*H\n\x0bIndexStatus\x12\t\n\x05READY\x10\x00\x12\x0c\n\x08INDEXING\x10\x01\x12\x13\n\x0f\x44OES_NOT_EXISTS\x10\x02\x12\x0b\n\x07\x43ORRUPT\x10\x03\x32\xa3\x01\n\x07Indexer\x12L\n\rGenerateIndex\x12\x1b.index.GenerateIndexRequest\x1a\x1c.index.GenerateIndexResponse(\x01\x12J\n\x0eGetIndexStatus\x12\x1c.index.GetIndexStatusRequest\x1a\x1a.index.IndexStatusResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rindexer.proto\x12\x05index\x1a\x1cgoogle/protobuf/struct.proto\x1a\x0fpipelines.proto\"g\n\x08\x44ocument\x12\x13\n\x0b\x64ocument_id\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x12)\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"\x9e\x01\n\x14GenerateIndexRequest\x12%\n\x08pipeline\x18\x01 \x01(\x0b\x32\x13.pipelines.Pipeline\x12\"\n\tdocuments\x18\x02 \x03(\x0b\x32\x0f.index.Document\x12\x10\n\x08index_id\x18\x03 \x01(\t\x12)\n\x08metadata\x18\x04 \x01(\x0b\x32\x17.google.protobuf.Struct\"x\n\x15GenerateIndexResponse\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\")\n\x15GetIndexStatusRequest\x12\x10\n\x08index_id\x18\x01 \x01(\t\"9\n\x13IndexStatusResponse\x12\"\n\x06status\x18\x01 \x01(\x0e\x32\x12.index.IndexStatus*H\n\x0bIndexStatus\x12\t\n\x05READY\x10\x00\x12\x0c\n\x08INDEXING\x10\x01\x12\x13\n\x0f\x44OES_NOT_EXISTS\x10\x02\x12\x0b\n\x07\x43ORRUPT\x10\x03\x32\xa3\x01\n\x07Indexer\x12L\n\rGenerateIndex\x12\x1b.index.GenerateIndexRequest\x1a\x1c.index.GenerateIndexResponse(\x01\x12J\n\x0eGetIndexStatus\x12\x1c.index.GetIndexStatusRequest\x1a\x1a.index.IndexStatusResponseb\x06proto3')
 
 _INDEXSTATUS = DESCRIPTOR.enum_types_by_name['IndexStatus']
 IndexStatus = enum_type_wrapper.EnumTypeWrapper(_INDEXSTATUS)
@@ -71,18 +71,18 @@ _INDEXER = DESCRIPTOR.services_by_name['Indexer']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _INDEXSTATUS._serialized_start=546
-  _INDEXSTATUS._serialized_end=618
+  _INDEXSTATUS._serialized_start=561
+  _INDEXSTATUS._serialized_end=633
   _DOCUMENT._serialized_start=71
-  _DOCUMENT._serialized_end=159
-  _GENERATEINDEXREQUEST._serialized_start=162
-  _GENERATEINDEXREQUEST._serialized_end=320
-  _GENERATEINDEXRESPONSE._serialized_start=322
-  _GENERATEINDEXRESPONSE._serialized_end=442
-  _GETINDEXSTATUSREQUEST._serialized_start=444
-  _GETINDEXSTATUSREQUEST._serialized_end=485
-  _INDEXSTATUSRESPONSE._serialized_start=487
-  _INDEXSTATUSRESPONSE._serialized_end=544
-  _INDEXER._serialized_start=621
-  _INDEXER._serialized_end=784
+  _DOCUMENT._serialized_end=174
+  _GENERATEINDEXREQUEST._serialized_start=177
+  _GENERATEINDEXREQUEST._serialized_end=335
+  _GENERATEINDEXRESPONSE._serialized_start=337
+  _GENERATEINDEXRESPONSE._serialized_end=457
+  _GETINDEXSTATUSREQUEST._serialized_start=459
+  _GETINDEXSTATUSREQUEST._serialized_end=500
+  _INDEXSTATUSRESPONSE._serialized_start=502
+  _INDEXSTATUSRESPONSE._serialized_end=559
+  _INDEXER._serialized_start=636
+  _INDEXER._serialized_end=799
 # @@protoc_insertion_point(module_scope)
