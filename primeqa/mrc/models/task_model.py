@@ -127,5 +127,5 @@ class ModelForDownstreamTasks(PreTrainedModel):
         elif self._task_head is not None:
             self._logger.info(f"Changing default task head from '{self._task_head}' to '{task_head}'")
         else:
-            self._logger.info(f"Setting task head for first time to '{self._task_head}'")
+            self._logger.info(f"Setting task head for first time to '{task_head}'")
         self._task_head = task_head
