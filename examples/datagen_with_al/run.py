@@ -48,12 +48,6 @@ class ModelArguments:
             "help": "Path to pretrained model or model identifier from huggingface.co/models; should be a seq-to-seq model",
         },
     )
-    cache_dir: Optional[str] = field(
-        default=None,
-        metadata={
-            "help": "Where do we want to store the pretrained models downloaded from s3"
-        },
-    )
 
 
 @dataclass
@@ -85,6 +79,12 @@ class DataTrainingArguments:
     num_worker: Optional[int] = field(
         default=1,
         metadata={"help": "The number of workers for processing datasets"},
+    )
+    cache_dir: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Where do we want to store the pretrained models downloaded from s3"
+        },
     )
 
 
@@ -142,11 +142,41 @@ class InferenceArguments:
         },
     )
 
+
+class TrainingArgumentsMetaClass(type):
+    def __call__(cls, *args: Any, **kwds: Any) -> Any:
+        if not hasattr(cls, "prefix"):
+            raise AttributeError(f"Class {cls} does not have attribute `prefix`. Make sure to create class with attribute `prefix`, e.g. TrainingArgumentsMetaClass('class_name', (Seq2SeqTrainingArguments,), dict(prefix='prefix'))")
+        prefix = cls.prefix
+        return super().__call__(*args, **{key[3:] if key.startswith(prefix) else key: value for key, value in kwds.items()})
+
+
+    def __getattribute__(cls, __name: str) -> Any:
+        # add prefix to field names, note that this only modifies the class fields, not the instance fields which stay original
+        if __name == dataclasses._FIELDS:
+            fields = super().__getattribute__(__name)
+            new_fields = {}
+            for key, value in fields.items():
+                value: dataclasses.Field
+                new_value = copy(value)
+                new_value.name = cls.prefix + new_value.name
+                new_fields[cls.prefix + key] = new_value
+            return new_fields
+        return super().__getattribute__(__name)
+
+
+RCSeq2SeqTrainingArguments = TrainingArgumentsMetaClass("RCSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="rc_"))
+RCModelArguments = TrainingArgumentsMetaClass("RCModelArguments", (ModelArguments,), dict(prefix="rc_"))
+QGSeq2SeqTrainingArguments = TrainingArgumentsMetaClass("QGSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="qg_"))
+QGModelArguments = TrainingArgumentsMetaClass("QGModelArguments", (ModelArguments,), dict(prefix="qg_"))
+
 def main(raw_args):
     parser = HfArgumentParser(
         (
-            ModelArguments,
-            Seq2SeqTrainingArguments,
+            RCModelArguments,
+            QGModelArguments,
+            RCSeq2SeqTrainingArguments,
+            QGSeq2SeqTrainingArguments,
             DataTrainingArguments,
             ALArguments,
             InferenceArguments,
@@ -154,61 +184,78 @@ def main(raw_args):
     )
 
     # type annotations
-    model_args: ModelArguments
-    training_args: Seq2SeqTrainingArguments
+    rc_model_args: ModelArguments
+    qg_model_args: ModelArguments
+    rc_training_args: Seq2SeqTrainingArguments
+    qg_training_args: Seq2SeqTrainingArguments
     data_args: DataTrainingArguments
     al_args: ALArguments
     inference_args: InferenceArguments
 
     if len(raw_args) == 2 and raw_args[1].endswith(".json"):
-        model_args, training_args, data_args, al_args, inference_args = parser.parse_json_file(
+        rc_model_args, qg_model_args, rc_training_args, qg_training_args, data_args, al_args, inference_args = parser.parse_json_file(
             json_file=raw_args[1]
         )
     elif len(raw_args) == 1:
-        model_args, training_args, data_args = parser.parse_dict(raw_args[0])
+        rc_model_args, qg_model_args, rc_training_args, qg_training_args, data_args, al_args, inference_args = parser.parse_dict(raw_args[0])
     else:
         (
-            model_args,
-            training_args,
+            rc_model_args,
+            qg_model_args,
+            rc_training_args,
+            qg_training_args,
             data_args,
             al_args,
             inference_args,
         ) = parser.parse_args_into_dataclasses()
     
     # some arguments have to be hardcoded in order for HF Trainer to work
-    training_args.predict_with_generate = True
-    training_args.prediction_loss_only = False
+    rc_training_args.predict_with_generate = True
+    qg_training_args.predict_with_generate = True
+    rc_training_args.prediction_loss_only = False
+    qg_training_args.prediction_loss_only = False
 
     if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
-        and training_args.do_train
-        and not training_args.overwrite_output_dir
+        os.path.exists(rc_training_args.output_dir)
+        and os.listdir(rc_training_args.output_dir)
+        and rc_training_args.do_train
+        and not rc_training_args.overwrite_output_dir
     ):
         raise ValueError(
-            f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+            f"Output directory ({rc_training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+        )
+    if (
+        os.path.exists(qg_training_args.output_dir)
+        and os.listdir(qg_training_args.output_dir)
+        and qg_training_args.do_train
+        and not qg_training_args.overwrite_output_dir
+    ):
+        raise ValueError(
+            f"Output directory ({qg_training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
         )
 
     # Setup logging
     logging.basicConfig(
         format="[%(asctime)s - %(levelname)s - %(name)s] %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if training_args.local_rank in [-1, 0] else logging.WARN,
+        level=logging.INFO if any(rc_training_args.local_rank in [-1, 0], qg_training_args.local_rank in [-1, 0]) else logging.WARN,
     )
-    logger.warning(
-        "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
-        training_args.local_rank,
-        training_args.device,
-        training_args.n_gpu,
-        bool(training_args.local_rank != -1),
-        training_args.fp16,
-    )
-    logger.info("Training parameters %s", training_args)
+    # logger.warning(
+    #     "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
+    #     training_args.local_rank,
+    #     training_args.device,
+    #     training_args.n_gpu,
+    #     bool(training_args.local_rank != -1),
+    #     training_args.fp16,
+    # )
+    logger.info("RC Training parameters %s", rc_training_args)
+    logger.info("QG Training parameters %s", qg_training_args)
 
     # Set seed
-    set_seed(training_args.seed)
+    set_seed(rc_training_args.seed)
+    set_seed(qg_training_args.seed)
 
-    qg_model = QGModel(model_args.model_name_or_path, modality='passage_qa2s')
+    qg_model = QGModel(qg_model_args.model_name_or_path, modality='passage_qa2s')
 
     qgdl = QGDataLoader(
         tokenizer=qg_model.tokenizer,
@@ -218,49 +265,49 @@ def main(raw_args):
     )
 
     # load datasets
-    if al_args.do_al or training_args.do_train:
+    if al_args.do_al or rc_training_args.do_train or qg_training_args.do_train:
         train_dataset = get_datasets(data_args.train_dataset)
         train_dataset = expand_answers(train_dataset, separate_answers=False)
-    if training_args.do_eval:
+    if rc_training_args.do_eval or qg_training_args.do_eval:
         validation_dataset = get_datasets(data_args.eval_dataset)
         validation_dataset = expand_answers(validation_dataset, separate_answers=False)
 
     # process data
-    validation_dataset = qgdl.create(validation_dataset) if training_args.do_eval else None
+    qg_validation_dataset = qgdl.create(validation_dataset) if qg_training_args.do_eval else None
     compute_metrics = rouge_metrics(qg_model.tokenizer)
 
-    gen_train_class = GenTrainer
+    gen_trainer_class = GenTrainer
     gen_trainer_kwargs = dict(
         max_gen_length=30,
         model=qg_model.model,
         tokenizer=qg_model.tokenizer,
-        args=training_args,
-        eval_dataset=validation_dataset,
+        args=qg_training_args,
+        eval_dataset=qg_validation_dataset,
         data_collator=DataCollatorForSeq2SeqWithDecoderInputs(qg_model.tokenizer),
         compute_metrics=compute_metrics,
     )
 
-    if training_args.do_eval or training_args.do_train:
+    if qg_training_args.do_eval or qg_training_args.do_train:
         # for evaluation and training we need to create the trainer first
         # for training we also need to preprocess training data
-        trainer = gen_train_class(**gen_trainer_kwargs, train_dataset=qgdl.create(train_dataset) if training_args.do_train else None)
+        qg_trainer = gen_trainer_class(**gen_trainer_kwargs, train_dataset=qgdl.create(train_dataset) if qg_training_args.do_train else None)
 
     # evaluation
-    if training_args.do_eval:
-        metrics = trainer.evaluate()
-        trainer.log_metrics("eval", metrics)
+    if qg_training_args.do_eval:
+        metrics = qg_trainer.evaluate()
+        qg_trainer.log_metrics("eval", metrics)
 
     # training
-    if training_args.do_train:
-        train_result = trainer.train(
-            model_path=model_args.model_name_or_path
-            if os.path.isdir(model_args.model_name_or_path)
+    if qg_training_args.do_train:
+        train_result = qg_trainer.train(
+            model_path=qg_model_args.model_name_or_path
+            if os.path.isdir(qg_model_args.model_name_or_path)
             else None
         )
         metrics = train_result.metrics
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
-        trainer.save_state()
+        qg_trainer.log_metrics("train", metrics)
+        qg_trainer.save_metrics("train", metrics)
+        qg_trainer.save_state()
 
     # AL
     if al_args.do_al:
@@ -269,7 +316,7 @@ def main(raw_args):
         def preprocess_fn_wrapper(process_fn: Callable, add_examples_to_output: bool = False) -> Callable[[Dataset], Tuple[Dataset, Dataset]]:
             # wrapper to have access to training_args
             def wrapped_process_fn(examples) -> Tuple[Dataset, Dataset]:
-                with training_args.main_process_first(desc="Dataset pre-processing"):
+                with qg_trainer.main_process_first(desc="Dataset pre-processing"):
                     result = process_fn(examples)
                 if add_examples_to_output:
                     # the pre-processing function returns only processed examples but we need the examples as well
@@ -277,7 +324,7 @@ def main(raw_args):
                 # otherwise return the result, should be examples and processed examples
                 return result
             return wrapped_process_fn
-        gen_trainer_config = TrainerConfig(GEN_TRAINER_ID, gen_train_class, gen_trainer_kwargs, preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), None)
+        gen_trainer_config = TrainerConfig(GEN_TRAINER_ID, gen_trainer_class, gen_trainer_kwargs, preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), None)
 
         # TODO add rc trainer with separate arguments, maybe prefix them on the command line?
         # rc_trainer_config = TrainerConfig(RC_TRAINER_ID, rc_trainer_class, rc_trainer_kwargs, preprocess_fn_wrapper(preprocessor.process_train), preprocess_fn_wrapper(preprocessor.process_eval), None)
@@ -294,7 +341,7 @@ def main(raw_args):
         #         compute_metrics=compute_metrics,
         #     )
 
-        al = ActiveLearner(training_args.output_dir, (gen_trainer_config,))
+        al = ActiveLearner(qg_training_args.output_dir, (gen_trainer_config,))
         # TODO choose strategy via command line arguments
         # strategy = RCALScorer(rc_trainer_id=0)
         # a special token id map is needed to generate sequences - these are valid for the QA2S model
@@ -365,7 +412,7 @@ def main(raw_args):
         # create trainer
         gen_trainer = GenTrainer(
             model=qg_model.model,
-            args=training_args,
+            args=qg_training_args,
             tokenizer=qg_model.tokenizer,
             data_collator=DataCollatorForSeq2SeqWithDecoderInputs(
                 qg_model.tokenizer
