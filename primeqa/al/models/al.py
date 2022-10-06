@@ -120,11 +120,11 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
     """This class scores samples based on generated output."""
 
     class Strategy(Enum):
-        SENTENCE_PROBABILITY = auto()
-        SENTENCE_PROBABILITY_DROPOUT = auto()
-        LEXICAL_SIMILARITY = auto()
-        ROUNDTRIP = auto()
-        SENTENCE_PROBABILITY_DROPOUT_AND_ROUNDTRIP = auto()
+        SENTENCE_PROBABILITY = "sp"
+        SENTENCE_PROBABILITY_DROPOUT = "dsp"
+        LEXICAL_SIMILARITY = "ls"
+        ROUNDTRIP = "rt"
+        SENTENCE_PROBABILITY_DROPOUT_AND_ROUNDTRIP = "dsp+rt"
 
     def __init__(
         self,
@@ -430,6 +430,12 @@ class RCALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
 
         self.num_models = num_models
 
+    def query(
+        self, num_samples: int, trainers: Sequence[Trainer], sample_id_column: str
+    ) -> Union[List[float], numpy.ndarray]:
+        # NOTE current fix for feature column being example_id for RC data
+        return super().query(num_samples, trainers, "example_id")
+
     def _bald(self, sample: Dict, trainer: Trainer):
         # compute bald score (maximize the information gained about the model parameters) with dropout active
         # this is an approximation where we keep start and end probability separate since we have a classification over tokens for start and end probability
@@ -493,7 +499,9 @@ class ActiveLearner:
 
     def __init__(self, output_dir: str, trainer_configs: List[TrainerConfig]):
         self.trainer_configs: dict[Hashable, TrainerConfig] = {
-            trainer_config.id_: trainer_config for trainer_config in trainer_configs
+            trainer_config.id_: trainer_config
+            for trainer_config in trainer_configs
+            if trainer_config is not None
         }
         self.trainers = {}
         self.metrics = defaultdict(dict)
@@ -626,7 +634,6 @@ class ActiveLearner:
         store_indices_and_scores: bool = True,
         store_samples: bool = True,
     ):
-        # TODO allow num_samples_per_iteration to be a list with num samples per iteration for all iterations
         # this runs active learning using the given data and scoring functions
         # create trainer
         # skip_instantiated=True will make sure that trainers are not re-created if they already exist (e.g. so that they can be used in a second call to run() with the already trained models)

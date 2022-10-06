@@ -9,12 +9,13 @@ import traceback
 from collections.abc import Mapping
 from copy import copy
 from dataclasses import dataclass, field
+from functools import partial
 from importlib import import_module
 from operator import attrgetter, itemgetter
 from typing import Any, Callable, List, Optional, Tuple
 
 from examples.datagen_with_al.utils.data import expand_answers, get_datasets
-from primeqa.al.models.al import ActiveLearner, GenALScorer, TrainerConfig
+from primeqa.al.models.al import ActiveLearner, GenALScorer, RCALScorer, TrainerConfig
 from primeqa.boolqa.processors.postprocessors.extractive import (
     ExtractivePipelinePostProcessor,
 )
@@ -69,6 +70,8 @@ logger = logging.getLogger()
 # unique IDs for the trainer, also used for metric record
 GEN_TRAINER_ID = "gen_trainer"
 RC_TRAINER_ID = "rc_trainer"
+
+AL_STRATEGIES = [strategy.value for strategy in GenALScorer.Strategy] + ["bald"]
 
 
 def object_reference(reference_as_str: str) -> object:
@@ -226,11 +229,22 @@ class ALArguments:
     Arguments for performing Active Learning.
     """
 
+    strategy: str = field(
+        metadata={"choices": AL_STRATEGIES, "help": "The AL strategy"}
+    )
     do_al: Optional[bool] = field(
         default=False, metadata={"help": "Whether to perform Active Learning"}
     )
+    num_iterations: Optional[int] = field(
+        default=4,
+        metadata={"help": "The number of iterations to perform for Active Learning"},
+    )
+    num_samples_per_iterations: Optional[int] = field(
+        default=50,
+        metadata={"help": "The amount of samples per iteration for Active Learning"},
+    )
     output_dir: Optional[str] = field(
-        default=None, metadata={"help": "The output directory for AL"}
+        default=None, metadata={"help": "The output directory for Active Learning"}
     )
 
 
@@ -440,8 +454,23 @@ def main(raw_args):
     if inference_args.do_generate:
         if inference_args.predict_dataset is None:
             raise ValueError(
-                "Predict dataset cannot be None, please specify one usin `--predict_dataset`."
+                "Predict dataset cannot be None, please specify one using `--predict_dataset`."
             )
+    if al_args.do_al:
+        if al_args.output_dir is None:
+            raise ValueError(
+                "You have to set an output directory for Active Learning using --output_dir."
+            )
+        if al_args.strategy in [strategy.value for strategy in GenALScorer.Strategy]:
+            if qg_model_args.model_name_or_path is None:
+                raise ValueError(
+                    "The chosen AL strategy needs a data generation model. You have to provide at least a model using --qg_model_name_or_path; consider providing more training arguments as well"
+                )
+        if al_args.strategy in ["bald", "rt", "rt+dsp"]:
+            if rc_model_args.model_name_or_path is None:
+                raise ValueError(
+                    "The chosen AL strategy needs an RC model. You have to provide at least a model using --rc_model_name_or_path; consider providing more training arguments as well"
+                )
 
     # some arguments have to be hardcoded in order for HF Trainer to work
     qg_training_args.predict_with_generate = True
@@ -573,7 +602,8 @@ def main(raw_args):
                 validation_dataset
             )
             if rc_training_args.do_eval
-            else None
+            else None,
+            None,
         )
 
         # set up metric
@@ -613,6 +643,9 @@ def main(raw_args):
             post_process_function=rc_postprocessor.process_references_and_predictions,
             compute_metrics=rc_compute_metrics,
         )
+    else:
+        # signal rc disabled
+        rc_trainer_class = None
 
     ## QG setup
 
@@ -669,6 +702,9 @@ def main(raw_args):
             data_collator=DataCollatorForSeq2SeqWithDecoderInputs(qg_model.tokenizer),
             compute_metrics=qg_compute_metrics,
         )
+    else:
+        # signal generation disabled
+        gen_trainer_class = None
 
     ## training, evaluation and AL
 
@@ -717,38 +753,52 @@ def main(raw_args):
     if al_args.do_al:
         # the ActiveLearner gets passed trainer configs which contain the trainer class and the trainer kwargs
 
-        gen_trainer_config = TrainerConfig(
-            GEN_TRAINER_ID,
-            gen_trainer_class,
-            gen_trainer_kwargs,
-            preprocess_fn_wrapper(
-                qg_training_args, qgdl.create, add_examples_to_output=True
-            ),
-            preprocess_fn_wrapper(
-                qg_training_args, qgdl.create, add_examples_to_output=True
-            ),
-            None,
+        # create output directory if it does not exist
+        try:
+            os.makedirs(al_args.output_dir)
+        except:
+            # dir exists
+            pass
+
+        gen_trainer_config = (
+            TrainerConfig(
+                GEN_TRAINER_ID,
+                gen_trainer_class,
+                gen_trainer_kwargs,
+                preprocess_fn_wrapper(
+                    qg_training_args, qgdl.create, add_examples_to_output=True
+                ),
+                preprocess_fn_wrapper(
+                    qg_training_args, qgdl.create, add_examples_to_output=True
+                ),
+                None,
+            )
+            if gen_trainer_class is not None
+            else None
         )
-        rc_trainer_config = TrainerConfig(
-            RC_TRAINER_ID,
-            rc_trainer_class,
-            rc_trainer_kwargs,
-            preprocess_fn_wrapper(
-                rc_training_args,
-                rc_preprocessor.process_train,
-                add_examples_to_output=True,
-            ),
-            preprocess_fn_wrapper(
-                rc_training_args,
-                rc_preprocessor.process_train,
-                add_examples_to_output=False,
-            ),
-            None,
+
+        rc_trainer_config = (
+            TrainerConfig(
+                RC_TRAINER_ID,
+                rc_trainer_class,
+                rc_trainer_kwargs,
+                preprocess_fn_wrapper(
+                    rc_training_args,
+                    rc_preprocessor.process_train,
+                    add_examples_to_output=True,
+                ),
+                preprocess_fn_wrapper(
+                    rc_training_args,
+                    rc_preprocessor.process_train,
+                    add_examples_to_output=False,
+                ),
+                None,
+            )
+            if rc_trainer_class is not None
+            else None
         )
 
         al = ActiveLearner(al_args.output_dir, (gen_trainer_config, rc_trainer_config))
-        # TODO choose strategy via command line arguments
-        # strategy = RCALScorer(rc_trainer_id=0)
         # a special token id map is needed to generate sequences - these are valid for the QA2S model
         special_token_id_map = dict(
             bos_token_id=qg_model.tokenizer.convert_tokens_to_ids("<q>"),
@@ -756,21 +806,35 @@ def main(raw_args):
             bos_token_id_2=qg_model.tokenizer.convert_tokens_to_ids("<a>"),
             eos_token_id_2=qg_model.tokenizer.convert_tokens_to_ids("</a>"),
         )
-        strategy = GenALScorer(
-            strategy=GenALScorer.Strategy.SENTENCE_PROBABILITY_DROPOUT,
-            max_gen_length=30,
-            special_token_id_map=special_token_id_map,
-            gen_trainer_id=GEN_TRAINER_ID,
-        )
+
+        # set up AL strategy
+        if al_args.strategy in [strategy.value for strategy in GenALScorer.Strategy]:
+            # gen model based strategy
+            strategy_class = GenALScorer
+            strategy_kwargs = dict(
+                strategy=GenALScorer.Strategy(al_args.strategy),
+                max_gen_length=30,
+                special_token_id_map=special_token_id_map,
+                gen_trainer_id=GEN_TRAINER_ID,
+            )
+            if strategy_kwargs["strategy"] in [
+                GenALScorer.Strategy.ROUNDTRIP,
+                GenALScorer.Strategy.SENTENCE_PROBABILITY_DROPOUT_AND_ROUNDTRIP,
+            ]:
+                strategy_kwargs.update(rc_trainer_id=rc_trainer_config.id_)
+        else:
+            # BALD
+            strategy_class = RCALScorer
+            strategy_kwargs = dict(rc_trainer_id=rc_trainer_config.id_)
+        strategy = strategy_class(**strategy_kwargs)
 
         # perform training via active learning
-        # TODO allow to set arguments via command line
         logger.info("***** Running Active Learning *****")
         metrics = al.run(
             examples=train_dataset,
             strategy=strategy,
-            num_iterations=4,
-            num_samples_per_iteration=50,
+            num_iterations=al_args.num_iterations,
+            num_samples_per_iteration=al_args.num_samples_per_iteration,
             feature_id_column="id",
         )
         if metrics:
@@ -821,9 +885,7 @@ def main(raw_args):
         if inference_args.exclude_dataset:
             # exclude contexts for generation
             logging.info(f"Excluding contexts from specified data")
-            exclude_dataset = load_dataset(
-                "datasets/shared-task", name=inference_args.exclude_dataset
-            )
+            exclude_dataset = get_datasets(inference_args.exclude_dataset)
             exclude_contexts = exclude_dataset.flatten_indices().unique("context")
             dataset = dataset.filter(
                 lambda x: x["context"] not in exclude_contexts,
