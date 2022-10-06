@@ -1,3 +1,4 @@
+import collections
 import gc
 import glob
 import json
@@ -8,11 +9,13 @@ import traceback
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
-from typing import Optional, Type
+from typing import Callable, Optional, Tuple, Type
 
 import datasets
 import torch
-from primeqa.al.models.al import ActiveLearner, RCALScorer, TrainerConfig
+from datasets import Dataset
+from primeqa.al.models.al import (ActiveLearner, GenALScorer, RCALScorer,
+                                  TrainerConfig)
 from primeqa.boolqa.processors.postprocessors.extractive import \
     ExtractivePipelinePostProcessor
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
@@ -34,6 +37,12 @@ from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import \
     TyDiQAGooglePreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.qg.metrics.generation_metrics import rouge_metrics
+from primeqa.qg.models.qg_model import QGModel
+from primeqa.qg.processors.data_loader import QGDataLoader
+from primeqa.qg.trainers.qg_trainer import GenTrainer
+from primeqa.qg.utils.data_collator import \
+    DataCollatorForSeq2SeqWithDecoderInputs
 from transformers import (AutoConfig, AutoTokenizer, DataCollatorWithPadding,
                           HfArgumentParser, TrainingArguments)
 from transformers.trainer_utils import get_last_checkpoint, set_seed
@@ -368,7 +377,7 @@ def main():
         max_contexts=data_args.max_contexts,
     )
 
-    # process train data
+    # get train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
         max_train_samples = data_args.max_train_samples
@@ -410,11 +419,11 @@ def main():
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
             passage_non_null_threshold=task_args.passage_non_null_threshold, 
-            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
-            dataset_config_name = eval_dataset.config_name)
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose)
+            # dataset_config_name = eval_dataset.config_name)
 
-    trainer_class = MRCTrainer
-    trainer_kwargs = dict(
+    rc_trainer_class = MRCTrainer
+    rc_trainer_kwargs = dict(
         model=model,
         args=training_args,
         train_dataset=None,
@@ -425,23 +434,64 @@ def main():
         post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
         compute_metrics=compute_metrics,
     )
-    def preprocess_fn_wrapper(process_fn):
+
+    def preprocess_fn_wrapper(process_fn: Callable, add_examples_to_output: bool = False) -> Callable[[Dataset], Tuple[Dataset, Dataset]]:
         # wrapper to have access to training_args
-        def wrapped_process_fn(examples):
+        def wrapped_process_fn(examples) -> Tuple[Dataset, Dataset]:
             with training_args.main_process_first(desc="Dataset pre-processing"):
-                _, query_dataset = process_fn(examples)
-            return query_dataset
+                result = process_fn(examples)
+            if add_examples_to_output:
+                # the pre-processing function returns only processed examples but we need the examples as well
+                return examples, result
+            # otherwise return the result, should be examples and processed examples
+            return result
         return wrapped_process_fn
 
-    rc_trainer_config = TrainerConfig(0, trainer_class, trainer_kwargs, preprocess_fn_wrapper(preprocessor.process_train), preprocess_fn_wrapper(preprocessor.process_eval), None)
+    rc_trainer_config = TrainerConfig(0, rc_trainer_class, rc_trainer_kwargs, preprocess_fn_wrapper(preprocessor.process_train), preprocess_fn_wrapper(preprocessor.process_eval), None)
 
-    # set up active learner
-    al = ActiveLearner(training_args.output_dir, [rc_trainer_config])
-    strategy = RCALScorer([0])
+    qg_model = QGModel('t5-base', modality='passage_qa2s')
+
+    # qg setup
+    qgdl = QGDataLoader(
+        tokenizer=qg_model.tokenizer,
+        dataset_name='squad',
+        modality='passage_qa2s',
+        input_max_len=1024,
+        target_max_len=100
+        )
+
+    valid_dataset = qgdl.create(data_split="validation")
+
+    gen_trainer_kwargs = dict(
+        max_gen_length=30,
+        model=qg_model.model,
+        tokenizer = qg_model.tokenizer,
+        # TODO separate training args
+        args=training_args,
+        train_dataset=None,
+        eval_dataset=valid_dataset,
+        data_collator=DataCollatorForSeq2SeqWithDecoderInputs(qg_model.tokenizer),
+        compute_metrics=rouge_metrics(qg_model.tokenizer)
+    )
+    gen_trainer_config = TrainerConfig(1, GenTrainer, gen_trainer_kwargs, preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), preprocess_fn_wrapper(qgdl.create, add_examples_to_output=True), None)
+    
+    # set up active learner training both, RC model as well as QG model
+    al = ActiveLearner(training_args.output_dir, (rc_trainer_config, gen_trainer_config))
+    
+    # TODO choose strategy via command line arguments
+    # strategy = RCALScorer(rc_trainer_id=0)
+    # a special token id map is needed to generate sequences - these are valid for the QA2S model
+    special_token_id_map = dict(
+        bos_token_id=qg_model.tokenizer.convert_tokens_to_ids('<q>'),
+        eos_token_id=qg_model.tokenizer.convert_tokens_to_ids('</q>'),
+        bos_token_id_2=qg_model.tokenizer.convert_tokens_to_ids('<a>'),
+        eos_token_id_2=qg_model.tokenizer.convert_tokens_to_ids('</a>'),
+    )
+    strategy = GenALScorer(strategy=GenALScorer.Strategy.ROUNDTRIP, max_gen_length=30, special_token_id_map=special_token_id_map, gen_trainer_id=1, rc_trainer_id=0)
 
     # perform training via active learning
     # TODO allow to set arguments via command line
-    result = al.run(examples=train_dataset, strategy=strategy, num_iterations=4, num_samples_per_iteration=5)
+    result = al.run(examples=train_dataset, strategy=strategy, num_iterations=4, num_samples_per_iteration=10, feature_id_column='id')
 
     # metrics = result.metrics
     # max_train_samples = (
