@@ -1,7 +1,7 @@
 import logging
 from typing import List
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
@@ -16,7 +16,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 @dataclass
-class ExtractiveReaderComponent(ReaderComponent):
+class ExtractiveReader(ReaderComponent):
     """_summary_
 
     Args:
@@ -29,7 +29,7 @@ class ExtractiveReaderComponent(ReaderComponent):
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
-        logger (logging.Logger, optional): logger object. Defaults to logging.getLogger(ExtractiveReaderComponent).
+        logger (logging.Logger, optional): logger object. Defaults to logging.getLogger(ExtractiveReader).
 
 
     Returns:
@@ -45,7 +45,7 @@ class ExtractiveReaderComponent(ReaderComponent):
     max_answer_length: int = 32
     scorer_type: str = SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
     min_score_threshold: float = None
-    logger: logging.Logger = logging.getLogger("ExtractiveReaderComponent")
+    logger: logging.Logger = logging.getLogger("ExtractiveReader")
 
     def __post_init__(self):
         self.name = "Extractive Reader"

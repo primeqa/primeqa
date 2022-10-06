@@ -1,12 +1,14 @@
 import logging
 from typing import Union, List
+from dataclasses import dataclass
 
 from primeqa.pipelines.components.base import IndexerComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
 
-class ColBERTIndexerComponent(IndexerComponent):
+@dataclass
+class ColBERTIndexer(IndexerComponent):
     """_summary_
 
     Args:
@@ -24,7 +26,7 @@ class ColBERTIndexerComponent(IndexerComponent):
         kmeans_niters (int, optional): Number of iterations (kmeans). Defaults to 4.
         num_partitions_max (int, optional): Maximum partions size. Defaults to 10000000.
         ncells (int, optional): Number of cells. Defaults to None.
-        logger (logging.Logger, optional) = logger object. Defaults to logging.getLogger(ColBERTIndexerComponent).
+        logger (logging.Logger, optional) = logger object. Defaults to logging.getLogger(ColBERTIndexer).
 
     Raises:
         TypeError: _description_
@@ -43,7 +45,7 @@ class ColBERTIndexerComponent(IndexerComponent):
     nbits: int = 1
     kmeans_niters: int = 4
     num_partitions_max: int = 10000000
-    logger: logging.Logger = logging.getLogger("ColBERTIndexerComponent")
+    logger: logging.Logger = logging.getLogger("ColBERTIndexer")
 
     def __post_init__(self):
         self.name = "ColBERT Indexer"
