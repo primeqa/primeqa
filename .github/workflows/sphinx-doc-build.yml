@@ -7,6 +7,10 @@ on:
     branches: [ "main" ]
     types:
       - closed
+  pull_request_target:
+    branches: [ "main" ]
+    types:
+      - closed
 
 permissions:
   contents: write
