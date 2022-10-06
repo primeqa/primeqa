@@ -1,41 +1,41 @@
 import logging
-from typing import Union, List
+from typing import List
+from dataclasses import dataclass
 
 from primeqa.pipelines.components.base import RetrieverComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 
+@dataclass
 class ColBERTRetrieverComponent(RetrieverComponent):
-    def __init__(
-        self,
-        index_root: str,
-        index_name: str,
-        max_num_documents: int = 100,
-        ncells: Union[int, None] = None,
-        centroid_score_threshold: Union[float, None] = None,
-        ndocs: Union[int, None] = None,
-        logger: Union[logging.Logger, None] = None,
-    ) -> None:
-        if logger is None:
-            self._logger = logging.getLogger(self.__class__.__name__)
-        else:
-            self._logger = logger
+    """_summary_
 
-        # Default object variables
-        self.name = "ColBERT Retriever"
+    Args:
+        index_root: str
+        index_name: str
+        max_num_documents (int, optional): Maximum number of document. Defaults to 100.
+        ncells (int, optional): Defaults to None.
+        ndocs (int, optional): Defaults to None.
+        logger (logging.Logger, optional): logger object. Defaults to logging.getLogger(ColBERTRetrieverComponent).
+
+    Returns:
+        _type_: _description_
+    """
+
+    index_root: str
+    index_name: str
+    max_num_documents: int = 100
+    ncells: int = None
+    centroid_score_threshold: float = None
+    ndocs: int = None
+    logger: logging.Logger = logging.getLogger("ColBERTRetrieverComponent")
+
+    def __post_init__(self):
+        self.name = "ColBERT Reader"
         self.type = RetrieverComponent.__name__
 
-        # Custom object variable
-        self.index_root = index_root
-        self.index_name = index_name
-        self.max_num_documents = max_num_documents
-        self.ncells = ncells
-        self.centroid_score_threshold = centroid_score_threshold
-        self.ndocs = ndocs
-
-        # Create configuration
-        self.config = ColBERTConfig(
+        self._config = ColBERTConfig(
             index_root=self.index_root,
             ncells=self.ncells,
             centroid_score_threshold=self.centroid_score_threshold,
@@ -43,14 +43,14 @@ class ColBERTRetrieverComponent(RetrieverComponent):
         )
 
         # Placeholder variables
-        self.searcher = None
+        self._searcher = None
 
     def load(self, *args, **kwargs):
-        self.searcher = Searcher(self.index_name, config=self.config)
+        self._searcher = Searcher(self.index_name, config=self._config)
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
         # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
-        ranking_results = self.searcher.search_all(
+        ranking_results = self._searcher.search_all(
             {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
             k=self.max_num_documents,
         )

@@ -2,6 +2,7 @@ from typing import List
 
 from primeqa.pipelines.components.base import ReaderComponent
 
+
 class ExtractiveReaderPipeline:
     def __init__(self, reader: ReaderComponent) -> None:
         self.reader = reader
@@ -12,4 +13,3 @@ class ExtractiveReaderPipeline:
 
         # Step 2: Run component
         return self.reader.apply(input_texts=input_texts, context=context)
-        

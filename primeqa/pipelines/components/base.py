@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Union, List
 from abc import ABC, abstractmethod
 
 
