@@ -34,23 +34,24 @@ Therefore let's train the data generation model on SQuAD first:
 
 ```bash
 python run.py \
-    --do_train \
-    --model_name facebook/bart-large \
-    --output_dir models/qg/bart-large_squad \
     --train_dataset st-squad:train \
     --eval_dataset st-squad:validation \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 24 \
-    --save_total_limit 1 \
-    --metric_for_best_model loss \
-    --num_train_epochs 5 \
-    --per_device_eval_batch_size 5 \
-    --learning_rate 3e-5 \
     --num_worker 5 \
-    --evaluation_strategy steps \
-    --eval_steps 1000 \
-    --logging_steps 1000 \
-    --save_steps 1000
+    --rc_output_dir tmp \
+    --qg_do_train \
+    --qg_model_name facebook/bart-large \
+    --qg_output_dir models/qg/bart-large_squad \
+    --qg_per_device_train_batch_size 1 \
+    --qg_gradient_accumulation_steps 24 \
+    --qg_save_total_limit 1 \
+    --qg_metric_for_best_model loss \
+    --qg_num_train_epochs 5 \
+    --qg_per_device_eval_batch_size 5 \
+    --qg_learning_rate 3e-5 \
+    --qg_evaluation_strategy steps \
+    --qg_eval_steps 1000 \
+    --qg_logging_steps 1000 \
+    --qg_save_steps 1000
 ```
 
 ### Apply AL
@@ -60,21 +61,24 @@ Next, we fine-tune using AL for sample selection.
 ```bash
 python run.py \
     --do_al \
-    --model_name models/qg/bart-large_squad/checkpoint-30 \ # make sure to pick the best checkpoint from previous training here, i.e. the one with the lowest number of steps
-    --output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
-    --dataset_name bioasq \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 24 \
-    --save_total_limit 1 \
-    --metric_for_best_model loss \
-    --max_steps 500 \ # or num_train_epochs but dataset size is really small
-    --per_device_eval_batch_size 5 \
-    --learning_rate 3e-5 \
+    --train_dataset st-bioasq:train \
     --num_worker 5 \
-    --eval_steps 10 \
-    --logging_steps 10 \
-    --save_steps 10
+    --rc_output_dir tmp \
+    --qg_model_name models/qg/bart-large_squad/checkpoint-12000 \
+    --qg_output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
+    --qg_per_device_train_batch_size 1 \
+    --qg_gradient_accumulation_steps 24 \
+    --qg_save_total_limit 1 \
+    --qg_metric_for_best_model loss \
+    --qg_max_steps 500 \
+    --qg_per_device_eval_batch_size 5 \
+    --qg_learning_rate 3e-5 \
+    --qg_eval_steps 10 \
+    --qg_logging_steps 10 \
+    --qg_save_steps 10
 ```
+> Make sure to pick the best checkpoint from previous training for `--qg_model_name`, i.e. the one with the lowest number of steps.
+> Also we're setting `--qg_max_steps` since dataset size is small and `--num_train_epochs` would result in too few training steps (if not set to a huge value)
 
 ### Generate data
 
@@ -83,14 +87,17 @@ In this step, we will generate question-answer pairs from unlabelled documents g
 ```bash
 python run.py \
     --do_generate \
-    --model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-3-of-3/checkpoint-100 \ # make sure to pick the best checkpoint from last iteration of AL training here, i.e. the one with the lowest number of steps
-    --output_dir tmp \
-    --dataset_name pubmed \
-    --per_device_eval_batch_size 5 \
+    --train_dataset pubmed \
     --num_worker 5 \
+    --rc_output_dir tmp \
     --max_gen_length 300 \
-    --gen_output_path generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50
+    --gen_output_path generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 \
+    --qg_model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-4-of-4/checkpoint-100 \
+    --qg_output_dir tmp \
+    --qg_per_device_eval_batch_size 5
 ```
+> Make sure to pick the best checkpoint from last iteration of AL for `--qg_model_name`, i.e. the one with the lowest number of steps.
+> 
 
 By default, the generated data is stored as a `datasets:Dataset` to `./generated_data`. This can be changed using `--gen_output_path`.
 > Note that you can use sharding to split a large set of documents into several runs by specifying `--shard_size` or `--num_shards`. The shard indices are then computed deterministically and the zero-based shard indices to run can optionally be set using `--shards`. Generated data is then stored in subfolders of the output directory named with the indices of the shards.
@@ -146,8 +153,9 @@ python run_mrc.py \
     --save_steps 1000
 
 # further fine-tune SQuAD-trained RC model on annotated data from BioASQ
+# select best checkpoint from previous training, i.e. checkpoint with least steps
 python run_mrc.py \
-    --model models/rc/squad_eval-bioasq/checkpoint-8000 \ # select best checkpoint from previous training, i.e. checkpoint with least steps
+    --model models/rc/squad_eval-bioasq/checkpoint-8000 \
     --output_dir models/rc/squad_bioasq-al-dsp-4x50 \
     --train_dataset models/bart-large-squad_bioasq-al-dsp-4x50/ \
     --eval_dataset st-bioasq:validation \

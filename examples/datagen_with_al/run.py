@@ -208,11 +208,14 @@ def main(raw_args):
             al_args,
             inference_args,
         ) = parser.parse_args_into_dataclasses()
+
+    # check for conditions
+    if inference_args.do_generate:
+        if inference_args.predict_dataset is None:
+            raise ValueError("Predict dataset cannot be None, please specify one usin `--predict_dataset`.")
     
     # some arguments have to be hardcoded in order for HF Trainer to work
-    rc_training_args.predict_with_generate = True
     qg_training_args.predict_with_generate = True
-    rc_training_args.prediction_loss_only = False
     qg_training_args.prediction_loss_only = False
 
     if (
@@ -222,7 +225,7 @@ def main(raw_args):
         and not rc_training_args.overwrite_output_dir
     ):
         raise ValueError(
-            f"Output directory ({rc_training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+            f"Output directory ({rc_training_args.output_dir}) already exists and is not empty. Use --rc_overwrite_output_dir to overcome."
         )
     if (
         os.path.exists(qg_training_args.output_dir)
@@ -231,14 +234,14 @@ def main(raw_args):
         and not qg_training_args.overwrite_output_dir
     ):
         raise ValueError(
-            f"Output directory ({qg_training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
+            f"Output directory ({qg_training_args.output_dir}) already exists and is not empty. Use --qg_overwrite_output_dir to overcome."
         )
 
     # Setup logging
     logging.basicConfig(
         format="[%(asctime)s - %(levelname)s - %(name)s] %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=logging.INFO if any(rc_training_args.local_rank in [-1, 0], qg_training_args.local_rank in [-1, 0]) else logging.WARN,
+        level=logging.INFO if any((rc_training_args.local_rank in [-1, 0], qg_training_args.local_rank in [-1, 0])) else logging.WARN,
     )
     # logger.warning(
     #     "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
@@ -316,7 +319,7 @@ def main(raw_args):
         def preprocess_fn_wrapper(process_fn: Callable, add_examples_to_output: bool = False) -> Callable[[Dataset], Tuple[Dataset, Dataset]]:
             # wrapper to have access to training_args
             def wrapped_process_fn(examples) -> Tuple[Dataset, Dataset]:
-                with qg_trainer.main_process_first(desc="Dataset pre-processing"):
+                with qg_training_args.main_process_first(desc="Dataset pre-processing"):
                     result = process_fn(examples)
                 if add_examples_to_output:
                     # the pre-processing function returns only processed examples but we need the examples as well
@@ -407,7 +410,6 @@ def main(raw_args):
         logging.info(f"Truncating documents to {550} tokens")
         # NOTE somehow this part doesn't work with multiprocessing
         dataset = dataset.map(lambda x: {'context': qg_model.tokenizer.convert_tokens_to_string(qg_model.tokenizer.tokenize(x['context'], add_special_tokens=False)[:550])}, num_proc=data_args.num_worker)
-        dataset = dataset.select(range(10))
         
         # create trainer
         gen_trainer = GenTrainer(
