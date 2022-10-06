@@ -87,7 +87,8 @@ class DPRSearcher():
             logger.info(f'Using sharded faiss with {len(self.shards)} shards.')
         self.dummy_doc = {'pid': 'N/A', 'title': '', 'text': '', 'vector': np.zeros(self.dim, dtype=np.float32)}
 
-    def search(self, query_batch = None, mode: Union['query_list', 'query_and_results_files', None] = None):
+
+    def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):
         # from corpus_server_direct.run
         def _get_docs_by_pids(pids, *, dummy_if_missing=False):
             docs = []
@@ -228,7 +229,7 @@ class DPRSearcher():
         # from dpr_apply.main
         if self.opts.world_size > 1:
             raise NotImplementedError(f'Distributed not supported (yet).')
-        if mode == None or mode == 'query_and_results_files':
+        if mode == None or mode == 'queries_and_results_in_files':
             with write_open(self.opts.output) as output_fh:
                 if self.opts.output_simple_tsv:
                     output = csv.writer(output_fh, delimiter="\t", quotechar='"')
@@ -252,6 +253,7 @@ class DPRSearcher():
                     one_batch(id_batch, query_batch, output)
             logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
         elif mode == 'query_list':
+            self.opts.n_docs_for_provenance = top_k
             retrieved_doc_ids, passages = retrieve(query_batch)
             # retrieved_doc_ids: topN list of lists of doc IDs as strings
             # passages: topN list of dicts {'titles', 'texts', 'scores' as floats}
