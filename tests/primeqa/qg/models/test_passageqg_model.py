@@ -5,7 +5,7 @@ from transformers import T5ForConditionalGeneration, T5Tokenizer
 
 @pytest.mark.parametrize("model_name",["t5-base"])
 def test_qg_model(model_name):
-    tqm = QGModel(model_name, modality='passage')
+    tqm = QGModel(model_name, modality='passage_qg')
     assert type(tqm.model)==T5ForConditionalGeneration
     assert type((tqm.tokenizer)==T5Tokenizer)
 

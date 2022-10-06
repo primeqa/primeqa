@@ -19,9 +19,13 @@ class QGModel():
         special_tokens_list = []
 
         self.modality = modality 
-        if self.modality == 'passage':
+        if self.modality == 'passage_qg':
             special_tokens_list.append(QGSpecialTokens.sep)
             self.answer_sampler = AnswerSampler()
+        elif self.modality == 'passage_qa2s':
+            special_tokens_list.extend(['<s>', '<q>', '</q>', '<a>', '</a>'])
+            self._tokenizer.pad_token = self._tokenizer.eos_token
+            self._tokenizer._pad_token_type_id = 2 # pad with question type embedding
         elif self.modality == 'table':
             special_tokens_list.extend([QGSpecialTokens.sep, QGSpecialTokens.cond, QGSpecialTokens.ans,
                             QGSpecialTokens.header, QGSpecialTokens.hsep])
@@ -67,7 +71,7 @@ class QGModel():
         if self.modality == 'table':
             input_str_list, sql_list, id_question_list = self.sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob, id_list)
             answer_list = [s['answer'] for s in sql_list]
-        elif self.modality == 'passage':
+        elif self.modality == 'passage_qg':
             input_str_list, answer_list, id_question_list , id_context_map = self.answer_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list, id_list)
 
         input_ids = self._tokenizer(input_str_list, 
@@ -87,7 +91,7 @@ class QGModel():
         
         if id_question_list == [] :
             questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
-        elif self.modality == 'passage' :
+        elif self.modality == 'passage_qg' :
             questions_dict = [{'context_id':id_question_list[i], 'context':id_context_map.get(id_question_list[i]),'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
         else:
             questions_dict = [{'context_id':id_question_list[i], 'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
