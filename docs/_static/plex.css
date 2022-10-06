@@ -1,0 +1,65 @@
+@font-face {
+    font-family: 'IBMPlexSans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('font/plex/IBMPlexSans-Regular.eot');
+    src: url('font/plex/IBMPlexSans-Regular.woff2') format('woff2'), /* Super Modern Browsers */
+         url('font/plex/IBMPlexSans-Regular.woff') format('woff'), /* Pretty Modern Browsers */
+         url('font/plex/IBMPlexSans-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IBMPlexSans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('font/plex/IBMPlexSans-Medium.eot');
+    src: url('font/plex/IBMPlexSans-Medium.woff2') format('woff2'), /* Super Modern Browsers */
+         url('font/plex/IBMPlexSans-Medium.woff') format('woff'), /* Pretty Modern Browsers */
+         url('font/plex/IBMPlexSans-Medium.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IBMPlexSans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('font/plex/IBMPlexSans-Light.eot');
+    src: url('font/plex/IBMPlexSans-Light.woff2') format('woff2'), /* Super Modern Browsers */
+         url('font/plex/IBMPlexSans-Light.woff') format('woff'), /* Pretty Modern Browsers */
+         url('font/plex/IBMPlexSans-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IBMPlexSans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('font/plex/IBMPlexSans-Bold.eot');
+    src: url('font/plex/IBMPlexSans-Bold.woff2') format('woff2'), /* Super Modern Browsers */
+         url('font/plex/IBMPlexSans-Bold.woff') format('woff'), /* Pretty Modern Browsers */
+         url('font/plex/IBMPlexSans-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IBMPlexSans';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('font/plex/IBMPlexSans-Italic.eot');
+    src: url('font/plex/IBMPlexSans-Italic.woff2') format('woff2'), /* Super Modern Browsers */
+         url('font/plex/IBMPlexSans-Italic.woff') format('woff'), /* Pretty Modern Browsers */
+         url('font/plex/IBMPlexSans-Italic.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'IBMPlexMono';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url('font/plex/IBMPlexMono-Regular.eot');
+    src: url('font/plex/IBMPlexMono-Regular.woff2') format('woff2'), /* Super Modern Browsers */
+    url('font/plex/IBMPlexMono-Regular.woff') format('woff'), /* Pretty Modern Browsers */
+    url('font/plex/IBMPlexMono-Regular.ttf') format('truetype');
+}
