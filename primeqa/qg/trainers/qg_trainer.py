@@ -96,15 +96,15 @@ class GenTrainer(Seq2SeqTrainer):
         # prepare inputs
         inputs = {
             "input_ids": torch.tensor(
-                sample["input_ids"], device=self.args.device
+                sample["input_ids"], device=torch.device(self.args.device)
             ).unsqueeze(0),
             "attention_mask": torch.tensor(
-                sample["attention_mask"], device=self.args.device
+                sample["attention_mask"], device=torch.device(self.args.device)
             ).unsqueeze(0),
         }
         if "token_type_ids" in sample:
             inputs["token_type_ids"] = torch.tensor(
-                sample["token_type_ids"], device=self.args.device
+                sample["token_type_ids"], device=torch.device(self.args.device)
             ).unsqueeze(0)
 
         # set eos token
@@ -156,12 +156,11 @@ class GenTrainer(Seq2SeqTrainer):
         )
 
         # scores are before softmax hence we apply it as well as log (for summing the scores later)
-        generation_scores = torch.stack(generation_output.scores, dim=0).log_softmax(
-            dim=-1
-        )
+        # generation_scores = torch.stack(generation_output.scores, dim=0).log_softmax(
+        #     dim=-1
+        # )
 
         questions, answers, scores = [], [], []
-
         for generated_sequence in generation_output.sequences:
             gen_sequence = generated_sequence
             question_start, question_end, answer_start, answer_end = self._extract(
@@ -177,7 +176,8 @@ class GenTrainer(Seq2SeqTrainer):
                 clean_up_tokenization_spaces=False,
                 skip_special_tokens=True,
             ).strip()
-            # question cannot be empty or occur multiple times
+            
+            # question cannot be empty
             if question == "":
                 continue
 
@@ -186,8 +186,8 @@ class GenTrainer(Seq2SeqTrainer):
             inputs = {
                 "input_ids": torch.cat(
                     (
-                        torch.tensor(sample["input_ids"], device=self.args.device),
-                        torch.tensor([self.soq_token_id], device=self.args.device),
+                        torch.tensor(sample["input_ids"], device=torch.device(self.args.device)),
+                        torch.tensor([self.soq_token_id], device=torch.device(self.args.device)),
                         gen_sequence[question_start:question_end],
                     ),
                     dim=0,
@@ -213,9 +213,9 @@ class GenTrainer(Seq2SeqTrainer):
             )
 
             # get score (answer score is sufficient for qa2s)
-            generation_scores = torch.stack(
-                generation_output.scores, dim=0
-            ).log_softmax(dim=-1)
+            # generation_scores = torch.stack(
+            #     generation_output.scores, dim=0
+            # ).log_softmax(dim=-1)
 
             generated_sequence = generation_output.sequences[0]
             gen_sequence = generated_sequence

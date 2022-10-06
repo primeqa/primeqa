@@ -4,7 +4,7 @@ import json
 import logging
 import math
 import os
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from enum import Enum, auto
 from itertools import takewhile
 from typing import Callable, Dict, Hashable, List, Sequence, Union
@@ -70,10 +70,8 @@ class AbstractSingleScorePoolBasedALQueryStrategy(AbstractALQueryStrategy):
         # TODO allow to choose between different aggregate functions for all instance scores of sample
         for idx, score in takewhile(lambda _: len(selected_sample_indices) < num_samples, scored_instance_indices_sorted):
             selected_sample_indices.add(self.pool[idx][sample_id_column])
-        
         # remove selected samples from pool
-        self.pool = self.pool.filter(lambda x: x[sample_id_column] not in selected_sample_indices, keep_in_memory=True)
-
+        self.pool = self.pool.filter(lambda x: x[sample_id_column] not in selected_sample_indices, keep_in_memory=True).flatten_indices()
         return selected_sample_indices
 
     def _score_dataset(self, dataset: Dataset, trainers: Sequence[Trainer]):
@@ -315,10 +313,14 @@ class ActiveLearner():
     """
     
     def __init__(self, output_dir: str, trainer_configs: List[TrainerConfig]):
-        self.trainer_configs = {trainer_config.id_: trainer_config for trainer_config in trainer_configs}
+        self.trainer_configs: dict[Hashable, TrainerConfig] = {trainer_config.id_: trainer_config for trainer_config in trainer_configs}
         self.trainers = {}
+        self.metrics = defaultdict(dict)
         # TODO check for best model being loaded at the end? check for popping train_dataset?
-
+        for trainer_id, trainer_config in self.trainer_configs.items():
+            if not trainer_config.kwargs['args'].load_best_model_at_end:
+                trainer_config.kwargs['args'].load_best_model_at_end = True
+                logger.warning(f"`load_best_model_at_end` set to True in order to evaluate correctly after training")
         # dir for storing drawn samples
         self.output_dir = output_dir
     
@@ -327,7 +329,7 @@ class ActiveLearner():
             # this default init function updates the run_name as well as the output_dir training arguments for the new iteration if `iteration` is given
             if iteration is not None:
                 kwargs['args'] = copy.deepcopy(kwargs['args'])
-                # item assignment not supported by TrainingArguments therefore use stattr
+                # item assignment not supported by TrainingArguments therefore use setattr
                 setattr(kwargs['args'], 'run_name', f"{kwargs['args'].run_name}_round-{iteration+1}-of-{num_total_iterations}")
                 setattr(kwargs['args'], 'output_dir', f"{kwargs['args'].output_dir}_round-{iteration+1}-of-{num_total_iterations}")
             return class_(**kwargs)
@@ -345,7 +347,7 @@ class ActiveLearner():
             else:
                 dataset_train_preprocessed = None
 
-            # update kwargs and call init function
+            # make sure to use correct training data and call init function
             init_kwargs = dict(trainer_config.kwargs, train_dataset=dataset_train_preprocessed)
             args = (trainer_config.class_, init_kwargs, iteration, num_total_iterations)
             init_fn = trainer_config.init_callback if trainer_config.init_callback is not None else default_init_fn
@@ -358,8 +360,31 @@ class ActiveLearner():
         # this call will re-initialize the model using the given checkpoint
         # TODO make sure to move models between devices to save some GPU memory
         # NOTE this is the bahvior we want to have (i.e. re-train with all samples collected so far)
-        for trainer in self.trainers.values():
-            trainer.train()
+        for id_, trainer in self.trainers.items():
+            # train and record training metrics
+            output = trainer.train()
+            # input(output.metrics)
+            # input(iteration)
+            # if iteration is None:
+            #     self.metrics[id_] = output.metrics
+            # else:
+            #     self.metrics[id_][iteration] = output.metrics
+
+    def _evaluate(self, iteration: int):
+        # evaluate models, i.e. call .evaluate() on all trainers
+        # this call will re-initialize the model using the given checkpoint
+        # TODO make sure to move models between devices to save some GPU memory
+        # NOTE this is the bahvior we want to have (i.e. re-train with all samples collected so far)
+        for id_, trainer in self.trainers.items():
+            if self.trainer_configs[id_].kwargs["args"].do_eval:
+                # evaluate and record metrics
+                metrics = trainer.evaluate()
+                if iteration is None:
+                    self.metrics[id_].update(metrics)
+                else:
+                    if iteration not in self.metrics[id_]:
+                        self.metrics[id_][iteration] = {}
+                    self.metrics[id_][iteration].update(metrics)
 
     def _get_trainers(self, ids: Sequence):
         return [self.trainers[id_] for id_ in ids]
@@ -383,9 +408,13 @@ class ActiveLearner():
 
         # this will contain the sample ids (not the instance/table indices)
         selected_sample_indices = set()
+        _num_iterations_requested = num_iterations
         num_iterations = min(num_iterations, math.ceil(len(examples.flatten_indices().unique(example_id_column))/num_samples_per_iteration))
+        if num_iterations != _num_iterations_requested:
+            logger.info(f"Requested {_num_iterations_requested} iteration{'s' if _num_iterations_requested != 1 else ''} (with {num_samples_per_iteration} samples each) but available data only allows {num_iterations} iteration{'s' if num_iterations != 1 else ''}.")
+
         for i in range(num_iterations):
-            logging.info(f"Running AL round {i + 1}/{num_iterations}")
+            logger.info(f"Running AL round {i + 1}/{num_iterations}")
             
             queried_sample_ids = self._query(strategy, num_samples_per_iteration, feature_id_column)
             logger.info("Selected sample ids (%d): %s", len(queried_sample_ids), sorted(queried_sample_ids))
@@ -421,5 +450,7 @@ class ActiveLearner():
 
             # train
             self._train(iteration=i, num_total_iterations=num_iterations)
+            # evaluate to record metrics
+            self._evaluate(iteration=i)
 
-        # TODO return metrics, maybe from train and accumulated over iterations?
+        return self.metrics
