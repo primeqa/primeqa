@@ -355,7 +355,7 @@ class LMFilter():
     num_keep: int
 
     def filter_lm_score(self, questions, answers, scores, num_keep, **kwargs):
-        # `num_keep` best questions & answers
+        # return `num_keep` best questions & answers
         indices = numpy.argsort(scores)[:-1 - num_keep:-1]
         return [questions[idx] for idx in indices], [answers[idx] for idx in indices], [scores[idx] for idx in indices]
 
@@ -402,7 +402,7 @@ class RTFilter(MRCTrainer):
         predictions = output.predictions
         # predictions = {prediction['id']: prediction for prediction in predictions}
         # for each sample there has to be a prediction
-        assert len(examples) == len(predictions)
+        assert len(data) == len(predictions)
         # filter samples where the prediction matches the generated answer
-        examples = examples.filter(lambda x: x['answer_text'][0] == predictions[x['example_id']][0]['span_answer_text'], num_proc=None)
-        return examples
+        data = data.filter(lambda x: x['answers']['text'][0] == predictions[x['id']][0]['span_answer_text'], num_proc=None)
+        return data

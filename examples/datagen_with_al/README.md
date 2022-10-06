@@ -1,7 +1,5 @@
 # Training with Active Learning
 
-TODO: add description, reference paper
-
 ## Installation
 
 The following steps require PrimeQA to be [installed](../../README.md#Installation).
@@ -36,7 +34,7 @@ Therefore let's train the data generation model on SQuAD first:
 python run.py \
     --train_dataset st-squad:train \
     --eval_dataset st-squad:validation \
-    --num_worker 5 \
+    --num_workers 5 \
     --rc_output_dir tmp \
     --qg_do_train \
     --qg_model_name facebook/bart-large \
@@ -62,10 +60,12 @@ Next, we fine-tune using AL for sample selection.
 python run.py \
     --do_al \
     --train_dataset st-bioasq:train \
-    --num_worker 5 \
+    --eval_dataset st-bioasq:validation \
+    --num_workers 5 \
+    --output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
     --rc_output_dir tmp \
+    --qg_output_dir tmp \
     --qg_model_name models/qg/bart-large_squad/checkpoint-12000 \
-    --qg_output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
     --qg_per_device_train_batch_size 1 \
     --qg_gradient_accumulation_steps 24 \
     --qg_save_total_limit 1 \
@@ -87,12 +87,12 @@ In this step, we will generate question-answer pairs from unlabelled documents g
 ```bash
 python run.py \
     --do_generate \
-    --train_dataset pubmed \
-    --num_worker 5 \
+    --predict_dataset pubmed-20 \
+    --num_workers 5 \
     --rc_output_dir tmp \
     --max_gen_length 300 \
     --gen_output_path generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 \
-    --qg_model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-4-of-4/checkpoint-100 \
+    --qg_model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-4-of-4/checkpoint-500 \
     --qg_output_dir tmp \
     --qg_per_device_eval_batch_size 5
 ```
@@ -126,64 +126,65 @@ For applying filtering using an RC model we need to train an RC model first.
 We suggest fine-tuning a model on SQuAD first followed by fine-tuning on the selected, annotated data:
 ```bash
 # fine-tune RC model on SQuAD
-python run_mrc.py \
-    --model bert-base-uncased \
-    --output_dir models/rc/squad_eval-bioasq \
+python run.py \
     --train_dataset st-squad:train \
     --eval_dataset st-bioasq:validation \
-    --fp16 \
-    --learning_rate 4e-5 \
-    --do_train \
-    --do_eval \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 128 \
-    --gradient_accumulation_steps 2 \
-    --warmup_ratio 0.1 \
-    --weight_decay 0.01 \
-    --save_total_limit 1 \
-    --num_train_epochs 3 \
-    --overwrite_cache \
-    --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-    --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-    --eval_metrics SQUAD \
-    --metric_for_best_model f1 \
-    --evaluation_strategy steps \
-    --eval_steps 1000 \
-    --logging_steps 1000 \
-    --save_steps 1000
-
+    --qg_output_dir tmp \
+    --rc_model bert-base-uncased \
+    --rc_output_dir models/rc/squad_eval-bioasq \
+    --rc_fp16 \
+    --rc_learning_rate 4e-5 \
+    --rc_do_train \
+    --rc_do_eval \
+    --rc_per_device_train_batch_size 16 \
+    --rc_per_device_eval_batch_size 128 \
+    --rc_gradient_accumulation_steps 2 \
+    --rc_warmup_ratio 0.1 \
+    --rc_weight_decay 0.01 \
+    --rc_save_total_limit 1 \
+    --rc_num_train_epochs 3 \
+    --rc_preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+    --rc_postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+    --rc_eval_metrics SQUAD \
+    --rc_metric_for_best_model f1 \
+    --rc_evaluation_strategy steps \
+    --rc_eval_steps 1000 \
+    --rc_logging_steps 1000 \
+    --rc_save_steps 1000
+```
+```bash
 # further fine-tune SQuAD-trained RC model on annotated data from BioASQ
 # select best checkpoint from previous training, i.e. checkpoint with least steps
-python run_mrc.py \
-    --model models/rc/squad_eval-bioasq/checkpoint-8000 \
-    --output_dir models/rc/squad_bioasq-al-dsp-4x50 \
-    --train_dataset models/bart-large-squad_bioasq-al-dsp-4x50/ \
+python run.py \
+    --train_dataset models/qg/bart-large-squad_al-bioasq-dsp-4x50/al_samples_round_3 \
     --eval_dataset st-bioasq:validation \
-    --fp16 \
-    --learning_rate 4e-5 \
-    --do_train \
-    --do_eval \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 128 \
-    --gradient_accumulation_steps 2 \
-    --warmup_ratio 0.1 \
-    --weight_decay 0.01 \
-    --save_total_limit 1 \
-    --max_steps 200 \
-    --overwrite_cache \
-    --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-    --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-    --eval_metrics SQUAD \
-    --metric_for_best_model f1 \
-    --evaluation_strategy steps \
-    --eval_steps 10 \
-    --logging_steps 10 \
-    --save_steps 10
+    --qg_output_dir tmp \
+    --rc_model models/rc/squad_eval-bioasq/checkpoint-8000 \
+    --rc_output_dir models/rc/squad_ft-bioasq-al-dsp-4x50 \
+    --rc_fp16 \
+    --rc_learning_rate 4e-5 \
+    --rc_do_train \
+    --rc_do_eval \
+    --rc_per_device_train_batch_size 16 \
+    --rc_per_device_eval_batch_size 128 \
+    --rc_gradient_accumulation_steps 2 \
+    --rc_warmup_ratio 0.1 \
+    --rc_weight_decay 0.01 \
+    --rc_save_total_limit 1 \
+    --rc_max_steps 500 \
+    --rc_preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+    --rc_postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+    --rc_eval_metrics SQUAD \
+    --rc_metric_for_best_model f1 \
+    --rc_evaluation_strategy steps \
+    --rc_eval_steps 10 \
+    --rc_logging_steps 10 \
+    --rc_save_steps 10
 ```
 
 This can then be used for filtering:
 ```bash
-python filter_gen_data.py generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_rt --filter rt --rt-model models/rc/squad_bioasq-al-dsp-4x50/checkpoint-220 # again, pick best checkpoint
+python filter_gen_data.py generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_rt --filter rt --rt-model models/rc/squad_ft-bioasq-al-dsp-4x50/checkpoint-220 # again, pick best checkpoint
 ```
 
 
@@ -192,29 +193,29 @@ python filter_gen_data.py generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4
 Train an RC model using the generated & filtered data as well as annotated data:
 
 ```bash
-python run_mrc.py \
-    --model bert-base-uncased \
-    --output_dir models/rc/bioasq-bart-large-squad-al-bioasq-dsp-4x50_bioasq-al-dsp-4x50_bioasq-al-dsp-4x50 \
-    --train_dataset generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_lm models/bart-large-squad_al-bioasq-dsp-4x50/al_samples_round_3 \
+python run.py \
+    --train_dataset generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_lm models/qg/bart-large-squad_al-bioasq-dsp-4x50/al_samples_round_3 \
     --eval_dataset st-bioasq:validation \
-    --fp16 \
-    --learning_rate 4e-5 \
-    --do_train \
-    --do_eval \
-    --per_device_train_batch_size 16 \
-    --per_device_eval_batch_size 128 \
-    --gradient_accumulation_steps 2 \
-    --warmup_ratio 0.1 \
-    --weight_decay 0.01 \
-    --save_total_limit 1 \
-    --num_train_epochs 3 \
-    --overwrite_cache \
-    --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-    --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-    --eval_metrics SQUAD \
-    --metric_for_best_model f1 \
-    --evaluation_strategy steps \
-    --eval_steps 1000 \
-    --logging_steps 1000 \
-    --save_steps 1000
+    --qg_output_dir tmp \
+    --rc_model bert-base-uncased \
+    --rc_output_dir models/rc/bioasq-bart-large-squad-al-bioasq-dsp-4x50_bioasq-al-dsp-4x50_bioasq-al-dsp-4x50 \
+    --rc_fp16 \
+    --rc_learning_rate 4e-5 \
+    --rc_do_train \
+    --rc_do_eval \
+    --rc_per_device_train_batch_size 16 \
+    --rc_per_device_eval_batch_size 128 \
+    --rc_gradient_accumulation_steps 2 \
+    --rc_warmup_ratio 0.1 \
+    --rc_weight_decay 0.01 \
+    --rc_save_total_limit 1 \
+    --rc_num_train_epochs 3 \
+    --rc_preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+    --rc_postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+    --rc_eval_metrics SQUAD \
+    --rc_metric_for_best_model f1 \
+    --rc_evaluation_strategy steps \
+    --rc_eval_steps 1000 \
+    --rc_logging_steps 1000 \
+    --rc_save_steps 1000
 ```
