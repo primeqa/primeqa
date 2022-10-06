@@ -56,8 +56,8 @@ jobs:
         name: html-docs-log_file
         path: docs/log_file
     - name: Deploy Documentation (gh-pages branch)
+      if: github.event.repository.fork == false && ${{ github.ref || github.head_ref }} == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref || github.head_ref }} == 'refs/heads/main'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
