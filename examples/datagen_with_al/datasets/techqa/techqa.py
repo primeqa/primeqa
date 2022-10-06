@@ -44,7 +44,6 @@ _LICENSE = "Community Data License Agreement – Permissive – Version 1.0"
 
 
 class TechQAConfig(datasets.BuilderConfig):
-
     def __init__(self, answer_only: Union[bool, str] = True, **kwargs):
         """BuilderConfig for TechQA.
 
@@ -62,14 +61,17 @@ class TechQAConfig(datasets.BuilderConfig):
     @answer_only.setter
     def answer_only(self, value):
         if isinstance(value, str):
-            if value in ['True', 'true', '1']:
+            if value in ["True", "true", "1"]:
                 self._answer_only = True
-            elif value in ['False', 'false', '0']:
+            elif value in ["False", "false", "0"]:
                 self._answer_only = False
             else:
-                raise ValueError("Config argument `answer_only` has to be of type boolean or one of `True`, `true`, `False`, `False`")
+                raise ValueError(
+                    "Config argument `answer_only` has to be of type boolean or one of `True`, `true`, `False`, `False`"
+                )
         else:
             self._answer_only = bool(value)
+
 
 class TechQA(datasets.GeneratorBasedBuilder):
     # TODO implement full config (incuding unanswerable samples and all contexts per sample)
@@ -81,9 +83,21 @@ class TechQA(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="full", version=VERSION, description="This config covers the whole dataset including document retrieval."),
-        TechQAConfig(name="rc", version=VERSION, description="This config covers only the reading comprehension (RC) part in a SQuAD style."),
-        datasets.BuilderConfig(name="technotes", version=VERSION, description="This config covers loading all documents (800K+)."),
+        datasets.BuilderConfig(
+            name="full",
+            version=VERSION,
+            description="This config covers the whole dataset including document retrieval.",
+        ),
+        TechQAConfig(
+            name="rc",
+            version=VERSION,
+            description="This config covers only the reading comprehension (RC) part in a SQuAD style.",
+        ),
+        datasets.BuilderConfig(
+            name="technotes",
+            version=VERSION,
+            description="This config covers loading all documents (800K+).",
+        ),
     ]
 
     # This dataset requires users to download the data manually
@@ -92,7 +106,7 @@ class TechQA(datasets.GeneratorBasedBuilder):
         return f"Download the dataset at {_HOMEPAGE} and point to it by using the options `data_files` (downloaded archive) or `data_dir` (extracted archive)"
 
     def _info(self):
-        if self.config.name == 'technotes':
+        if self.config.name == "technotes":
             features = datasets.Features(
                 {
                     "id": datasets.Value("string"),
@@ -138,20 +152,26 @@ class TechQA(datasets.GeneratorBasedBuilder):
         else:
             # archive file specified
             data_dir = dl_manager.download_and_extract(self.config.data_files)
-            data_dir = os.path.join(data_dir, 'TechQA')
-        
-        # make sure to select data for the RC task
-        new = 'training_and_dev' not in os.listdir(data_dir)
+            data_dir = os.path.join(data_dir, "TechQA")
 
-        if self.config.name == 'technotes':
+        # make sure to select data for the RC task
+        new = "training_and_dev" not in os.listdir(data_dir)
+
+        if self.config.name == "technotes":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split('technotes'),
+                    name=datasets.Split("technotes"),
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": None,
-                        "technotes_path": os.path.join(data_dir, f"technote{'s' if new else '_corpus'}", 'full_technote_collection.txt.bz2' if not new else 'documents.jsonl.bz2'),
-                        "new_format": new
+                        "technotes_path": os.path.join(
+                            data_dir,
+                            f"technote{'s' if new else '_corpus'}",
+                            "full_technote_collection.txt.bz2"
+                            if not new
+                            else "documents.jsonl.bz2",
+                        ),
+                        "new_format": new,
                     },
                 )
             ]
@@ -161,8 +181,16 @@ class TechQA(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, f"training_and_dev{'_MRC' if new else ''}", f"training{'_MRC' if new else '_Q_A'}.json"),
-                        "technotes_path": os.path.join(data_dir, f"training_and_dev{'_MRC' if new else ''}", 'training_dev_technotes.json'),
+                        "filepath": os.path.join(
+                            data_dir,
+                            f"training_and_dev{'_MRC' if new else ''}",
+                            f"training{'_MRC' if new else '_Q_A'}.json",
+                        ),
+                        "technotes_path": os.path.join(
+                            data_dir,
+                            f"training_and_dev{'_MRC' if new else ''}",
+                            "training_dev_technotes.json",
+                        ),
                         "split": "train",
                     },
                 ),
@@ -170,31 +198,43 @@ class TechQA(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
-                        "filepath": os.path.join(data_dir, f"training_and_dev{'_MRC' if new else ''}", f"dev{'_MRC' if new else '_Q_A'}.json"),
-                        "technotes_path": os.path.join(data_dir, f"training_and_dev{'_MRC' if new else ''}", 'training_dev_technotes.json'),
+                        "filepath": os.path.join(
+                            data_dir,
+                            f"training_and_dev{'_MRC' if new else ''}",
+                            f"dev{'_MRC' if new else '_Q_A'}.json",
+                        ),
+                        "technotes_path": os.path.join(
+                            data_dir,
+                            f"training_and_dev{'_MRC' if new else ''}",
+                            "training_dev_technotes.json",
+                        ),
                         "split": "dev",
                     },
                 ),
             ]
 
     def _generate_examples(
-        self, filepath: str, technotes_path: str, split: str = None, new_format: bool = None
+        self,
+        filepath: str,
+        technotes_path: str,
+        split: str = None,
+        new_format: bool = None,
     ):
-        """ Yields examples as (key, example) tuples. """
+        """Yields examples as (key, example) tuples."""
         # This method handles input defined in _split_generators to yield (key, example) tuples from the dataset.
         # The `key` is here for legacy reason (tfds) and is not important in itself.
-        if self.config.name == 'technotes':
-            open_fn = bz2.BZ2File if technotes_path.endswith('.bz2') else open
-            with open_fn(technotes_path, 'r') as f:
+        if self.config.name == "technotes":
+            open_fn = bz2.BZ2File if technotes_path.endswith(".bz2") else open
+            with open_fn(technotes_path, "r") as f:
                 if not new_format:
                     for line in f:
                         arr = json.loads(line)
                         for entry in arr:
                             if isinstance(entry, str):
                                 continue
-                            id_ = entry['id']
-                            title = entry['title']
-                            context = entry['text']
+                            id_ = entry["id"]
+                            title = entry["title"]
+                            context = entry["text"]
                             yield id_, {
                                 "id": id_,
                                 "title": title,
@@ -203,46 +243,44 @@ class TechQA(datasets.GeneratorBasedBuilder):
                 else:
                     for line in f:
                         entry = json.loads(line)
-                        id_ = entry['id']
-                        title = entry['title'].strip()
-                        context = entry['text']
-                        yield id_, {
-                            "id": id_,
-                            "title": title,
-                            "context": context
-                        }
+                        id_ = entry["id"]
+                        title = entry["title"].strip()
+                        context = entry["text"]
+                        yield id_, {"id": id_, "title": title, "context": context}
         else:
-            with open(technotes_path, 'r') as f:
+            with open(technotes_path, "r") as f:
                 documents = json.load(f)
 
             with open(filepath) as f:
                 data = json.load(f)
-                
+
             if self.config.name == "full":
                 raise NotImplementedError()
             else:
                 for obj in data:
-                    if self.config.answer_only and obj['ANSWERABLE'] != 'Y':
+                    if self.config.answer_only and obj["ANSWERABLE"] != "Y":
                         # skip sample
                         continue
                     # TODO use question or document title?
-                    title = obj['QUESTION_TITLE'].strip()
-                    question = obj['QUESTION_TEXT'].strip()
-                    id_ = obj['QUESTION_ID']
-                    if obj['ANSWERABLE'] == 'Y':
-                        doc = documents[obj['DOCUMENT']]
-                        context = doc['text']
-                        answer_starts = [int(obj['START_OFFSET'])]
-                        answers = [context[int(obj['START_OFFSET']):int(obj['END_OFFSET'])]]
+                    title = obj["QUESTION_TITLE"].strip()
+                    question = obj["QUESTION_TEXT"].strip()
+                    id_ = obj["QUESTION_ID"]
+                    if obj["ANSWERABLE"] == "Y":
+                        doc = documents[obj["DOCUMENT"]]
+                        context = doc["text"]
+                        answer_starts = [int(obj["START_OFFSET"])]
+                        answers = [
+                            context[int(obj["START_OFFSET"]) : int(obj["END_OFFSET"])]
+                        ]
                     else:
                         # correct document not given
                         # TODO use all documents
-                        doc = documents[random.choice(obj['DOC_IDS'])]
-                        context = doc['text']
+                        doc = documents[random.choice(obj["DOC_IDS"])]
+                        context = doc["text"]
                         # no answer
                         answer_starts = []
                         answers = []
-                    
+
                     yield id_, {
                         "id": id_,
                         "title": title,
@@ -254,12 +292,18 @@ class TechQA(datasets.GeneratorBasedBuilder):
                         },
                     }
 
+
 if __name__ == "__main__":
-    CACHE_DIR = '~/arbeitsdaten/cache'
-    data = datasets.load_dataset(__file__, 'technotes', data_dir=os.path.abspath(os.path.expanduser('~/arbeitsdaten/data/TechQA')), cache_dir=CACHE_DIR)
+    CACHE_DIR = "~/arbeitsdaten/cache"
+    data = datasets.load_dataset(
+        __file__,
+        "technotes",
+        data_dir=os.path.abspath(os.path.expanduser("~/arbeitsdaten/data/TechQA")),
+        cache_dir=CACHE_DIR,
+    )
     # data = datasets.load_dataset(__file__, 'technotes', data_files=os.path.abspath(os.path.expanduser('~/Downloads/TechQA.tar.bz2')), cache_dir=CACHE_DIR)
     # data = datasets.load_dataset(__file__, 'technotes', cache_dir=CACHE_DIR)
     # data = datasets.load_dataset(__file__, 'rc', data_dir=os.path.abspath(os.path.expanduser('~/arbeitsdaten/data/TechQA')), cache_dir=CACHE_DIR)
     # data = datasets.load_dataset(__file__, 'rc', data_files=os.path.abspath(os.path.expanduser('~/Downloads/TechQA.tar.bz2')), cache_dir=CACHE_DIR)
     print(data)
-    print(data['technotes'][0])
+    print(data["technotes"][0])

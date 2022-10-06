@@ -70,7 +70,10 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
 
         # depending von the config download the files
-        urls = [f"https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{str(i).rjust(4, '0')}.xml.gz" for i in range(1, self.config.num_files + 1)]
+        urls = [
+            f"https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/pubmed22n{str(i).rjust(4, '0')}.xml.gz"
+            for i in range(1, self.config.num_files + 1)
+        ]
         cached_urls = dl_manager.download(urls)
 
         return [
@@ -86,18 +89,18 @@ class Pubmed(datasets.GeneratorBasedBuilder):
         """Yields examples."""
 
         for filename in files:
-            with gzip.open(filename, 'rb') as f:
+            with gzip.open(filename, "rb") as f:
                 # we downloaded only valid xml files, so all of them should be parseable
                 tree = ET.parse(f)
             root = tree.getroot()
 
-            for elem in root.iter('PubmedArticle'):
+            for elem in root.iter("PubmedArticle"):
                 # abstract is text attribute of subelement AbstractText
-                abstract = elem.findtext('.//AbstractText')
+                abstract = elem.findtext(".//AbstractText")
                 if abstract is None:
                     continue
-                id = elem.findtext('.//PMID')
+                id = elem.findtext(".//PMID")
                 yield id, {
-                        "id": id,
-                        "context": abstract,
-                    }
+                    "id": id,
+                    "context": abstract,
+                }

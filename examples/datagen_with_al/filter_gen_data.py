@@ -1,37 +1,48 @@
+import logging
 from enum import Enum
 from operator import attrgetter, itemgetter
 from typing import List
 
-from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding, TrainingArguments
-from examples.datagen_with_al.utils.data import unpack_samples, LMFilter, RTFilter
-import logging
+from examples.datagen_with_al.utils.data import LMFilter, RTFilter, unpack_samples
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from transformers import (
+    AutoConfig,
+    AutoTokenizer,
+    DataCollatorWithPadding,
+    TrainingArguments,
+)
 
 from datasets import concatenate_datasets, load_from_disk
 
-from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
-from primeqa.mrc.models.task_model import ModelForDownstreamTasks
-from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-
-
-format_str = '[%(levelname)s - %(name)s - %(asctime)s] %(message)s'
-datefmt_str = '%d-%m-%Y %H:%M:%S'
+format_str = "[%(levelname)s - %(name)s - %(asctime)s] %(message)s"
+datefmt_str = "%d-%m-%Y %H:%M:%S"
 logging.basicConfig(format=format_str, datefmt=datefmt_str, level=logging.INFO)
 logger = logging.getLogger()
 
 
 class Strategy(Enum):
-    LM = 'lm'
-    RT = 'rt'
+    LM = "lm"
+    RT = "rt"
 
     def __str__(self) -> str:
         return self.value
 
 
-def filter_samples(dataset_paths: List[str], output_path: str, strategy: Strategy, cache_dir: str = None, rt_model_path: str = None):
+def filter_samples(
+    dataset_paths: List[str],
+    output_path: str,
+    strategy: Strategy,
+    cache_dir: str = None,
+    rt_model_path: str = None,
+):
     # load dataset from disk
-    dataset = concatenate_datasets([load_from_disk(dataset_path) for dataset_path in dataset_paths])
-    
+    dataset = concatenate_datasets(
+        [load_from_disk(dataset_path) for dataset_path in dataset_paths]
+    )
+
     # filter dataset
     if strategy is None:
         logger.info("Filtering disabled, only unpacking samples")
@@ -62,11 +73,13 @@ def filter_samples(dataset_paths: List[str], output_path: str, strategy: Strateg
         )
         model.set_task_head("qa_head")
 
-        training_args = TrainingArguments(output_dir='tmp')
+        training_args = TrainingArguments(output_dir="tmp")
 
         # If using mixed precision we pad for efficient hardware acceleration
-        using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
-        data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+        using_mixed_precision = any(attrgetter("fp16", "bf16")(training_args))
+        data_collator = DataCollatorWithPadding(
+            tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None
+        )
 
         # noinspection PyProtectedMember
         postprocessor = SQUADPostProcessor(
@@ -91,20 +104,47 @@ def filter_samples(dataset_paths: List[str], output_path: str, strategy: Strateg
     dataset.save_to_disk(output_path)
 
 
-
 if __name__ == "__main__":
+
     def main():
         import argparse
 
-        parser = argparse.ArgumentParser(description='This program allows to filter synthetic data.')
-        parser.add_argument('dataset_path', type=str, nargs='+', help='The dataset(s) for filtering')
-        parser.add_argument('output_dir', type=str, help='The directory where the filtered dataset will be saved')
-        parser.add_argument('--filter', type=Strategy, default=Strategy.LM, choices=[Strategy.LM, Strategy.RT], help='Specifies the model architecture to use for generation')
-        parser.add_argument('--rt-model-name-or-path', help='Set the transformer model for answer prediction for RT filtering')
-        parser.add_argument('--disable-filtering', action='store_true', help='Don\'t filter samples and unpack them')
-        parser.add_argument('--cache', help='The directory used as cache')
+        parser = argparse.ArgumentParser(
+            description="This program allows to filter synthetic data."
+        )
+        parser.add_argument(
+            "dataset_path", type=str, nargs="+", help="The dataset(s) for filtering"
+        )
+        parser.add_argument(
+            "output_dir",
+            type=str,
+            help="The directory where the filtered dataset will be saved",
+        )
+        parser.add_argument(
+            "--filter",
+            type=Strategy,
+            default=Strategy.LM,
+            choices=[Strategy.LM, Strategy.RT],
+            help="Specifies the model architecture to use for generation",
+        )
+        parser.add_argument(
+            "--rt-model-name-or-path",
+            help="Set the transformer model for answer prediction for RT filtering",
+        )
+        parser.add_argument(
+            "--disable-filtering",
+            action="store_true",
+            help="Don't filter samples and unpack them",
+        )
+        parser.add_argument("--cache", help="The directory used as cache")
         args = parser.parse_args()
 
-        filter_samples(args.dataset_path, args.output_dir, None if args.disable_filtering else args.filter, cache_dir=args.cache, rt_model_path=args.rt_model_name_or_path)
+        filter_samples(
+            args.dataset_path,
+            args.output_dir,
+            None if args.disable_filtering else args.filter,
+            cache_dir=args.cache,
+            rt_model_path=args.rt_model_name_or_path,
+        )
 
     main()

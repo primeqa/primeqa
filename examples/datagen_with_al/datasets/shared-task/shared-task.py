@@ -47,49 +47,49 @@ _LICENSE = "Unknwon"
 
 _URLs = {
     # Train+Dev sub-datasets
-    'squad': {
+    "squad": {
         "train+SQuAD": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/SQuAD.jsonl.gz",
         "validation+SQuAD": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/SQuAD.jsonl.gz",
     },
-    'newsqa': {
+    "newsqa": {
         "train+NewsQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/NewsQA.jsonl.gz",
         "validation+NewsQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/NewsQA.jsonl.gz",
     },
-    'triviaqa': {
+    "triviaqa": {
         "train+TriviaQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/TriviaQA-web.jsonl.gz",
         "validation+TriviaQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/TriviaQA-web.jsonl.gz",
     },
-    'searchqa': {
+    "searchqa": {
         "train+SearchQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/SearchQA.jsonl.gz",
         "validation+SearchQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/SearchQA.jsonl.gz",
     },
-    'hotpotqa': {
+    "hotpotqa": {
         "train+HotpotQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/HotpotQA.jsonl.gz",
         "validation+HotpotQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/HotpotQA.jsonl.gz",
     },
-    'naturalquestions': {
+    "naturalquestions": {
         "train+NaturalQuestions": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/NaturalQuestionsShort.jsonl.gz",
         "validation+NaturalQuestions": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/NaturalQuestionsShort.jsonl.gz",
     },
     # Test sub-datasets
-    'bioasq': {
+    "bioasq": {
         "test+BioASQ": "http://participants-area.bioasq.org/MRQA2019/",  # BioASQ.jsonl.gz
     },
-    'drop': {
+    "drop": {
         "test+DROP": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/DROP.jsonl.gz",
     },
-    'duorc': {
+    "duorc": {
         "test+DuoRC": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/DuoRC.ParaphraseRC.jsonl.gz",
     },
-    'race': {
+    "race": {
         "test+RACE": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/RACE.jsonl.gz",
     },
-    'relationextraction': {
+    "relationextraction": {
         "test+RelationExtraction": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/RelationExtraction.jsonl.gz",
     },
-    'textbookqa': {
+    "textbookqa": {
         "test+TextbookQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/TextbookQA.jsonl.gz",
-    }
+    },
 }
 
 
@@ -101,16 +101,28 @@ class Mrqa(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="squad", description="SQuAD", version=VERSION),
         datasets.BuilderConfig(name="newsqa", description="NewsQa", version=VERSION),
-        datasets.BuilderConfig(name="triviaqa", description="TriviaQA", version=VERSION),
-        datasets.BuilderConfig(name="searchqa", description="SearchQA", version=VERSION),
-        datasets.BuilderConfig(name="hotpotqa", description="HotpotQA", version=VERSION),
-        datasets.BuilderConfig(name="naturalquestions", description="NaturalQuestions", version=VERSION),
+        datasets.BuilderConfig(
+            name="triviaqa", description="TriviaQA", version=VERSION
+        ),
+        datasets.BuilderConfig(
+            name="searchqa", description="SearchQA", version=VERSION
+        ),
+        datasets.BuilderConfig(
+            name="hotpotqa", description="HotpotQA", version=VERSION
+        ),
+        datasets.BuilderConfig(
+            name="naturalquestions", description="NaturalQuestions", version=VERSION
+        ),
         datasets.BuilderConfig(name="bioasq", description="BioASQ", version=VERSION),
         datasets.BuilderConfig(name="drop", description="DROP", version=VERSION),
         datasets.BuilderConfig(name="duorc", description="DuoRC", version=VERSION),
         datasets.BuilderConfig(name="race", description="RACE", version=VERSION),
-        datasets.BuilderConfig(name="relationextraction", description="RelationExtraction", version=VERSION),
-        datasets.BuilderConfig(name="textbookqa", description="TextbookQA", version=VERSION),
+        datasets.BuilderConfig(
+            name="relationextraction", description="RelationExtraction", version=VERSION
+        ),
+        datasets.BuilderConfig(
+            name="textbookqa", description="TextbookQA", version=VERSION
+        ),
     ]
 
     def _info(self):
@@ -188,7 +200,9 @@ class Mrqa(datasets.GeneratorBasedBuilder):
                             for char_span in detect_ans["char_spans"]:
                                 # answers_text.append(detect_ans["text"].strip())
                                 # detected answers text are wrong sometimes, rely on char span instead
-                                cur_answers_text.append(context[char_span[0]:char_span[1]+1].strip())
+                                cur_answers_text.append(
+                                    context[char_span[0] : char_span[1] + 1].strip()
+                                )
                                 cur_answers_start.append(char_span[0])
                             answers_start.append(cur_answers_start)
                             answers_text.append(cur_answers_text)
@@ -197,7 +211,7 @@ class Mrqa(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "answers": {
-                                'answer_start': answers_start,
-                                'text': answers_text
+                                "answer_start": answers_start,
+                                "text": answers_text,
                             },
                         }
