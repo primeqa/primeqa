@@ -78,14 +78,14 @@ class BoolTyDiSubset:
             question_text, passage_text, label = self.get_data(example, lower_case=lower_case)
             if label == "YES" or label == "NO":
                 qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
-                evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
             else:
                 qtype_writer.writerow([str(count), question_text,example['language'],"other"])
+            evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
         # dev and eval
-        qtype_file, evc_file, qtype_writer, evidence_span_writer = self.get_writers(output_dir, "dev")
-        qtype_file_e, evc_file_e, qtype_writer_e, evidence_span_writer_e = self.get_writers(output_dir, "eval")
+        qtype_file, evc_file, qtype_writer, evidence_span_writer = self.get_writers(output_dir, "val")
+        qtype_file_e, evc_file_e, qtype_writer_e, evidence_span_writer_e = self.get_writers(output_dir, "predict")
         for example in dataset['validation']:
             count += 1
             question_text, passage_text, label = self.get_data(example,lower_case=lower_case)
@@ -98,13 +98,13 @@ class BoolTyDiSubset:
                 if is_dev:
                     qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
                 qtype_writer_e.writerow([str(count), question_text,example['language'],"boolean"])
-                if is_dev:
-                    evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
-                evidence_span_writer_e.writerow([str(count), question_text, example['language'], label, passage_text])
             else:
                 if is_dev:
                     qtype_writer.writerow([str(count), question_text,example['language'],"other"])
                 qtype_writer_e.writerow([str(count), question_text,example['language'],"other"])
+            if is_dev:
+                evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
+            evidence_span_writer_e.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
         qtype_file_e.close()

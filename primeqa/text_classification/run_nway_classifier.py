@@ -33,6 +33,7 @@ from datasets import load_dataset, load_metric, Dataset, Features, Value, ClassL
 from numpy.lib.function_base import append
 from primeqa.text_classification.processors.postprocessors.text_classifier import TextClassifierPostProcessor
 from primeqa.text_classification.processors.preprocessors.text_classifier import TextClassifierPreProcessor
+from primeqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 from primeqa.text_classification.metrics.classification import Classification
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.text_classification.trainers.nway import NWayTrainer
@@ -224,6 +225,12 @@ class TaskArguments:
                   "choices": [TextClassifierPostProcessor]
                   }
     )
+    do_mrc_pipeline: bool = field(
+        default=False,
+        metadata={
+            "help": "if true, then the predict dataset will be loaded from json format produced by run_mrc.py"
+        }
+    )
 
 def create_a_backup_file_if_file_exists(original_file: str):
     if path.isfile(original_file):
@@ -239,6 +246,22 @@ def save_to_json_file(obj_to_save, out_file_path, with_backup=True, indent=4, so
     logging.debug('Writing %s as json to file: %s' % (type(obj_to_save), out_file_path))
     with open(out_file_path, 'w') as outfile:
         json.dump(obj_to_save, outfile, indent=indent, sort_keys=sort_keys)
+
+
+def restrict_labels(dataset : Dataset, sentence1_key : str, label_list : List[str]) -> Dataset:
+    ''' discard instances whose label is not in the label list '''
+    examples_with_label = []
+    for example in dataset:
+        if example['label'] in label_list and example[sentence1_key] != None:
+            examples_with_label.append(example)
+    df = pd.DataFrame(examples_with_label)
+    return Dataset.from_pandas(df)
+# TODO - something like this is more idiomatic for pandas?
+# df_all=datasets['train'].to_pandas()
+# mask=~df_all[data_args.sentence1_key].isna() & df_all['label'].isin(data_args.label_list)
+# df=df_all[mask]
+
+
 
 def main():
     # See all possible arguments in src/transformers/training_args.py
@@ -345,18 +368,19 @@ def main():
         features_input[ data_args.sentence2_key ] = Value('string')
     features = Features( features_input )
 
-
-    
-    if data_args.train_file is not None and data_args.train_file.endswith(".csv") or data_args.test_file is not None and data_args.test_file.endswith(".csv"):
-        # Loading a dataset from local csv files
-        datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter=",", features=features)
-    elif (data_args.train_file is not None and data_args.train_file.endswith(".tsv")) or (data_args.validation_file is not None \
-     and data_args.validation_file.endswith(".tsv")) or (data_args.test_file is not None and data_args.test_file.endswith(".tsv")):
-        # Loading a dataset from local csv files
-        datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter="\t", features=features)
+    if task_args.do_mrc_pipeline:
+        datasets={'test':create_dataset_from_run_mrc_output(data_args.test_file, unpack=False)}
     else:
-        # Loading a dataset from local json files
-        datasets = load_dataset("json", data_files=data_files, cache_dir=cache_dir, features=features)
+        if data_args.train_file is not None and data_args.train_file.endswith(".csv") or data_args.test_file is not None and data_args.test_file.endswith(".csv"):
+            # Loading a dataset from local csv files
+            datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter=",", features=features)
+        elif (data_args.train_file is not None and data_args.train_file.endswith(".tsv")) or (data_args.validation_file is not None \
+        and data_args.validation_file.endswith(".tsv")) or (data_args.test_file is not None and data_args.test_file.endswith(".tsv")):
+            # Loading a dataset from local csv files
+            datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter="\t", features=features)
+        else:
+            # Loading a dataset from local json files
+            datasets = load_dataset("json", data_files=data_files, cache_dir=cache_dir, features=features)
 
     # Labels - load from file
     num_labels = len(data_args.label_list)
@@ -366,17 +390,16 @@ def main():
 
     # discard instances whose label is not in the label list
     if training_args.do_train:
-        logger.info("Discard training instanced not in label list, if any.")
-        examples_with_label = []
-
-        for example in datasets['train']:
-            if example['label'] in data_args.label_list and example[data_args.sentence1_key] != None:
-                examples_with_label.append(example)
-        df = pd.DataFrame(examples_with_label)
-        datasets['train'] = Dataset.from_pandas(df)
-
+        logger.info("Discard training instance not in label list, if any.")
+        datasets['train']=restrict_labels(datasets['train'], data_args.sentence1_key, data_args.label_list)
         if len(datasets['train']) == 0:
             raise ValueError("No training data left with labels provided in label list")
+
+    if training_args.do_eval:
+        logger.info("Discard eval instance not in label list, if any.")
+        datasets['validation']=restrict_labels(datasets['validation'], data_args.sentence1_key, data_args.label_list)
+        if len(datasets['validation']) == 0:
+            raise ValueError("No validation data left with labels provided in label list")
 
     # balance the dataset
     # TODO move to subroutine
@@ -541,7 +564,7 @@ def main():
         compute_metrics=compute_metrics,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=postprocessor.process_references_and_predictions, 
+        post_process_function=postprocessor.process if task_args.do_mrc_pipeline else postprocessor.process_references_and_predictions, 
     )
 
     # Training
@@ -572,10 +595,14 @@ def main():
     # Predict on unlabeled data
     if training_args.do_predict:
         logger.info("*** Predict ***")
-        predictions = trainer.evaluate(metric_key_prefix="predict")   
-        eval_preds = postprocessor.process_references_and_predictions(eval_examples, eval_dataset, predictions)
-        save_to_json_file(eval_preds, os.path.join(training_args.output_dir, f"predict_results.json"))
+        predict_dataset=predict_dataset.remove_columns('label')
+        predictions = trainer.predict(predict_dataset, predict_examples)
+        # TODO I don't think process_reference_and_predictions should be called here
 
+        with open(os.path.join(training_args.output_dir, 'predictions.json'), 'w') as f:
+            json.dump(predictions.predictions, f, indent=4)
+        with open(os.path.join(training_args.output_dir, 'predictions_processed.json'), 'w') as f:
+            json.dump(predictions.processed_predictions, f, indent=4)
 
 def _mp_fn(index):
     # For xla_spawn (TPUs)
