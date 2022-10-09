@@ -7,7 +7,7 @@ from . import reader_pb2 as reader__pb2
 
 class ReaderStub(object):
     """*
-    The service for getting answer(s) to a question
+    The service for getting readers and answer(s) to a question usign readers
     """
 
     def __init__(self, channel):
@@ -16,6 +16,11 @@ class ReaderStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.GetReaders = channel.unary_unary(
+                '/reader.Reader/GetReaders',
+                request_serializer=reader__pb2.GetReadersRequest.SerializeToString,
+                response_deserializer=reader__pb2.GetReadersResponse.FromString,
+                )
         self.GetAnswers = channel.unary_unary(
                 '/reader.Reader/GetAnswers',
                 request_serializer=reader__pb2.GetAnswersRequest.SerializeToString,
@@ -25,8 +30,14 @@ class ReaderStub(object):
 
 class ReaderServicer(object):
     """*
-    The service for getting answer(s) to a question
+    The service for getting readers and answer(s) to a question usign readers
     """
+
+    def GetReaders(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def GetAnswers(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -37,6 +48,11 @@ class ReaderServicer(object):
 
 def add_ReaderServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'GetReaders': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetReaders,
+                    request_deserializer=reader__pb2.GetReadersRequest.FromString,
+                    response_serializer=reader__pb2.GetReadersResponse.SerializeToString,
+            ),
             'GetAnswers': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAnswers,
                     request_deserializer=reader__pb2.GetAnswersRequest.FromString,
@@ -51,8 +67,25 @@ def add_ReaderServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class Reader(object):
     """*
-    The service for getting answer(s) to a question
+    The service for getting readers and answer(s) to a question usign readers
     """
+
+    @staticmethod
+    def GetReaders(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/reader.Reader/GetReaders',
+            reader__pb2.GetReadersRequest.SerializeToString,
+            reader__pb2.GetReadersResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetAnswers(request,

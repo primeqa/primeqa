@@ -1,26 +1,40 @@
 syntax = "proto3";
-import "google/protobuf/struct.proto";
-import "pipelines.proto";
+import "parameter.proto";
 
 package reader;
 
 /**
-   The service for getting answer(s) to a question
+   The service for getting readers and answer(s) to a question usign readers
 */
 service Reader {
+    rpc GetReaders (GetReadersRequest) returns (GetReadersResponse);
     rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
 }
 
+message ReaderComponent {
+    string reader_id = 1;
+    repeated parameter.Parameter parameters = 2;
+}
+
+message GetReadersRequest {
+}
+
+message GetReadersResponse {
+    repeated ReaderComponent readers = 1;
+}
 
 /**
-    Given a question and one or more passage, returns up to max_num_answers answers
-    for each passage, represented as message Answer instances in the AnswersForPassage.
+    Given a pair of question and one or more context texts, returns up to max_num_answers answers
+    for each context text.
 */
 message GetAnswersRequest {
-    pipelines.Pipeline pipeline = 1;
-    string question = 2;
-    repeated string passages = 3;
-    google.protobuf.Struct metadata = 5;
+    ReaderComponent reader = 1;
+    repeated string queries = 2;
+    repeated Contexts contexts = 3;
+}
+
+message Contexts {
+    repeated string texts = 1;
 }
 
 message Answer {
@@ -29,11 +43,14 @@ message Answer {
     uint32 end_char_offset = 3;
     double confidence_score = 4;
     uint32 passage_index = 5;
-    google.protobuf.Struct metadata = 6;
 };
 
-message AnswersForPassage {
+message AnswersForContext {
     repeated Answer answers = 1;
+}
+
+message AnswersForQuery {
+    repeated AnswersForContext context_answers = 1;
 }
 
 /**
@@ -41,6 +58,6 @@ message AnswersForPassage {
     byte/token offsets, score and source passage index for each answer.
 */
 message GetAnswersResponse {
-    repeated AnswersForPassage answers = 1;
+    repeated AnswersForQuery query_answers = 1;
 }
 

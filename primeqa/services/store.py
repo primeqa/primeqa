@@ -12,8 +12,6 @@ from primeqa.services.utils import generate_id, load_json, save_json
 
 DIR_NAME_INDEXES = "indexes"
 DIR_NAME_INDEX = "index"
-DIR_NAME_PIPELINES = "pipelines"
-DIR_NAME_MODELS = "models"
 DIR_NAME_CHECKPOINTS = "checkpoints"
 FILENAME_INFORMATION = "information"
 FILENAME_DOCUMENTS = "documents"
@@ -31,13 +29,9 @@ EXTN_SQL_LITE = ".sqlite"
 #                   details.json
 #                   documents.json
 #                   documents.tsv
-# models/
-#        <model-id>.dnn|<model-id>.model
-# pipelines/
-#        <pipeline-id>/
-#                   checkpoints/
-#                               <timestamp>/
-#                                       *.dnn|*.model
+# checkpoints/
+#            <checkpoint>/
+#                       <model-id>.dnn|<model-id>.model
 #############################################################################################
 class Store:
     def __init__(self):
@@ -47,28 +41,16 @@ class Store:
         if not os.path.exists(self.root_dir):
             os.makedirs(self.root_dir)
 
-    #############################################################################################
-    #                       models
-    #############################################################################################
-    def get_model_path(self, model_id: str):
-        return glob.glob(
-            f"{os.path.join(self.root_dir, DIR_NAME_MODELS)}/{model_id}.*"
-        )[0]
+    def exists(self, path: str):
+        return os.path.exists(path)
 
     #############################################################################################
     #                       Checkpoints
     #############################################################################################
-    def get_checkpoint_dir_path(self, pipeline_id: str):
-        return os.path.join(
-            self.root_dir, DIR_NAME_PIPELINES, str(pipeline_id), DIR_NAME_CHECKPOINTS
-        )
-
-    def get_latest_checkpoint_path(self, pipeline_id: str):
-        list_of_checkpoints = sorted(
-            glob.glob(f"{self.get_checkpoint_dir_path(pipeline_id)}/"),
-            key=os.path.getmtime,
-        )
-        return list_of_checkpoints[0]
+    def get_checkpoint_path(self, checkpoint: str):
+        return glob.glob(
+            f"{os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS, str(checkpoint))}/*"
+        )[0]
 
     #############################################################################################
     #                       Index Documents
@@ -84,7 +66,8 @@ class Store:
     @ttl_cache(maxsize=10, ttl=10 * 60)
     def get_index_documents_database(self, index_id: str):
         return SqliteDict(
-            self.get_index_documents_file_path(index_id, extension=EXTN_SQL_LITE)
+            self.get_index_documents_file_path(index_id, extension=EXTN_SQL_LITE),
+            tablename="documents",
         )
 
     def get_index_document(self, index_id: str, document_idx: int):
@@ -107,22 +90,24 @@ class Store:
         # Step 3: Iterate over documents in the request to save to `documents.tsv` and `documents.sqlite`
         with open(
             documents_tsv_file_path, "w", encoding="utf-8"
-        ) as documents_file, SqliteDict(documents_sqlite_file_path) as documents_db:
+        ) as documents_file, SqliteDict(
+            documents_sqlite_file_path, tablename="documents"
+        ) as documents_db:
             # Step 3.a: Add heading row to `documents.tsv`
             documents_file.write("id\ttext\ttitle\n")
 
             # Step 3.b: Iterate over documents to add rows to `documents.tsv` and entries in documents_db
             for document_idx, document in enumerate(documents):
                 documents_file.write(
-                    f"{str(document_idx)}\t{document['text']}\t{document['title'] if 'title' in document else ''}\n"
+                    f"{str(document_idx + 1)}\t{document['text']}\t{document['title'] if 'title' in document else ''}\n"
                 )
-                documents_db[str(document_idx)] = document
+                documents_db[str(document_idx + 1)] = document
 
             # Step 3.c: Commit to save documents_db
             documents_db.commit()
 
         # Step 4: Clear cache
-        self.get_index_documents_database.popitem(index_id)
+        self.get_index_documents_database.cache_clear()
 
     #############################################################################################
     #                       Indexes
