@@ -37,6 +37,18 @@ message GetIndexesResponse {
    repeated IndexInformation indexes = 1;
 }
 
+message IndexerComponent {
+    string indexer_id = 1;
+    repeated parameter.Parameter parameters = 2;
+}
+
+message GetIndexersRequest {
+}
+
+message GetIndexersResponse {
+    repeated IndexerComponent indexers = 1;
+}
+
 message Document {
     string text = 1;
     string document_id = 2;

@@ -552,6 +552,105 @@ class RestServer:
                 ) from None
 
         ############################################################################################
+        #                           Documents API
+        ############################################################################################
+        @app.post(
+            "/documents",
+            status_code=status.HTTP_201_CREATED,
+            response_model=List[List[Hit]],
+            tags=["Retriever"],
+        )
+        def get_documents(request: RetrieverQuery):
+            try:
+                # Step 1: Fetch requested pipeline
+                pipeline = get_pipeline(pipeline_id=request.pipeline.pipeline_id)
+
+                # Step 2: Verify requested pipeline's type
+                if pipeline.pipeline_type != RetrieverPipeline.__name__:
+                    raise Error(
+                        ErrorMessages.INVALID_PIPELINE_TYPE.format(
+                            pipeline.pipeline_type, RetrieverPipeline.__name__
+                        )
+                    )
+
+                # Step 3: If parameters are provided in request and they differ from existing pipeline, create new pipeline object
+                if request.pipeline.parameters:
+                    # Step 3.a: Create new pipeline object, if necessary
+                    for parameter in request.pipeline.parameters:
+                        try:
+                            # Step 3.a.i: Compare against existing parameter value
+                            if (
+                                pipeline.get_parameter_value(parameter.parameter_id)
+                                != parameter.value
+                            ):
+                                pipeline = get_pipeline(
+                                    pipeline_id=request.pipeline.pipeline_id,
+                                    invoke__init__=True,
+                                )
+                                break
+                        except KeyError as err:
+                            raise Error(
+                                ErrorMessages.INVALID_PIPELINE_PARAMETER.format(
+                                    parameter.parameter_id
+                                )
+                            ) from err
+
+                    # Step 3.b: Set different parameter values in new pipeline object
+                    for parameter in request.pipeline.parameters:
+                        # Step 3.b.i: Update different parameter value
+                        if (
+                            pipeline.get_parameter_value(parameter.parameter_id)
+                            != parameter.value
+                        ):
+                            pipeline.set_parameter_value(
+                                parameter_id=parameter.parameter_id,
+                                parameter_value=parameter.value,
+                            )
+
+                # Step 4: Run retrieve method
+                results = pipeline.retrieve(
+                    input_texts=request.queries,
+                    index_path=self._store.get_index_file_path(request.index_id),
+                )
+
+                # Step 5: Return
+                hits = []
+                for result_per_query in results:
+                    hits_per_query = []
+                    for hit in result_per_query:
+                        try:
+                            hits_per_query.append(
+                                {
+                                    "document": self._store.get_index_document(
+                                        index_id=request.index_id, document_idx=hit[0]
+                                    ),
+                                    "score": hit[1],
+                                }
+                            )
+                        except (FileNotFoundError, KeyError):
+                            continue
+
+                    hits.append(hits_per_query)
+
+                return hits
+
+            except Error as err:
+                error_message = err.args[0]
+
+                # Identify error code
+                mobj = PATTERN_ERROR_MESSAGE.match(error_message)
+                if mobj:
+                    error_code = mobj.group(1).strip()
+                    error_message = mobj.group(2).strip()
+                else:
+                    error_code = 500
+
+                raise HTTPException(
+                    status_code=500,
+                    detail={"code": error_code, "message": error_message},
+                ) from None
+
+        ############################################################################################
         #                                   API SERVER CONFIGURATION
         ############################################################################################
         if self._config.require_ssl:
