@@ -1,6 +1,5 @@
-import logging
 from typing import Union, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from primeqa.pipelines.components.base import IndexerComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -12,9 +11,9 @@ class ColBERTIndexer(IndexerComponent):
     """_summary_
 
     Args:
-        index_root: str
-        checkpoint: str
-        index_name (str, optional): Index name. Defaults to "index"
+        index_root (str): Path to root directory where index to be stored.
+        index_name (str): Index name.
+        checkpoint (str): Model to load.
         similarity (str, optional): Similarity. Defaults to "cosine"
         dim (int, optional): Dimension. Defaults to 128
         query_maxlen (int, optional): Maxium query length. Defaults to 32.
@@ -25,32 +24,63 @@ class ColBERTIndexer(IndexerComponent):
         nbits (int, optional): Number of bits. Defaults to 1.
         kmeans_niters (int, optional): Number of iterations (kmeans). Defaults to 4.
         num_partitions_max (int, optional): Maximum partions size. Defaults to 10000000.
-        ncells (int, optional): Number of cells. Defaults to None.
-        logger (logging.Logger, optional) = logger object. Defaults to logging.getLogger(ColBERTIndexer).
 
     Raises:
         TypeError: _description_
     """
 
-    index_root: str
-    checkpoint: str
-    index_name: str = "index"
-    similarity: str = "cosine"
-    dim: int = 128
-    query_maxlen: int = 32
-    doc_maxlen: int = 180
-    mask_punctuation: bool = True
-    bsize: int = 128
-    amp: bool = False
-    nbits: int = 1
-    kmeans_niters: int = 4
-    num_partitions_max: int = 10000000
-    logger: logging.Logger = logging.getLogger("ColBERTIndexer")
+    checkpoint: str = field(
+        metadata={
+            "name": "Checkpoint",
+            "description": "Path to checkpoint",
+        },
+    )
+    similarity: str = field(
+        default="cosine",
+        metadata={"name": "Similarity", "options": ["cosine", "l2"]},
+    )
+    dim: int = field(
+        default=128,
+        metadata={
+            "name": "Dimension",
+        },
+    )
+    query_maxlen: int = field(
+        default=32,
+        metadata={"name": "Maxium query length", "range": [8, 64, 8]},
+    )
+    doc_maxlen: int = field(
+        default=180,
+        metadata={"name": "Maxium document length", "range": [32, 256, 4]},
+    )
+    mask_punctuation: bool = field(
+        default=True,
+        metadata={"name": "Mask punctuation", "options": [True, False]},
+    )
+    bsize: int = field(
+        default=128,
+        metadata={"name": "Dimension", "range": [8, 256, 8]},
+    )
+    amp: bool = field(
+        default=False,
+        metadata={"name": "Amp", "options": [True, False]},
+    )
+    nbits: int = field(
+        default=1,
+        metadata={"name": "nbits", "options": [1, 2, 4]},
+    )
+    kmeans_niters: int = field(
+        default=4,
+        metadata={"name": "Number of iterations (kmeans)", "range": [1, 8, 1]},
+    )
+    num_partitions_max: int = field(
+        default=10000000,
+        metadata={
+            "name": "Maximum number of partitions",
+        },
+    )
 
     def __post_init__(self):
-        self.name = "ColBERT Indexer"
-        self.type = IndexerComponent.__name__
-
         self._config = ColBERTConfig(
             index_root=self.index_root,
             index_name=self.index_name,

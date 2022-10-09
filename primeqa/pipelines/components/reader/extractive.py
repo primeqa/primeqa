@@ -1,7 +1,5 @@
-import logging
 from typing import List
-import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
@@ -29,34 +27,74 @@ class ExtractiveReader(ReaderComponent):
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
-        logger (logging.Logger, optional): logger object. Defaults to logging.getLogger(ExtractiveReader).
 
 
     Returns:
         _type_: _description_
     """
 
-    model: str = "PrimeQA/tydiqa-primary-task-xlm-roberta-large"
-    use_fast: bool = True
-    stride: int = 128
-    max_seq_len: int = 512
-    n_best_size: int = 20
-    max_num_answers: int = 5
-    max_answer_length: int = 32
-    scorer_type: str = SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
-    min_score_threshold: float = None
-    logger: logging.Logger = logging.getLogger("ExtractiveReader")
+    model: str = field(
+        default="PrimeQA/tydiqa-primary-task-xlm-roberta-large",
+        metadata={"name": "Model"},
+    )
+    use_fast: bool = field(
+        default=True,
+        metadata={
+            "name": "Use the fast version of the tokenizer",
+            "options": [True, False],
+        },
+    )
+    stride: int = field(
+        default=128,
+        metadata={
+            "name": "Stride",
+            "description": "Step size to move sliding window across context",
+            "range": [8, 256, 8],
+        },
+    )
+    max_seq_len: int = field(
+        default=512,
+        metadata={
+            "name": "Maximum sequence length",
+            "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
+            "range": [32, 512, 8],
+        },
+    )
+    n_best_size: int = field(
+        default=20,
+        metadata={
+            "name": "N",
+            "description": "Maximum number of start/end logits to consider (max values)",
+            "range": [1, 50, 1],
+        },
+    )
+    max_num_answers: int = field(
+        default=5, metadata={"name": "Maximum number of answers", "range": [1, 5, 1]}
+    )
+    max_answer_length: int = field(
+        default=32, metadata={"name": "Maximum answer length", "range": [2, 128, 2]}
+    )
+    scorer_type: str = field(
+        default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
+        metadata={
+            "name": "Scoring algorithm",
+            "options": [
+                SupportedSpanScorers.SCORE_DIFF_BASED.value,
+                SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value,
+                SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
+            ],
+        },
+    )
+    min_score_threshold: float = field(
+        default=None, metadata={"name": "Minimum score threshold"}
+    )
 
     def __post_init__(self):
-        self.name = "Extractive Reader"
-        self.type = ReaderComponent.__name__
-
         # Placeholder variables
         self._preprocessor = None
         self._trainer = None
 
     def load(self, *args, **kwargs):
-        start_t = time.time()
         task_heads = EXTRACTIVE_HEAD
         # Load configuration for model
         config = AutoConfig.from_pretrained(self.model)
@@ -84,11 +122,29 @@ class ExtractiveReader(ReaderComponent):
         )
 
         data_collator = DataCollatorWithPadding(tokenizer)
+
+        # Set scorer type
+        if self.scorer_type == SupportedSpanScorers.SCORE_DIFF_BASED.value:
+            scorer_type = SupportedSpanScorers.SCORE_DIFF_BASED
+        elif (
+            self.scorer_type
+            == SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value
+        ):
+            scorer_type = SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
+        elif (
+            self.scorer_type
+            == SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value
+        ):
+            scorer_type = SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
+        else:
+            raise ValueError(f"Unsupported scorer type: {self.scorer_type}")
+
+        # Initialize post processor
         postprocessor = ExtractivePostProcessor(
             k=self.max_num_answers,
             n_best_size=self.n_best_size,
             max_answer_length=self.max_answer_length,
-            scorer_type=self.scorer_type,
+            scorer_type=scorer_type,
             single_context_multiple_passages=self._preprocessor._single_context_multiple_passages,
         )
 
@@ -97,12 +153,6 @@ class ExtractiveReader(ReaderComponent):
             tokenizer=tokenizer,
             data_collator=data_collator,
             post_process_function=postprocessor.process,
-        )
-
-        self.logger.info(
-            "%s pipeline - loading took %s seconds",
-            self.name,
-            time.time() - start_t,
         )
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
