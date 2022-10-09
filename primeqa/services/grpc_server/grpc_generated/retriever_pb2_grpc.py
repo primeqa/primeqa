@@ -16,10 +16,15 @@ class RetrieverStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.Search = channel.unary_unary(
-                '/retrieve.Retriever/Search',
-                request_serializer=retriever__pb2.SearchRequest.SerializeToString,
-                response_deserializer=retriever__pb2.SearchResponse.FromString,
+        self.getRetrievers = channel.unary_unary(
+                '/retrieve.Retriever/getRetrievers',
+                request_serializer=retriever__pb2.GetRetrieversRequest.SerializeToString,
+                response_deserializer=retriever__pb2.GetRetrieversResponse.FromString,
+                )
+        self.Retrieve = channel.unary_unary(
+                '/retrieve.Retriever/Retrieve',
+                request_serializer=retriever__pb2.RetrieveRequest.SerializeToString,
+                response_deserializer=retriever__pb2.RetrieveResponse.FromString,
                 )
 
 
@@ -28,7 +33,13 @@ class RetrieverServicer(object):
     Service to process and retrieve documents
     """
 
-    def Search(self, request, context):
+    def getRetrievers(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Retrieve(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -37,10 +48,15 @@ class RetrieverServicer(object):
 
 def add_RetrieverServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'Search': grpc.unary_unary_rpc_method_handler(
-                    servicer.Search,
-                    request_deserializer=retriever__pb2.SearchRequest.FromString,
-                    response_serializer=retriever__pb2.SearchResponse.SerializeToString,
+            'getRetrievers': grpc.unary_unary_rpc_method_handler(
+                    servicer.getRetrievers,
+                    request_deserializer=retriever__pb2.GetRetrieversRequest.FromString,
+                    response_serializer=retriever__pb2.GetRetrieversResponse.SerializeToString,
+            ),
+            'Retrieve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Retrieve,
+                    request_deserializer=retriever__pb2.RetrieveRequest.FromString,
+                    response_serializer=retriever__pb2.RetrieveResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -55,7 +71,7 @@ class Retriever(object):
     """
 
     @staticmethod
-    def Search(request,
+    def getRetrievers(request,
             target,
             options=(),
             channel_credentials=None,
@@ -65,8 +81,25 @@ class Retriever(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/Search',
-            retriever__pb2.SearchRequest.SerializeToString,
-            retriever__pb2.SearchResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/getRetrievers',
+            retriever__pb2.GetRetrieversRequest.SerializeToString,
+            retriever__pb2.GetRetrieversResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def Retrieve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/Retrieve',
+            retriever__pb2.RetrieveRequest.SerializeToString,
+            retriever__pb2.RetrieveResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

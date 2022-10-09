@@ -16,6 +16,11 @@ class IndexerStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.GetIndexers = channel.unary_unary(
+                '/index.Indexer/GetIndexers',
+                request_serializer=indexer__pb2.GetIndexersRequest.SerializeToString,
+                response_deserializer=indexer__pb2.GetIndexersResponse.FromString,
+                )
         self.GenerateIndex = channel.stream_unary(
                 '/index.Indexer/GenerateIndex',
                 request_serializer=indexer__pb2.GenerateIndexRequest.SerializeToString,
@@ -33,6 +38,12 @@ class IndexerServicer(object):
     Service to build index
     """
 
+    def GetIndexers(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GenerateIndex(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -48,6 +59,11 @@ class IndexerServicer(object):
 
 def add_IndexerServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'GetIndexers': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetIndexers,
+                    request_deserializer=indexer__pb2.GetIndexersRequest.FromString,
+                    response_serializer=indexer__pb2.GetIndexersResponse.SerializeToString,
+            ),
             'GenerateIndex': grpc.stream_unary_rpc_method_handler(
                     servicer.GenerateIndex,
                     request_deserializer=indexer__pb2.GenerateIndexRequest.FromString,
@@ -69,6 +85,23 @@ class Indexer(object):
     """*
     Service to build index
     """
+
+    @staticmethod
+    def GetIndexers(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexers',
+            indexer__pb2.GetIndexersRequest.SerializeToString,
+            indexer__pb2.GetIndexersResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GenerateIndex(request_iterator,

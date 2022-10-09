@@ -1,51 +1,54 @@
 import logging
 import time
 from typing import List, Union
-import multiprocessing as mp
+
 
 import uvicorn
 from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from primeqa.services.configurations import Settings
-from primeqa.pipelines import (
-    get_pipelines,
-    get_pipeline,
-    load_pipeline,
-    ReaderPipeline,
-    RetrieverPipeline,
+from primeqa.services.parameters import get_parameter_type
+from primeqa.services.constants import ATTR_STATUS, IndexStatus
+from primeqa.services.factories import INDEXERS_REGISTRY, IndexerFactory
+from primeqa.services.grpc_server.utils import (
+    parse_parameter_value,
+    generate_parameters,
 )
+
 from primeqa.services.rest_server.data_models import (
     Pipeline,
     ReaderQuery,
     Answer,
     IndexRequest,
     IndexInformation,
+    RetrieverQuery,
+    Hit,
 )
 from primeqa.services.exceptions import PATTERN_ERROR_MESSAGE, Error, ErrorMessages
 from primeqa.services.store import StoreFactory, Store
 from primeqa.services.constants import IndexStatus
 
 
-def index(
-    store: Store,
-    index_id: str,
-    pipeline: RetrieverPipeline,
-    documents_to_index: List[dict],
-):
-    index_information = store.get_index_information(index_id)
-    try:
-        pipeline.index(documents_to_index, store.get_index_directory_path(index_id))
-        index_information["status"] = IndexStatus.READY
-    except RuntimeError as err:
-        index_information["status"] = IndexStatus.CORRUPT
-        logging.exception(
-            "Generation failed for index with id=%s. Resultant index may be corrupted.",
-            index_id,
-        )
-        logging.exception(err.args[0])
+# def index(
+#     store: Store,
+#     index_id: str,
+#     pipeline: RetrieverPipeline,
+#     documents_to_index: List[dict],
+# ):
+#     index_information = store.get_index_information(index_id)
+#     try:
+#         pipeline.index(documents_to_index, store.get_index_directory_path(index_id))
+#         index_information["status"] = IndexStatus.READY
+#     except RuntimeError as err:
+#         index_information["status"] = IndexStatus.CORRUPT
+#         logging.exception(
+#             "Generation failed for index with id=%s. Resultant index may be corrupted.",
+#             index_id,
+#         )
+#         logging.exception(err.args[0])
 
-    store.save_index_information(index_id, information=index_information)
+#     store.save_index_information(index_id, information=index_information)
 
 
 class RestServer:
@@ -208,7 +211,7 @@ class RestServer:
                 # Step 1: Fetch requested pipeline
                 pipeline = get_pipeline(pipeline_id=request.pipeline.pipeline_id)
 
-                # Step 2: Activate pipeline
+                # Step 2: Verify requested pipeline's type
                 if pipeline.pipeline_type != ReaderPipeline.__name__:
                     raise Error(
                         ErrorMessages.INVALID_PIPELINE_TYPE.format(
@@ -216,25 +219,51 @@ class RestServer:
                         )
                     )
 
-                load_pipeline(pipeline.pipeline_id)
+                # Step 3: If parameters are provided in request and they differ from existing pipeline, create new pipeline object
+                if request.pipeline.parameters:
+                    # Step 3.a: Create new pipeline object, if necessary
+                    for parameter in request.pipeline.parameters:
+                        try:
+                            # Step 3.a.i: Compare against existing parameter value
+                            if (
+                                pipeline.get_parameter_value(parameter.parameter_id)
+                                != parameter.value
+                            ):
+                                pipeline = get_pipeline(
+                                    pipeline_id=request.pipeline.pipeline_id,
+                                    invoke__init__=True,
+                                )
+                                break
+                        except KeyError as err:
+                            raise Error(
+                                ErrorMessages.INVALID_PIPELINE_PARAMETER.format(
+                                    parameter.parameter_id
+                                )
+                            ) from err
 
-                # Step 3: Run apply method
+                    # Step 3.b: Set different parameter values in new pipeline object
+                    for parameter in request.pipeline.parameters:
+                        # Step 3.b.i: Update different parameter value
+                        if (
+                            pipeline.get_parameter_value(parameter.parameter_id)
+                            != parameter.value
+                        ):
+                            pipeline.set_parameter_value(
+                                parameter_id=parameter.parameter_id,
+                                parameter_value=parameter.value,
+                            )
+
+                    # Step 3.c: Load pipeline
+                    pipeline.load()
+                else:
+                    # Step 3: Load if existing pipeline, if not active already
+                    load_pipeline(pipeline.pipeline_id)
+
+                # Step 4: Run apply method
                 predictions = pipeline.apply(
                     input_texts=[request.question] * len(request.passages),
                     context=[[passage] for passage in request.passages],
                 )
-
-                # Step 4: Filter out predictions below minimum score threhold
-                filtered_predictions = []
-                for predictions_for_passage in predictions:
-                    filtered_predictions_for_passage = []
-                    for prediction in predictions_for_passage:
-                        if prediction[
-                            "confidence_score"
-                        ] >= pipeline.get_parameter_value("min_score_threshold"):
-                            filtered_predictions_for_passage.append(prediction)
-
-                    filtered_predictions.append(filtered_predictions_for_passage)
 
                 # Step 5: Return
                 return [
@@ -252,7 +281,7 @@ class RestServer:
                         }
                         for prediction in predictions_for_passage
                     ]
-                    for predictions_for_passage in filtered_predictions
+                    for predictions_for_passage in predictions
                 ]
 
             except Error as err:
@@ -278,7 +307,7 @@ class RestServer:
             "/indexs",
             status_code=status.HTTP_201_CREATED,
             response_model=IndexInformation,
-            tags=["Index"],
+            tags=["Indexer"],
         )
         def generate_index(request: IndexRequest):
             try:
@@ -293,7 +322,7 @@ class RestServer:
                     self._store.delete_index(request.index_id)
                     index_information["index_id"] = request.index_id
 
-                # Step 3: Activate requested pipeline
+                # Step 3: Validate requested pipeline's type
                 pipeline = get_pipeline(pipeline_id=request.pipeline.pipeline_id)
                 if pipeline.pipeline_type != RetrieverPipeline.__name__:
                     raise Error(
@@ -302,35 +331,81 @@ class RestServer:
                         )
                     )
 
-                load_pipeline(pipeline.pipeline_id)
+                # Step 4: If parameters are provided in request and they differ from existing pipeline, create new pipeline object
+                if request.pipeline.parameters:
+                    # Step 4.a: Create new pipeline object, if necessary
+                    for parameter in request.pipeline.parameters:
+                        try:
+                            # Step 4.a.i: Compare against existing parameter value
+                            if (
+                                pipeline.get_parameter_value(parameter.parameter_id)
+                                != parameter.value
+                            ):
+                                pipeline = get_pipeline(
+                                    pipeline_id=request.pipeline.pipeline_id,
+                                    invoke__init__=True,
+                                )
+                                break
+                        except KeyError as err:
+                            raise Error(
+                                ErrorMessages.INVALID_PIPELINE_PARAMETER.format(
+                                    parameter.parameter_id
+                                )
+                            ) from err
 
-                # Step 4: Update index information with pipeline information
+                    # Step 4.b: Set different parameter values in new pipeline object
+                    for parameter in request.pipeline.parameters:
+                        # Step 4.b.i: Update different parameter value
+                        if (
+                            pipeline.get_parameter_value(parameter.parameter_id)
+                            != parameter.value
+                        ):
+                            pipeline.set_parameter_value(
+                                parameter_id=parameter.parameter_id,
+                                parameter_value=parameter.value,
+                            )
+
+                    # Step 4.c: Load latest checkpoint, if available else load default model
+                    try:
+                        checkpoint = self._store.get_latest_checkpoint_path(
+                            pipeline.pipeline_id
+                        )
+                    except IndexError:
+                        checkpoint = self._store.get_model_path(
+                            pipeline.get_parameter_value("model")
+                        )
+
+                    # Step 2.c.vi: Load pipeline
+                    pipeline.load(checkpoint=checkpoint)
+                else:
+                    # Step 4.a: Load latest checkpoint, if available else load default model
+                    try:
+                        checkpoint = self._store.get_latest_checkpoint_path(
+                            pipeline.pipeline_id
+                        )
+                    except IndexError:
+                        checkpoint = self._store.get_model_path(
+                            pipeline.get_parameter_value("model")
+                        )
+
+                    # Step 4.b: Activate if existing pipeline, if not active already
+                    load_pipeline(pipeline.pipeline_id, checkpoint=checkpoint)
+
+                # Step 5: Update index information with pipeline information
                 index_information["metadata"] = {"pipeline": pipeline.serialize()}
 
-                # Step 5: Save index information
+                # Step 6: Save index information
                 self._store.save_index_information(
                     index_id=index_information["index_id"],
                     information=index_information,
                 )
 
-                # Step 6: Save documents used in index
+                # Step 7: Save documents used in index
                 self._store.save_index_documents(
                     index_id=index_information["index_id"], documents=request.documents
                 )
 
-                # Step 7: Kick-off async index generation
-                process = mp.Process()
-                process = mp.Process(
-                    target=index,
-                    args=(
-                        self._store,
-                        index_information["index_id"],
-                        pipeline,
-                        request.documents,
-                    ),
-                    daemon=True,
-                )
-                process.start()
+                # Step 8: Kick-off async index generation
 
                 # Step 8: Return
                 return index_information
@@ -355,7 +430,7 @@ class RestServer:
             "/index/{index_id}/status",
             status_code=status.HTTP_200_OK,
             response_model=dict,
-            tags=["Index"],
+            tags=["Indexer"],
         )
         def get_index_status(index_id: str):
             try:
@@ -370,6 +445,105 @@ class RestServer:
                 return {"status": IndexStatus.CORRUPT}
             except FileNotFoundError:
                 return {"status": IndexStatus.DOES_NOT_EXISTS}
+            except Error as err:
+                error_message = err.args[0]
+
+                # Identify error code
+                mobj = PATTERN_ERROR_MESSAGE.match(error_message)
+                if mobj:
+                    error_code = mobj.group(1).strip()
+                    error_message = mobj.group(2).strip()
+                else:
+                    error_code = 500
+
+                raise HTTPException(
+                    status_code=500,
+                    detail={"code": error_code, "message": error_message},
+                ) from None
+
+        ############################################################################################
+        #                           Documents API
+        ############################################################################################
+        @app.post(
+            "/documents",
+            status_code=status.HTTP_201_CREATED,
+            response_model=List[List[Hit]],
+            tags=["Retriever"],
+        )
+        def get_documents(request: RetrieverQuery):
+            try:
+                # Step 1: Fetch requested pipeline
+                pipeline = get_pipeline(pipeline_id=request.pipeline.pipeline_id)
+
+                # Step 2: Verify requested pipeline's type
+                if pipeline.pipeline_type != RetrieverPipeline.__name__:
+                    raise Error(
+                        ErrorMessages.INVALID_PIPELINE_TYPE.format(
+                            pipeline.pipeline_type, RetrieverPipeline.__name__
+                        )
+                    )
+
+                # Step 3: If parameters are provided in request and they differ from existing pipeline, create new pipeline object
+                if request.pipeline.parameters:
+                    # Step 3.a: Create new pipeline object, if necessary
+                    for parameter in request.pipeline.parameters:
+                        try:
+                            # Step 3.a.i: Compare against existing parameter value
+                            if (
+                                pipeline.get_parameter_value(parameter.parameter_id)
+                                != parameter.value
+                            ):
+                                pipeline = get_pipeline(
+                                    pipeline_id=request.pipeline.pipeline_id,
+                                    invoke__init__=True,
+                                )
+                                break
+                        except KeyError as err:
+                            raise Error(
+                                ErrorMessages.INVALID_PIPELINE_PARAMETER.format(
+                                    parameter.parameter_id
+                                )
+                            ) from err
+
+                    # Step 3.b: Set different parameter values in new pipeline object
+                    for parameter in request.pipeline.parameters:
+                        # Step 3.b.i: Update different parameter value
+                        if (
+                            pipeline.get_parameter_value(parameter.parameter_id)
+                            != parameter.value
+                        ):
+                            pipeline.set_parameter_value(
+                                parameter_id=parameter.parameter_id,
+                                parameter_value=parameter.value,
+                            )
+
+                # Step 4: Run retrieve method
+                results = pipeline.retrieve(
+                    input_texts=request.queries,
+                    index_path=self._store.get_index_file_path(request.index_id),
+                )
+
+                # Step 5: Return
+                hits = []
+                for result_per_query in results:
+                    hits_per_query = []
+                    for hit in result_per_query:
+                        try:
+                            hits_per_query.append(
+                                {
+                                    "document": self._store.get_index_document(
+                                        index_id=request.index_id, document_idx=hit[0]
+                                    ),
+                                    "score": hit[1],
+                                }
+                            )
+                        except (FileNotFoundError, KeyError):
+                            continue
+
+                    hits.append(hits_per_query)
+
+                return hits
+
             except Error as err:
                 error_message = err.args[0]
 

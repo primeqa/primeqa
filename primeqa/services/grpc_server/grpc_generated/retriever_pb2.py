@@ -12,25 +12,48 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
-from . import pipelines_pb2 as pipelines__pb2
+from . import parameter_pb2 as parameter__pb2
 from . import indexer_pb2 as indexer__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x1cgoogle/protobuf/struct.proto\x1a\x0fpipelines.proto\x1a\rindexer.proto\"\x82\x01\n\rSearchRequest\x12%\n\x08pipeline\x18\x01 \x01(\x0b\x32\x13.pipelines.Pipeline\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\r\n\x05query\x18\x03 \x03(\t\x12)\n\x08metadata\x18\x06 \x01(\x0b\x32\x17.google.protobuf.Struct\"b\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\x12)\n\x08metadata\x18\x03 \x01(\x0b\x32\x17.google.protobuf.Struct\"*\n\x0bHitPerQuery\x12\x1b\n\x04hits\x18\x01 \x03(\x0b\x32\r.retrieve.Hit\"5\n\x0eSearchResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2H\n\tRetriever\x12;\n\x06Search\x12\x17.retrieve.SearchRequest\x1a\x18.retrieve.SearchResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x0fparameter.proto\x1a\rindexer.proto\"T\n\x12RetrieverComponent\x12\x14\n\x0cretriever_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x16\n\x14GetRetrieversRequest\"I\n\x15GetRetrieversResponse\x12\x30\n\nretrievers\x18\x01 \x03(\x0b\x32\x1c.retrieve.RetrieverComponent\"e\n\x0fRetrieveRequest\x12/\n\tretriever\x18\x01 \x01(\x0b\x32\x1c.retrieve.RetrieverComponent\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\x0f\n\x07queries\x18\x03 \x03(\t\"7\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\"*\n\x0bHitPerQuery\x12\x1b\n\x04hits\x18\x01 \x03(\x0b\x32\r.retrieve.Hit\"7\n\x10RetrieveResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2\xa0\x01\n\tRetriever\x12P\n\rgetRetrievers\x12\x1e.retrieve.GetRetrieversRequest\x1a\x1f.retrieve.GetRetrieversResponse\x12\x41\n\x08Retrieve\x12\x19.retrieve.RetrieveRequest\x1a\x1a.retrieve.RetrieveResponseb\x06proto3')
 
 
 
-_SEARCHREQUEST = DESCRIPTOR.message_types_by_name['SearchRequest']
+_RETRIEVERCOMPONENT = DESCRIPTOR.message_types_by_name['RetrieverComponent']
+_GETRETRIEVERSREQUEST = DESCRIPTOR.message_types_by_name['GetRetrieversRequest']
+_GETRETRIEVERSRESPONSE = DESCRIPTOR.message_types_by_name['GetRetrieversResponse']
+_RETRIEVEREQUEST = DESCRIPTOR.message_types_by_name['RetrieveRequest']
 _HIT = DESCRIPTOR.message_types_by_name['Hit']
 _HITPERQUERY = DESCRIPTOR.message_types_by_name['HitPerQuery']
-_SEARCHRESPONSE = DESCRIPTOR.message_types_by_name['SearchResponse']
-SearchRequest = _reflection.GeneratedProtocolMessageType('SearchRequest', (_message.Message,), {
-  'DESCRIPTOR' : _SEARCHREQUEST,
+_RETRIEVERESPONSE = DESCRIPTOR.message_types_by_name['RetrieveResponse']
+RetrieverComponent = _reflection.GeneratedProtocolMessageType('RetrieverComponent', (_message.Message,), {
+  'DESCRIPTOR' : _RETRIEVERCOMPONENT,
   '__module__' : 'retriever_pb2'
-  # @@protoc_insertion_point(class_scope:retrieve.SearchRequest)
+  # @@protoc_insertion_point(class_scope:retrieve.RetrieverComponent)
   })
-_sym_db.RegisterMessage(SearchRequest)
+_sym_db.RegisterMessage(RetrieverComponent)
+
+GetRetrieversRequest = _reflection.GeneratedProtocolMessageType('GetRetrieversRequest', (_message.Message,), {
+  'DESCRIPTOR' : _GETRETRIEVERSREQUEST,
+  '__module__' : 'retriever_pb2'
+  # @@protoc_insertion_point(class_scope:retrieve.GetRetrieversRequest)
+  })
+_sym_db.RegisterMessage(GetRetrieversRequest)
+
+GetRetrieversResponse = _reflection.GeneratedProtocolMessageType('GetRetrieversResponse', (_message.Message,), {
+  'DESCRIPTOR' : _GETRETRIEVERSRESPONSE,
+  '__module__' : 'retriever_pb2'
+  # @@protoc_insertion_point(class_scope:retrieve.GetRetrieversResponse)
+  })
+_sym_db.RegisterMessage(GetRetrieversResponse)
+
+RetrieveRequest = _reflection.GeneratedProtocolMessageType('RetrieveRequest', (_message.Message,), {
+  'DESCRIPTOR' : _RETRIEVEREQUEST,
+  '__module__' : 'retriever_pb2'
+  # @@protoc_insertion_point(class_scope:retrieve.RetrieveRequest)
+  })
+_sym_db.RegisterMessage(RetrieveRequest)
 
 Hit = _reflection.GeneratedProtocolMessageType('Hit', (_message.Message,), {
   'DESCRIPTOR' : _HIT,
@@ -46,25 +69,31 @@ HitPerQuery = _reflection.GeneratedProtocolMessageType('HitPerQuery', (_message.
   })
 _sym_db.RegisterMessage(HitPerQuery)
 
-SearchResponse = _reflection.GeneratedProtocolMessageType('SearchResponse', (_message.Message,), {
-  'DESCRIPTOR' : _SEARCHRESPONSE,
+RetrieveResponse = _reflection.GeneratedProtocolMessageType('RetrieveResponse', (_message.Message,), {
+  'DESCRIPTOR' : _RETRIEVERESPONSE,
   '__module__' : 'retriever_pb2'
-  # @@protoc_insertion_point(class_scope:retrieve.SearchResponse)
+  # @@protoc_insertion_point(class_scope:retrieve.RetrieveResponse)
   })
-_sym_db.RegisterMessage(SearchResponse)
+_sym_db.RegisterMessage(RetrieveResponse)
 
 _RETRIEVER = DESCRIPTOR.services_by_name['Retriever']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _SEARCHREQUEST._serialized_start=92
-  _SEARCHREQUEST._serialized_end=222
-  _HIT._serialized_start=224
-  _HIT._serialized_end=322
-  _HITPERQUERY._serialized_start=324
-  _HITPERQUERY._serialized_end=366
-  _SEARCHRESPONSE._serialized_start=368
-  _SEARCHRESPONSE._serialized_end=421
-  _RETRIEVER._serialized_start=423
-  _RETRIEVER._serialized_end=495
+  _RETRIEVERCOMPONENT._serialized_start=61
+  _RETRIEVERCOMPONENT._serialized_end=145
+  _GETRETRIEVERSREQUEST._serialized_start=147
+  _GETRETRIEVERSREQUEST._serialized_end=169
+  _GETRETRIEVERSRESPONSE._serialized_start=171
+  _GETRETRIEVERSRESPONSE._serialized_end=244
+  _RETRIEVEREQUEST._serialized_start=246
+  _RETRIEVEREQUEST._serialized_end=347
+  _HIT._serialized_start=349
+  _HIT._serialized_end=404
+  _HITPERQUERY._serialized_start=406
+  _HITPERQUERY._serialized_end=448
+  _RETRIEVERESPONSE._serialized_start=450
+  _RETRIEVERESPONSE._serialized_end=505
+  _RETRIEVER._serialized_start=508
+  _RETRIEVER._serialized_end=668
 # @@protoc_insertion_point(module_scope)

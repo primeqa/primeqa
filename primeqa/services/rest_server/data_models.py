@@ -11,7 +11,7 @@ class PipelineParameter(BaseModel):
     name: Union[str, None] = None
     type: Union[str, None] = None
     value: Union[int, float, bool, str]
-    options: Union[List[bool], List[str]] = None
+    options: Union[List[bool], List[str], None] = None
     range: Union[List[int], List[float], None] = None
 
 
@@ -55,8 +55,7 @@ class Answer(BaseModel):
 class RetrieverQuery(BaseModel):
     pipeline: Pipeline
     index_id: str
-    query: str
-    index_id: str
+    queries: List[str]
     metadata: Union[dict, None] = None
 
 
@@ -64,8 +63,9 @@ class RetrieverQuery(BaseModel):
 #                       Document
 #############################################################################################
 class Document(BaseModel):
-    document_id: str
     text: str
+    document_id: Union[str, None] = None
+    title: Union[str, None] = None
     metadata: Union[dict, None] = None
 
 

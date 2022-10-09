@@ -1,6 +1,5 @@
 import re
 from enum import Enum
-from xmlrpc.client import UNSUPPORTED_ENCODING
 
 PATTERN_ERROR_MESSAGE = re.compile("(E[0-9]{4,5}):(.*)")
 
@@ -18,3 +17,4 @@ class ErrorMessages(str, Enum):
     INVALID_PIPELINE_TYPE = (
         "E5002: Invalid pipeline type: {}. Only pipelines of type: {} are applicable."
     )
+    INVALID_PIPELINE_PARAMETER = "E5003: Invalid pipeline parameter: {}. Only pre-defined parameters can be modified."

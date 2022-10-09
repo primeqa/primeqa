@@ -1,6 +1,5 @@
 syntax = "proto3";
-import "google/protobuf/struct.proto";
-import "pipelines.proto";
+import "parameter.proto";
 import "indexer.proto";
 
 package retrieve;
@@ -9,26 +8,38 @@ package retrieve;
     Service to process and retrieve documents
 */
 service Retriever {
-    rpc Search(SearchRequest) returns (SearchResponse);
+    rpc getRetrievers(GetRetrieversRequest) returns (GetRetrieversResponse);
+    rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
 }
 
-message SearchRequest {
-    pipelines.Pipeline pipeline = 1;
+message RetrieverComponent {
+    string retriever_id = 1;
+    repeated parameter.Parameter parameters = 2;
+}
+
+message GetRetrieversRequest {
+}
+
+message GetRetrieversResponse {
+    repeated RetrieverComponent retrievers = 1;
+}
+
+
+message RetrieveRequest {
+    RetrieverComponent retriever = 1;
     string index_id = 2; 
-    repeated string query = 3;
-    google.protobuf.Struct metadata = 6;
+    repeated string queries = 3;
 }
 
 message Hit {
     index.Document document = 1;
     double score = 2;
-    google.protobuf.Struct metadata = 3;
 }
 
 message HitPerQuery {
     repeated Hit hits = 1;
 }
 
-message SearchResponse {
+message RetrieveResponse {
     repeated HitPerQuery hits = 1;
 }
