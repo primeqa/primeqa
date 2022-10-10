@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import partial
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Sequence, Union
 
 import numpy
 from datasets import (
@@ -31,15 +31,11 @@ class EnvInterpolation(configparser.BasicInterpolation):
         return os.path.expandvars(value)
 
 
-config = configparser.ConfigParser(
-    inline_comment_prefixes="#", interpolation=EnvInterpolation()
-)
+config = configparser.ConfigParser(inline_comment_prefixes="#", interpolation=EnvInterpolation())
 config.read(os.path.join(os.path.dirname(os.path.dirname(__file__)), "datasets.ini"))
 DATASETS = {
     section: {
-        option: os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "datasets", value
-        )
+        option: os.path.join(os.path.dirname(os.path.dirname(__file__)), "datasets", value)
         if option == "path"
         else value
         for option, value in config.items(section)
@@ -58,9 +54,7 @@ def dicts_to_feature_dict(dict_iter):
 
 
 def load_hf_dataset(path: str, **kwargs):
-    download_config = (
-        DownloadConfig(cache_dir=kwargs["cache_dir"]) if "cache_dir" in kwargs else None
-    )
+    download_config = DownloadConfig(cache_dir=kwargs["cache_dir"]) if "cache_dir" in kwargs else None
     # print("load hf dataset")
     # input(download_config)
     # check if config is chosen in case dataset has several configs
@@ -98,17 +92,14 @@ def load_hf_dataset(path: str, **kwargs):
                     )
                 ]
         else:
-            # use all available configs
-            # TODO maybe throw error since loading all configs is not obvious to the user and can easily be realized via regex
+            # throw error since loading all configs is not obvious to the user and can easily be realized via regex
             configs = get_dataset_config_names(path)
+            raise ValueError(
+                f"There are multiple configs ({configs}) for dataset '{path}'. Please specify the configs."
+            )
         if not isinstance(configs, (tuple, list, set)):
             configs = [configs]
-        return [
-            load_dataset(
-                path, **dict(kwargs, name=config), download_config=download_config
-            )
-            for config in configs
-        ]
+        return [load_dataset(path, **dict(kwargs, name=config), download_config=download_config) for config in configs]
     else:
         assert len(available_configs) == 1
         return [load_dataset(path, **kwargs, download_config=download_config)]
@@ -163,9 +154,7 @@ def get_datasets(
         # check whether path can be loaded from disk with datasets library
         try:
             # try to load as DatasetDict
-            dataset = DatasetDict.load_from_disk(
-                path_or_name, keep_in_memory=keep_in_memory
-            )
+            dataset = DatasetDict.load_from_disk(path_or_name, keep_in_memory=keep_in_memory)
             if split is not None:
                 dataset = dataset[split]
             if shuffle_seed is not None:
@@ -181,13 +170,9 @@ def get_datasets(
             pass
         try:
             # try to load as Dataset
-            dataset = Dataset.load_from_disk(
-                path_or_name, keep_in_memory=keep_in_memory
-            )
+            dataset = Dataset.load_from_disk(path_or_name, keep_in_memory=keep_in_memory)
             # enforce unique ids
-            assert len(dataset.unique("id")) == len(
-                dataset
-            ), "IDs are not unique in the dataset!"
+            assert len(dataset.unique("id")) == len(dataset), "IDs are not unique in the dataset!"
             if shuffle_seed is not None:
                 # most of the time shuffling doesn't hurt and is needed for low-resource experiments where we pick n samples randomly
                 # one can disable it by setting `shuffle_seed` to `None`
@@ -213,9 +198,7 @@ def get_datasets(
             if config is not None:
                 # given config overrides config from .ini file
                 dataset_kwargs.update(name=config)
-            datasets_loaded = load_hf_dataset(
-                **dataset_kwargs, cache_dir=cache_dir, keep_in_memory=keep_in_memory
-            )
+            datasets_loaded = load_hf_dataset(**dataset_kwargs, cache_dir=cache_dir, keep_in_memory=keep_in_memory)
             for dataset in datasets_loaded:
                 # split object of type Dataset according to given information
                 if train is not None or validation is not None or test is not None:
@@ -229,9 +212,7 @@ def get_datasets(
                         dataset = dataset.shuffle(int(shuffle))
                     if test is not None:
                         test_split = float(test)
-                        test_datasetdict = dataset.train_test_split(
-                            test_split, shuffle=False
-                        )
+                        test_datasetdict = dataset.train_test_split(test_split, shuffle=False)
                         train_validation, test = (
                             test_datasetdict["train"],
                             test_datasetdict["test"],
@@ -240,12 +221,10 @@ def get_datasets(
                         test_split = 0.0
                         train_validation = dataset
                     if train is not None and validation is not None:
-                        train_validation_datasetdict = (
-                            train_validation.train_test_split(
-                                float(validation) / (1.0 - test_split),
-                                float(train) / (1.0 - test_split),
-                                shuffle=False,
-                            )
+                        train_validation_datasetdict = train_validation.train_test_split(
+                            float(validation) / (1.0 - test_split),
+                            float(train) / (1.0 - test_split),
+                            shuffle=False,
                         )
                         train, validation = (
                             train_validation_datasetdict["train"],
@@ -276,9 +255,7 @@ def get_datasets(
                         dataset = list(dataset_dict.items())[0]
                 # choose split
                 if split is not None:
-                    assert isinstance(
-                        dataset, DatasetDict
-                    ), "dataset is not a DatasetDict, cannot specify split."
+                    assert isinstance(dataset, DatasetDict), "dataset is not a DatasetDict, cannot specify split."
                     if split not in dataset.keys():
                         raise ValueError(
                             f"Split '{split}' does not exist for dataset '{dataset}'. Available splits are '{', '.join(dataset.keys())}'."
@@ -308,17 +285,10 @@ def get_datasets(
                 if slice_ is not None:
                     dataset = Dataset.from_dict(dataset[parse_slice(slice_)])
                 datasets.append(dataset)
-        # else:
-        #     raise ValueError(f"{path_or_name} is not a valid dataset name.")
-        # print(datasets[-1])
-        # print(datasets[-1][0])
-        # input()
 
     # unpack samples if necessary
     if any("questions" in dataset.column_names for dataset in datasets):
-        assert (
-            unpack_fn is not None
-        ), "Please provide a filter mechanism since data is packed"
+        assert unpack_fn is not None, "Please provide a filter mechanism since data is packed"
     for dataset in datasets:
         if "questions" in dataset.column_names:
             dataset = unpack_fn(dataset)
@@ -333,14 +303,10 @@ def get_datasets(
         feature_set = set(datasets[0].column_names)
         for dataset in datasets:
             feature_set &= set(dataset.column_names)
-        logging.info(
-            f"Keeping only columns {', '.join(feature_set)} for concatenation of datasets."
-        )
+        logging.info(f"Keeping only columns {', '.join(feature_set)} for concatenation of datasets.")
 
         for i in range(len(datasets)):
-            datasets[i] = datasets[i].remove_columns(
-                set(datasets[i].column_names) - feature_set
-            )
+            datasets[i] = datasets[i].remove_columns(set(datasets[i].column_names) - feature_set)
             datasets[i].reset_format()
 
         # try converting data into same features by re-creating datasets from dicts (sometimes casting doesn't work)
@@ -362,7 +328,18 @@ def get_datasets(
     return datasets
 
 
-def select_unique(data: Dataset, column: str, seed=None, verbose: bool = False):
+def select_unique(data: Dataset, column: str, seed: int = None, verbose: bool = False):
+    """Select samples so that each value of colum `column` appears once in the dataset
+
+    Args:
+        data (Dataset): The dataset which will be filtered
+        column (str): The column based on which unique elements will be selected
+        seed (int, optional): Rows are processed in sequence, and unique elements are drawn ba their first occurence. If a seed is given, then the dataset will be shuffled given this seed first. Otherwise. Defaults to None.
+        verbose (bool, optional): Print which values have been skipped. Defaults to False.
+
+    Returns:
+        _type_: _description_
+    """
     if seed is not None:
         data = data.shuffle(seed=seed)
     unique_set = set()
@@ -372,26 +349,34 @@ def select_unique(data: Dataset, column: str, seed=None, verbose: bool = False):
             unique_set.add(sample[column])
             return True
         if verbose:
-            print(
-                f"Value '{sample[column]}' appeared multiple times for column '{column}'"
-            )
+            print(f"Value '{sample[column]}' appeared multiple times for column '{column}'")
         return False
 
     return data.filter(filter_unique, num_proc=1)
 
 
 def expand_answers(
-    data,
-    separate_answers,
+    data: Dataset,
+    separate_answers: bool,
     force_preprocess: bool = False,
     keep_in_memory: bool = False,
     num_processes: int = 1,
 ):
-    logging.info(
-        f"Expanding answers: {'new instances' if separate_answers else 'simple'}"
-    )
+    """Some datasets have several answers annotated for each questions. This function will either separate or simply untoll them in order to process them further.
+
+    Args:
+        data (Dataset): The samples of which answers will be expanded
+        separate_answers (bool): Whether to create new samples or just unroll the answers
+        force_preprocess (bool, optional): Whether to force preprocessing even if the result can be retrieved from cache. Defaults to False.
+        keep_in_memory (bool, optional): Whether to keep the expanded answers in memory. Defaults to False.
+        num_processes (int, optional): The number of workers for multiprocessing. Defaults to 1.
+
+    Returns:
+        Dataset: The samples with the unpacked answers
+    """
+    logging.info(f"Expanding answers: {'new instances' if separate_answers else 'simple'}")
     data = data.map(
-        unpack_answers,
+        _unpack_answers,
         fn_kwargs={"separate_answers": separate_answers},
         batched=True,
         load_from_cache_file=not force_preprocess,
@@ -401,7 +386,7 @@ def expand_answers(
     return data
 
 
-def unpack_answers(samples: Dict, separate_answers: bool = False):
+def _unpack_answers(samples: Dict, separate_answers: bool = False):
     if "answers" not in samples or isinstance(samples["answers"][0]["text"][0], str):
         # samples do not contain an answer or are already unpacked
         return samples
@@ -412,9 +397,7 @@ def unpack_answers(samples: Dict, separate_answers: bool = False):
         if separate_answers:
             # split answer to create new instances
             sample = dict(zip(keys, values))
-            for answer_start, text in zip(
-                sample["answers"]["answer_start"], sample["answers"]["text"]
-            ):
+            for answer_start, text in zip(sample["answers"]["answer_start"], sample["answers"]["text"]):
                 for key in keys:
                     if key != "answers":
                         processed_samples[key].append(sample[key])
@@ -439,16 +422,26 @@ def unpack_answers(samples: Dict, separate_answers: bool = False):
                                 for answer_start in list_answer_start
                             ],
                             "text": [
-                                answer_text
-                                for list_answer_text in value["text"]
-                                for answer_text in list_answer_text
+                                answer_text for list_answer_text in value["text"] for answer_text in list_answer_text
                             ],
                         }
                     )
     return processed_samples
 
 
-def unpack_samples(packed_samples, filter_fn=None):
+def unpack_samples(packed_samples: Sequence[Dict], filter_fn: Callable = None):
+    """
+    Packed samples contain multiple question-answer pairs for each passage.
+    This function unpacks them based on `filter_fn`.
+    If none is given, then samples are simply unrolled.
+
+    Args:
+        packed_samples (Sequence[Dict]): The packed samples
+        filter_fn (Callable, optional): The function used to unpack the samples. If `None`, then samples are simply unrolled, i.e. a new sample is created for each question-answer pair. Defaults to None.
+
+    Returns:
+        Dataset: The unpacked dataset
+    """
     samples = {
         "id": [],
         "original_id": [],
@@ -473,9 +466,7 @@ def unpack_samples(packed_samples, filter_fn=None):
                 gen_samples["answers"],
                 gen_samples["scores"],
             )
-        for idx, (question, answer, score) in enumerate(
-            zip(questions, answers, scores)
-        ):
+        for idx, (question, answer, score) in enumerate(zip(questions, answers, scores)):
             # we append the counter to the original id to use as id for the new sample in order to have unique ids
             samples["id"].append(f"{gen_samples['id']}_{idx}")
             samples["original_id"].append(gen_samples["id"])
@@ -488,6 +479,14 @@ def unpack_samples(packed_samples, filter_fn=None):
 
 @dataclass
 class LMFilter:
+    """Objects of this class can be called to filter samples using language model (LM) score
+
+    Args:
+        num_keep: The number of question-answer pairs to keep, starting with the highest scoring samples.
+
+    Returns:
+    """
+
     num_keep: int
 
     def filter_lm_score(self, questions, answers, scores, num_keep, **kwargs):
@@ -500,16 +499,31 @@ class LMFilter:
         )
 
     def __call__(self, data: Dict, num_keep: int = None):
+        """Applies LM score filtering to `data`
+
+        Args:
+            data (Dict): The data which will be filtered
+            num_keep (int, optional): The number of question-answer pairs to keep per sample. Overrides `self.num_keep`. Defaults to None.
+
+        Returns:
+            Dataset: The filtered samples where only the `num_keep` best question-answer pairs are kept per sample
+        """
         # unpack samples and apply filtering
         if num_keep is None:
             num_keep = self.num_keep
-        return unpack_samples(
-            data, filter_fn=partial(self.filter_lm_score, num_keep=num_keep)
-        )
+        return unpack_samples(data, filter_fn=partial(self.filter_lm_score, num_keep=num_keep))
 
 
 class RTFilter(MRCTrainer):
     def __init__(self, *args, num_workers: int = None, **kwargs):
+        """
+        Objects of this class can be called to filter samples using round-trip (RTcons) filtering.
+        In RTcons filtering an RC model is applied to the generated question-answer pairs.
+        If the prediction does not match the generated answer, then the sample is discarded.
+
+        Args:
+            num_workers (int, optional): The number of workers for preprocessing tasks. Defaults to None.
+        """
         super().__init__(*args, **kwargs)
 
         self.num_workers = num_workers
@@ -526,14 +540,20 @@ class RTFilter(MRCTrainer):
         )
 
         def preprocess_data(dataset):
-            with self.args.main_process_first(
-                desc="Preprocessing dataset for RT filtering"
-            ):
+            with self.args.main_process_first(desc="Preprocessing dataset for RT filtering"):
                 return preprocessor.process_eval(dataset)
 
         self.preprocess_fn = preprocess_data
 
     def __call__(self, data: Dict):
+        """Applies RTcons filtering to `data`
+
+        Args:
+            data (Dict): The data which will be filtered
+
+        Returns:
+            Dataset: The filtered samples where only the question-answer pairs are kept for which an RC model predicts the answer correctly
+        """
         # unpack samples first
         data = unpack_samples(data)
         # RTFilter needs a context index
@@ -550,8 +570,7 @@ class RTFilter(MRCTrainer):
         assert len(data) == len(predictions)
         # filter samples where the prediction matches the generated answer
         data = data.filter(
-            lambda x: x["answers"]["text"][0]
-            == predictions[x["id"]][0]["span_answer_text"],
+            lambda x: x["answers"]["text"][0] == predictions[x["id"]][0]["span_answer_text"],
             num_proc=self.num_workers,
         )
         return data

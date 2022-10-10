@@ -11,7 +11,7 @@ from transformers import PreTrainedTokenizerFast
 @dataclass
 class QA2SProcessor:
     """
-    Class for qg processing, contains methods to preprocess data execute sql etc.
+    Class for QA2S processing, contains methods to preprocess data
     """
 
     tokenizer: PreTrainedTokenizerFast
@@ -52,16 +52,8 @@ class QA2SProcessor:
         fill_missing_columns: bool = True,
         prefix_question_whitespace: bool = True,
     ):
-        question_column = (
-            "question"
-            if isinstance(question_column, bool) and question_column
-            else question_column
-        )
-        answer_column = (
-            "answers"
-            if isinstance(answer_column, bool) and answer_column
-            else answer_column
-        )
+        question_column = "question" if isinstance(question_column, bool) and question_column else question_column
+        answer_column = "answers" if isinstance(answer_column, bool) and answer_column else answer_column
 
         # allow int values to be -1 (means None)
         if target_max_length == -1:
@@ -85,18 +77,14 @@ class QA2SProcessor:
             # Truncate contexts (from behind) to max length
             # It's ok to tokenize string and convert back since the same tokenizer (uncased or cased) is used for tokenization later on anyway
             example_batch[context_column] = [
-                tokenizer.convert_tokens_to_string(
-                    tokenizer.tokenize(context)[-max_context_length:]
-                )
+                tokenizer.convert_tokens_to_string(tokenizer.tokenize(context)[-max_context_length:])
                 for context in example_batch[context_column]
             ]
         if question_column in example_batch and max_question_length is not None:
             # Truncate questions (from behind) to max length
             # It's ok to tokenize string and convert back since the same tokenizer (uncased or cased) is used for tokenization later on anyway
             example_batch[question_column] = [
-                tokenizer.convert_tokens_to_string(
-                    tokenizer.tokenize(question)[-max_question_length:]
-                )
+                tokenizer.convert_tokens_to_string(tokenizer.tokenize(question)[-max_question_length:])
                 for question in example_batch[question_column]
             ]
 
@@ -147,31 +135,20 @@ class QA2SProcessor:
             add_special_tokens=False,
         )
         # add cls token in front of every chunk
-        tokenized_samples["input_ids"] = [
-            [soc_token_id] + input_ids for input_ids in tokenized_samples["input_ids"]
-        ]
+        tokenized_samples["input_ids"] = [[soc_token_id] + input_ids for input_ids in tokenized_samples["input_ids"]]
         tokenized_samples["attention_mask"] = [
-            [1] + attention_mask
-            for attention_mask in tokenized_samples["attention_mask"]
+            [1] + attention_mask for attention_mask in tokenized_samples["attention_mask"]
         ]
-        tokenized_samples["length"] = [
-            length + 1 for length in tokenized_samples["length"]
-        ]
+        tokenized_samples["length"] = [length + 1 for length in tokenized_samples["length"]]
 
         # compute attention mask without special tokens for sentence embeddings
         indices = [
-            numpy.where(numpy.array(tokenized_samples.sequence_ids(i)) == None)[
-                0
-            ].tolist()
+            numpy.where(numpy.array(tokenized_samples.sequence_ids(i)) == None)[0].tolist()
             for i in range(len(tokenized_samples["input_ids"]))
         ]
         tokenized_samples["attention_mask_without_special_tokens"] = [
-            torch.tensor(attention_mask)
-            .index_fill(0, torch.LongTensor([0] + special_tokens_indices), 0)
-            .tolist()
-            for special_tokens_indices, attention_mask in zip(
-                indices, tokenized_samples["attention_mask"]
-            )
+            torch.tensor(attention_mask).index_fill(0, torch.LongTensor([0] + special_tokens_indices), 0).tolist()
+            for special_tokens_indices, attention_mask in zip(indices, tokenized_samples["attention_mask"])
         ]
 
         # print([len(_id) for _id in tokenized_samples['input_ids']])
@@ -190,12 +167,8 @@ class QA2SProcessor:
                     max_length=target_max_length,
                 )
                 # shift so that tokens < n predict n
-                decoder_input_ids = [
-                    input_ids[:-1] for input_ids in tokenized_labels["input_ids"]
-                ]
-                decoder_labels = [
-                    input_ids[1:] for input_ids in tokenized_labels["input_ids"]
-                ]
+                decoder_input_ids = [input_ids[:-1] for input_ids in tokenized_labels["input_ids"]]
+                decoder_labels = [input_ids[1:] for input_ids in tokenized_labels["input_ids"]]
 
         # we skip the chunks where the answer is not within the context therefore we store our positie samples in a separate dict
         processed_samples = {}
@@ -238,35 +211,24 @@ class QA2SProcessor:
                     # check if answer is within current chunk so that we can mark this sample using has_answer for later filtering
                     answers = example_batch[answer_column][sample_idx]
                     has_answer = False
-                    for start_char, text in zip(
-                        answers["answer_start"], answers["text"]
-                    ):
+                    for start_char, text in zip(answers["answer_start"], answers["text"]):
                         end_char = start_char + len(text) - 1
 
                         # make sure that index is correct
                         # some datasets have wrong cases hence we normalize the answers (which is done anyway in the evaluation of the model's predictions) since rectifying answers wouldn't solve the issue as it is case-sensitive
-                        assert (
-                            example_batch[context_column][sample_idx][
-                                start_char : end_char + 1
-                            ]
-                        ) == (
+                        assert (example_batch[context_column][sample_idx][start_char : end_char + 1]) == (
                             text
                         ), f"Char span is wrong, make sure to run data correction first. Extracted answer is '{example_batch[context_column][sample_idx][start_char:end_char + 1]}' but given answer is '{text}'"
 
                         # make sure that end_char is not beyond last context char (there might be index erorrs in the annotated data)
-                        end_char = min(
-                            end_char, len(example_batch["context"][sample_idx]) - 1
-                        )
+                        end_char = min(end_char, len(example_batch["context"][sample_idx]) - 1)
 
                         # determine whether answer is within the current chunk
                         start_token = 0
                         # we have to start at the last token of the context since the first sep_token belongs already to the second sequence hence having offsets starting at 0 again
                         # moreover offset_mapping starts at input_ids index 1 (as well as sequence_ids)
                         end_token = context_end_index - 1
-                        if (
-                            offset_mapping[start_token][0] <= start_char
-                            and offset_mapping[end_token][1] > end_char
-                        ):
+                        if offset_mapping[start_token][0] <= start_char and offset_mapping[end_token][1] > end_char:
                             # answer is within current chunk
                             has_answer = True
 
@@ -293,9 +255,7 @@ class QA2SProcessor:
 
                 # add sample properties to output (since we do not consider all chunks)
                 processed_samples["input_ids"].append(tokenized_samples["input_ids"][i])
-                processed_samples["attention_mask"].append(
-                    tokenized_samples["attention_mask"][i]
-                )
+                processed_samples["attention_mask"].append(tokenized_samples["attention_mask"][i])
                 processed_samples["attention_mask_without_special_tokens"].append(
                     tokenized_samples["attention_mask_without_special_tokens"][i]
                 )
@@ -304,17 +264,11 @@ class QA2SProcessor:
                 processed_samples["qa2s_step"].append(0)
 
                 if question_column in example_batch and answer_column in example_batch:
-                    processed_samples["question"].append(
-                        example_batch[question_column][sample_idx]
-                    )
-                    processed_samples["answers"].append(
-                        example_batch[answer_column][sample_idx]
-                    )  # TODO is this needed? (answers is added too)
+                    processed_samples["question"].append(example_batch[question_column][sample_idx])
+                    processed_samples["answers"].append(example_batch[answer_column][sample_idx])
 
                     # for seq2seq models we don't have to mask any labels
-                    processed_samples["decoder_input_ids"].append(
-                        decoder_input_ids[sample_idx]
-                    )
+                    processed_samples["decoder_input_ids"].append(decoder_input_ids[sample_idx])
                     labels = decoder_labels[sample_idx]
                     processed_samples["labels"].append(labels)
 
@@ -322,10 +276,7 @@ class QA2SProcessor:
             # second step of qa2s if labels are given (otherwise input has to be prepared after question has been generated)
             sequence_1 = example_batch[context_column]
             targets = [
-                "<a>"
-                + ("" if answer["answer_start"][0] == 0 else " ")
-                + answer["text"][0]
-                + "</a>"
+                "<a>" + ("" if answer["answer_start"][0] == 0 else " ") + answer["text"][0] + "</a>"
                 for answer in example_batch[answer_column]
             ]
             sequence_2 = [
@@ -350,31 +301,21 @@ class QA2SProcessor:
             )
             # add cls token in front of every chunk
             tokenized_samples["input_ids"] = [
-                [soc_token_id] + input_ids
-                for input_ids in tokenized_samples["input_ids"]
+                [soc_token_id] + input_ids for input_ids in tokenized_samples["input_ids"]
             ]
             tokenized_samples["attention_mask"] = [
-                [1] + attention_mask
-                for attention_mask in tokenized_samples["attention_mask"]
+                [1] + attention_mask for attention_mask in tokenized_samples["attention_mask"]
             ]
-            tokenized_samples["length"] = [
-                length + 1 for length in tokenized_samples["length"]
-            ]
+            tokenized_samples["length"] = [length + 1 for length in tokenized_samples["length"]]
 
             # compute attention mask without special tokens for sentence embeddings
             indices = [
-                numpy.where(numpy.array(tokenized_samples.sequence_ids(i)) == None)[
-                    0
-                ].tolist()
+                numpy.where(numpy.array(tokenized_samples.sequence_ids(i)) == None)[0].tolist()
                 for i in range(len(tokenized_samples["input_ids"]))
             ]
             tokenized_samples["attention_mask_without_special_tokens"] = [
-                torch.tensor(attention_mask)
-                .index_fill(0, torch.LongTensor([0] + special_tokens_indices), 0)
-                .tolist()
-                for special_tokens_indices, attention_mask in zip(
-                    indices, tokenized_samples["attention_mask"]
-                )
+                torch.tensor(attention_mask).index_fill(0, torch.LongTensor([0] + special_tokens_indices), 0).tolist()
+                for special_tokens_indices, attention_mask in zip(indices, tokenized_samples["attention_mask"])
             ]
 
             # set up tokenizer for targets in case of sequence-to-sequence models
@@ -387,17 +328,11 @@ class QA2SProcessor:
                     max_length=target_max_length,
                 )
                 # shift so that tokens < n predict n
-                decoder_input_ids = [
-                    input_ids[:-1] for input_ids in tokenized_labels["input_ids"]
-                ]
-            decoder_labels = [
-                input_ids[1:] for input_ids in tokenized_labels["input_ids"]
-            ]
+                decoder_input_ids = [input_ids[:-1] for input_ids in tokenized_labels["input_ids"]]
+            decoder_labels = [input_ids[1:] for input_ids in tokenized_labels["input_ids"]]
 
             length = tokenized_samples.pop("length")
-            overflow_to_sample_mapping = tokenized_samples.pop(
-                "overflow_to_sample_mapping"
-            )
+            overflow_to_sample_mapping = tokenized_samples.pop("overflow_to_sample_mapping")
             (per_sample_chunk_indices,) = get_per_sample_indices(
                 overflow_to_sample_mapping, range(len(overflow_to_sample_mapping))
             )
@@ -411,42 +346,29 @@ class QA2SProcessor:
 
                     # for non-seq2seq and config `qa2s` (2nd step with question in input) we need to figure out last token before question
                     input_ids_tensor = torch.tensor(tokenized_samples["input_ids"][i])
-                    context_end_index = (input_ids_tensor == soq_token_id).nonzero(
-                        as_tuple=True
-                    )[0][0].item() - 1
+                    context_end_index = (input_ids_tensor == soq_token_id).nonzero(as_tuple=True)[0][0].item() - 1
 
                     # check if answer is within current chunk so that we can mark this sample using has_answer for later filtering
                     answers = example_batch[answer_column][sample_idx]
                     has_answer = False
-                    for start_char, text in zip(
-                        answers["answer_start"], answers["text"]
-                    ):
+                    for start_char, text in zip(answers["answer_start"], answers["text"]):
                         end_char = start_char + len(text) - 1
 
                         # make sure that index is correct
                         # some datasets have wrong cases hence we normalize the answers (which is done anyway in the evaluation of the model's predictions) since rectifying answers wouldn't solve the issue as it is case-sensitive
-                        assert (
-                            example_batch[context_column][sample_idx][
-                                start_char : end_char + 1
-                            ]
-                        ) == (
+                        assert (example_batch[context_column][sample_idx][start_char : end_char + 1]) == (
                             text
                         ), f"Char span is wrong, make sure to run data correction first. Extracted answer is '{example_batch[context_column][sample_idx][start_char:end_char + 1]}' but given answer is '{text}'"
 
                         # make sure that end_char is not beyond last context char (there might be index erorrs in the annotated data)
-                        end_char = min(
-                            end_char, len(example_batch["context"][sample_idx]) - 1
-                        )
+                        end_char = min(end_char, len(example_batch["context"][sample_idx]) - 1)
 
                         # determine whether answer is within the current chunk
                         start_token = 0
                         # we have to start at the last token of the context since the first sep_token belongs already to the second sequence hence having offsets starting at 0 again
                         # moreover offset_mapping starts at input_ids index 1 (as well as sequence_ids)
                         end_token = context_end_index - 1
-                        if (
-                            offset_mapping[start_token][0] <= start_char
-                            and offset_mapping[end_token][1] > end_char
-                        ):
+                        if offset_mapping[start_token][0] <= start_char and offset_mapping[end_token][1] > end_char:
                             # answer is within current chunk
                             has_answer = True
 
@@ -469,17 +391,11 @@ class QA2SProcessor:
                     if fill_missing_columns:
                         # add missing columns
                         for _key in remaining_keys:
-                            processed_samples[_key].append(
-                                example_batch[_key][sample_idx]
-                            )
+                            processed_samples[_key].append(example_batch[_key][sample_idx])
 
                     # add sample properties to output (since we do not consider all chunks)
-                    processed_samples["input_ids"].append(
-                        tokenized_samples["input_ids"][i]
-                    )
-                    processed_samples["attention_mask"].append(
-                        tokenized_samples["attention_mask"][i]
-                    )
+                    processed_samples["input_ids"].append(tokenized_samples["input_ids"][i])
+                    processed_samples["attention_mask"].append(tokenized_samples["attention_mask"][i])
                     processed_samples["attention_mask_without_special_tokens"].append(
                         tokenized_samples["attention_mask_without_special_tokens"][i]
                     )
@@ -487,16 +403,10 @@ class QA2SProcessor:
                     # mark instance belonging to first step
                     processed_samples["qa2s_step"].append(1)
 
-                    processed_samples["question"].append(
-                        example_batch[question_column][sample_idx]
-                    )
-                    processed_samples["answers"].append(
-                        example_batch[answer_column][sample_idx]
-                    )
+                    processed_samples["question"].append(example_batch[question_column][sample_idx])
+                    processed_samples["answers"].append(example_batch[answer_column][sample_idx])
 
-                    processed_samples["decoder_input_ids"].append(
-                        decoder_input_ids[sample_idx]
-                    )
+                    processed_samples["decoder_input_ids"].append(decoder_input_ids[sample_idx])
                     labels = decoder_labels[sample_idx]
                     processed_samples["labels"].append(labels)
 

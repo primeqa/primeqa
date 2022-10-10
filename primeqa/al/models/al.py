@@ -7,7 +7,7 @@ import os
 from collections import defaultdict, namedtuple
 from enum import Enum, auto
 from itertools import takewhile
-from typing import Callable, Dict, Hashable, List, Sequence, Union
+from typing import Any, Callable, Dict, Hashable, List, Sequence, Union
 
 import numpy
 import torch
@@ -23,12 +23,14 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractALQueryStrategy:
-    """
-    An abstract class for scoring samples in the active learning setting. Should be subclassed.
-    A strategy instance also holds the queryable dataset hence it should make sure to remove queried samples.
-    """
-
     def __init__(self, trainer_ids: Sequence[Hashable]):
+        """
+        An abstract class for scoring samples in the active learning setting. Should be subclassed.
+        A strategy instance also holds the queryable dataset hence it should make sure to remove queried samples.
+
+        Args:
+            trainer_ids (Sequence[Hashable]): The identifiers to trainers subclasses will have access to.
+        """
         if type(self) is AbstractALQueryStrategy:
             raise TypeError(
                 f"{AbstractALQueryStrategy.__class__.__name__} is not intended to be directly "
@@ -42,22 +44,38 @@ class AbstractALQueryStrategy:
         examples: Dataset,
         preprocess_fn_mapping: Dict[Hashable, Callable[[Dataset], Dataset]],
     ):
+        """Initialize an `ALQueryStrategy` with examples by processing data for each trainer.
+
+        Args:
+            examples (Dataset): The data from which samples are queried
+            preprocess_fn_mapping (Dict[Hashable, Callable[[Dataset], Dataset]]): A dictionary mapping trainer identifiers to a function used for processing the queryable data (usually preprocessed as evalution data)
+        """
         # convert examples into features
         self.datasets = [
-            preprocess_fn_mapping[trainer_id](examples)[1]
-            for trainer_id in self._get_dataset_processing_trainer_ids()
+            preprocess_fn_mapping[trainer_id](examples)[1] for trainer_id in self._get_dataset_processing_trainer_ids()
         ]
         # store preprocessing functions in case they are needed later
-        self.preprocess_functions = [
-            preprocess_fn_mapping[id_] for id_ in self.trainer_ids
-        ]
+        self.preprocess_functions = [preprocess_fn_mapping[id_] for id_ in self.trainer_ids]
 
-    def query(
-        self, num_samples: int, trainers: Sequence[Trainer], sample_id_column: str
-    ) -> Union[List[float], numpy.ndarray]:
+    def query(self, num_samples: int, trainers: Sequence[Trainer], sample_id_column: str) -> Any:
+        """Queries data and returns the selected indices.
+
+        Args:
+            num_samples (int): The amount of samples to be queried
+            trainers (Sequence[Trainer]): the trainers as specified by `self.trainer_ids`
+            sample_id_column (str): The data column used as identifier
+
+        Returns:
+            Any: The selected indices
+        """
         raise NotImplementedError()
 
     def get_trainer_ids(self) -> List[Hashable]:
+        """Returns the trainers identifiers this strategy needs
+
+        Returns:
+            List[Hashable]: The trainer identifiers this strategy needs
+        """
         return self.trainer_ids
 
     def _get_dataset_processing_trainer_ids(self) -> List[Hashable]:
@@ -77,11 +95,20 @@ class AbstractSingleScorePoolBasedALQueryStrategy(AbstractALQueryStrategy):
     def query(
         self, num_samples: int, trainers: Sequence[Trainer], sample_id_column: str
     ) -> Union[List[float], numpy.ndarray]:
+        """Query samples by evaluating pool with a single score.
+
+        Args:
+            num_samples (int): The amount of samples to be queried
+            trainers (Sequence[Trainer]): the trainers as specified by `self.trainer_ids`
+            sample_id_column (str): The data column used as identifier
+
+        Returns:
+            Union[List[float], numpy.ndarray]: The selected indices
+        """
         scored_instance_indices_sorted = self._score_dataset(self.pool, trainers)
         selected_sample_indices = set()
         # we want to collect `num_samples` samples but one sample might have several instances hence we collect instances until we've got enough samples (or no data left)
         # NOTE we currently select samples according to the min scores of their instances
-        # TODO allow to choose between different aggregate functions for all instance scores of sample
         for idx, score in takewhile(
             lambda _: len(selected_sample_indices) < num_samples,
             scored_instance_indices_sorted,
@@ -117,8 +144,6 @@ class AbstractSingleScorePoolBasedALQueryStrategy(AbstractALQueryStrategy):
 
 
 class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
-    """This class scores samples based on generated output."""
-
     class Strategy(Enum):
         SENTENCE_PROBABILITY = "sp"
         SENTENCE_PROBABILITY_DROPOUT = "dsp"
@@ -135,11 +160,19 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
         rc_trainer_id: Hashable = None,
         num_models: int = 10,
     ):
-        trainer_ids = (
-            [gen_trainer_id, rc_trainer_id]
-            if rc_trainer_id is not None
-            else [gen_trainer_id]
-        )
+        """
+        This strategy scores samples based on generated output.
+        Different metrics for scoring samples are available: SP (sentence proability), D-SP (dropout-based sentence probability), LS (lexical similarity), RT (round-trip scoring) and D-SP+RT (dropout-based sentence probability and round-trip scoring)
+
+        Args:
+            strategy (Strategy): The strategy for scoring samples
+            max_gen_length (int): Specifies the maximum number of tokens generated
+            special_token_id_map (Dict): A dictionary mapping between special tokens and their ids (used for generation output)
+            gen_trainer_id (Hashable): The identifier ot the generation trainer
+            rc_trainer_id (Hashable, optional): The identifier ot the RC trainer, can be omitted if strategy does not need an RC trainer/model. Defaults to None.
+            num_models (int, optional): The number of models for the dropout-based strategies. Defaults to 10.
+        """
+        trainer_ids = [gen_trainer_id, rc_trainer_id] if rc_trainer_id is not None else [gen_trainer_id]
         super().__init__(trainer_ids)
 
         self.strategy = strategy
@@ -160,9 +193,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
     def query(self, *args, **kwargs):
         # for `qa2s` discard samples which contain the question in the input (2nd step)
         if "qa2s_step" in self.pool.column_names:
-            self.pool = self.pool.filter(
-                lambda x: x["qa2s_step"] == 0, keep_in_memory=True
-            )
+            self.pool = self.pool.filter(lambda x: x["qa2s_step"] == 0, keep_in_memory=True)
 
         return super().query(*args, **kwargs)
 
@@ -184,20 +215,14 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
             score_gen, (
                 question_token_ids,
                 answer_token_ids,
-            ) = self._sentence_probability_dropout(
-                sample, gen_trainer, return_generated_sequences=True
-            )
+            ) = self._sentence_probability_dropout(sample, gen_trainer, return_generated_sequences=True)
 
-            # TODO use GenTrainer? could be useful for generation and extraction of questions and answers (for score and RT filtering)
+            # NOTE using GenTrainer could be useful for generation and extraction of questions and answers (for score and RT filtering)
             # extract question and answer
             question, answer = gen_trainer.tokenizer.convert_tokens_to_string(
-                gen_trainer.tokenizer.convert_ids_to_tokens(
-                    question_token_ids, skip_special_tokens=True
-                )
+                gen_trainer.tokenizer.convert_ids_to_tokens(question_token_ids, skip_special_tokens=True)
             ), gen_trainer.tokenizer.convert_tokens_to_string(
-                gen_trainer.tokenizer.convert_ids_to_tokens(
-                    answer_token_ids, skip_special_tokens=True
-                )
+                gen_trainer.tokenizer.convert_ids_to_tokens(answer_token_ids, skip_special_tokens=True)
             )
             if answer not in sample["context"]:
                 # cannot apply RT model since we cannot infer labels therefore return worst score
@@ -212,9 +237,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
                             "id": [sample["id"]],
                             "context": [sample["context"]],
                             "question": [question],
-                            "answers": [
-                                {"answer_start": [char_start], "text": [answer]}
-                            ],
+                            "answers": [{"answer_start": [char_start], "text": [answer]}],
                         }
                     )
                 )
@@ -231,11 +254,8 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
             return score
 
     def _generate_output(self, sample: Dataset, trainer: Trainer):
-        # TODO this could go to the trainer
         input_ids = torch.tensor([sample["input_ids"]], device=trainer.args.device)
-        assert (
-            input_ids.size(0) == 1
-        ), "We can only handle single instance batches currently"
+        assert input_ids.size(0) == 1, "We can only handle single instance batches currently"
 
         if trainer.model.config.is_encoder_decoder:
             assert self.special_token_id_map["bos_token_id"] is not None
@@ -244,10 +264,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
             and self.special_token_id_map["eos_token_id_2"] is not None
         ):
             # in this case we do two generation steps and the output from the first step has to fit into the model together with the input
-            assert (
-                input_ids.size(-1) + self.max_gen_length
-                <= trainer.tokenizer.model_max_length
-            ), (
+            assert input_ids.size(-1) + self.max_gen_length <= trainer.tokenizer.model_max_length, (
                 input_ids.size(-1),
                 self.max_gen_length,
                 trainer.tokenizer.model_max_length,
@@ -281,9 +298,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
             and self.special_token_id_map["eos_token_id_2"] is not None
         ):
             if trainer.model.config.is_encoder_decoder:
-                input_ids = torch.cat(
-                    (input_ids, generated_sequences[..., :-1]), dim=-1
-                )
+                input_ids = torch.cat((input_ids, generated_sequences[..., :-1]), dim=-1)
             else:
                 input_ids = generated_sequences
             assert (
@@ -320,9 +335,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
     def _lm_score(self, trainer: Trainer, input_ids, output_ids, lengths=None):
         """This computes the sentence probability using the language model."""
         if lengths is None:
-            assert (
-                input_ids.size(0) == 1
-            ), "For inputs with batch size > 1 you have to pass the `lengths` parameter"
+            assert input_ids.size(0) == 1, "For inputs with batch size > 1 you have to pass the `lengths` parameter"
             lengths = input_ids.size(1)
 
         with torch.no_grad():
@@ -335,9 +348,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
                     decoder_input_ids=decoder_input_ids.contiguous(),
                 )
             else:
-                raise NotImplementedError(
-                    "LM score computation for non-seq2seq models hasn't been implemented yet."
-                )
+                raise NotImplementedError("LM score computation for non-seq2seq models hasn't been implemented yet.")
                 outputs = self.model(input_ids, labels=input_ids.clone())
             # outputs[0] is the average negative log likelihood per token
             score = -1.0 * outputs[0].cpu().item() * lengths
@@ -356,9 +367,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
 
         # we omit the log in the computation here since it's a monotonic function
         score = self._lm_score(trainer, input_ids, output_ids[-1]) / length_penalty(
-            input_ids.numel()
-            if isinstance(input_ids, torch.Tensor)
-            else len(input_ids),
+            input_ids.numel() if isinstance(input_ids, torch.Tensor) else len(input_ids),
             0.6,
         )
         if return_generated_sequences:
@@ -401,8 +410,7 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
         # generate `num_models` hypotheses with dropout active
         trainer.model.train()
         hyps = [
-            trainer.tokenizer.decode(self._generate_output(sample, trainer)[1][-1][0])
-            for _ in range(self.num_models)
+            trainer.tokenizer.decode(self._generate_output(sample, trainer)[1][-1][0]) for _ in range(self.num_models)
         ]
         # compute the cartesian product of the list of decoded hypotheses with itself and remove tuples with same hyps (i.e. where i==j)
         hyps_pairwise = list(itertools.product(hyps, repeat=2))
@@ -410,22 +418,22 @@ class GenALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
         for i in range(self.num_models):
             del hyps_pairwise[i * step - i]
         predictions_1, predictions_2 = zip(*hyps_pairwise)
-        score = self.sim_fn.compute(
-            predictions=predictions_1, references=predictions_2
-        )["meteor"]
+        score = self.sim_fn.compute(predictions=predictions_1, references=predictions_2)["meteor"]
         if return_generated_sequences:
-            raise NotImplementedError(
-                "Computation of returned generated sequence hasn't been implemented yet."
-            )
+            raise NotImplementedError("Computation of returned generated sequence hasn't been implemented yet.")
             return score, tuple(_output_ids[0] for _output_ids in output_ids)
         else:
             return score
 
 
 class RCALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
-    """This class scores samples based on RC model output using BALD score from http://arxiv.org/abs/1703.02910."""
-
     def __init__(self, rc_trainer_id: Hashable, num_models: int = 10):
+        """This class scores samples based on RC model output using BALD score from http://arxiv.org/abs/1703.02910.
+
+        Args:
+            rc_trainer_id (Hashable): The identifier of the RC trainer
+            num_models (int, optional): The number of models for the dropout-based strategies. Defaults to 10.
+        """
         super().__init__([rc_trainer_id])
 
         self.num_models = num_models
@@ -445,19 +453,15 @@ class RCALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
         with torch.no_grad():
             # don't use trainer for prediction as we have a dict instead of Dataset
             # by expanding the batch dimension we effectly do `num_models`forward passes
-            input_ids = torch.tensor(
-                [sample["input_ids"]], device=trainer.args.device
-            ).expand(self.num_models, -1)
+            input_ids = torch.tensor([sample["input_ids"]], device=trainer.args.device).expand(self.num_models, -1)
             token_type_ids = (
-                torch.tensor(
-                    [sample["token_type_ids"]], device=trainer.args.device
-                ).expand(self.num_models, -1)
+                torch.tensor([sample["token_type_ids"]], device=trainer.args.device).expand(self.num_models, -1)
                 if "token_type_ids" in sample
                 else None
             )
-            attention_mask = torch.tensor(
-                [sample["attention_mask"]], device=trainer.args.device
-            ).expand(self.num_models, -1)
+            attention_mask = torch.tensor([sample["attention_mask"]], device=trainer.args.device).expand(
+                self.num_models, -1
+            )
             output: ExtractiveQAModelOutput = trainer.model(
                 input_ids=input_ids,
                 token_type_ids=token_type_ids,
@@ -466,9 +470,9 @@ class RCALScorer(AbstractSingleScorePoolBasedALQueryStrategy):
             logits = torch.stack((output.start_logits, output.end_logits), dim=1)
             # compute BALD
             mean_over_forward_passes = logits.mean(dim=0)
-            score = -(mean_over_forward_passes * mean_over_forward_passes.log()).sum(
-                dim=0
-            ) + (logits * logits.log()).sum(dim=1).mean(dim=0)
+            score = -(mean_over_forward_passes * mean_over_forward_passes.log()).sum(dim=0) + (
+                logits * logits.log()
+            ).sum(dim=1).mean(dim=0)
             score = -score.sum().item()
 
         return score
@@ -492,26 +496,25 @@ TrainerConfig = namedtuple(
 
 
 class ActiveLearner:
-    """
-    A class which takes care of active learning scoring samples according to confidence functions.
-    Additionally, multiple models can be trained
-    """
-
     def __init__(self, output_dir: str, trainer_configs: List[TrainerConfig]):
+        """
+        A class which takes care of active learning scoring samples to annotate according to confidence functions.
+        Additionally, multiple models can be trained with the selected samples.
+
+        Args:
+            output_dir (str): The path where selected samples with metadata will be stored.
+            trainer_configs (List[TrainerConfig]): The trainer configurations used for Active Learning. Models specified there will be trained.
+        """
         self.trainer_configs: dict[Hashable, TrainerConfig] = {
-            trainer_config.id_: trainer_config
-            for trainer_config in trainer_configs
-            if trainer_config is not None
+            trainer_config.id_: trainer_config for trainer_config in trainer_configs if trainer_config is not None
         }
         self.trainers = {}
         self.metrics = defaultdict(dict)
-        # TODO check for best model being loaded at the end? check for popping train_dataset?
+        # check for best model being loaded at the end
         for trainer_id, trainer_config in self.trainer_configs.items():
             if not trainer_config.kwargs["args"].load_best_model_at_end:
                 trainer_config.kwargs["args"].load_best_model_at_end = True
-                logger.warning(
-                    f"`load_best_model_at_end` set to True in order to evaluate correctly after training"
-                )
+                logger.warning(f"`load_best_model_at_end` set to True in order to evaluate correctly after training")
         # dir for storing drawn samples
         self.output_dir = output_dir
 
@@ -552,22 +555,14 @@ class ActiveLearner:
                 continue
 
             if examples_train is not None:
-                _, dataset_train_preprocessed = trainer_config.preprocess_train_fn(
-                    examples_train
-                )
+                _, dataset_train_preprocessed = trainer_config.preprocess_train_fn(examples_train)
             else:
                 dataset_train_preprocessed = None
 
             # make sure to use correct training data and call init function
-            init_kwargs = dict(
-                trainer_config.kwargs, train_dataset=dataset_train_preprocessed
-            )
+            init_kwargs = dict(trainer_config.kwargs, train_dataset=dataset_train_preprocessed)
             args = (trainer_config.class_, init_kwargs, iteration, num_total_iterations)
-            init_fn = (
-                trainer_config.init_callback
-                if trainer_config.init_callback is not None
-                else default_init_fn
-            )
+            init_fn = trainer_config.init_callback if trainer_config.init_callback is not None else default_init_fn
             trainer = init_fn(*args)
             # save trainer instance so that we can keep track of them and replace old instances
             self.trainers[trainer_config.id_] = trainer
@@ -575,7 +570,6 @@ class ActiveLearner:
     def _train(self, iteration: int = None, num_total_iterations: int = None):
         # train models, i.e. call .train() on all trainers
         # this call will re-initialize the model using the given checkpoint
-        # TODO make sure to move models between devices to save some GPU memory
         # NOTE this is the bahvior we want to have (i.e. re-train with all samples collected so far)
         for id_, trainer in self.trainers.items():
             # train and record training metrics
@@ -590,7 +584,6 @@ class ActiveLearner:
     def _evaluate(self, iteration: int):
         # evaluate models, i.e. call .evaluate() on all trainers
         # this call will re-initialize the model using the given checkpoint
-        # TODO make sure to move models between devices to save some GPU memory
         # NOTE this is the bahvior we want to have (i.e. re-train with all samples collected so far)
         for id_, trainer in self.trainers.items():
             if self.trainer_configs[id_].kwargs["args"].do_eval:
@@ -606,9 +599,7 @@ class ActiveLearner:
     def _get_trainers(self, ids: Sequence):
         return [self.trainers[id_] for id_ in ids]
 
-    def _query(
-        self, strategy: AbstractALQueryStrategy, num_samples: int, sample_id_column: str
-    ):
+    def _query(self, strategy: AbstractALQueryStrategy, num_samples: int, sample_id_column: str):
         # collect trainers
         trainer_ids = strategy.get_trainer_ids()
         trainers = self._get_trainers(trainer_ids)
@@ -617,10 +608,7 @@ class ActiveLearner:
     def _init_strategy(self, strategy: AbstractALQueryStrategy, examples: Dataset):
         strategy.init(
             examples,
-            {
-                id_: trainer_config.preprocess_eval_fn
-                for id_, trainer_config in self.trainer_configs.items()
-            },
+            {id_: trainer_config.preprocess_eval_fn for id_, trainer_config in self.trainer_configs.items()},
         )
 
     def run(
@@ -634,6 +622,21 @@ class ActiveLearner:
         store_indices_and_scores: bool = True,
         store_samples: bool = True,
     ):
+        """Runs Active Learning.
+
+        Args:
+            examples (Dataset): The data on which Active Learning is performed
+            strategy (AbstractALQueryStrategy): A strategy which is used to query samples
+            num_iterations (int): The amount of iterations where one iteration comprises sample selection and training of models
+            num_samples_per_iteration (int): The amount of samples queried in each
+            example_id_column (str, optional): The data column indexing examples. Defaults to "id".
+            feature_id_column (str, optional): The data column indexing features. Defaults to "example_id".
+            store_indices_and_scores (bool, optional): Whether to save indices of selected samples with their scores to `self.output_dir`. Defaults to True.
+            store_samples (bool, optional): Whether to save selected samples to `self.output_dir`. Defaults to True.
+
+        Returns:
+            Dict: Evaluation metrics for each iteration of Active Learning
+        """
         # this runs active learning using the given data and scoring functions
         # create trainer
         # skip_instantiated=True will make sure that trainers are not re-created if they already exist (e.g. so that they can be used in a second call to run() with the already trained models)
@@ -645,10 +648,7 @@ class ActiveLearner:
         _num_iterations_requested = num_iterations
         num_iterations = min(
             num_iterations,
-            math.ceil(
-                len(examples.flatten_indices().unique(example_id_column))
-                / num_samples_per_iteration
-            ),
+            math.ceil(len(examples.flatten_indices().unique(example_id_column)) / num_samples_per_iteration),
         )
         if num_iterations != _num_iterations_requested:
             logger.info(
@@ -658,9 +658,7 @@ class ActiveLearner:
         for i in range(num_iterations):
             logger.info(f"Running AL round {i + 1}/{num_iterations}")
 
-            queried_sample_ids = self._query(
-                strategy, num_samples_per_iteration, feature_id_column
-            )
+            queried_sample_ids = self._query(strategy, num_samples_per_iteration, feature_id_column)
             logger.info(
                 "Selected sample ids (%d): %s",
                 len(queried_sample_ids),
@@ -671,9 +669,7 @@ class ActiveLearner:
             if store_indices_and_scores:
                 # store sample ids in output dir
                 run_dir = self.output_dir
-                sample_ids_filename = os.path.join(
-                    run_dir, f"al_samples_round_{i}.json"
-                )
+                sample_ids_filename = os.path.join(run_dir, f"al_samples_round_{i}.json")
                 logger.info(f"Storing queried sample ids to {sample_ids_filename}")
                 with open(sample_ids_filename, "w") as f:
                     json.dump(

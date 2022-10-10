@@ -8,15 +8,18 @@ from transformers import Seq2SeqTrainer
 
 
 class QGTrainer(Seq2SeqTrainer):
-    """The trainer class for QG. All related functionality should go to this class."""
-
     def __init__(self, *args, **kwargs):
-        """Custom intialization for the QGTrainer should be added here."""
+        """The trainer class for QG. All related functionality should go to this class."""
         super().__init__(*args, **kwargs)
 
 
 class GenTrainer(Seq2SeqTrainer):
     def __init__(self, max_gen_length: int, *args, **kwargs):
+        """A `transformers.Trainer` which can be used for training, evaluation and generation of generation models yielding question-answer pairs (RC samples) given passages
+
+        Args:
+            max_gen_length (int): The maximum generation length. Note that this is computed per generation for multiple decoding steps.
+        """
         super().__init__(*args, **kwargs)
         if max_gen_length is None:
             raise ValueError("`max_gen_length` cannot be None")
@@ -44,9 +47,7 @@ class GenTrainer(Seq2SeqTrainer):
                 # can't extract question
                 return None, None, None, None
             answer_start_index = soa_indices[0] + 1
-            eoa_indices = get_token_index(
-                token_ids, answer_start_index, self.eoa_token_id
-            )
+            eoa_indices = get_token_index(token_ids, answer_start_index, self.eoa_token_id)
             if len(eoa_indices) == 0:
                 # can't extract answer
                 return None, None, None, None
@@ -59,9 +60,7 @@ class GenTrainer(Seq2SeqTrainer):
                 # can't extract question
                 return None, None, None, None
             question_start_index = soq_indices[0] + 1
-            eoq_indices = get_token_index(
-                token_ids, question_start_index, self.eoq_token_id
-            )
+            eoq_indices = get_token_index(token_ids, question_start_index, self.eoq_token_id)
             if len(eoq_indices) == 0:
                 # can't extract question
                 return None, None, None, None
@@ -84,9 +83,7 @@ class GenTrainer(Seq2SeqTrainer):
 
             target_ids = target_ids[..., 1:]
             decoder_input_ids = output_ids.clone().unsqueeze(0)[..., :-1]
-            outputs = self.model(
-                input_ids, labels=target_ids, decoder_input_ids=decoder_input_ids
-            )
+            outputs = self.model(input_ids, labels=target_ids, decoder_input_ids=decoder_input_ids)
             # outputs[0] is the average negative log likelihood per token
             score = -1.0 * outputs[0].cpu().item() * (end_index - start_index)
         return score
@@ -95,12 +92,10 @@ class GenTrainer(Seq2SeqTrainer):
         """Generate output token ids from inputs and extract question and answer with scores by computing their spans in the decoded sequence"""
         # prepare inputs
         inputs = {
-            "input_ids": torch.tensor(
-                sample["input_ids"], device=torch.device(self.args.device)
-            ).unsqueeze(0),
-            "attention_mask": torch.tensor(
-                sample["attention_mask"], device=torch.device(self.args.device)
-            ).unsqueeze(0),
+            "input_ids": torch.tensor(sample["input_ids"], device=torch.device(self.args.device)).unsqueeze(0),
+            "attention_mask": torch.tensor(sample["attention_mask"], device=torch.device(self.args.device)).unsqueeze(
+                0
+            ),
         }
         if "token_type_ids" in sample:
             inputs["token_type_ids"] = torch.tensor(
@@ -130,10 +125,7 @@ class GenTrainer(Seq2SeqTrainer):
         bos_token_id = bos_token_id[0]
 
         # parameters from Shakeri et al.
-        assert (
-            inputs["input_ids"].size(-1) + self.max_gen_length
-            <= self.tokenizer.model_max_length
-        )
+        assert inputs["input_ids"].size(-1) + self.max_gen_length <= self.tokenizer.model_max_length
         generation_output = self.model.generate(
             **inputs,
             max_length=self.max_gen_length
@@ -163,9 +155,7 @@ class GenTrainer(Seq2SeqTrainer):
         questions, answers, scores = [], [], []
         for generated_sequence in generation_output.sequences:
             gen_sequence = generated_sequence
-            question_start, question_end, answer_start, answer_end = self._extract(
-                gen_sequence
-            )
+            question_start, question_end, answer_start, answer_end = self._extract(gen_sequence)
             if question_start == question_end == None:
                 continue
             # make sure that indices are on CPU
@@ -176,7 +166,7 @@ class GenTrainer(Seq2SeqTrainer):
                 clean_up_tokenization_spaces=False,
                 skip_special_tokens=True,
             ).strip()
-            
+
             # question cannot be empty
             if question == "":
                 continue
@@ -243,15 +233,21 @@ class GenTrainer(Seq2SeqTrainer):
 
             # extract LM scores for later use in filtering
             # only use answer score
-            score = self._compute_lm_score(
-                inputs["input_ids"], generated_sequence, 0, answer_start, answer_end
-            )
+            score = self._compute_lm_score(inputs["input_ids"], generated_sequence, 0, answer_start, answer_end)
             scores.append(score)
             assert scores
 
         return questions, answers, scores
 
     def predict(self, test_dataset: Dataset):
+        """Generate question-answer pairs from passages (have to be preprocessed into features)
+
+        Args:
+            test_dataset (Dataset): The data used as input for generation
+
+        Returns:
+            List[Dict]: The generated RC samples
+        """
         # dataloader = self.get_test_dataloader(test_dataset)
         self.model.eval()
 

@@ -48,8 +48,8 @@ class TechQAConfig(datasets.BuilderConfig):
         """BuilderConfig for TechQA.
 
         Args:
-        num_files_to_download: int, the number of files to be downloaded,
-        **kwargs: keyword arguments forwarded to super.
+            answer_only: Whether to select only answerable samples
+            **kwargs: keyword arguments forwarded to super.
         """
         super(TechQAConfig, self).__init__(**kwargs)
         self.answer_only = answer_only
@@ -74,7 +74,6 @@ class TechQAConfig(datasets.BuilderConfig):
 
 
 class TechQA(datasets.GeneratorBasedBuilder):
-    # TODO implement full config (incuding unanswerable samples and all contexts per sample)
     """A domain-adaptation question answering dataset for the technical support domain."""
 
     VERSION = datasets.Version("1.0.0")
@@ -167,9 +166,7 @@ class TechQA(datasets.GeneratorBasedBuilder):
                         "technotes_path": os.path.join(
                             data_dir,
                             f"technote{'s' if new else '_corpus'}",
-                            "full_technote_collection.txt.bz2"
-                            if not new
-                            else "documents.jsonl.bz2",
+                            "full_technote_collection.txt.bz2" if not new else "documents.jsonl.bz2",
                         ),
                         "new_format": new,
                     },
@@ -261,7 +258,6 @@ class TechQA(datasets.GeneratorBasedBuilder):
                     if self.config.answer_only and obj["ANSWERABLE"] != "Y":
                         # skip sample
                         continue
-                    # TODO use question or document title?
                     title = obj["QUESTION_TITLE"].strip()
                     question = obj["QUESTION_TEXT"].strip()
                     id_ = obj["QUESTION_ID"]
@@ -269,12 +265,9 @@ class TechQA(datasets.GeneratorBasedBuilder):
                         doc = documents[obj["DOCUMENT"]]
                         context = doc["text"]
                         answer_starts = [int(obj["START_OFFSET"])]
-                        answers = [
-                            context[int(obj["START_OFFSET"]) : int(obj["END_OFFSET"])]
-                        ]
+                        answers = [context[int(obj["START_OFFSET"]) : int(obj["END_OFFSET"])]]
                     else:
                         # correct document not given
-                        # TODO use all documents
                         doc = documents[random.choice(obj["DOC_IDS"])]
                         context = doc["text"]
                         # no answer
@@ -291,19 +284,3 @@ class TechQA(datasets.GeneratorBasedBuilder):
                             "text": answers,
                         },
                     }
-
-
-if __name__ == "__main__":
-    CACHE_DIR = "~/arbeitsdaten/cache"
-    data = datasets.load_dataset(
-        __file__,
-        "technotes",
-        data_dir=os.path.abspath(os.path.expanduser("~/arbeitsdaten/data/TechQA")),
-        cache_dir=CACHE_DIR,
-    )
-    # data = datasets.load_dataset(__file__, 'technotes', data_files=os.path.abspath(os.path.expanduser('~/Downloads/TechQA.tar.bz2')), cache_dir=CACHE_DIR)
-    # data = datasets.load_dataset(__file__, 'technotes', cache_dir=CACHE_DIR)
-    # data = datasets.load_dataset(__file__, 'rc', data_dir=os.path.abspath(os.path.expanduser('~/arbeitsdaten/data/TechQA')), cache_dir=CACHE_DIR)
-    # data = datasets.load_dataset(__file__, 'rc', data_files=os.path.abspath(os.path.expanduser('~/Downloads/TechQA.tar.bz2')), cache_dir=CACHE_DIR)
-    print(data)
-    print(data["technotes"][0])
