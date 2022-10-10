@@ -9,19 +9,14 @@ import traceback
 from collections.abc import Mapping
 from copy import copy
 from dataclasses import dataclass, field
-from functools import partial
 from importlib import import_module
 from operator import attrgetter, itemgetter
 from typing import Any, Callable, List, Optional, Tuple
 
 from examples.datagen_with_al.utils.data import expand_answers, get_datasets
 from primeqa.al.models.al import ActiveLearner, GenALScorer, RCALScorer, TrainerConfig
-from primeqa.boolqa.processors.postprocessors.extractive import (
-    ExtractivePipelinePostProcessor,
-)
-from primeqa.mrc.data_models.eval_prediction_with_processing import (
-    EvalPredictionWithProcessing,
-)
+from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
+from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.mrc.metrics.mlqa.mlqa import MLQA
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.metrics.squad.squad import SQUAD
@@ -29,14 +24,10 @@ from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from primeqa.mrc.processors.postprocessors.natural_questions import (
-    NaturalQuestionsPostProcessor,
-)
+from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from primeqa.mrc.processors.preprocessors.natural_questions import (
-    NaturalQuestionsPreProcessor,
-)
+from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
@@ -45,11 +36,7 @@ from primeqa.qg.metrics.generation_metrics import rouge_metrics
 from primeqa.qg.models.qg_model import QGModel
 from primeqa.qg.processors.data_loader import QGDataLoader
 from primeqa.qg.trainers.qg_trainer import GenTrainer
-from primeqa.qg.utils.data import (
-    dicts_to_feature_dict,
-    prepare_labelled_data,
-    select_unique,
-)
+from primeqa.qg.utils.data import dicts_to_feature_dict, prepare_labelled_data, select_unique
 from primeqa.qg.utils.data_collator import DataCollatorForSeq2SeqWithDecoderInputs
 from transformers import (
     AutoConfig,
@@ -63,7 +50,7 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 
 import datasets
-from datasets import Dataset, load_dataset
+from datasets import Dataset
 
 logger = logging.getLogger()
 
@@ -106,9 +93,7 @@ def object_reference(reference_as_str: str) -> object:
             return getattr(module_reference, object_name)
     except Exception as ex:
         traceback.print_exc()  # Shows additional traceback for why imports fail
-        raise TypeError(
-            f"Unable to resolve the string {reference_as_str} to a fully qualified class path"
-        ) from ex
+        raise TypeError(f"Unable to resolve the string {reference_as_str} to a fully qualified class path") from ex
 
 
 @dataclass
@@ -125,15 +110,11 @@ class ModelArguments:
     )
     config_name: Optional[str] = field(
         default=None,
-        metadata={
-            "help": "Pretrained config name or path if not the same as model_name"
-        },
+        metadata={"help": "Pretrained config name or path if not the same as model_name"},
     )
     tokenizer_name: Optional[str] = field(
         default=None,
-        metadata={
-            "help": "Pretrained tokenizer name or path if not the same as model_name"
-        },
+        metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"},
     )
 
 
@@ -170,9 +151,7 @@ class DataTrainingArguments:
             "than this will be truncated, sequences shorter will be padded."
         },
     )
-    max_q_char_len: int = field(
-        default=128, metadata={"help": "Max length per question in characters"}
-    )
+    max_q_char_len: int = field(default=128, metadata={"help": "Max length per question in characters"})
     single_context_multiple_passages: bool = field(
         default=False,
         metadata={
@@ -183,26 +162,18 @@ class DataTrainingArguments:
             "Some preprocessors may override this value."
         },
     )
-    max_contexts: Optional[int] = field(
-        default=None, metadata={"help": "Max contexts per consider"}
-    )
+    max_contexts: Optional[int] = field(default=None, metadata={"help": "Max contexts per consider"})
     doc_stride: int = field(
         default=128,
-        metadata={
-            "help": "When splitting up a long document into chunks, how much stride to take between chunks."
-        },
+        metadata={"help": "When splitting up a long document into chunks, how much stride to take between chunks."},
     )
     n_best_size: int = field(
         default=20,
-        metadata={
-            "help": "The total number of n-best predictions to generate when looking for an answer."
-        },
+        metadata={"help": "The total number of n-best predictions to generate when looking for an answer."},
     )
     n_best_logits: int = field(
         default=20,
-        metadata={
-            "help": "The number of logits to consider when searching for start and end position of an answer"
-        },
+        metadata={"help": "The number of logits to consider when searching for start and end position of an answer"},
     )
     max_answer_length: int = field(
         default=32,
@@ -217,9 +188,7 @@ class DataTrainingArguments:
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={
-            "help": "Where do we want to store the pretrained models downloaded from s3"
-        },
+        metadata={"help": "Where do we want to store the pretrained models downloaded from s3"},
     )
 
 
@@ -229,12 +198,8 @@ class ALArguments:
     Arguments for performing Active Learning.
     """
 
-    strategy: str = field(
-        metadata={"choices": AL_STRATEGIES, "help": "The AL strategy"}
-    )
-    do_al: Optional[bool] = field(
-        default=False, metadata={"help": "Whether to perform Active Learning"}
-    )
+    do_al: Optional[bool] = field(default=False, metadata={"help": "Whether to perform Active Learning"})
+    strategy: Optional[str] = field(default=None, metadata={"choices": AL_STRATEGIES, "help": "The AL strategy"})
     num_iterations: Optional[int] = field(
         default=4,
         metadata={"help": "The number of iterations to perform for Active Learning"},
@@ -243,35 +208,25 @@ class ALArguments:
         default=50,
         metadata={"help": "The amount of samples per iteration for Active Learning"},
     )
-    output_dir: Optional[str] = field(
-        default=None, metadata={"help": "The output directory for Active Learning"}
-    )
+    output_dir: Optional[str] = field(default=None, metadata={"help": "The output directory for Active Learning"})
 
 
 @dataclass
 class InferenceArguments:
-    do_generate: Optional[bool] = field(
-        default=False, metadata={"help": "Whether to generate questions"}
-    )
+    do_generate: Optional[bool] = field(default=False, metadata={"help": "Whether to generate questions"})
     gen_output_path: Optional[str] = field(
         default="generated_data",
         metadata={"help": "path to dir where generated questions will be saved"},
     )
-    predict_dataset: Optional[str] = field(
-        default=None, metadata={"help": "The dataset used for generating data"}
-    )
+    predict_dataset: Optional[str] = field(default=None, metadata={"help": "The dataset used for generating data"})
     exclude_dataset: Optional[str] = field(
         default_factory=list,
         metadata={"help": "the dataset(s) for which the contexts are excluded"},
     )
-    max_gen_length: Optional[int] = field(
-        default=None, metadata={"help": "The maximum number of tokens generated"}
-    )
+    max_gen_length: Optional[int] = field(default=None, metadata={"help": "The maximum number of tokens generated"})
     skip_context_length_above: Optional[int] = field(
         default=None,
-        metadata={
-            "help": "The maximum context length in tokens (contexts with more tokens will be discarded)"
-        },
+        metadata={"help": "The maximum context length in tokens (contexts with more tokens will be discarded)"},
     )
     skip_context_length_below: Optional[int] = field(
         default=100,
@@ -281,13 +236,9 @@ class InferenceArguments:
     )
     num_shards: Optional[int] = field(
         default=1,
-        metadata={
-            "help": "The number of shards which will be used to predict data (1 means no sharding)"
-        },
+        metadata={"help": "The number of shards which will be used to predict data (1 means no sharding)"},
     )
-    shard_size: Optional[int] = field(
-        default=None, metadata={"help": "The size of the shards"}
-    )
+    shard_size: Optional[int] = field(default=None, metadata={"help": "The size of the shards"})
     shards: Optional[List[int]] = field(
         default=None,
         metadata={
@@ -355,10 +306,7 @@ class TrainingArgumentsMetaClass(type):
         prefix = cls.prefix
         return super().__call__(
             *args,
-            **{
-                key[3:] if key.startswith(prefix) else key: value
-                for key, value in kwds.items()
-            },
+            **{key[3:] if key.startswith(prefix) else key: value for key, value in kwds.items()},
         )
 
     def __getattribute__(cls, __name: str) -> Any:
@@ -378,18 +326,12 @@ class TrainingArgumentsMetaClass(type):
 RCSeq2SeqTrainingArguments = TrainingArgumentsMetaClass(
     "RCSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="rc_")
 )
-RCModelArguments = TrainingArgumentsMetaClass(
-    "RCModelArguments", (ModelArguments,), dict(prefix="rc_")
-)
+RCModelArguments = TrainingArgumentsMetaClass("RCModelArguments", (ModelArguments,), dict(prefix="rc_"))
 QGSeq2SeqTrainingArguments = TrainingArgumentsMetaClass(
     "QGSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="qg_")
 )
-QGModelArguments = TrainingArgumentsMetaClass(
-    "QGModelArguments", (ModelArguments,), dict(prefix="qg_")
-)
-RCTaskArguments = TrainingArgumentsMetaClass(
-    "RCTaskArguments", (TaskArguments,), dict(prefix="rc_")
-)
+QGModelArguments = TrainingArgumentsMetaClass("QGModelArguments", (ModelArguments,), dict(prefix="qg_"))
+RCTaskArguments = TrainingArgumentsMetaClass("RCTaskArguments", (TaskArguments,), dict(prefix="rc_"))
 
 
 def main(raw_args):
@@ -453,14 +395,10 @@ def main(raw_args):
     # check for conditions
     if inference_args.do_generate:
         if inference_args.predict_dataset is None:
-            raise ValueError(
-                "Predict dataset cannot be None, please specify one using `--predict_dataset`."
-            )
+            raise ValueError("Predict dataset cannot be None, please specify one using `--predict_dataset`.")
     if al_args.do_al:
         if al_args.output_dir is None:
-            raise ValueError(
-                "You have to set an output directory for Active Learning using --output_dir."
-            )
+            raise ValueError("You have to set an output directory for Active Learning using --output_dir.")
         if al_args.strategy in [strategy.value for strategy in GenALScorer.Strategy]:
             if qg_model_args.model_name_or_path is None:
                 raise ValueError(
@@ -471,6 +409,8 @@ def main(raw_args):
                 raise ValueError(
                     "The chosen AL strategy needs an RC model. You have to provide at least a model using --rc_model_name_or_path; consider providing more training arguments as well"
                 )
+        if al_args.strategy is None:
+            raise ValueError("You have to set an AL strategy using --strategy")
 
     # some arguments have to be hardcoded in order for HF Trainer to work
     qg_training_args.predict_with_generate = True
@@ -540,18 +480,12 @@ def main(raw_args):
             and not rc_training_args.overwrite_output_dir
         ):
             last_checkpoint = get_last_checkpoint(rc_training_args.output_dir)
-            if (
-                last_checkpoint is None
-                and len(os.listdir(rc_training_args.output_dir)) > 0
-            ):
+            if last_checkpoint is None and len(os.listdir(rc_training_args.output_dir)) > 0:
                 raise ValueError(
                     f"Output directory ({rc_training_args.output_dir}) already exists and is not empty. "
                     "Use --rc_overwrite_output_dir to overcome."
                 )
-            elif (
-                last_checkpoint is not None
-                and rc_training_args.resume_from_checkpoint is None
-            ):
+            elif last_checkpoint is not None and rc_training_args.resume_from_checkpoint is None:
                 logger.info(
                     f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                     "the `--rc_output_dir` or add `--rc_overwrite_output_dir` to train from scratch."
@@ -559,23 +493,17 @@ def main(raw_args):
 
         task_heads = EXTRACTIVE_HEAD
         rc_config = AutoConfig.from_pretrained(
-            rc_model_args.config_name
-            if rc_model_args.config_name
-            else rc_model_args.model_name_or_path,
+            rc_model_args.config_name if rc_model_args.config_name else rc_model_args.model_name_or_path,
             cache_dir=data_args.cache_dir,
         )
         rc_tokenizer = AutoTokenizer.from_pretrained(
-            rc_model_args.tokenizer_name
-            if rc_model_args.tokenizer_name
-            else rc_model_args.model_name_or_path,
+            rc_model_args.tokenizer_name if rc_model_args.tokenizer_name else rc_model_args.model_name_or_path,
             cache_dir=data_args.cache_dir,
             use_fast=True,
             config=rc_config,
         )
 
-        rc_config.sep_token_id = rc_tokenizer.convert_tokens_to_ids(
-            rc_tokenizer.sep_token
-        )
+        rc_config.sep_token_id = rc_tokenizer.convert_tokens_to_ids(rc_tokenizer.sep_token)
         rc_model = ModelForDownstreamTasks.from_config(
             rc_config,
             rc_model_args.model_name_or_path,
@@ -598,9 +526,7 @@ def main(raw_args):
 
         # process eval data
         rc_eval_examples, rc_eval_dataset = (
-            preprocess_fn_wrapper(rc_training_args, rc_preprocessor.process_eval)(
-                validation_dataset
-            )
+            preprocess_fn_wrapper(rc_training_args, rc_preprocessor.process_eval)(validation_dataset)
             if rc_training_args.do_eval
             else None,
             None,
@@ -658,18 +584,12 @@ def main(raw_args):
             and not qg_training_args.overwrite_output_dir
         ):
             last_checkpoint = get_last_checkpoint(qg_training_args.output_dir)
-            if (
-                last_checkpoint is None
-                and len(os.listdir(qg_training_args.output_dir)) > 0
-            ):
+            if last_checkpoint is None and len(os.listdir(qg_training_args.output_dir)) > 0:
                 raise ValueError(
                     f"Output directory ({qg_training_args.output_dir}) already exists and is not empty. "
                     "Use --qg_overwrite_output_dir to overcome."
                 )
-            elif (
-                last_checkpoint is not None
-                and qg_training_args.resume_from_checkpoint is None
-            ):
+            elif last_checkpoint is not None and qg_training_args.resume_from_checkpoint is None:
                 logger.info(
                     f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                     "the `--qg_output_dir` or add `--qg_overwrite_output_dir` to train from scratch."
@@ -685,9 +605,7 @@ def main(raw_args):
         )
 
         # process eval data
-        qg_eval_dataset = (
-            qgdl.create(validation_dataset) if qg_training_args.do_eval else None
-        )
+        qg_eval_dataset = qgdl.create(validation_dataset) if qg_training_args.do_eval else None
 
         # set up metric
         qg_compute_metrics = rouge_metrics(qg_model.tokenizer)
@@ -713,16 +631,12 @@ def main(raw_args):
     if qg_training_args.do_eval or qg_training_args.do_train:
         qg_trainer = gen_trainer_class(
             **gen_trainer_kwargs,
-            train_dataset=qgdl.create(train_dataset)
-            if qg_training_args.do_train
-            else None,
+            train_dataset=qgdl.create(train_dataset) if qg_training_args.do_train else None,
         )
     if rc_training_args.do_eval or rc_training_args.do_train:
         rc_trainer = rc_trainer_class(
             **rc_trainer_kwargs,
-            train_dataset=preprocess_fn_wrapper(
-                rc_training_args, rc_preprocessor.process_train
-            )(train_dataset)[1]
+            train_dataset=preprocess_fn_wrapper(rc_training_args, rc_preprocessor.process_train)(train_dataset)[1]
             if rc_training_args.do_train
             else None,
         )
@@ -765,12 +679,8 @@ def main(raw_args):
                 GEN_TRAINER_ID,
                 gen_trainer_class,
                 gen_trainer_kwargs,
-                preprocess_fn_wrapper(
-                    qg_training_args, qgdl.create, add_examples_to_output=True
-                ),
-                preprocess_fn_wrapper(
-                    qg_training_args, qgdl.create, add_examples_to_output=True
-                ),
+                preprocess_fn_wrapper(qg_training_args, qgdl.create, add_examples_to_output=True),
+                preprocess_fn_wrapper(qg_training_args, qgdl.create, add_examples_to_output=True),
                 None,
             )
             if gen_trainer_class is not None
@@ -844,14 +754,10 @@ def main(raw_args):
                 if isinstance(next(iter(metrics[trainer_id].values())), Mapping):
                     for iteration in sorted(metrics[trainer_id].keys()):
                         logger.info("  Iteration = %s", iteration)
-                        for metric, value in sorted(
-                            metrics[trainer_id][iteration].items(), key=itemgetter(0)
-                        ):
+                        for metric, value in sorted(metrics[trainer_id][iteration].items(), key=itemgetter(0)):
                             logger.info("   %s = %s", metric, value)
                 else:
-                    for metric, value in sorted(
-                        metrics[trainer_id].items(), key=itemgetter(0)
-                    ):
+                    for metric, value in sorted(metrics[trainer_id].items(), key=itemgetter(0)):
                         logger.info("   %s = %s", metric, value)
         logger.info("***** Finished Active Learning *****")
 
@@ -868,18 +774,12 @@ def main(raw_args):
             logging.info(f"Skipping contexts > {inference_args.skip_context_length}")
             try:
                 dataset = dataset.filter(
-                    lambda x: len(
-                        qg_model.tokenizer.tokenize(
-                            x["context"], add_special_tokens=False
-                        )
-                    )
+                    lambda x: len(qg_model.tokenizer.tokenize(x["context"], add_special_tokens=False))
                     <= inference_args.skip_context_length,
                     num_proc=data_args.num_workers,
                 )
             except IndexError:
-                logging.info(
-                    "No data left after filtering for context length, exiting."
-                )
+                logging.info("No data left after filtering for context length, exiting.")
                 exit()
 
         if inference_args.exclude_dataset:
@@ -893,21 +793,15 @@ def main(raw_args):
             )
 
         if inference_args.skip_context_length_below:
-            logging.info(
-                f"Discarding documents with less than {inference_args.skip_context_length_below} tokens"
-            )
+            logging.info(f"Discarding documents with less than {inference_args.skip_context_length_below} tokens")
             dataset = dataset.filter(
                 lambda x: inference_args.skip_context_length_below
-                <= len(
-                    qg_model.tokenizer.tokenize(x["context"], add_special_tokens=False)
-                ),
+                <= len(qg_model.tokenizer.tokenize(x["context"], add_special_tokens=False)),
                 num_proc=data_args.num_workers,
             )
 
         num_samples = min(100000, len(dataset))
-        logging.info(
-            f"Randomly selecting {num_samples} documents (from {len(dataset)} available documents)"
-        )
+        logging.info(f"Randomly selecting {num_samples} documents (from {len(dataset)} available documents)")
         # shuffle data using seed to make sure that we have always the same documents
         dataset = dataset.shuffle(seed=42)
         dataset = dataset.select(range(num_samples))
@@ -916,9 +810,7 @@ def main(raw_args):
         dataset = dataset.map(
             lambda x: {
                 "context": qg_model.tokenizer.convert_tokens_to_string(
-                    qg_model.tokenizer.tokenize(x["context"], add_special_tokens=False)[
-                        :550
-                    ]
+                    qg_model.tokenizer.tokenize(x["context"], add_special_tokens=False)[:550]
                 )
             },
             num_proc=data_args.num_workers,
@@ -936,9 +828,7 @@ def main(raw_args):
         # process dataset in shards
         if inference_args.shard_size is not None:
             # ceil so that there is a maximum of `shard_size` samples in each shard
-            inference_args.num_shards = max(
-                1, math.ceil(len(dataset) / inference_args.shard_size)
-            )
+            inference_args.num_shards = max(1, math.ceil(len(dataset) / inference_args.shard_size))
         if inference_args.shards is not None:
             assert 0 <= max(inference_args.shards) < inference_args.num_shards
             shard_indices = inference_args.shards
@@ -951,9 +841,7 @@ def main(raw_args):
                 logger.info(f"Processing {len(shard)} samples.")
             else:
                 shard = dataset.shard(inference_args.num_shards, i, contiguous=True)
-                logger.info(
-                    f"Processing shard {i} ({inference_args.num_shards} in total) with {len(shard)} samples."
-                )
+                logger.info(f"Processing shard {i} ({inference_args.num_shards} in total) with {len(shard)} samples.")
 
             # move answers and question columns so that we might use them later
             shard = prepare_labelled_data(shard)
@@ -972,9 +860,7 @@ def main(raw_args):
                     if inference_args.num_shards == 1
                     else os.path.join(inference_args.gen_output_path, str(i))
                 )
-                logger.info(
-                    f"Saved {len(shard)} rows to {inference_args.gen_output_path}"
-                )
+                logger.info(f"Saved {len(shard)} rows to {inference_args.gen_output_path}")
 
 
 if __name__ == "__main__":

@@ -8,14 +8,7 @@ from functools import partial
 from typing import Callable, Dict, List, Sequence, Union
 
 import numpy
-from datasets import (
-    Dataset,
-    DatasetDict,
-    DownloadConfig,
-    concatenate_datasets,
-    get_dataset_config_names,
-    load_dataset,
-)
+from datasets import Dataset, DatasetDict, DownloadConfig, concatenate_datasets, get_dataset_config_names, load_dataset
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from tqdm import tqdm

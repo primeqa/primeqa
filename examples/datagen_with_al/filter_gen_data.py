@@ -8,12 +8,7 @@ from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from transformers import (
-    AutoConfig,
-    AutoTokenizer,
-    DataCollatorWithPadding,
-    TrainingArguments,
-)
+from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding, TrainingArguments
 
 from datasets import concatenate_datasets, load_from_disk
 
@@ -40,9 +35,7 @@ def filter_samples(
     num_workers: int = None,
 ):
     # load dataset from disk
-    dataset = concatenate_datasets(
-        [load_from_disk(dataset_path) for dataset_path in dataset_paths]
-    )
+    dataset = concatenate_datasets([load_from_disk(dataset_path) for dataset_path in dataset_paths])
 
     # filter dataset
     if strategy is None:
@@ -78,9 +71,7 @@ def filter_samples(
 
         # If using mixed precision we pad for efficient hardware acceleration
         using_mixed_precision = any(attrgetter("fp16", "bf16")(training_args))
-        data_collator = DataCollatorWithPadding(
-            tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None
-        )
+        data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
         # noinspection PyProtectedMember
         postprocessor = SQUADPostProcessor(
@@ -111,12 +102,8 @@ if __name__ == "__main__":
     def main():
         import argparse
 
-        parser = argparse.ArgumentParser(
-            description="This program allows to filter synthetic data."
-        )
-        parser.add_argument(
-            "dataset_path", type=str, nargs="+", help="The dataset(s) for filtering"
-        )
+        parser = argparse.ArgumentParser(description="This program allows to filter synthetic data.")
+        parser.add_argument("dataset_path", type=str, nargs="+", help="The dataset(s) for filtering")
         parser.add_argument(
             "output_dir",
             type=str,
@@ -139,9 +126,7 @@ if __name__ == "__main__":
             help="Don't filter samples and unpack them",
         )
         parser.add_argument("--cache", help="The directory used as cache")
-        parser.add_argument(
-            "--num_workers", type=int, help="The number of workers for processing tasks"
-        )
+        parser.add_argument("--num_workers", type=int, help="The number of workers for processing tasks")
         args = parser.parse_args()
 
         filter_samples(
