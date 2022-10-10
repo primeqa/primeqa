@@ -69,10 +69,10 @@ class ExtractiveReader(ReaderComponent):
         },
     )
     max_num_answers: int = field(
-        default=5, metadata={"name": "Maximum number of answers", "range": [1, 5, 1]}
+        default=3, metadata={"name": "Maximum number of answers", "range": [1, 5, 1]}
     )
     max_answer_length: int = field(
-        default=32, metadata={"name": "Maximum answer length", "range": [2, 128, 2]}
+        default=1000, metadata={"name": "Maximum answer length", "range": [2, 2000, 2]}
     )
     scorer_type: str = field(
         default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
@@ -172,7 +172,12 @@ class ExtractiveReader(ReaderComponent):
             eval_dataset=eval_dataset, eval_examples=eval_examples
         ).items():
             for raw_prediction in raw_predictions:
-                predictions[int(passage_idx)].append(raw_prediction)
+                processed_prediction = {}
+                processed_prediction["example_id"] = raw_prediction['example_id']
+                processed_prediction["span_answer_text"] = raw_prediction['span_answer_text']
+                processed_prediction["span_answer"] = raw_prediction['span_answer']
+                processed_prediction["confidence_score"] = raw_prediction['confidence_score']
+                predictions[int(passage_idx)].append(processed_prediction)
 
         # If min_score_threshold is provide, use it to filter out predictions
         if "min_score_threshold" in kwargs:
