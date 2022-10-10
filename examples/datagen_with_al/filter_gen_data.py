@@ -37,6 +37,7 @@ def filter_samples(
     strategy: Strategy,
     cache_dir: str = None,
     rt_model_path: str = None,
+    num_workers: int = None,
 ):
     # load dataset from disk
     dataset = concatenate_datasets(
@@ -95,7 +96,8 @@ def filter_samples(
             args=training_args,
             tokenizer=tokenizer,
             data_collator=data_collator,
-            post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
+            post_process_function=postprocessor.process_references_and_predictions,
+            num_workers=num_workers,
         )
 
     dataset = filter_fn(dataset)
@@ -128,15 +130,18 @@ if __name__ == "__main__":
             help="Specifies the model architecture to use for generation",
         )
         parser.add_argument(
-            "--rt-model-name-or-path",
+            "--rt_model_name_or_path",
             help="Set the transformer model for answer prediction for RT filtering",
         )
         parser.add_argument(
-            "--disable-filtering",
+            "--disable_filtering",
             action="store_true",
             help="Don't filter samples and unpack them",
         )
         parser.add_argument("--cache", help="The directory used as cache")
+        parser.add_argument(
+            "--num_workers", type=int, help="The number of workers for processing tasks"
+        )
         args = parser.parse_args()
 
         filter_samples(
@@ -145,6 +150,7 @@ if __name__ == "__main__":
             None if args.disable_filtering else args.filter,
             cache_dir=args.cache,
             rt_model_path=args.rt_model_name_or_path,
+            num_workers=args.num_workers,
         )
 
     main()

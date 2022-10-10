@@ -184,7 +184,7 @@ python run.py \
 
 This can then be used for filtering:
 ```bash
-python filter_gen_data.py generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_rt --filter rt --rt-model models/rc/squad_ft-bioasq-al-dsp-4x50/checkpoint-220 # again, pick best checkpoint
+python filter_gen_data.py generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_rt --filter rt --rt_model models/rc/squad_ft-bioasq-al-dsp-4x50/checkpoint-220 --num_workers 5 # again, pick best checkpoint
 ```
 
 

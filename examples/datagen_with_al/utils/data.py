@@ -509,16 +509,17 @@ class LMFilter:
 
 
 class RTFilter(MRCTrainer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, num_workers: int = None, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.num_workers = num_workers
         # load preprocessor
         preprocessor = SQUADPreprocessor(
             stride=128,
             tokenizer=self.tokenizer,
             load_from_cache_file=False,
             max_seq_len=None,
-            num_workers=None,
+            num_workers=num_workers,
             max_q_char_len=None,
             single_context_multiple_passages=True,
             max_contexts=None,
@@ -537,6 +538,7 @@ class RTFilter(MRCTrainer):
         data = unpack_samples(data)
         # RTFilter needs a context index
         if "context_idx" not in data.column_names:
+            logger.info("Adding context index to data")
             data = data.add_column("context_idx", [0] * len(data))
         # do not use the answer column for preparing the features in order to do inference only
         examples, feats = self.preprocess_fn(data)
@@ -550,6 +552,6 @@ class RTFilter(MRCTrainer):
         data = data.filter(
             lambda x: x["answers"]["text"][0]
             == predictions[x["id"]][0]["span_answer_text"],
-            num_proc=None,
+            num_proc=self.num_workers,
         )
         return data
