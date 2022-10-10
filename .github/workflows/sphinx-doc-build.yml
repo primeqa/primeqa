@@ -1,0 +1,66 @@
+name: SphinxDoc Build
+
+on:
+  # push:
+    # branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types:
+      - closed
+  pull_request_target:
+    branches: [ "main" ]
+    types:
+      - closed
+
+permissions:
+  contents: write
+
+jobs:
+  build_if_merged:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo The PR was merged - Sphinx docs build started
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+    - name: Install dependencies (docs/requirements.txt)
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        python -m pip install wheel
+        python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
+        if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
+      # python setup.py bdist_wheel --python-tag py39x
+    - name: Copy README changes (docs/scripts/copy-readme-to-docs.sh)
+      # if: github.ref != 'refs/heads/main'
+      run: |
+        chmod +x ./docs/scripts/copy-readme-to-docs.sh
+        ./docs/scripts/copy-readme-to-docs.sh
+      shell: bash
+    - name: SphinxDoc Make HTML
+      run: |
+        cd docs
+        make html -e SPHINXOPTS='--keep-going --no-color -w "log_file"'   
+    # - name: Upload artifacts (docs/_build/)
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: html-docs
+    #     path: docs/_build/
+    - name: Upload artifacts (docs/log_file)
+      uses: actions/upload-artifact@v3
+      with:
+        name: html-docs-log_file
+        path: docs/log_file
+    - name: Deploy Documentation (gh-pages branch)
+      if: github.event.repository.fork == false && ${{ github.ref || github.head_ref }} == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        commit_message: -automatic commit- Sphinx Doc Build
