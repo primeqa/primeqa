@@ -16,6 +16,7 @@ from primeqa.services.grpc_server.utils import (
     generate_parameters,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
+from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2_grpc import (
     IndexerServicer,
 )
@@ -85,7 +86,10 @@ class IndexerService(IndexerServicer):
                 except KeyError:
                     context.set_code(StatusCode.INVALID_ARGUMENT)
                     context.set_details(
-                        f"Invalid indexer: {request.indexer.indexer_id}. Please select one of the following pre-defined indexers: {', '.join(INDEXERS_REGISTRY.keys())}"
+                        ErrorMessages.INVALID_INDEXER.value.format(
+                            request.indexer.indexer_id,
+                            ", ".join(INDEXERS_REGISTRY.keys()),
+                        )
                     )
                     return GenerateIndexResponse()
 
@@ -102,29 +106,29 @@ class IndexerService(IndexerServicer):
                 # Step 2.d: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
                 if request.indexer.parameters:
                     for parameter in request.indexer.parameters:
-                        try:
-                            indexer_kwargs[
-                                parameter.parameter_id
-                            ] = parse_parameter_value(
-                                parameter,
-                                get_parameter_type(
-                                    component=indexer,
-                                    parameter_id=parameter.parameter_id,
-                                ),
-                            )
-                            # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
-                            if parameter.parameter_id == "checkpoint":
-                                indexer_kwargs[
-                                    "checkpoint"
-                                ] = self._store.get_checkpoint_path(
-                                    indexer_kwargs["checkpoint"]
-                                )
-                        except KeyError:
+                        if parameter.parameter_id not in indexer_kwargs:
                             context.set_code(StatusCode.INVALID_ARGUMENT)
                             context.set_details(
-                                f"Invalid indexer parameter: {parameter.parameter_id}. Only pre-defined parameters can be modified."
+                                ErrorMessages.INVALID_PARAMETER.value.format(
+                                    "indexer", parameter.parameter_id
+                                )
                             )
                             return GenerateIndexResponse()
+
+                        indexer_kwargs[parameter.parameter_id] = parse_parameter_value(
+                            parameter,
+                            get_parameter_type(
+                                component=indexer,
+                                parameter_id=parameter.parameter_id,
+                            ),
+                        )
+                        # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                        if parameter.parameter_id == "checkpoint":
+                            indexer_kwargs[
+                                "checkpoint"
+                            ] = self._store.get_checkpoint_path(
+                                indexer_kwargs["checkpoint"]
+                            )
 
                 # Step 2.e: Update index specific arguments
                 indexer_kwargs["index_root"] = self._store.get_index_directory_path(
@@ -166,8 +170,7 @@ class IndexerService(IndexerServicer):
 
             # Step 5.b: Set index status to "READY" once indexing is complete
             index_information[ATTR_STATUS] = IndexStatus.READY.value
-
-        except RuntimeError as err:
+        except (TypeError, RuntimeError) as err:
             index_information[ATTR_STATUS] = IndexStatus.CORRUPT.value
             logging.exception(
                 "Generation failed for index with id=%s. Resultant index may be corrupted.",
