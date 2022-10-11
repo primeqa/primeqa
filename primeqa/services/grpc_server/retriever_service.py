@@ -12,6 +12,7 @@ from primeqa.services.grpc_server.utils import (
     generate_parameters,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
+from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2_grpc import (
     RetrieverServicer,
 )
@@ -79,7 +80,10 @@ class RetrieverService(RetrieverServicer):
         except KeyError:
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(
-                f"Invalid retriever: {request.retriever.retriever_id}. Please select one of the following pre-defined retrievers: {', '.join(RETRIEVERS_REGISTRY.keys())}"
+                ErrorMessages.INVALID_RETRIEVER.value.format(
+                    request.retriever.retriever_id,
+                    ", ".join(RETRIEVERS_REGISTRY.keys()),
+                )
             )
             return RetrieveResponse()
 
@@ -91,19 +95,21 @@ class RetrieverService(RetrieverServicer):
         # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
         if request.retriever.parameters:
             for parameter in request.retriever.parameters:
-                try:
-                    retriever_kwargs[parameter.parameter_id] = parse_parameter_value(
-                        parameter,
-                        get_parameter_type(
-                            component=retriever, parameter_id=parameter.parameter_id
-                        ),
-                    )
-                except KeyError:
+                if parameter.parameter_id not in retriever_kwargs:
                     context.set_code(StatusCode.INVALID_ARGUMENT)
                     context.set_details(
-                        f"Invalid retriever parameter: {parameter.parameter_id}. Only pre-defined parameters can be modified."
+                        ErrorMessages.INVALID_PARAMETER.value.format(
+                            "retriever", parameter.parameter_id
+                        )
                     )
                     return RetrieveResponse()
+
+                retriever_kwargs[parameter.parameter_id] = parse_parameter_value(
+                    parameter,
+                    get_parameter_type(
+                        component=retriever, parameter_id=parameter.parameter_id
+                    ),
+                )
 
         # Step 4: Load index information
         if request.index_id:
@@ -112,7 +118,7 @@ class RetrieverService(RetrieverServicer):
             if not self._store.exists(index_root):
                 context.set_code(StatusCode.NOT_FOUND)
                 context.set_details(
-                    f"Invalid request. Index with id {request.index_id} doesn't exist."
+                    ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
                 )
                 return RetrieveResponse()
 
@@ -123,7 +129,9 @@ class RetrieverService(RetrieverServicer):
             if index_information[ATTR_STATUS] != IndexStatus.READY.value:
                 context.set_code(StatusCode.INVALID_ARGUMENT)
                 context.set_details(
-                    f'Cannot query index with "{index_information[ATTR_STATUS]}" status. Please make sure index has "READY" status before querying.'
+                    ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
+                        index_information[ATTR_STATUS]
+                    )
                 )
                 return RetrieveResponse()
 
@@ -134,9 +142,10 @@ class RetrieverService(RetrieverServicer):
             retriever_kwargs["index_name"] = DIR_NAME_INDEX
         else:
             context.set_code(StatusCode.INVALID_ARGUMENT)
-            context.set_details("Invalid request. `index_id` must be provided.")
+            context.set_details(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
             return RetrieveResponse()
 
+        # Step 5: Create retriever instance
         try:
             instance = RetrieverFactory.get(retriever, retriever_kwargs)
         except ValueError as err:
@@ -144,10 +153,19 @@ class RetrieverService(RetrieverServicer):
             context.set_details(err.args[0])
             return RetrieveResponse()
 
-        # Step 4: Retrieve
-        results = instance.retrieve(
-            input_texts=request.queries,
-        )
+        # Step 6: Retrieve
+        try:
+            results = instance.retrieve(
+                input_texts=request.queries,
+            )
+        except TypeError:
+            context.set_code(StatusCode.INTERNAL)
+            context.set_details(
+                ErrorMessages.FAILED_TO_INITIALIZE.value.format(
+                    f"{retriever.retriever_id} retriever"
+                )
+            )
+            return RetrieveResponse()
 
         hits = []
         for result_per_query in results:

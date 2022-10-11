@@ -1,14 +1,12 @@
 import os
 import time
-
-import torch
 import random
-import numpy as np
 
-import torch.multiprocessing as mp
+import numpy as np
+import torch
 
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
-from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.launcher import Launcher
 
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import (
@@ -37,7 +35,9 @@ class Indexer:
         # config.model_type = self.checkpoint_config.model_type
 
         self.config = ColBERTConfig.from_existing(
-            self.checkpoint_config, config, Run().config
+            Run().config,
+            self.checkpoint_config,
+            config,
         )
 
         # set model_type from checkpoint's config
@@ -68,7 +68,7 @@ class Indexer:
             if delete:
                 deleted.append(filename)
 
-        if len(deleted):
+        if deleted:
             print_message(
                 f"#> Will delete {len(deleted)} files already at {directory} in 20 seconds..."
             )
@@ -79,14 +79,13 @@ class Indexer:
 
         return deleted
 
-    def index(self, name, collection, overwrite=False, index_path: str = None):
+    def index(self, name, collection, overwrite=False):
         assert overwrite in [True, False, "reuse"]
 
         self.configure(collection=collection, index_name=name)
         self.configure(bsize=64, partitions=None)
         # self.configure(bsize=1, partitions=None)
 
-        self.index_path = index_path if index_path else self.config.index_path_
         index_does_not_exist = not os.path.exists(self.config.index_path_)
 
         assert (
@@ -103,7 +102,7 @@ class Indexer:
         return self.index_path
 
     def __launch(self, collection):
-        manager = mp.Manager()
+        manager = torch.multiprocessing.Manager()
         shared_lists = [manager.list() for _ in range(self.config.nranks)]
         shared_queues = [manager.Queue(maxsize=1) for _ in range(self.config.nranks)]
 

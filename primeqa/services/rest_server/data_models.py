@@ -6,35 +6,31 @@ from primeqa.services.constants import IndexStatus
 #############################################################################################
 #                       PipelineParameter
 #############################################################################################
-class PipelineParameter(BaseModel):
+class Parameter(BaseModel):
     parameter_id: str
     name: Union[str, None] = None
+    description: Union[str, None] = None
     type: Union[str, None] = None
-    value: Union[int, float, bool, str]
-    options: Union[List[bool], List[str], None] = None
+    value: Union[int, float, bool, str, None] = None
+    options: Union[List[int], List[float], List[bool], List[str], None] = None
     range: Union[List[int], List[float], None] = None
 
 
 #############################################################################################
-#                       Pipeline
+#                       Reader
 #############################################################################################
-class Pipeline(BaseModel):
-    pipeline_id: str
-    name: Union[str, None] = None
-    type: Union[str, None] = None
-    description: Union[str, None] = None
-    parameters: Union[List[PipelineParameter], None] = None
-    metadata: Union[dict, None] = None
+class Reader(BaseModel):
+    reader_id: str
+    parameters: Union[List[Parameter], None] = None
 
 
 #############################################################################################
-#                       ReaderQuery
+#                       GetAnswersRequest
 #############################################################################################
-class ReaderQuery(BaseModel):
-    pipeline: Pipeline
-    question: str
-    passages: List[str]
-    metadata: Union[dict, None] = None
+class GetAnswersRequest(BaseModel):
+    reader: Reader
+    queries: List[str]
+    contexts: Union[List[List[str]], None] = None
 
 
 #############################################################################################
@@ -46,17 +42,23 @@ class Answer(BaseModel):
     end_char_offset: int
     confidence_score: float
     passage_index: int
-    metadata: Union[dict, None] = None
 
 
 #############################################################################################
-#                       RetrieverQuery
+#                       Retriever
 #############################################################################################
-class RetrieverQuery(BaseModel):
-    pipeline: Pipeline
+class Retriever(BaseModel):
+    retriever_id: str
+    parameters: Union[List[Parameter], None] = None
+
+
+#############################################################################################
+#                       RetrieveRequest
+#############################################################################################
+class RetrieveRequest(BaseModel):
+    retriever: Retriever
     index_id: str
     queries: List[str]
-    metadata: Union[dict, None] = None
 
 
 #############################################################################################
@@ -66,7 +68,6 @@ class Document(BaseModel):
     text: str
     document_id: Union[str, None] = None
     title: Union[str, None] = None
-    metadata: Union[dict, None] = None
 
 
 #############################################################################################
@@ -75,17 +76,23 @@ class Document(BaseModel):
 class Hit(BaseModel):
     document: Document
     score: float
-    metadata: Union[dict, None] = None
 
 
 #############################################################################################
-#                       IndexRequest
+#                       Indexer
 #############################################################################################
-class IndexRequest(BaseModel):
-    pipeline: Pipeline
+class Indexer(BaseModel):
+    indexer_id: str
+    parameters: Union[List[Parameter], None] = None
+
+
+#############################################################################################
+#                       GenerateIndexRequest
+#############################################################################################
+class GenerateIndexRequest(BaseModel):
+    indexer: Indexer
     documents: List[Document]
     index_id: Union[str, None] = None
-    metadata: Union[dict, None] = None
 
 
 #############################################################################################
@@ -99,4 +106,3 @@ class IndexInformation(BaseModel):
         IndexStatus.DOES_NOT_EXISTS,
         IndexStatus.CORRUPT,
     ]
-    metadata: Union[dict, None] = None

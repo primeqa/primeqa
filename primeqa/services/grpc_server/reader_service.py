@@ -10,6 +10,7 @@ from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
     generate_parameters,
 )
+from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderServicer
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     ReaderComponent,
@@ -32,11 +33,6 @@ class ReaderService(ReaderServicer):
         self._config = config
         self.loaded_readers = {}
         self._logger.info("%s is successfully initialized.", self.__class__.__name__)
-
-    def _log_question(self, procedure_name: str, question: str):
-        self._logger.debug(
-            "%s Prediction request of question: '%s'", procedure_name, question
-        )
 
     def GetReaders(
         self, request: GetReadersRequest, context: ServicerContext
@@ -72,7 +68,9 @@ class ReaderService(ReaderServicer):
         if request.contexts and len(request.queries) != len(request.contexts):
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(
-                f"If contexts are provided, number of contexts({len(request.contexts)}) must match number of queries({len(request.queries)})"
+                ErrorMessages.MISSING_CONTEXT.value.format(
+                    len(request.contexts), len(request.queries)
+                )
             )
             return GetAnswersResponse()
 
@@ -82,7 +80,9 @@ class ReaderService(ReaderServicer):
         except KeyError:
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(
-                f"Invalid reader: {request.reader.reader_id}. Please select one of the following pre-defined readers: {', '.join(READERS_REGISTRY.keys())}"
+                ErrorMessages.INVALID_READER.value.format(
+                    request.reader.reader_id, ", ".join(READERS_REGISTRY.keys())
+                )
             )
             return GetAnswersResponse()
 
@@ -92,19 +92,22 @@ class ReaderService(ReaderServicer):
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:
             for parameter in request.reader.parameters:
-                try:
-                    reader_kwargs[parameter.parameter_id] = parse_parameter_value(
-                        parameter,
-                        get_parameter_type(
-                            component=reader, parameter_id=parameter.parameter_id
-                        ),
-                    )
-                except KeyError:
+                if parameter.parameter_id not in reader_kwargs:
                     context.set_code(StatusCode.INVALID_ARGUMENT)
                     context.set_details(
-                        f"Invalid reader parameter: {parameter.parameter_id}. Only pre-defined parameters can be modified."
+                        ErrorMessages.INVALID_PARAMETER.value.format(
+                            "reader", parameter.parameter_id
+                        )
                     )
                     return GetAnswersResponse()
+
+                reader_kwargs[parameter.parameter_id] = parse_parameter_value(
+                    parameter,
+                    get_parameter_type(
+                        component=reader, parameter_id=parameter.parameter_id
+                    ),
+                )
+
         try:
             instance = ReaderFactory.get(reader, reader_kwargs)
         except ValueError as err:
@@ -117,38 +120,55 @@ class ReaderService(ReaderServicer):
         try:
             for idx, query in enumerate(request.queries):
                 # Step 5.a: Run "apply" per query
-                predictions = instance.apply(
-                    input_texts=[query] * len(request.contexts[idx].texts),
-                    context=[[text] for text in request.contexts[idx].texts],
-                )
-
-                # Step 5.b: Add answers for current query into response object
-                answers_response.query_answers.append(
-                    AnswersForQuery(
-                        context_answers=[
-                            AnswersForContext(
-                                answers=[
-                                    Answer(
-                                        text=prediction["span_answer_text"],
-                                        start_char_offset=prediction["span_answer"][
-                                            "start_position"
-                                        ],
-                                        end_char_offset=prediction["span_answer"][
-                                            "end_position"
-                                        ],
-                                        confidence_score=prediction["confidence_score"],
-                                        passage_index=int(prediction["example_id"]),
-                                    )
-                                    for prediction in predictions_for_context
-                                ]
-                            )
-                            for predictions_for_context in predictions
-                        ]
+                try:
+                    predictions = instance.apply(
+                        input_texts=[query] * len(request.contexts[idx].texts),
+                        context=[[text] for text in request.contexts[idx].texts],
                     )
-                )
+
+                    # Step 5.b: Add answers for current query into response object
+                    answers_response.query_answers.append(
+                        AnswersForQuery(
+                            context_answers=[
+                                AnswersForContext(
+                                    answers=[
+                                        Answer(
+                                            text=prediction["span_answer_text"],
+                                            start_char_offset=prediction["span_answer"][
+                                                "start_position"
+                                            ],
+                                            end_char_offset=prediction["span_answer"][
+                                                "end_position"
+                                            ],
+                                            confidence_score=prediction[
+                                                "confidence_score"
+                                            ],
+                                            passage_index=int(prediction["example_id"]),
+                                        )
+                                        for prediction in predictions_for_context
+                                    ]
+                                )
+                                for predictions_for_context in predictions
+                            ]
+                        )
+                    )
+
+                except TypeError:
+                    context.set_code(StatusCode.INTERNAL)
+                    context.set_details(
+                        ErrorMessages.FAILED_TO_INITIALIZE.value.format(
+                            f"{request.reader.reader_id} reader"
+                        )
+                    )
+                    return GetAnswersResponse()
+
         except IndexError:
             context.set_code(StatusCode.INVALID_ARGUMENT)
-            context.set_details(f"Missing contexts for query: {query}")
+            context.set_details(
+                ErrorMessages.MISSING_CONTEXT.value.format(
+                    len(request.contexts), len(request.queries)
+                )
+            )
             return GetAnswersResponse()
 
         # Step 6: Return
