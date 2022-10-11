@@ -143,38 +143,26 @@ class DPRSearcher():
                 else:
                     docs = merge_results(query_vectors, self.opts.n_docs_for_provenance)
 
-                if 'pid' in docs[0][0]:
-                    doc_dicts = [{'pid': [dqk['pid'] for dqk in dq],
-                                  'title': [dqk['title'] for dqk in dq],
-                                  'text': [dqk['text'] for dqk in dq]} for dq in docs]
-                else:
-                    doc_dicts = [{'title': [dqk['title'] for dqk in dq],
-                                  'text': [dqk['text'] for dqk in dq]} for dq in docs]
+                doc_dicts = [{'pid': [dqk['pid'] for dqk in dq],
+                              'title': [dqk['title'] for dqk in dq],
+                              'text': [dqk['text'] for dqk in dq]} for dq in docs]
 
-                include_vectors = True # TODO: make this an arg? Note: this is "if not only_docs" in corpus_client.retrieve
-                if include_vectors:
-                    doc_vectors = np.zeros([batch_size, self.opts.n_docs_for_provenance, self.dim], dtype=np.float32)
-                    for qi, docs_qi in enumerate(docs):
-                        gpids = []
-                        for ki, doc_qi_ki in enumerate(docs_qi):
-                            # if we have gold_pids, set their vector to 100 * the query vector
-                            if ki < len(gpids):
-                                doc_vectors[qi, ki] = 100 * query_vectors[qi]
-                            else:
-                                doc_vectors[qi, ki] = doc_qi_ki['vector']
+                doc_vectors = np.zeros([batch_size, self.opts.n_docs_for_provenance, self.dim], dtype=np.float32)
+                for qi, docs_qi in enumerate(docs):
+                    gpids = []
+                    for ki, doc_qi_ki in enumerate(docs_qi):
+                        # if we have gold_pids, set their vector to 100 * the query vector
+                        if ki < len(gpids):
+                            doc_vectors[qi, ki] = 100 * query_vectors[qi]
+                        else:
+                            doc_vectors[qi, ki] = doc_qi_ki['vector']
                 # ^ from from corpus_server_direct.retrieve_docs
 
                 # from corpus_client.retrieve
-                if include_vectors: # this is "if not only_docs" in corpus_client.retrieve
-                    #doc_vectors = np.frombuffer(base64.decodebytes(rdocs['doc_vectors'].encode('ascii')), dtype=self.rest_dtype).\
-                    #    reshape(-1, n_docs_for_provenance, question_encoder_last_hidden_state.shape[-1])[:, 0:n_docs, :]
-                    retrieved_doc_embeds = torch.Tensor(doc_vectors.copy()).to(query_vectors_tensor)
-                    doc_scores = torch.bmm(
-                        query_vectors_tensor.unsqueeze(1), retrieved_doc_embeds.transpose(1, 2)
-                    ).squeeze(1)
-                else:
-                    doc_scores = None
-                    retrieved_doc_embeds = None
+                retrieved_doc_embeds = torch.Tensor(doc_vectors.copy()).to(query_vectors_tensor)
+                doc_scores = torch.bmm(
+                    query_vectors_tensor.unsqueeze(1), retrieved_doc_embeds.transpose(1, 2)
+                ).squeeze(1)
                 # ^ from corpus_client.retrieve
 
             # from dpr_apply.retrieve
@@ -183,12 +171,8 @@ class DPRSearcher():
             doc_scores = doc_scores.detach().cpu().numpy()
             docs = doc_dicts # Because in corpus_server_directretrieve_docs: "retval = {'docs': doc_dicts}"
 
-            if 'id' in docs[0]:
-                retrieved_doc_ids = [dd['id'] for dd in docs]
-            elif 'pid' in docs[0]:
-                retrieved_doc_ids = [dd['pid'] for dd in docs]
-            else:
-                retrieved_doc_ids = [[0] * len(dd['text']) for dd in docs]  # dummy ids
+            retrieved_doc_ids = [dd['pid'] for dd in docs]
+
             passages = None
             if self.opts.include_passages:
                 passages = [{'titles': dd['title'], 'texts': dd['text'], 'scores': doc_scores[dndx].tolist()} for dndx, dd in enumerate(docs)]

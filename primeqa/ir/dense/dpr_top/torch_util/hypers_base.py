@@ -200,20 +200,6 @@ class HypersBase:
             except:
                 pass
 
-    def kofn(self, kofn: str):
-        """
-        ''     -> 0, 1
-        '1of2' -> 0, 2
-        '2of2' -> 1, 2
-        :param kofn:
-        :return:
-        """
-        if not kofn:
-            return 0, 1
-        k, n = [int(i) for i in kofn.lower().split('of')]
-        assert 1 <= k <= n
-        return k-1, n
-
     def to_dict(self):
         d = self.__dict__.copy()
         del d['device']
