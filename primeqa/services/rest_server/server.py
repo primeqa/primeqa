@@ -192,6 +192,45 @@ class RestServer:
                         )
                     ) from err
 
+                            # Step 5.b: Add answers for current query into response object
+                            answers_response.append(
+                                [
+                                    [
+                                        {
+                                            "text": prediction["span_answer_text"],
+                                            "start_char_offset": prediction[
+                                                "span_answer"
+                                            ]["start_position"],
+                                            "end_char_offset": prediction[
+                                                "span_answer"
+                                            ]["end_position"],
+                                            "confidence_score": prediction[
+                                                "confidence_score"
+                                            ],
+                                            "passage_index": int(
+                                                prediction["example_id"]
+                                            ),
+                                        }
+                                        for prediction in predictions_for_context
+                                    ]
+                                    for predictions_for_context in predictions
+                                ]
+                            )
+
+                        except TypeError as err:
+                            raise Error(
+                                ErrorMessages.FAILED_TO_INITIALIZE.value.format(
+                                    f"{request.reader.reader_id} reader"
+                                )
+                            ) from err
+
+                except IndexError as err:
+                    raise Error(
+                        ErrorMessages.MISSING_CONTEXT.value.format(
+                            len(request.contexts), len(request.queries)
+                        )
+                    ) from err
+
                 # Step 5: Return
                 return [
                     [
@@ -552,78 +591,127 @@ class RestServer:
                 ) from None
 
         ############################################################################################
-        #                           Documents API
+        #                           Retriever API
         ############################################################################################
+        @app.get(
+            "/retrievers",
+            status_code=status.HTTP_200_OK,
+            response_model=List[Retriever],
+            tags=["Retriever"],
+        )
+        def get_retrievers():
+            return [
+                {
+                    "retriever_id": retriever_id,
+                    "parameters": generate_parameters(retriever),
+                }
+                for retriever_id, retriever in RETRIEVERS_REGISTRY.items()
+            ]
+
         @app.post(
             "/documents",
             status_code=status.HTTP_201_CREATED,
             response_model=List[List[Hit]],
             tags=["Retriever"],
         )
-        def get_documents(request: RetrieverQuery):
+        def get_documents(request: RetrieveRequest):
             try:
-                # Step 1: Fetch requested pipeline
-                pipeline = get_pipeline(pipeline_id=request.pipeline.pipeline_id)
-
-                # Step 2: Verify requested pipeline's type
-                if pipeline.pipeline_type != RetrieverPipeline.__name__:
+                # Step 1: Verify requested retriever
+                try:
+                    retriever = RETRIEVERS_REGISTRY[request.retriever.retriever_id]
+                except KeyError as err:
                     raise Error(
-                        ErrorMessages.INVALID_PIPELINE_TYPE.format(
-                            pipeline.pipeline_type, RetrieverPipeline.__name__
+                        ErrorMessages.INVALID_RETRIEVER.value.format(
+                            request.retriever.retriever_id,
+                            ", ".join(RETRIEVERS_REGISTRY.keys()),
                         )
-                    )
+                    ) from err
 
-                # Step 3: If parameters are provided in request and they differ from existing pipeline, create new pipeline object
-                if request.pipeline.parameters:
-                    # Step 3.a: Create new pipeline object, if necessary
-                    for parameter in request.pipeline.parameters:
-                        try:
-                            # Step 3.a.i: Compare against existing parameter value
-                            if (
-                                pipeline.get_parameter_value(parameter.parameter_id)
-                                != parameter.value
-                            ):
-                                pipeline = get_pipeline(
-                                    pipeline_id=request.pipeline.pipeline_id,
-                                    invoke__init__=True,
-                                )
-                                break
-                        except KeyError as err:
+                # Step 2: Load default retriever keyword arguments
+                retriever_kwargs = {
+                    k: v.default for k, v in retriever.__dataclass_fields__.items()
+                }
+
+                # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
+                if request.retriever.parameters:
+                    for parameter in request.retriever.parameters:
+                        if parameter.parameter_id not in retriever_kwargs:
                             raise Error(
-                                ErrorMessages.INVALID_PIPELINE_PARAMETER.format(
-                                    parameter.parameter_id
+                                ErrorMessages.INVALID_PARAMETER.value.format(
+                                    "retriever", parameter.parameter_id
                                 )
-                            ) from err
-
-                    # Step 3.b: Set different parameter values in new pipeline object
-                    for parameter in request.pipeline.parameters:
-                        # Step 3.b.i: Update different parameter value
-                        if (
-                            pipeline.get_parameter_value(parameter.parameter_id)
-                            != parameter.value
-                        ):
-                            pipeline.set_parameter_value(
-                                parameter_id=parameter.parameter_id,
-                                parameter_value=parameter.value,
                             )
 
-                # Step 4: Run retrieve method
-                results = pipeline.retrieve(
-                    input_texts=request.queries,
-                    index_path=self._store.get_index_file_path(request.index_id),
-                )
+                        retriever_kwargs[parameter.parameter_id] = parameter.value
 
-                # Step 5: Return
+                # Step 4: Load index information
+                if request.index_id:
+                    index_root = self._store.get_index_directory_path(request.index_id)
+                    # Step 4.a: Check if `index_root` exists
+                    if not self._store.exists(index_root):
+                        raise Error(
+                            ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(
+                                request.index_id
+                            )
+                        )
+
+                    # Step 4.b: Load index information
+                    index_information = self._store.get_index_information(
+                        index_id=request.index_id
+                    )
+                    if index_information[ATTR_STATUS] != IndexStatus.READY.value:
+                        raise Error(
+                            ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
+                                index_information[ATTR_STATUS]
+                            )
+                        )
+
+                    # Step 4.c: Update index specific arguments
+                    retriever_kwargs[
+                        "index_root"
+                    ] = self._store.get_index_directory_path(request.index_id)
+                    retriever_kwargs["index_name"] = DIR_NAME_INDEX
+                else:
+                    raise Error(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
+
+                # Step 5: Create retriever instance
+                try:
+                    instance = RetrieverFactory.get(retriever, retriever_kwargs)
+                except ValueError as err:
+                    raise Error(err.args[0]) from err
+
+                # Step 6: Retrieve
+                try:
+                    results = instance.retrieve(
+                        input_texts=request.queries,
+                    )
+                except TypeError as err:
+                    raise Error(
+                        ErrorMessages.FAILED_TO_INITIALIZE.value.format(
+                            f"{retriever.retriever_id} retriever"
+                        )
+                    ) from err
+
+                # Step 7: Return
                 hits = []
                 for result_per_query in results:
                     hits_per_query = []
                     for hit in result_per_query:
                         try:
+                            document = self._store.get_index_document(
+                                index_id=request.index_id, document_idx=hit[0]
+                            )
                             hits_per_query.append(
                                 {
-                                    "document": self._store.get_index_document(
-                                        index_id=request.index_id, document_idx=hit[0]
-                                    ),
+                                    "document": {
+                                        "text": document["text"],
+                                        "document_id": document["document_id"]
+                                        if "document_id" in document
+                                        else None,
+                                        "title": document["title"]
+                                        if "title" in document
+                                        else None,
+                                    },
                                     "score": hit[1],
                                 }
                             )

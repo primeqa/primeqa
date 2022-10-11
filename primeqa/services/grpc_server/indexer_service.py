@@ -127,7 +127,10 @@ class IndexerService(IndexerServicer):
                 except KeyError:
                     context.set_code(StatusCode.INVALID_ARGUMENT)
                     context.set_details(
-                        f"Invalid indexer: {request.indexer.indexer_id}. Please select one of the following pre-defined indexers: {', '.join(INDEXERS_REGISTRY.keys())}"
+                        ErrorMessages.INVALID_INDEXER.value.format(
+                            request.indexer.indexer_id,
+                            ", ".join(INDEXERS_REGISTRY.keys()),
+                        )
                     )
                     return GenerateIndexResponse()
 
@@ -144,27 +147,12 @@ class IndexerService(IndexerServicer):
                 # Step 2.d: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
                 if request.indexer.parameters:
                     for parameter in request.indexer.parameters:
-                        try:
-                            indexer_kwargs[
-                                parameter.parameter_id
-                            ] = parse_parameter_value(
-                                parameter,
-                                get_parameter_type(
-                                    component=indexer,
-                                    parameter_id=parameter.parameter_id,
-                                ),
-                            )
-                            # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
-                            if parameter.parameter_id == "checkpoint":
-                                indexer_kwargs[
-                                    "checkpoint"
-                                ] = self._store.get_checkpoint_path(
-                                    indexer_kwargs["checkpoint"]
-                                )
-                        except KeyError:
+                        if parameter.parameter_id not in indexer_kwargs:
                             context.set_code(StatusCode.INVALID_ARGUMENT)
                             context.set_details(
-                                f"Invalid indexer parameter: {parameter.parameter_id}. Only pre-defined parameters can be modified."
+                                ErrorMessages.INVALID_PARAMETER.value.format(
+                                    "indexer", parameter.parameter_id
+                                )
                             )
                             return GenerateIndexResponse()
 
