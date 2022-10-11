@@ -10,7 +10,7 @@ from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import gzip_str
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import build_index, IndexOptions
 import base64
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
-from primeqa.ir.dense.dpr_top.util.corpus_reader import corpus_reader, Passage
+from primeqa.ir.util.corpus_reader import corpus_reader, Passage
 from transformers import (
     DPRContextEncoder,
     DPRContextEncoderTokenizerFast,
