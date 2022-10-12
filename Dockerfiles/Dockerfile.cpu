@@ -59,8 +59,7 @@ COPY ./primeqa ./primeqa
 
 COPY --from=prep /protos/*.py ./primeqa/services/grpc_server/grpc_generated/
 
-RUN python setup.py bdist_wheel --python-tag py3 && \
-    mv ./dist/primeqa-*-py3-none-any.whl ./dist/primeqa-$(cat VERSION)-py3-none-any.whl || :
+RUN python setup.py bdist_wheel --python-tag py3
 
 # #############################################################################
 
@@ -115,11 +114,12 @@ RUN useradd -c "Application User" -U -u 2000 -d /app -m app
 
 WORKDIR /app
 
-# Install application
-COPY --from=wheel /app/dist/primeqa-*-py3-none-any.whl ./wheels/
+# Copy wheel
+COPY --from=wheel /app/VERSION .
+COPY --from=wheel /app/dist/primeqa-$(cat VERSION)-py3-none-any.whl ./wheels/
 
-# Install wheels
-RUN pip install wheels/primeqa-*-py3-none-any.whl
+# Install wheel
+RUN pip install wheels/primeqa-$(cat VERSION)-py3-none-any.whl
 
 # List packages
 RUN pip list

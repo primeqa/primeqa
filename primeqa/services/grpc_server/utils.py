@@ -74,7 +74,7 @@ def generate_parameters(component: Component, skip: List[str] = None) -> Dict[st
                 # if "options" aren't provide, continue processing other parameters
                 pass
         else:
-            raise ValueError(f"Unsupported parametr type: {parameter_dict['type']}.")
+            raise ValueError(f"Unsupported parameter type: {parameter_dict['type']}.")
 
         grpc_parameters.append(grpc_parameter)
 
