@@ -25,6 +25,7 @@ primeqa.qg.run\_qg.DataTrainingArguments
 
    .. autosummary::
    
+      ~DataTrainingArguments.dataset_config
       ~DataTrainingArguments.dataset_name
       ~DataTrainingArguments.max_len
       ~DataTrainingArguments.target_max_len

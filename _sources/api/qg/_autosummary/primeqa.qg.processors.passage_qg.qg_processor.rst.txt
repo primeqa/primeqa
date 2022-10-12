@@ -1,7 +1,7 @@
-wikisql\_processor
-==================
+qg\_processor
+=============
 
-.. automodule:: primeqa.qg.processors.table_qg.wikisql_processor
+.. automodule:: primeqa.qg.processors.passage_qg.qg_processor
 
    
    
@@ -20,7 +20,7 @@ wikisql\_processor
       :template: custom-class-template.rst
       :nosignatures:
    
-      WikiSqlDataset
+      QGProcessor
    
    
 

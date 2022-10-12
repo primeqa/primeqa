@@ -26,6 +26,5 @@ passage\_qg
    :template: custom-module-template.rst
    :recursive:
 
-   primeqa.qg.processors.passage_qg.squad_processor
-   primeqa.qg.processors.passage_qg.tydiqa_processor
+   primeqa.qg.processors.passage_qg.qg_processor
 

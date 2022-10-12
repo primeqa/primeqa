@@ -1,7 +1,7 @@
-squad\_processor
-================
+sql\_processor
+==============
 
-.. automodule:: primeqa.qg.processors.passage_qg.squad_processor
+.. automodule:: primeqa.qg.processors.table_qg.sql_processor
 
    
    
@@ -20,7 +20,7 @@ squad\_processor
       :template: custom-class-template.rst
       :nosignatures:
    
-      SquadDataset
+      SqlProcessor
    
    
 

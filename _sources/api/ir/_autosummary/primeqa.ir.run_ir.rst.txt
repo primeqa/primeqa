@@ -28,7 +28,6 @@ run\_ir
       :template: custom-class-template.rst
       :nosignatures:
    
-      DPRConfig
       ProcessArguments
    
    

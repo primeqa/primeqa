@@ -26,5 +26,5 @@ table\_qg
    :template: custom-module-template.rst
    :recursive:
 
-   primeqa.qg.processors.table_qg.wikisql_processor
+   primeqa.qg.processors.table_qg.sql_processor
 

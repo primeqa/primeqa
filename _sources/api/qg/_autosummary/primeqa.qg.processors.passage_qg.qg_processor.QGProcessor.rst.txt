@@ -1,0 +1,34 @@
+primeqa.qg.processors.passage\_qg.qg\_processor.QGProcessor
+===========================================================
+
+.. currentmodule:: primeqa.qg.processors.passage_qg.qg_processor
+
+.. autoclass:: QGProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~QGProcessor.convert_to_features
+      ~QGProcessor.preprocess_data
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~QGProcessor.tokenizer
+      ~QGProcessor.input_max_len
+      ~QGProcessor.target_max_len
+   
+   

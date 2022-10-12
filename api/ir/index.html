@@ -285,6 +285,25 @@
   <a class="reference internal nav-link" href="#model-training">
    Model Training
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#model-training-with-colbert-engine">
+     Model Training With ColBERT Engine
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#model-training-with-dpr-engine">
+     Model Training With DPR Engine
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#additional-training-file-formats-for-model-training-with-dpr-engine">
+       Additional Training File Formats for Model Training With DPR Engine
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#indexing">
@@ -297,13 +316,18 @@
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#dense-index-using-colbert">
-     Dense Index using ColBERT
+    <a class="reference internal nav-link" href="#dense-index-with-colbert-engine">
+     Dense Index With ColBERT Engine
     </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#sparse-index-using-pyserini">
-     Sparse Index using Pyserini
+    <a class="reference internal nav-link" href="#dense-index-with-dpr">
+     Dense Index With DPR
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#sparse-index-with-pyserini">
+     Sparse Index With Pyserini
     </a>
    </li>
   </ul>
@@ -314,8 +338,8 @@
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#dense-index-retrieval">
-     Dense Index Retrieval
+    <a class="reference internal nav-link" href="#dense-index-retrieval-with-colbert-engine">
+     Dense Index Retrieval With Colbert Engine
     </a>
     <ul class="nav section-nav flex-column">
      <li class="toc-h4 nav-item toc-entry">
@@ -324,6 +348,11 @@
       </a>
      </li>
     </ul>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#dense-index-retrieval-with-dpr-engine">
+     Dense Index Retrieval With DPR Engine
+    </a>
    </li>
    <li class="toc-h3 nav-item toc-entry">
     <a class="reference internal nav-link" href="#sparse-index-retrieval">
@@ -396,17 +425,20 @@
 <p>Before continuing below make sure you have PrimeQA <a class="reference external" href="https://primeqa.github.io/primeqa/installation.html">installed</a>.</p>
 <p>PrimeQA provides both dense and sparse IR components.</p>
 <ul class="simple">
-<li><p><strong>Dense IR</strong> is a ColBERT-based IR Engine enabling scalable BERT-based search</p></li>
-<li><p><strong>Sparse IR</strong> is a Pyserini-based IR Engine enabling BM25 ranking using bag of words representation</p></li>
+<li><p>There are two <strong>Dense IR</strong> engines supported: ColBERT and Direct Passage Retrieval (DPR).</p></li>
+<li><p><strong>Sparse IR</strong> is a Pyserini-based IR Engine enabling BM25 ranking using bag of words representation.</p></li>
 </ul>
-<p>This README shows how to run the basic model training, data indexing, retrieval using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+<p>This README shows how to run the basic model training, data indexing, and retrieval steps using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
 <p>Sample data files are <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/tests/resources/ir_dense">here</a>, their formats are shown in the Jupyter notebooks <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir.ipynb">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_student_teacher.ipynb">here</a>.</p>
 <p>The steps involved in training a model using the DR.DECR (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in <a class="reference external" href="https://arxiv.org/abs/2112.08185">Learning Cross-Lingual IR from an English Retriever</a>, are outlined in the <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_student_teacher.ipynb">Jupyter notebook</a>.</p>
+<p>The steps involved in training a model using the DPR-based engine are described in this <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_dpr.ipynb">Jupyter notebook</a></p>
 <p>The <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/sparse/bm25_retrieval.ipynb">Jupyter notebook</a> shows how to use the Sparse retriever API.</p>
 <section id="model-training">
 <h2>Model Training<a class="headerlink" href="#model-training" title="Permalink to this headline">#</a></h2>
-<p>Dense IR requires training a model.  The following is an example of training a ColBERT model using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
-<p>The command uses training data in a <em>.tsv</em> (tabulator character separated) file, containing training examples in the form of <em>[query, positive_passage, negative_passage]</em> triples. An example of a training data file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv">here</a>.
+<p><strong>Dense IR</strong> requires training a model. The following examples show model training using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+<section id="model-training-with-colbert-engine">
+<h3>Model Training With ColBERT Engine<a class="headerlink" href="#model-training-with-colbert-engine" title="Permalink to this headline">#</a></h3>
+<p>The script uses training data in a <em>.tsv</em> (tabulator character separated) file, containing training examples in the form of <em>[query, positive_passage, negative_passage]</em> triples. An example of a training data file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct.tsv">here</a>.
 This table shows two lines from the file, with the positive and negative passages truncated:</p>
 <table class="colwidths-auto table">
 <thead>
@@ -431,14 +463,14 @@ This table shows two lines from the file, with the positive and negative passage
     --do_train <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
     --amp <span class="se">\</span>
-    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
-    --bsize <span class="m">192</span> <span class="se">\</span>
-    --accum <span class="m">6</span> <span class="se">\</span>
-    --maxsteps <span class="m">100000</span> <span class="se">\</span>
-    --save_steps <span class="m">20000</span>
+    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
+    --bsize &lt;training_batch_size&gt; <span class="se">\</span>
+    --accum &lt;number_of_gradient_accumulation_steps&gt; <span class="se">\</span>
+    --maxsteps &lt;number_of_training_steps&gt; <span class="se">\</span>
+    --save_steps &lt;number_of_training_steps_between_saving_checkpoins&gt;
     --mask-punctuation <span class="se">\</span>
-    --lr 6e-06 <span class="se">\</span>
-    --similarity l2 <span class="se">\</span>
+    --lr &lt;learnig_rate&gt; <span class="se">\</span>
+    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
     --model_type xlm-roberta-base <span class="se">\</span>
     --triples &lt;training_data&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
@@ -447,12 +479,82 @@ This table shows two lines from the file, with the positive and negative passage
 </div>
 <p>The trained model is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/none/&lt;year_month/&lt;day&gt;/&lt;time&gt;/checkpoints/colbert-LAST.dnn</span></code>, with intermediate model files in the same <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> directory.</p>
 </section>
+<section id="model-training-with-dpr-engine">
+<h3>Model Training With DPR Engine<a class="headerlink" href="#model-training-with-dpr-engine" title="Permalink to this headline">#</a></h3>
+<p>As with the ColBERT engine, the example uses training data in a <em>.tsv</em> (tabulator character separated) file, containing training examples in the form of <em>[query, positive_passage, negative_passage]</em> triples. An example of a training data file with English queries is  <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_negs_5_poss_1_001pct_at_0pct_en.tsv">here</a>.</p>
+<p>This table shows two lines from the file, with the positive and negative passages truncated:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>query</p></th>
+<th class="head"><p>positive_passage</p></th>
+<th class="head"><p>negative_passage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Who maintained the throne for the longest time in China?</p></td>
+<td><p>“Kangxi Emperor The Kangxi Emperors reign of 61 years …</p></td>
+<td><p>Chiddy Bang new songs from the duo and in November 2009 debuted…</p></td>
+</tr>
+<tr class="row-odd"><td><p>Who maintained the throne for the longest time in China?</p></td>
+<td><p>Kangxi Emperor The Kangxi Emperors reign of 61 years …</p></td>
+<td><p>Emperor Zhi Yao. The Bamboo Annals says that when Emperor Zhuanxu died …</p></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_train <span class="se">\</span>
+    --engine_type DPR <span class="se">\</span>
+    --train_dir &lt;training_file_or_directory&gt; <span class="se">\</span>
+    --output_dir &lt;output_directory&gt; <span class="se">\</span>
+    --num_train_epochs &lt;number_of_training_epochs <span class="se">\</span>
+    --full_train_batch_size &lt;training_batch_size&gt; <span class="se">\</span>
+    --training_data_type text_triples
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--train_dir</span></code> contains either a name of a single file, or a directory. If we specify a directory, the script runs training using all files in the directory with the filename extension matching the expected file type (e.g. <em>.tsv</em>).</p>
+<p>The trained models are stored in <code class="docutils literal notranslate"><span class="pre">&lt;output_directory&gt;/qry_encoder</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;output_directory&gt;/ctx_encoder</span></code>.</p>
+<section id="additional-training-file-formats-for-model-training-with-dpr-engine">
+<h4>Additional Training File Formats for Model Training With DPR Engine<a class="headerlink" href="#additional-training-file-formats-for-model-training-with-dpr-engine" title="Permalink to this headline">#</a></h4>
+<p>The engine supports the following data formats:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p><em>-training_data_type</em> value</p></th>
+<th class="head"><p>filename extension(s)</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>dpr</p></td>
+<td><p>.json, .json.gz</p></td>
+<td><p>JSON file as in https://dl.fbaipublicfiles.com/dpr/data/retriever/biencoder-nq-train.json.gz</p></td>
+</tr>
+<tr class="row-odd"><td><p>text_triples</p></td>
+<td><p>.tsv</p></td>
+<td><p>[query, positive_passage, negative_passage] triples</p></td>
+</tr>
+<tr class="row-even"><td><p>text_triples_with_title</p></td>
+<td><p>.tsv</p></td>
+<td><p>[query, positive_passage, negative_passage] triples, with the passage fiels containing title and text divided be a vertical bar character</p></td>
+</tr>
+<tr class="row-odd"><td><p>num_triples</p></td>
+<td><p>.tsv</p></td>
+<td><p>[query, positive_passage, negative_passage] triples stored as numerical IDs. <br/>The <em>.tsv</em> file containing the text of queries in the form of [ID, text] is specified in the <code class="docutils literal notranslate"><span class="pre">--queries</span></code> argument. <br/>The <em>.tsv</em> file containing the text of document in the form of [ID, text, title] is specified in the <code class="docutils literal notranslate"><span class="pre">--collection</span></code> argument.</p></td>
+</tr>
+<tr class="row-even"><td><p>kgi_jsonl</p></td>
+<td><p>.jsonl*</p></td>
+<td><p>JSONL file containing training examples, as described in https://github.com/IBM/kgi-slot-filling</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
 <section id="indexing">
 <h2>Indexing<a class="headerlink" href="#indexing" title="Permalink to this headline">#</a></h2>
-<p>The following are examples of how to index a corpus using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
+<p>The following are examples of how to index a collection (set of documents or passages to be searched) using the <code class="docutils literal notranslate"><span class="pre">run_ir.py</span></code> script.</p>
 <section id="corpus-format">
 <h3>Corpus Format<a class="headerlink" href="#corpus-format" title="Permalink to this headline">#</a></h3>
-<p>The command requires a corpus (collection) data in a <em>.tsv</em> file, containing collection records in the form of <em>[ID, text, title]</em> triples. The first line of the file contains a header record.
+<p>The script reads the collection data from a <em>.tsv</em> file, containing collection records in the form of <em>[ID, text, title]</em> triples. The first line of the file contains a header record.
 An example of a collection file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv">here</a>.</p>
 <p>This table shows the three lines from the file, with <em>text</em> fields truncated:</p>
 <table class="colwidths-auto table">
@@ -474,28 +576,45 @@ An example of a collection file is <a class="reference external" href="https://g
 </tbody>
 </table>
 </section>
-<section id="dense-index-using-colbert">
-<h3>Dense Index using ColBERT<a class="headerlink" href="#dense-index-using-colbert" title="Permalink to this headline">#</a></h3>
-<p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training">here</a>, the following command builds the index.</p>
+<section id="dense-index-with-colbert-engine">
+<h3>Dense Index With ColBERT Engine<a class="headerlink" href="#dense-index-with-colbert-engine" title="Permalink to this headline">#</a></h3>
+<p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-colbert-engine">here</a>, the following command builds the ColBERT index.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_index <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
-    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
+    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
     --mask-punctuation <span class="se">\</span>
-    --bsize <span class="m">256</span> <span class="se">\</span>
-    --similarity l2 <span class="se">\</span>
+    --bsize &lt;indexing_batch_size&gt; <span class="se">\</span>
+    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
     --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
     --collection &lt;document_collection&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
     --experiment &lt;experiment_label&gt; <span class="se">\</span>
     --index_name &lt;index_label&gt; <span class="se">\</span>
-    --compression_level <span class="m">2</span>
+    --compression_level &lt;number_of_bits_in_residual_representations&gt;
 </pre></div>
 </div>
-<p>The index is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/&lt;index_label&gt;</span></code> directory.</p>
+<p>The resulting index is stored in the <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/&lt;index_label&gt;</span></code> directory.</p>
 </section>
-<section id="sparse-index-using-pyserini">
-<h3>Sparse Index using Pyserini<a class="headerlink" href="#sparse-index-using-pyserini" title="Permalink to this headline">#</a></h3>
+<section id="dense-index-with-dpr">
+<h3>Dense Index With DPR<a class="headerlink" href="#dense-index-with-dpr" title="Permalink to this headline">#</a></h3>
+<p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-dpr-engine">here</a>, the following command builds the DPR index.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --engine_type DPR <span class="se">\</span>
+    --do_index <span class="se">\</span>
+    --dpr_ctx_encoder_path &lt;context_encoder_model&gt; <span class="se">\</span>
+    --embed &lt;part_number&gt;of&lt;parts_total&gt; <span class="se">\</span>
+    --sharded_index <span class="se">\</span>
+    --corpus &lt;document_collection&gt;  <span class="se">\</span>
+    --output_dir &lt;output_directory&gt; <span class="se">\</span>
+    --batch_size &lt;indexing_batch_size&gt; <span class="se">\</span>
+</pre></div>
+</div>
+<p>Indexing can be parallelized using the <code class="docutils literal notranslate"><span class="pre">--embed</span></code> argument. To accomplish that, we specify the same <code class="docutils literal notranslate"><span class="pre">parts_total</span></code> value (e.g. 16) for all the parallel indexing commands, and specify the <code class="docutils literal notranslate"><span class="pre">part_number</span></code> values (from 1 to <code class="docutils literal notranslate"><span class="pre">parts_total</span></code>) used in the individual commands, e.g. <code class="docutils literal notranslate"><span class="pre">1of16</span></code>, <code class="docutils literal notranslate"><span class="pre">2of16</span></code> to <code class="docutils literal notranslate"><span class="pre">16of16</span></code>.</p>
+<p>The resulting index is stored in <code class="docutils literal notranslate"><span class="pre">output_directory</span></code>.</p>
+</section>
+<section id="sparse-index-with-pyserini">
+<h3>Sparse Index With Pyserini<a class="headerlink" href="#sparse-index-with-pyserini" title="Permalink to this headline">#</a></h3>
 <p>The following command builds an index for BM25 retrieval.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_index <span class="se">\</span>
@@ -509,19 +628,19 @@ An example of a collection file is <a class="reference external" href="https://g
 </section>
 <section id="retrieval">
 <h2>Retrieval<a class="headerlink" href="#retrieval" title="Permalink to this headline">#</a></h2>
-<p>The command uses queries (questions) in a <em>.tsv</em> file in the form of <em>[ID, text]</em> records.
+<p>The script uses queries (questions) in a <em>.tsv</em> file in the form of <em>[ID, text]</em> records.
 An example of a queries data file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_queries_fornum.tsv">here</a>.</p>
-<section id="dense-index-retrieval">
-<h3>Dense Index Retrieval<a class="headerlink" href="#dense-index-retrieval" title="Permalink to this headline">#</a></h3>
-<p>The command uses a model and index as created in the previous two steps</p>
+<section id="dense-index-retrieval-with-colbert-engine">
+<h3>Dense Index Retrieval With Colbert Engine<a class="headerlink" href="#dense-index-retrieval-with-colbert-engine" title="Permalink to this headline">#</a></h3>
+<p>The command uses a model and index as created in the previous training and indexing steps, described  <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-colbert-engine">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#dense-index-with-colbert-engine">here</a>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_search <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
     --amp <span class="se">\</span>
-    --doc_maxlen <span class="m">180</span> <span class="se">\</span>
+    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
     --mask-punctuation <span class="se">\</span>
-    --bsize <span class="m">16</span> <span class="se">\</span>
-    --similarity l2 <span class="se">\</span>
+    --bsize &lt;search_batch_size&gt; <span class="se">\</span>
+    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
     --retrieve_only <span class="se">\</span>
     --queries &lt;query_file&gt; <span class="se">\</span>
     --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
@@ -529,7 +648,7 @@ An example of a queries data file is <a class="reference external" href="https:/
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
     --experiment &lt;experiment_label&gt; <span class="se">\</span>
     --index_name &lt;index_label&gt; <span class="se">\</span>
-    --ranks_fn &lt;scores_and_ranks&gt; <span class="se">\</span>
+    --ranks_fn &lt;scores_and_ranks&gt;
 </pre></div>
 </div>
 <p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
@@ -565,6 +684,24 @@ An example of a queries data file is <a class="reference external" href="https:/
 <p>See the <a class="reference external" href="https://arxiv.org/abs/2205.09707">PLAID paper</a> for more details.</p>
 <p>Note that the previous ColBERTv2 hyperparameters <code class="docutils literal notranslate"><span class="pre">nprobe</span></code> and <code class="docutils literal notranslate"><span class="pre">ncandidates</span></code> are now deprecated.</p>
 </section>
+</section>
+<section id="dense-index-retrieval-with-dpr-engine">
+<h3>Dense Index Retrieval With DPR Engine<a class="headerlink" href="#dense-index-retrieval-with-dpr-engine" title="Permalink to this headline">#</a></h3>
+<p>The command uses a model and index as created in the previous training and indexing steps, described  <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-dpr-engine">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#dense-index-with-dpr-engine">here</a>.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
+    --do_search <span class="se">\</span>
+    --engine_type DPR <span class="se">\</span>
+    --queries &lt;query_file&gt; <span class="se">\</span>
+    --qry_encoder_path &lt;context_encoder_model&gt; <span class="se">\</span>
+    --retrieve_batch_size &lt;search_batch_size&gt; <span class="se">\</span>
+    --corpus_dir &lt;index_directory&gt; <span class="se">\</span>
+    --output &lt;scores_and_ranks&gt; <span class="se">\ </span>
+    --n_docs_for_provenance &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
+    --output_simple_tsv <span class="se">\</span>
+    --query_file_type text_answers
+</pre></div>
+</div>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
 </section>
 <section id="sparse-index-retrieval">
 <h3>Sparse Index Retrieval<a class="headerlink" href="#sparse-index-retrieval" title="Permalink to this headline">#</a></h3>

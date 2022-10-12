@@ -1,0 +1,35 @@
+primeqa.qg.processors.table\_qg.sql\_processor.SqlProcessor
+===========================================================
+
+.. currentmodule:: primeqa.qg.processors.table_qg.sql_processor
+
+.. autoclass:: SqlProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SqlProcessor.convert_to_features
+      ~SqlProcessor.load_tables
+      ~SqlProcessor.preprocess_data
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SqlProcessor.tokenizer
+      ~SqlProcessor.input_max_len
+      ~SqlProcessor.target_max_len
+   
+   

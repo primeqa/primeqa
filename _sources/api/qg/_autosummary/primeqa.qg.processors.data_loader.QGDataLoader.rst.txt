@@ -16,7 +16,6 @@ primeqa.qg.processors.data\_loader.QGDataLoader
    .. autosummary::
       :nosignatures:
    
-      ~QGDataLoader.convert_to_features
       ~QGDataLoader.create
    
    
