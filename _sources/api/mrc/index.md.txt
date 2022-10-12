@@ -216,7 +216,7 @@ R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 
 ### Custom Data
 
-Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](/examples/mrc/README.md).
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
 
 ## Special MRC Features:
 
