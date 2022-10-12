@@ -118,6 +118,12 @@ class RetrieverService(RetrieverServicer):
                         retriever_kwargs["checkpoint"]
                     )
 
+                # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                if parameter.parameter_id == "checkpoint":
+                    retriever_kwargs["checkpoint"] = self._store.get_checkpoint_path(
+                        retriever_kwargs["checkpoint"]
+                    )
+
         # Step 4: Load index information
         if request.index_id:
             index_root = self._store.get_index_directory_path(request.index_id)
