@@ -16,8 +16,8 @@ class RetrieverStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.getRetrievers = channel.unary_unary(
-                '/retrieve.Retriever/getRetrievers',
+        self.GetRetrievers = channel.unary_unary(
+                '/retrieve.Retriever/GetRetrievers',
                 request_serializer=retriever__pb2.GetRetrieversRequest.SerializeToString,
                 response_deserializer=retriever__pb2.GetRetrieversResponse.FromString,
                 )
@@ -33,7 +33,7 @@ class RetrieverServicer(object):
     Service to process and retrieve documents
     """
 
-    def getRetrievers(self, request, context):
+    def GetRetrievers(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -48,8 +48,8 @@ class RetrieverServicer(object):
 
 def add_RetrieverServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'getRetrievers': grpc.unary_unary_rpc_method_handler(
-                    servicer.getRetrievers,
+            'GetRetrievers': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetRetrievers,
                     request_deserializer=retriever__pb2.GetRetrieversRequest.FromString,
                     response_serializer=retriever__pb2.GetRetrieversResponse.SerializeToString,
             ),
@@ -71,7 +71,7 @@ class Retriever(object):
     """
 
     @staticmethod
-    def getRetrievers(request,
+    def GetRetrievers(request,
             target,
             options=(),
             channel_credentials=None,
@@ -81,7 +81,7 @@ class Retriever(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/getRetrievers',
+        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/GetRetrievers',
             retriever__pb2.GetRetrieversRequest.SerializeToString,
             retriever__pb2.GetRetrieversResponse.FromString,
             options, channel_credentials,

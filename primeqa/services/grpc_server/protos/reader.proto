@@ -42,7 +42,7 @@ message Answer {
     uint32 start_char_offset = 2;
     uint32 end_char_offset = 3;
     double confidence_score = 4;
-    uint32 passage_index = 5;
+    uint32 context_index = 5;
 };
 
 message AnswersForContext {

@@ -173,10 +173,14 @@ class ExtractiveReader(ReaderComponent):
         ).items():
             for raw_prediction in raw_predictions:
                 processed_prediction = {}
-                processed_prediction["example_id"] = raw_prediction['example_id']
-                processed_prediction["span_answer_text"] = raw_prediction['span_answer_text']
-                processed_prediction["span_answer"] = raw_prediction['span_answer']
-                processed_prediction["confidence_score"] = raw_prediction['confidence_score']
+                processed_prediction["example_id"] = raw_prediction["example_id"]
+                processed_prediction["span_answer_text"] = raw_prediction[
+                    "span_answer_text"
+                ]
+                processed_prediction["span_answer"] = raw_prediction["span_answer"]
+                processed_prediction["confidence_score"] = raw_prediction[
+                    "confidence_score"
+                ]
                 predictions[int(passage_idx)].append(processed_prediction)
 
         # If min_score_threshold is provide, use it to filter out predictions

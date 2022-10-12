@@ -143,7 +143,7 @@ class ReaderService(ReaderServicer):
                                             confidence_score=prediction[
                                                 "confidence_score"
                                             ],
-                                            passage_index=int(prediction["example_id"]),
+                                            context_index=int(prediction["example_id"]),
                                         )
                                         for prediction in predictions_for_context
                                     ]

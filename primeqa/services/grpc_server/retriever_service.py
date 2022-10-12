@@ -38,7 +38,7 @@ class RetrieverService(RetrieverServicer):
         self._store = StoreFactory.get_store()
         self._logger.info("%s is successfully initialized.", self.__class__.__name__)
 
-    def getRetrievers(
+    def GetRetrievers(
         self, request: GetRetrieversRequest, context: ServicerContext
     ) -> GetRetrieversResponse:
         """_summary_
@@ -111,6 +111,12 @@ class RetrieverService(RetrieverServicer):
                     ),
                 )
 
+                # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                if parameter.parameter_id == "checkpoint":
+                    retriever_kwargs["checkpoint"] = self._store.get_checkpoint_path(
+                        retriever_kwargs["checkpoint"]
+                    )
+
         # Step 4: Load index information
         if request.index_id:
             index_root = self._store.get_index_directory_path(request.index_id)
@@ -140,6 +146,12 @@ class RetrieverService(RetrieverServicer):
                 request.index_id
             )
             retriever_kwargs["index_name"] = DIR_NAME_INDEX
+
+            # Step 5: Set collection
+            retriever_kwargs["collection"] = self._store.get_index_documents_file_path(
+                index_id=request.index_id
+            )
+
         else:
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(ErrorMessages.INVALID_REQUEST.value.format("index_id"))

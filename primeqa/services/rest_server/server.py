@@ -204,7 +204,7 @@ class RestServer:
                                 "end_position"
                             ],
                             "confidence_score": prediction["confidence_score"],
-                            "passage_index": int(prediction["example_id"]),
+                            "context_index": int(prediction["example_id"]),
                         }
                         for prediction in predictions_for_passage
                     ]
@@ -448,6 +448,14 @@ class RestServer:
                             )
 
                         retriever_kwargs[parameter.parameter_id] = parameter.value
+
+                        # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                        if parameter.parameter_id == "checkpoint":
+                            retriever_kwargs[
+                                "checkpoint"
+                            ] = self._store.get_checkpoint_path(
+                                retriever_kwargs["checkpoint"]
+                            )
 
                 # Step 4: Load index information
                 if request.index_id:

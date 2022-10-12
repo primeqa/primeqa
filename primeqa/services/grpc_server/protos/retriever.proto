@@ -8,7 +8,7 @@ package retrieve;
     Service to process and retrieve documents
 */
 service Retriever {
-    rpc getRetrievers(GetRetrieversRequest) returns (GetRetrieversResponse);
+    rpc GetRetrievers(GetRetrieversRequest) returns (GetRetrieversResponse);
     rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
 }
 
