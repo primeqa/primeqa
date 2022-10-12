@@ -13,6 +13,8 @@ class ColBERTRetriever(RetrieverComponent):
     Args:
         index_root: str
         index_name: str
+        checkpoint (str, optional): Model to load. Defaults to checkpoint in index configuration.
+        collection (str, optional): collection to load. Defaults to collection in index configuration.
         max_num_documents (int, optional): Maximum number of document. Defaults to 100.
         ncells (int, optional): Number of cells. Defaults to None.
         centroid_score_threshold (float, optional): Centroid score threshold. Defaults to None.
@@ -20,7 +22,23 @@ class ColBERTRetriever(RetrieverComponent):
 
     Returns:
         _type_: _description_
+
     """
+
+    checkpoint: str = field(
+        default=None,
+        metadata={
+            "name": "Checkpoint",
+            "description": "Path to checkpoint",
+        },
+    )
+    collection: str = field(
+        default=None,
+        metadata={
+            "name": "Collection",
+            "description": "Path to collection",
+        },
+    )
 
     max_num_documents: int = field(
         default=100,
@@ -48,6 +66,8 @@ class ColBERTRetriever(RetrieverComponent):
     def __post_init__(self):
         self._config = ColBERTConfig(
             index_root=self.index_root,
+            index_name=self.index_name,
+            index_path=f"{self.index_root}/{self.index_name}",
             ncells=self.ncells,
             centroid_score_threshold=self.centroid_score_threshold,
             ndocs=self.ndocs,
@@ -57,7 +77,12 @@ class ColBERTRetriever(RetrieverComponent):
         self._searcher = None
 
     def load(self, *args, **kwargs):
-        self._searcher = Searcher(self.index_name, config=self._config)
+        self._searcher = Searcher(
+            self.index_name,
+            checkpoint=self.checkpoint,
+            collection=self.collection,
+            config=self._config,
+        )
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
         # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
