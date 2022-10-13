@@ -107,4 +107,4 @@ class ColBERTIndexer(IndexerComponent):
             raise TypeError(
                 "ColBERT indexer expects path to `documents.tsv` as value for `collection` argument."
             )
-        self._indexer.index(self.index_name, collection)
+        self._indexer.index(self.index_name, collection, overwrite='overwrite' in kwargs and kwargs['overwrite'])

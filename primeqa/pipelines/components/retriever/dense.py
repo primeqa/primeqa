@@ -42,7 +42,7 @@ class ColBERTRetriever(RetrieverComponent):
 
     max_num_documents: int = field(
         default=100,
-        metadata={"name": "Maximum number of documents", "range": [1, 100, 1]},
+        metadata={"name": "Maximum number of retrieved documents", "range": [1, 100, 1]},
     )
     ncells: int = field(
         default=None,
@@ -59,7 +59,7 @@ class ColBERTRetriever(RetrieverComponent):
     ndocs: int = field(
         default=None,
         metadata={
-            "name": "Number of documents",
+            "name": "Number of documents in PLAID Stage 1",
         },
     )
 
