@@ -17,14 +17,14 @@ retriever.set_parameter_value()
 - Step 2:  Initialize the reader model. You can choose any the generative QA model we currently have ...
 
 ```python
-reader = GenerativeFiDPipeline()
+reader = GenerativeFiDReader()
 reader.set_parameter_value("model_name_or_path", "PrimeQA/fid_dpr_bart_large")
 ```
 
 - Step 3:  Initialize the QA pipeline model. 
 
 ```python
-orqa_pipeline = ORQAPipeline(retriever, reader)
+orqa_pipeline = QAPipeline(retriever, reader)
 orqa_pipeline.load()
 ```
 
