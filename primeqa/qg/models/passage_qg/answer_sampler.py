@@ -51,8 +51,21 @@ class AnswerSampler():
             output = self.ner_models[lang](text)
             return [ent.text for ent in output.ents]
         else:
-            raise NotImplementedError
-    
+            NotImplementedError
+
+    def get_named_entities_with_indices_and_types(self, text):
+        """
+        pick the right NER model to use based on detected language of the passage
+        """
+        lang = self.detect_language(text)
+        print('Input language', lang)
+        if self.lang_codes[lang]['method_available'] == 'NER':
+            print("has NER")
+            output = self.ner_models[lang](text)
+            return [ent for ent in output.ents]
+        else:
+            NotImplementedError
+
     def create_qg_input(self, 
                         data_list, 
                         num_questions_per_instance = 5, 
