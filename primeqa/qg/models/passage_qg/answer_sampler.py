@@ -58,9 +58,7 @@ class AnswerSampler():
         pick the right NER model to use based on detected language of the passage
         """
         lang = self.detect_language(text)
-        print('Input language', lang)
         if self.lang_codes[lang]['method_available'] == 'NER':
-            print("has NER")
             output = self.ner_models[lang](text)
             return [ent for ent in output.ents]
         else:
