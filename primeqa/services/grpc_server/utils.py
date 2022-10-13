@@ -50,12 +50,16 @@ def generate_parameters(component: Component, skip: List[str] = None) -> Dict[st
                 )
             )
             try:
+                grpc_parameter.range.extend(parameter_dict["range"])
+            except KeyError:
+                # if "range" isn't provide, continue processing other parameters
+                pass
+            try:
                 grpc_parameter.options.extend(
                     [Value(number_value=entry) for entry in parameter_dict["options"]]
                 )
-                grpc_parameter.range = parameter_dict["range"]
             except KeyError:
-                # if "options" and/or "range" aren't provide, continue processing other parameters
+                # if "options" isn't provide, continue processing other parameters
                 pass
         elif parameter_dict["type"] == bool:
             grpc_parameter.type = "Boolean"

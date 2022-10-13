@@ -41,7 +41,7 @@ class Answer(BaseModel):
     start_char_offset: int
     end_char_offset: int
     confidence_score: float
-    passage_index: int
+    context_index: int
 
 
 #############################################################################################
