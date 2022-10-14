@@ -117,3 +117,12 @@ For more information, see:
 |<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
 |<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |
 | | | | |
+
+
+<br>
+<br>
+<br>
+<br>
+<div align="center">
+    <img width="30" alt="primeqa" src="docs/_static/primeqa_logo.png">
+</div>
