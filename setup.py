@@ -132,8 +132,5 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     include_package_data=True,
-    package_data = {
-    '' : ['*.cpp'],
-    '' : ['*.cu']
-    }
+    package_data={"": ["*.cpp", "*.cu"]}
 )
