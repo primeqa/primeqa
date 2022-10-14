@@ -15,10 +15,10 @@ class ColBERTRetriever(RetrieverComponent):
         index_name: str
         checkpoint (str, optional): Model to load. Defaults to checkpoint in index configuration.
         collection (str, optional): collection to load. Defaults to collection in index configuration.
-        max_num_documents (int, optional): Maximum number of document. Defaults to 100.
+        max_num_documents (int, optional): Maximum number of retrieved document. Defaults to 100.
         ncells (int, optional): Number of cells. Defaults to None.
         centroid_score_threshold (float, optional): Centroid score threshold. Defaults to None.
-        ndocs (int, optional): Number of documents. Defaults to None.
+        ndocs (int, optional): Number of documents in PLAID Stage 1. Defaults to None.
 
     Returns:
         _type_: _description_
@@ -42,7 +42,10 @@ class ColBERTRetriever(RetrieverComponent):
 
     max_num_documents: int = field(
         default=100,
-        metadata={"name": "Maximum number of retrieved documents", "range": [1, 100, 1]},
+        metadata={
+            "name": "Maximum number of retrieved documents",
+            "range": [1, 100, 1],
+        },
     )
     ncells: int = field(
         default=None,
