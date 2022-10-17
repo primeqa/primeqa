@@ -46,6 +46,7 @@ def validate(fields: dict):
 
 class ReaderFactory:
     _instances = {}
+    _loading = []
     _logger = logging.getLogger("ReaderFactory")
 
     @classmethod
@@ -60,20 +61,39 @@ class ReaderFactory:
             f"{reader.__name__}::{json.dumps(reader_kwargs, sort_keys=True)}"
         )
         if instance_id not in cls._instances:
-            cls._instances[instance_id] = reader(**reader_kwargs)
+            # Step 3.a: Check if class is currently loading
+            if instance_id in cls._loading:
+                raise ValueError(
+                    f"{reader.__name__} is currently being loading. Please try again in a short while."
+                )
+            
+            # Step 3.b: Add to loading
+            cls._loading.append(instance_id)
+
+            # Step 3.c: Start creating instance
+            cls._logger.info(
+                "%s - initializing",
+                reader.__name__,
+            )
+            instance = reader(**reader_kwargs)
             start_t = time.time()
-            cls._instances[instance_id].load(load_args, load_kwargs)
+            instance.load(load_args, load_kwargs)
             cls._logger.info(
                 "%s - loading took %.2f seconds",
                 reader.__name__,
                 time.time() - start_t,
             )
 
+            # Step 3.d: Remove from loading and add to available instances
+            cls._instances[instance_id] = instance
+            cls._loading.remove(instance_id)
+
         return cls._instances[instance_id]
 
 
 class RetrieverFactory:
     _instances = {}
+    _loading = []
     _logger = logging.getLogger("RetrieverFactory")
 
     @classmethod
@@ -93,20 +113,39 @@ class RetrieverFactory:
         )
 
         if instance_id not in cls._instances:
-            cls._instances[instance_id] = retriever(**retriever_kwargs)
+            # Step 3.a: Check if class is currently loading
+            if instance_id in cls._loading:
+                raise ValueError(
+                    f"{retriever.__name__} is currently being loading. Please try again in a short while."
+                )
+
+            # Step 3.b: Add to loading
+            cls._loading.append(instance_id)
+
+            # Step 3.c: Start creating instance
+            cls._logger.info(
+                "%s - initializing",
+                retriever.__name__,
+            )
+            instance = retriever(**retriever_kwargs)
             start_t = time.time()
-            cls._instances[instance_id].load(load_args, load_kwargs)
+            instance.load(load_args, load_kwargs)
             cls._logger.info(
                 "%s - loading took %.2f seconds",
                 retriever.__name__,
                 time.time() - start_t,
             )
 
+            # Step 3.d: Remove from loading and add to available instances
+            cls._instances[instance_id] = instance
+            cls._loading.remove(instance_id)
+
         return cls._instances[instance_id]
 
 
 class IndexerFactory:
     _instances = {}
+    _loading = []
     _logger = logging.getLogger("IndexerFactory")
 
     @classmethod
@@ -126,13 +165,31 @@ class IndexerFactory:
         )
 
         if instance_id not in cls._instances:
-            cls._instances[instance_id] = indexer(**indexer_kwargs)
+            # Step 3.a: Check if class is currently loading
+            if instance_id in cls._loading:
+                raise ValueError(
+                    f"{indexer.__name__} is currently being loading. Please try again in a short while."
+                )
+
+            # Step 3.b: Add to loading
+            cls._loading.append(instance_id)
+
+            # Step 3.c: Start creating instance
+            cls._logger.info(
+                "%s - initializing",
+                indexer.__name__,
+            )
+            instance = indexer(**indexer_kwargs)
             start_t = time.time()
-            cls._instances[instance_id].load(load_args, load_kwargs)
+            instance.load(load_args, load_kwargs)
             cls._logger.info(
                 "%s - loading took %.2f seconds",
                 indexer.__name__,
                 time.time() - start_t,
             )
 
+            # Step 3.d: Remove from loading and add to available instances
+            cls._instances[instance_id] = instance
+            cls._loading.remove(instance_id)
+            
         return cls._instances[instance_id]
