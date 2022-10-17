@@ -61,11 +61,11 @@ RUN python setup.py bdist_wheel --python-tag py3
 
 # #############################################################################
 
-FROM nvidia/cuda:11.6.0-cudnn8-runtime-ubuntu20.04 as build
+FROM nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04 as build
 
 RUN apt update && \
     DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" \
-    apt install -y gcc g++ git tini\
+    apt install -y git tini\
     openjdk-11-jdk \
     python3 \
     python3-pip \
