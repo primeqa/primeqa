@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# PrimeQA
 <h3 align="center">
+    <img width="350" alt="primeqa" src="docs/_static/img/PrimeQA.png">
     <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
 
@@ -117,3 +117,12 @@ For more information, see:
 |<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
 |<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |
 | | | | |
+
+
+<br>
+<br>
+<br>
+<br>
+<div align="center">
+    <img width="30" alt="primeqa" src="docs/_static/primeqa_logo.png">
+</div>

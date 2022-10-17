@@ -14,9 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# PrimeQA     
-
-<h3 align="center">
+<h3 align="center" style="margin-top: 0px">
+    <img width="350" alt="primeqa" src="_static/img/PrimeQA.png">
     <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
 
