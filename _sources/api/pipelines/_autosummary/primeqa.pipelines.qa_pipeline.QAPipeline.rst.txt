@@ -1,0 +1,25 @@
+primeqa.pipelines.qa\_pipeline.QAPipeline
+=========================================
+
+.. currentmodule:: primeqa.pipelines.qa_pipeline
+
+.. autoclass:: QAPipeline
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~QAPipeline.run
+   
+   
+
+   
+   
+   

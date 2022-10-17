@@ -1,0 +1,31 @@
+indexer
+=======
+
+.. automodule:: primeqa.pipelines.components.indexer
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.pipelines.components.indexer.dense
+   primeqa.pipelines.components.indexer.sparse
+

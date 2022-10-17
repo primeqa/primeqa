@@ -1,0 +1,39 @@
+primeqa.pipelines.components.retriever.dense.ColBERTRetriever
+=============================================================
+
+.. currentmodule:: primeqa.pipelines.components.retriever.dense
+
+.. autoclass:: ColBERTRetriever
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ColBERTRetriever.load
+      ~ColBERTRetriever.retrieve
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ColBERTRetriever.centroid_score_threshold
+      ~ColBERTRetriever.checkpoint
+      ~ColBERTRetriever.collection
+      ~ColBERTRetriever.max_num_documents
+      ~ColBERTRetriever.ncells
+      ~ColBERTRetriever.ndocs
+      ~ColBERTRetriever.index_root
+      ~ColBERTRetriever.index_name
+   
+   

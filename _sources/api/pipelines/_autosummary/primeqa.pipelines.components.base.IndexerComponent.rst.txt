@@ -1,0 +1,33 @@
+primeqa.pipelines.components.base.IndexerComponent
+==================================================
+
+.. currentmodule:: primeqa.pipelines.components.base
+
+.. autoclass:: IndexerComponent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~IndexerComponent.index
+      ~IndexerComponent.load
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~IndexerComponent.index_root
+      ~IndexerComponent.index_name
+   
+   

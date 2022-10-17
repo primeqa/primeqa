@@ -1,7 +1,7 @@
-extractive\_mrc\_pipeline
-=========================
+dense
+=====
 
-.. automodule:: primeqa.pipelines.extractive_mrc_pipeline
+.. automodule:: primeqa.pipelines.components.retriever.dense
 
    
    
@@ -20,7 +20,7 @@ extractive\_mrc\_pipeline
       :template: custom-class-template.rst
       :nosignatures:
    
-      MRCPipeline
+      ColBERTRetriever
    
    
 

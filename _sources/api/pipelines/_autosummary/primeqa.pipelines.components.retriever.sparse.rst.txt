@@ -1,0 +1,32 @@
+sparse
+======
+
+.. automodule:: primeqa.pipelines.components.retriever.sparse
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BM25Retriever
+   
+   
+
+   
+   
+   
+
+
+

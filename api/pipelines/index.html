@@ -275,9 +275,50 @@
     
     <div class="toc-item">
       
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#retrieval-components">
+   Retrieval Components
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#colbert-engine">
+     ColBERT Engine
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#indexing-with-colbert-engine">
+       Indexing with ColBERT Engine
+      </a>
+     </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#search-with-colbert-engine">
+       Search with ColBERT Engine
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#reader-components">
+   Reader Components
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#extractive-reader">
+     Extractive Reader
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
 </nav>
     </div>
     
@@ -310,6 +351,105 @@
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 <section id="pipelines">
 <h1>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">#</a></h1>
+<p>Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.<br />
+The interfaces for the retrieval, indexing and reader components are defined <span class="xref myst">here</span></p>
+<section id="retrieval-components">
+<h2>Retrieval Components<a class="headerlink" href="#retrieval-components" title="Permalink to this headline">#</a></h2>
+<section id="colbert-engine">
+<h3>ColBERT Engine<a class="headerlink" href="#colbert-engine" title="Permalink to this headline">#</a></h3>
+<p>The following examples show how to use the <em>Component</em> interface to index and search using the ColBERT Engine.</p>
+<p>There is a corresponding Jupyter notebook <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_pipeline.ipynb">here</a>.  The notebook also shows examples of data files and their formats.</p>
+<section id="indexing-with-colbert-engine">
+<h4>Indexing with ColBERT Engine<a class="headerlink" href="#indexing-with-colbert-engine" title="Permalink to this headline">#</a></h4>
+<ul class="simple">
+<li><p><strong>Initializing Indexer</strong></p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.pipelines.components.indexer.dense</span> <span class="kn">import</span> <span class="n">ColBERTIndexer</span>
+
+<span class="n">indexer</span> <span class="o">=</span> <span class="n">ColBERTIndexer</span><span class="p">(</span><span class="n">checkpoint</span> <span class="o">=</span> <span class="n">checkpoint_fn</span><span class="p">,</span> <span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">num_partitions_max</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">indexer</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">checkpoint_fn</span></code> variable points to an existing model (checkpoint), more details on model training are in the Jupyter notebook <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir.ipynb">here</a>.</p>
+<ul class="simple">
+<li><p><strong>Indexing data collection</strong></p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">indexer</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">collection</span> <span class="o">=</span> <span class="n">collection_fn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">collection_fn</span></code> variable points to a data collection to be indexed. It is a <em>.tsv</em> file, containing records in the form of <em>[ID, text, title]</em> triples.
+An example of a collection file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv">here</a>.</p>
+<p>This table shows the three lines from the file, with <em>text</em> fields truncated:</p>
+<table class="colwidths-auto table">
+<thead>
+<tr class="row-odd"><th class="head"><p>id</p></th>
+<th class="head"><p>text</p></th>
+<th class="head"><p>title</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>“The Kangxi Emperor’s reign of 61 years …</p></td>
+<td><p>Kangxi Emperor</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Yao. The Bamboo Annals says that when Emperor Zhuanxu died …</p></td>
+<td><p>Emperor Zhi</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="search-with-colbert-engine">
+<h4>Search with ColBERT Engine<a class="headerlink" href="#search-with-colbert-engine" title="Permalink to this headline">#</a></h4>
+<ul class="simple">
+<li><p><strong>Initializing Retriever</strong></p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.pipelines.components.retriever.dense</span> <span class="kn">import</span> <span class="n">ColBERTRetriever</span>
+
+<span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">index_root</span></code> and <code class="docutils literal notranslate"><span class="pre">index_name</span></code> varibles are the same is in the indexing step.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">max_num_documents</span></code> variable specifies the number of documents retrieved.</p>
+<ul class="simple">
+<li><p><strong>Searching with Retriever</strong></p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">retriever</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">input_texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Who is Michael Wigge&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">max_num_document</span></code> variable contains document_id and scores of the retrieved documents.</p>
+</section>
+</section>
+</section>
+<section id="reader-components">
+<h2>Reader Components<a class="headerlink" href="#reader-components" title="Permalink to this headline">#</a></h2>
+<section id="extractive-reader">
+<h3>Extractive Reader<a class="headerlink" href="#extractive-reader" title="Permalink to this headline">#</a></h3>
+<p>The Extractive Reader takes a question and a set of passages and returns an answer by extracting a span of text in the passages.
+Follow the steps below to use the extractive reader:</p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2: Execute the reader in inference mode:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Which country is Canberra located in?&quot;</span><span class="p">]</span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
+<span class="s2">Founded following the federation of the colonies of Australia </span>
+<span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
+<span class="s2">largest inland city&quot;&quot;&quot;</span><span class="p">]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
+<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>  
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
 

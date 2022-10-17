@@ -404,36 +404,52 @@
 <li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.pipelines.extractive_mrc_pipeline</span> <span class="kn">import</span> <span class="n">MRCPipeline</span>
-<span class="n">reader</span> <span class="o">=</span> <span class="n">MRCPipeline</span><span class="p">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Step 2: Execute the reader in inference mode:</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;Which country is Canberra located in?&quot;</span>
-<span class="n">context</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Which country is Canberra located in?&quot;</span><span class="p">]</span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
 <span class="s2">Founded following the federation of the colonies of Australia </span>
 <span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
-<span class="s2">largest inland city&quot;&quot;&quot;</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
+<span class="s2">largest inland city&quot;&quot;&quot;</span><span class="p">]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>  
 </pre></div>
 </div>
 <p>The above statements will generate an output in the form of a dictionary:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>
-    <span class="o">{</span>
-        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia&quot;</span>,
-        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.7988516960240685
-    <span class="o">}</span>,
-    <span class="o">{</span>
-        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia&quot;</span>,
-        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.10721889035823319
-    <span class="o">}</span>,
-    <span class="o">{</span>
-        <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia&quot;</span>,
-        <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.09392941361769835
-    <span class="o">}</span>
+    <span class="o">[</span>
+       <span class="o">{</span>
+            <span class="s2">&quot;example_id&quot;</span>: <span class="s2">&quot;0&quot;</span>,
+            <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia&quot;</span>,
+            <span class="s2">&quot;span_answer&quot;</span>: <span class="o">{</span>
+                <span class="s2">&quot;start_position&quot;</span>: <span class="m">32</span>,
+                <span class="s2">&quot;end_position&quot;</span>: <span class="m">41</span>
+            <span class="o">}</span>,
+            <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.7988516960240685
+       <span class="o">}</span>,
+       <span class="o">{</span>
+            <span class="s2">&quot;example_id&quot;</span>: <span class="s2">&quot;0&quot;</span>,
+            <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia&quot;</span>,
+            <span class="s2">&quot;span_answer&quot;</span>: <span class="o">{</span>
+                <span class="s2">&quot;start_position&quot;</span>: <span class="m">32</span>,
+                <span class="s2">&quot;end_position&quot;</span>: <span class="m">168</span>
+            <span class="o">}</span>,
+            <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.10721889035823319
+       <span class="o">}</span>,
+       <span class="o">{</span>
+            <span class="s2">&quot;example_id&quot;</span>: <span class="s2">&quot;0&quot;</span>,
+            <span class="s2">&quot;span_answer_text&quot;</span>: <span class="s2">&quot;Australia. \nFounded following the federation of the colonies of Australia&quot;</span>,
+            <span class="s2">&quot;span_answer&quot;</span>: <span class="o">{</span>
+                <span class="s2">&quot;start_position&quot;</span>: <span class="m">32</span>,
+                <span class="s2">&quot;end_position&quot;</span>: <span class="m">105</span>
+            <span class="o">}</span>,
+            <span class="s2">&quot;confidence_score&quot;</span>: <span class="m">0</span>.09392941361769835
+       <span class="o">}</span>
 <span class="o">]</span>
 </pre></div>
 </div>

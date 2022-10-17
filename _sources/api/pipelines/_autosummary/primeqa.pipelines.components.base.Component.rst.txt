@@ -1,0 +1,25 @@
+primeqa.pipelines.components.base.Component
+===========================================
+
+.. currentmodule:: primeqa.pipelines.components.base
+
+.. autoclass:: Component
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Component.load
+   
+   
+
+   
+   
+   

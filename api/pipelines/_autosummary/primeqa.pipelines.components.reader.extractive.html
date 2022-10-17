@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>extractive_mrc_pipeline &#8212; PrimeQA  documentation</title>
+    <title>extractive &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -155,19 +155,233 @@
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
     <ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active has-children">
-  <a class="current reference internal" href="#">
-   extractive_mrc_pipeline
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="primeqa.pipelines.base.html">
+   base
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
   </label>
   <ul>
    <li class="toctree-l2">
-    <a class="reference internal" href="primeqa.pipelines.extractive_mrc_pipeline.MRCPipeline.html">
-     primeqa.pipelines.extractive_mrc_pipeline.MRCPipeline
+    <a class="reference internal" href="primeqa.pipelines.base.IndexerPipeline.html">
+     primeqa.pipelines.base.IndexerPipeline
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="primeqa.pipelines.base.Pipeline.html">
+     primeqa.pipelines.base.Pipeline
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="primeqa.pipelines.base.ReaderPipeline.html">
+     primeqa.pipelines.base.ReaderPipeline
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="primeqa.pipelines.base.RetrieverPipeline.html">
+     primeqa.pipelines.base.RetrieverPipeline
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="primeqa.pipelines.components.html">
+   components
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.pipelines.components.base.html">
+     base
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+    <label for="toctree-checkbox-3">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.pipelines.components.base.Component.html">
+       primeqa.pipelines.components.base.Component
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.pipelines.components.base.IndexerComponent.html">
+       primeqa.pipelines.components.base.IndexerComponent
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.pipelines.components.base.ReaderComponent.html">
+       primeqa.pipelines.components.base.ReaderComponent
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.pipelines.components.base.RetrieverComponent.html">
+       primeqa.pipelines.components.base.RetrieverComponent
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.pipelines.components.indexer.html">
+     indexer
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <label for="toctree-checkbox-4">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="primeqa.pipelines.components.indexer.dense.html">
+       dense
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <label for="toctree-checkbox-5">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.indexer.dense.ColBERTIndexer.html">
+         primeqa.pipelines.components.indexer.dense.ColBERTIndexer
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="primeqa.pipelines.components.indexer.sparse.html">
+       sparse
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/>
+      <label for="toctree-checkbox-6">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.indexer.sparse.BM25Indexer.html">
+         primeqa.pipelines.components.indexer.sparse.BM25Indexer
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="primeqa.pipelines.components.reader.html">
+     reader
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/>
+    <label for="toctree-checkbox-7">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3 current active has-children">
+      <a class="current reference internal" href="#">
+       extractive
+      </a>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" type="checkbox"/>
+      <label for="toctree-checkbox-8">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.reader.extractive.ExtractiveReader.html">
+         primeqa.pipelines.components.reader.extractive.ExtractiveReader
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="primeqa.pipelines.components.reader.generative.html">
+       generative
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+      <label for="toctree-checkbox-9">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.reader.generative.GenerativeReader.html">
+         primeqa.pipelines.components.reader.generative.GenerativeReader
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.pipelines.components.retriever.html">
+     retriever
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <label for="toctree-checkbox-10">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="primeqa.pipelines.components.retriever.dense.html">
+       dense
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+      <label for="toctree-checkbox-11">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.retriever.dense.ColBERTRetriever.html">
+         primeqa.pipelines.components.retriever.dense.ColBERTRetriever
+        </a>
+       </li>
+      </ul>
+     </li>
+     <li class="toctree-l3 has-children">
+      <a class="reference internal" href="primeqa.pipelines.components.retriever.sparse.html">
+       sparse
+      </a>
+      <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+      <label for="toctree-checkbox-12">
+       <i class="fas fa-chevron-down">
+       </i>
+      </label>
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.pipelines.components.retriever.sparse.BM25Retriever.html">
+         primeqa.pipelines.components.retriever.sparse.BM25Retriever
+        </a>
+       </li>
+      </ul>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="primeqa.pipelines.qa_pipeline.html">
+   qa_pipeline
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" type="checkbox"/>
+  <label for="toctree-checkbox-13">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="primeqa.pipelines.qa_pipeline.QAPipeline.html">
+     primeqa.pipelines.qa_pipeline.QAPipeline
     </a>
    </li>
   </ul>
@@ -212,7 +426,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/pipelines/_autosummary/primeqa.pipelines.extractive_mrc_pipeline.rst.txt", '_blank');
+                window.open("../../../_sources/api/pipelines/_autosummary/primeqa.pipelines.components.reader.extractive.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -242,8 +456,8 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="module-primeqa.pipelines.extractive_mrc_pipeline">
-<span id="extractive-mrc-pipeline"></span><h1>extractive_mrc_pipeline<a class="headerlink" href="#module-primeqa.pipelines.extractive_mrc_pipeline" title="Permalink to this headline">#</a></h1>
+  <section id="module-primeqa.pipelines.components.reader.extractive">
+<span id="extractive"></span><h1>extractive<a class="headerlink" href="#module-primeqa.pipelines.components.reader.extractive" title="Permalink to this headline">#</a></h1>
 <p class="rubric">Classes</p>
 <table class="longtable table autosummary">
 <colgroup>
@@ -251,8 +465,8 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.pipelines.extractive_mrc_pipeline.MRCPipeline.html#primeqa.pipelines.extractive_mrc_pipeline.MRCPipeline" title="primeqa.pipelines.extractive_mrc_pipeline.MRCPipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MRCPipeline</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.pipelines.components.reader.extractive.ExtractiveReader.html#primeqa.pipelines.components.reader.extractive.ExtractiveReader" title="primeqa.pipelines.components.reader.extractive.ExtractiveReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtractiveReader</span></code></a></p></td>
+<td><p>_summary_</p></td>
 </tr>
 </tbody>
 </table>

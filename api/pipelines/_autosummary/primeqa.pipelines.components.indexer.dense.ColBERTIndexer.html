@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>pipelines &#8212; PrimeQA  documentation</title>
+    <title>primeqa.pipelines.components.indexer.dense.ColBERTIndexer &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -154,7 +154,7 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    <ul class="nav bd-sidenav">
+    <ul class="current nav bd-sidenav">
  <li class="toctree-l1 has-children">
   <a class="reference internal" href="primeqa.pipelines.base.html">
    base
@@ -187,16 +187,16 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 has-children">
+ <li class="toctree-l1 current active has-children">
   <a class="reference internal" href="primeqa.pipelines.components.html">
    components
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
   <label for="toctree-checkbox-2">
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul>
+  <ul class="current">
    <li class="toctree-l2 has-children">
     <a class="reference internal" href="primeqa.pipelines.components.base.html">
      base
@@ -229,28 +229,28 @@
      </li>
     </ul>
    </li>
-   <li class="toctree-l2 has-children">
+   <li class="toctree-l2 current active has-children">
     <a class="reference internal" href="primeqa.pipelines.components.indexer.html">
      indexer
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
     <label for="toctree-checkbox-4">
      <i class="fas fa-chevron-down">
      </i>
     </label>
-    <ul>
-     <li class="toctree-l3 has-children">
+    <ul class="current">
+     <li class="toctree-l3 current active has-children">
       <a class="reference internal" href="primeqa.pipelines.components.indexer.dense.html">
        dense
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
       <label for="toctree-checkbox-5">
        <i class="fas fa-chevron-down">
        </i>
       </label>
-      <ul>
-       <li class="toctree-l4">
-        <a class="reference internal" href="primeqa.pipelines.components.indexer.dense.ColBERTIndexer.html">
+      <ul class="current">
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
          primeqa.pipelines.components.indexer.dense.ColBERTIndexer
         </a>
        </li>
@@ -426,7 +426,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/pipelines/_autosummary/primeqa.pipelines.rst.txt", '_blank');
+                window.open("../../../_sources/api/pipelines/_autosummary/primeqa.pipelines.components.indexer.dense.ColBERTIndexer.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -456,25 +456,94 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="module-primeqa.pipelines">
-<span id="pipelines"></span><h1>pipelines<a class="headerlink" href="#module-primeqa.pipelines" title="Permalink to this headline">#</a></h1>
+  <section id="primeqa-pipelines-components-indexer-dense-colbertindexer">
+<h1>primeqa.pipelines.components.indexer.dense.ColBERTIndexer<a class="headerlink" href="#primeqa-pipelines-components-indexer-dense-colbertindexer" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="primeqa.pipelines.components.indexer.dense.ColBERTIndexer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.pipelines.components.indexer.dense.</span></span><span class="sig-name descname"><span class="pre">ColBERTIndexer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">similarity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cosine'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_maxlen</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc_maxlen</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_punctuation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmeans_niters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_partitions_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.pipelines.components.indexer.dense.ColBERTIndexer" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="primeqa.pipelines.components.base.IndexerComponent.html#primeqa.pipelines.components.base.IndexerComponent" title="primeqa.pipelines.components.base.IndexerComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.pipelines.components.base.IndexerComponent</span></code></a></p>
+<p>_summary_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index_root</strong> (<em>str</em>) – Path to root directory where index to be stored.</p></li>
+<li><p><strong>index_name</strong> (<em>str</em>) – Index name.</p></li>
+<li><p><strong>checkpoint</strong> (<em>str</em>) – Model to load.</p></li>
+<li><p><strong>similarity</strong> (<em>str</em><em>, </em><em>optional</em>) – Similarity. Defaults to “cosine”</p></li>
+<li><p><strong>dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Dimension. Defaults to 128</p></li>
+<li><p><strong>query_maxlen</strong> (<em>int</em><em>, </em><em>optional</em>) – Maxium query length. Defaults to 32.</p></li>
+<li><p><strong>doc_maxlen</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum document length. Defaults to 180.</p></li>
+<li><p><strong>mask_punctuation</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to “True”, will mask punctuation. Defaults to True.</p></li>
+<li><p><strong>bsize</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size. Defaults to 128.</p></li>
+<li><p><strong>amp</strong> (<em>int</em><em>, </em><em>optional</em>) – amp. Defaults to False.</p></li>
+<li><p><strong>nbits</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of bits. Defaults to 1.</p></li>
+<li><p><strong>kmeans_niters</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of iterations (kmeans). Defaults to 4.</p></li>
+<li><p><strong>num_partitions_max</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum partions size. Defaults to 10000000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – _description_</p>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
 <table class="longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.pipelines.base.html#module-primeqa.pipelines.base" title="primeqa.pipelines.base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primeqa.pipelines.base</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="primeqa.pipelines.components.html#module-primeqa.pipelines.components" title="primeqa.pipelines.components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primeqa.pipelines.components</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.pipelines.qa_pipeline.html#module-primeqa.pipelines.qa_pipeline" title="primeqa.pipelines.qa_pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primeqa.pipelines.qa_pipeline</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Attributes</p>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">amp</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">bsize</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dim</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">doc_maxlen</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">kmeans_niters</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_punctuation</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nbits</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_partitions_max</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">query_maxlen</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">similarity</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoint</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </section>
 
 
