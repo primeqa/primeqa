@@ -18,11 +18,14 @@
 
 # Pipelines
 
+Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.  
+The interfaces for the retrieval, indexing and reader components are defined [here](./components/base.py)
+
 ## Retrieval Components
 
 ### ColBERT Engine
 
-The following examples show how to use the _Pipelines_ interface to index and search using the ColBERT Engine.
+The following examples show how to use the _Component_ interface to index and search using the ColBERT Engine.
 
 There is a corresponding Jupyter notebook [here](https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_pipeline.ipynb).  The notebook also shows examples of data files and their formats.
 
