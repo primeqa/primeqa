@@ -137,6 +137,12 @@ class Store:
             if os.path.isdir(index_dir)
         ]
 
+    def get_indexes(self) -> List[dict]:
+        return [
+            self.get_index_information(index_id=index_id)
+            for index_id in self.get_index_ids()
+        ]
+
     def get_index_directory_path(self, index_id: str) -> str:
         """
         Get directory path of an index.

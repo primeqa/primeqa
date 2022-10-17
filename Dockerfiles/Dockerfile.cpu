@@ -1,5 +1,3 @@
-ARG image_version
-
 # #############################################################################
 FROM python:3.9-slim-bullseye as python-base
 
@@ -65,12 +63,6 @@ RUN python setup.py bdist_wheel --python-tag py3
 
 FROM python-base as build
 
-LABEL name="primeqa" \
-    component-name="primeqa" \
-    release="$image_version"
-
-LABEL python-version="3.9"
-
 RUN apt update && \
     DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" \
     apt install -y gcc g++ git tini\
@@ -116,7 +108,7 @@ WORKDIR /app
 
 # Copy wheel
 COPY --from=wheel /app/VERSION .
-COPY --from=wheel /app/dist/primeqa-$(cat VERSION)-py3-none-any.whl ./wheels/
+COPY --from=wheel /app/dist/*.whl ./wheels/
 
 # Install wheel
 RUN pip install wheels/primeqa-$(cat VERSION)-py3-none-any.whl
