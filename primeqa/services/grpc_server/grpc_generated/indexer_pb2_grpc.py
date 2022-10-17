@@ -31,6 +31,11 @@ class IndexerStub(object):
                 request_serializer=indexer__pb2.GetIndexStatusRequest.SerializeToString,
                 response_deserializer=indexer__pb2.IndexStatusResponse.FromString,
                 )
+        self.GetIndexes = channel.unary_unary(
+                '/index.Indexer/GetIndexes',
+                request_serializer=indexer__pb2.GetIndexesRequest.SerializeToString,
+                response_deserializer=indexer__pb2.GetIndexesResponse.FromString,
+                )
 
 
 class IndexerServicer(object):
@@ -56,6 +61,12 @@ class IndexerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetIndexes(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_IndexerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +84,11 @@ def add_IndexerServicer_to_server(servicer, server):
                     servicer.GetIndexStatus,
                     request_deserializer=indexer__pb2.GetIndexStatusRequest.FromString,
                     response_serializer=indexer__pb2.IndexStatusResponse.SerializeToString,
+            ),
+            'GetIndexes': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetIndexes,
+                    request_deserializer=indexer__pb2.GetIndexesRequest.FromString,
+                    response_serializer=indexer__pb2.GetIndexesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -134,5 +150,22 @@ class Indexer(object):
         return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexStatus',
             indexer__pb2.GetIndexStatusRequest.SerializeToString,
             indexer__pb2.IndexStatusResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetIndexes(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexes',
+            indexer__pb2.GetIndexesRequest.SerializeToString,
+            indexer__pb2.GetIndexesResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

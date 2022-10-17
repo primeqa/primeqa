@@ -10,6 +10,7 @@ service Indexer {
     rpc GetIndexers(GetIndexersRequest) returns (GetIndexersResponse);
     rpc GenerateIndex(stream GenerateIndexRequest) returns (GenerateIndexResponse);
     rpc GetIndexStatus(GetIndexStatusRequest) returns (IndexStatusResponse);
+    rpc GetIndexes(GetIndexesRequest) returns (GetIndexesResponse);
 }
 
 message IndexerComponent {
@@ -22,6 +23,18 @@ message GetIndexersRequest {
 
 message GetIndexersResponse {
     repeated IndexerComponent indexers = 1;
+}
+
+message GetIndexesRequest {
+}
+
+message IndexInformation {
+    string index_id = 1;
+    IndexStatus status = 2;
+}
+
+message GetIndexesResponse {
+   repeated IndexInformation indexes = 1;
 }
 
 message Document {

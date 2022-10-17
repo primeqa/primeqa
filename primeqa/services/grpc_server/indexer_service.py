@@ -27,6 +27,9 @@ from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
     GenerateIndexResponse,
     GetIndexStatusRequest,
     IndexStatusResponse,
+    GetIndexesRequest,
+    IndexInformation,
+    GetIndexesResponse,
     READY,
     INDEXING,
     CORRUPT,
@@ -211,3 +214,28 @@ class IndexerService(IndexerServicer):
             return IndexStatusResponse(status=CORRUPT)
         except FileNotFoundError:
             return IndexStatusResponse(status=DOES_NOT_EXISTS)
+
+    def GetIndexes(
+        self, request: GetIndexesRequest, context: ServicerContext
+    ) -> GetIndexesResponse:
+        resp = GetIndexesResponse()
+        for index_id in self._store.get_index_ids():
+            index_information = IndexInformation(index_id=index_id)
+            try:
+                status = self._store.get_index_information(index_id=index_id)[
+                    ATTR_STATUS
+                ]
+                if status == IndexStatus.READY.value:
+                    index_information.status = READY
+                elif status == IndexStatus.INDEXING.value:
+                    index_information.status = INDEXING
+                else:
+                    index_information.status = CORRUPT
+            except KeyError:
+                index_information.status = CORRUPT
+            except FileNotFoundError:
+                index_information.status = DOES_NOT_EXISTS
+
+            resp.indexes.append(index_information)
+
+        return resp
