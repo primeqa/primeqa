@@ -1,8 +1,6 @@
 name: SphinxDoc Build
 
 on:
-  # push:
-    # branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
     types:
@@ -30,9 +28,7 @@ jobs:
         python -m pip install wheel
         python -m pip install 'torch~=1.11.0' --extra-index-url https://download.pytorch.org/whl/cu113
         if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
-      # python setup.py bdist_wheel --python-tag py39x
     - name: Copy README changes (docs/scripts/copy-readme-to-docs.sh)
-      # if: github.ref != 'refs/heads/main'
       run: |
         chmod +x ./docs/scripts/copy-readme-to-docs.sh
         ./docs/scripts/copy-readme-to-docs.sh
@@ -41,20 +37,17 @@ jobs:
       run: |
         cd docs
         make html -e SPHINXOPTS='--keep-going --no-color -w "log_file"'   
-    # - name: Upload artifacts (docs/_build/)
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: html-docs
-    #     path: docs/_build/
     - name: Upload artifacts (docs/log_file)
       uses: actions/upload-artifact@v3
       with:
         name: html-docs-log_file
         path: docs/log_file
     - name: Deploy Documentation (gh-pages branch)
-      uses: peaceiris/actions-gh-pages@v3
       if: ${{ github.ref || github.head_ref }} == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
         commit_message: -automatic commit- Sphinx Doc Build
