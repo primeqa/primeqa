@@ -170,6 +170,12 @@ html_sidebars = {
         "pull_request_template": [
             "search-field.html","custom-left-section.html"
         ],
+        "orchestrator": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "playground_tooling": [
+            "search-field.html","custom-left-section.html"
+        ],
         "README": [
             "search-field.html","custom-left-section.html"
         ],
