@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 <div align="center">
     <img src="_static/img/PrimeQA.png" width="150"/>
 </div>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-# Playground Tooling        
+# Tooling UI        
 
 <br>
 
@@ -26,8 +28,7 @@ limitations under the License.
 
 <h3>✔️ Getting Started</h3> 
 
-- [Repository](https://github.ibm.com/IBM-Research-AI/playground-ui)        
-- [Demo](http://mnlp-qa-dev-2.sl.cloud9.ibm.com:82/)    
+- [Repository](https://github.com/primeqa/primeqa-ui)        
 - This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app)   
 
 <h3>✅ Prerequisites</h3>
@@ -37,7 +38,7 @@ limitations under the License.
 <h3>🧩 Setup Local Environment</h3>
 
 - Dowload all necessary packages to build and deploy the application: `yarn install`        
-- Open `.env` files and set `REACT_APP_API_URL` to point to playground-services:        
+- Open `.env` files and set `REACT_APP_API_URL` to point to services:        
     - local: [http://localhost:{PORT}](http://localhost:{PORT})      
 
 <h3>💻 Run Locally</h3>
@@ -45,7 +46,7 @@ limitations under the License.
 - Run the app in the _*development mode*_: `yarn start`        
 - Open [http://localhost:8888](http://localhost:8888) to view it in the browser.               
 
-<h3>💻 Setup & Run Docker</h3>
+<h3>💻 Setup & Run Docker</h3>      
 
 This allows us to run the build in a node image and server the app using an nginx image.        
 The final Docker image will just contain the build folder and nothing else      

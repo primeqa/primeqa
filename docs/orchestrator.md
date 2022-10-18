@@ -14,17 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-<!-- <div align="center">
-    <h1>PrimeQA Orchestrator Service REST Microservice</h1>
-    <img src="_static/img/PrimeQA.png" width="150">
-    <p>Proof-of-concept code for PrimeQA orchestrator microservice with integration to IBM Watson Discovery and machine reading comprehension engines as a REST Server.</p>
-</div> -->
-
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
 <div align="center">
     <img src="_static/img/PrimeQA.png" width="150"/>
 </div>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 
-# Orchestrator Service REST Microservice             
+# Orchestrator REST Microservice             
 
 Proof-of-concept code for PrimeQA orchestrator microservice with integration to IBM Watson Discovery and machine reading comprehension engines as a REST Server.        
 <br>
@@ -33,8 +29,7 @@ Proof-of-concept code for PrimeQA orchestrator microservice with integration to 
 
 <h3>✔️ Getting Started</h3>
 
-- [Repository](https://github.ibm.com/IBM-Research-AI/playground)        
-- [Demo](http://mnlp-qa-dev-2.sl.cloud9.ibm.com:50059/docs)
+- [Repository](https://github.com/primeqa/primeqa-orchestrator)        
 
 <h3>✅ Prerequisites</h3>
 
