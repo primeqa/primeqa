@@ -31,7 +31,7 @@ class Searcher:
         self.checkpoint_config = ColBERTConfig.load_from_checkpoint(self.checkpoint)
         self.config = ColBERTConfig.from_existing(self.checkpoint_config, self.index_config, initial_config)
 
-        self.collection = Collection.cast(collection or self.config.collection)
+        self.collection = None
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
 
         self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config)
