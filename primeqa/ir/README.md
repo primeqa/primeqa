@@ -101,7 +101,7 @@ python primeqa/ir/run_ir.py \
     --index_name <index_label> \
     --compression_level 2
 ```
-The index is stored in `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
+The index is stored in `<experiments_root_directory>/<experiment_label>/indexes/<index_label>` directory.
 
 ### Sparse Index using Pyserini
 
