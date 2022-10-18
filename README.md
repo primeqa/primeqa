@@ -107,8 +107,8 @@ For more information, see:
 | 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | ✅ [Pull Request](https://primeqa.github.io/primeqa/pull_request_template.html) | PrimeQA Pull Request |
 | 📄 [Generate Documentation](https://primeqa.github.io/primeqa/README.html) | How Documentation works |        
-| 🛠 [PrimeQA Orchestrator Service REST Microservice](https://primeqa.github.io/primeqa/orchestrator.html) | Proof-of-concept code for PrimeQA Orchestrator microservice |        
-| 📖 [PrimeQA Playground Tooling](https://primeqa.github.io/primeqa/playground_tooling.html) | Demo UI |        
+| 🛠 [Orchestrator Service REST Microservice](https://primeqa.github.io/primeqa/orchestrator.html) | Proof-of-concept code for PrimeQA Orchestrator microservice |        
+| 📖 [Tooling UI](https://primeqa.github.io/primeqa/tooling_ui.html) | Demo UI |        
 
 ## ❤️ PrimeQA collaborators include       
 
