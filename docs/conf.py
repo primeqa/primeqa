@@ -173,7 +173,7 @@ html_sidebars = {
         "orchestrator": [
             "search-field.html","custom-left-section.html"
         ],
-        "playground_tooling": [
+        "tooling_ui": [
             "search-field.html","custom-left-section.html"
         ],
         "README": [
