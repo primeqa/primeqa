@@ -83,6 +83,7 @@ class ColBERTIndexer(IndexerComponent):
     def __post_init__(self):
         self._config = ColBERTConfig(
             index_root=self.index_root,
+            index_name=self.index_name,
             similarity=self.similarity,
             dim=self.dim,
             query_maxlen=self.query_maxlen,
