@@ -41,6 +41,14 @@ class Store:
         if not os.path.exists(self.root_dir):
             os.makedirs(self.root_dir)
 
+        # Check if indexes directory exist, if not create one
+        if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_INDEXES)):
+            os.makedirs(os.path.join(self.root_dir, DIR_NAME_INDEXES))
+
+        # Check if checkpoints directory exist, if not create one
+        if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS)):
+            os.makedirs(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS))
+
     def exists(self, path: str):
         return os.path.exists(path)
 
