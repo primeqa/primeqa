@@ -262,6 +262,39 @@ def restrict_labels(dataset : Dataset, sentence1_key : str, label_list : List[st
 # df=df_all[mask]
 
 
+def balance_dataset(data_args, datasets):
+    '''balance the number of labels in a dataset'''
+    examples_by_label = {}
+
+    for label in data_args.label_list:
+        examples_by_label[label] = []
+
+    for example in datasets['train']:
+        examples_by_label[example['label']].append(example)
+            
+        # min class size is smaller than dataset size
+    min_count = len(datasets['train'])
+
+    for label in examples_by_label:
+        if len(examples_by_label[label]) < min_count:
+            min_count = len(examples_by_label[label])
+        
+    balanced_examples = []
+
+    if data_args.max_train_samples is not None and data_args.max_train_samples < min_count * len(examples_by_label):
+        min_count = int(data_args.max_train_samples / len(examples_by_label))
+
+    for label in examples_by_label:
+        def seed():
+          return 0.1
+            # should we have something like this? its possible the data is sorted in some manner (eg alphabetically)
+        random.shuffle(examples_by_label[label], seed)
+        balanced_examples.extend(examples_by_label[label][:min_count])
+    random.shuffle(balanced_examples)
+    df = pd.DataFrame(balanced_examples)
+    logger.info("balanced (down sampling) dataset to " + str(min_count) + " per class.")
+    return Dataset.from_pandas(df)
+
 
 def main():
     # See all possible arguments in src/transformers/training_args.py
@@ -401,39 +434,10 @@ def main():
         if len(datasets['validation']) == 0:
             raise ValueError("No validation data left with labels provided in label list")
 
-    # balance the dataset
-    # TODO move to subroutine
+    # balance the training dataset
     if training_args.do_train and data_args.balanced:
-        examples_by_label = {}
-
-        for label in data_args.label_list:
-            examples_by_label[label] = []
-
-        for example in datasets['train']:
-            examples_by_label[example['label']].append(example)
-            
-        # min class size is smaller than dataset size
-        min_count = len(datasets['train'])
-
-        for label in examples_by_label:
-            if len(examples_by_label[label]) < min_count:
-                min_count = len(examples_by_label[label])
+        datasets['train'] = balance_dataset(data_args, datasets)
         
-        balanced_examples = []
-
-        if data_args.max_train_samples is not None and data_args.max_train_samples < min_count * len(examples_by_label):
-            min_count = int(data_args.max_train_samples / len(examples_by_label))
-
-        for label in examples_by_label:
-            def seed():
-              return 0.1
-            # should we have something like this? its possible the data is sorted in some manner (eg alphabetically)
-            random.shuffle(examples_by_label[label], seed)
-            balanced_examples.extend(examples_by_label[label][:min_count])
-        random.shuffle(balanced_examples)
-        df = pd.DataFrame(balanced_examples)
-        datasets['train'] = Dataset.from_pandas(df)
-        logger.info("balanced (down sampling) dataset to " + str(min_count) + " per class.")
             
     # See more about loading any type of standard or custom dataset at
     # https://huggingface.co/docs/datasets/loading_datasets.html.
@@ -603,6 +607,8 @@ def main():
             json.dump(predictions.predictions, f, indent=4)
         with open(os.path.join(training_args.output_dir, 'predictions_processed.json'), 'w') as f:
             json.dump(predictions.processed_predictions, f, indent=4)
+
+
 
 def _mp_fn(index):
     # For xla_spawn (TPUs)
