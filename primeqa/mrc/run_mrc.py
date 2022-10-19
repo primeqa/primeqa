@@ -38,6 +38,8 @@ from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
 from primeqa.tableqa.run_tableqa import run_table_qa
+from timeit import default_timer
+
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -382,6 +384,7 @@ def main():
             cache_dir=model_args.cache_dir)
     else:
         if data_args.dataset_name == "natural_questions":
+            print('timeit before load_dataset ', default_timer() )
             raw_datasets = datasets.load_dataset(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
@@ -389,6 +392,7 @@ def main():
                 beam_runner=data_args.beam_runner,
                 revision="main"
             )
+            print('timeit after load_dataset ', default_timer() )            
         else:
             raw_datasets = datasets.load_dataset(
                 data_args.dataset_name,
@@ -420,7 +424,10 @@ def main():
             train_dataset = train_dataset.select(range(max_train_samples))
         # Train Feature Creation
         with training_args.main_process_first(desc="train dataset map pre-processing"):
+            print('timeit before process_train ', default_timer())
             _, train_dataset = preprocessor.process_train(train_dataset)
+            print('timeit after process_train ', default_timer())
+            sys.exit(0)
 
     # process val data
     if training_args.do_eval:

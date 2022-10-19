@@ -3,7 +3,7 @@ from lib2to3.pgen2.tokenize import tokenize
 import random
 import uuid
 from operator import sub
-from typing import List, Iterable, Tuple, Any, Dict, Union
+from typing import Callable, List, Iterable, Tuple, Any, Dict, Union
 
 from datasets.arrow_dataset import Batch
 from transformers import BatchEncoding
@@ -13,6 +13,20 @@ from datasets.features.features import Sequence, Value
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
+import numpy as np
+from timeit import default_timer
+
+
+
+def workaround_for_dataset_cast_decorator( process_fn : Callable ):
+    ''' dataset map recursively calls _cast_to_python_objects creating substantial overhead during preprocessing
+        this behavior is avoided by contructing a numpy array for each return type
+        process_fn is assumed to return a dict-like object (transformers.tokenization_utils_base.BatchEncoding)
+    '''
+    def inner(self, examples: Dataset, *args, **kwargs):
+        r=process_fn(self, examples, *args, **kwargs)
+        return { k : np.array(r[k], dtype=object) for k in r.keys() }
+    return inner
 
 
 class BasePreProcessor(AbstractPreProcessor):
@@ -81,10 +95,13 @@ class BasePreProcessor(AbstractPreProcessor):
         """
         Provides implementation for public processing methods.
         """
+        print('timeit before adapt dataset', default_timer())
         examples = self.adapt_dataset(examples, is_train)
+        print('timeit after adapte dataset', default_timer())
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
 
+        print('timeit before _process_batch', default_timer())
         features = examples.map(
             self._process_batch,
             fn_kwargs=dict(is_train=is_train),
@@ -95,10 +112,12 @@ class BasePreProcessor(AbstractPreProcessor):
             load_from_cache_file=self._load_from_cache_file,
             desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
         )
+        print('timeit after _process_batch', default_timer())
         if is_train:
             features = self.subsample_features(features)
         return examples, features
 
+    @workaround_for_dataset_cast_decorator
     def _process_batch(self, examples: Batch, indices: List[int], is_train: bool) -> BatchEncoding:
         """
         Process a batch of examples into features
@@ -154,7 +173,6 @@ class BasePreProcessor(AbstractPreProcessor):
 
         for key in self._del_keys:
             tokenized_examples.pop(key, None)
-        
         return tokenized_examples
 
     def _create_train_targets(self, tokenized_examples: BatchEncoding, examples: Batch) -> BatchEncoding:
@@ -403,6 +421,7 @@ class BasePreProcessor(AbstractPreProcessor):
         return context
 
     @staticmethod
+    @workaround_for_dataset_cast_decorator
     def _insert_example_ids(examples: Batch) -> Batch:
         """
         Add arbitrary, unique example_ids to examples.
