@@ -146,7 +146,7 @@ python primeqa/ir/run_ir.py \
     --compression_level <number_of_bits_in_residual_representations>
 ```
 
-The resulting index is stored in the `<experiments_root_directory>/<experiment_label>/<index_label>` directory.
+The index is stored in `<experiments_root_directory>/<experiment_label>/indexes/<index_label>` directory.
 
 ### Dense Index With DPR
 Using a model trained as described [here](https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-dpr-engine), the following command builds the DPR index.
