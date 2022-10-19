@@ -5,7 +5,7 @@ from transformers import BatchEncoding
 from datasets import Dataset
 from datasets.arrow_dataset import Example, Batch
 from datasets.features.features import Sequence, Value, ClassLabel
-from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor, workaround_for_dataset_cast_decorator
 
 
 
@@ -81,7 +81,6 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
         )
         dataset = super().adapt_dataset(dataset, is_train)
         return dataset
-
 
     def _rename_examples_create_context_and_adjust_offset(self, example: Example, is_train: bool, keep_html: bool=True):
         """

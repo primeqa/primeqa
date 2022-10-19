@@ -14,6 +14,8 @@ from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
 import numpy as np
+from timeit import default_timer
+
 
 
 def workaround_for_dataset_cast_decorator( process_fn : Callable ):
@@ -93,10 +95,13 @@ class BasePreProcessor(AbstractPreProcessor):
         """
         Provides implementation for public processing methods.
         """
+        print('timeit before adapt dataset', default_timer())
         examples = self.adapt_dataset(examples, is_train)
+        print('timeit after adapte dataset', default_timer())
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
 
+        print('timeit before _process_batch', default_timer())
         features = examples.map(
             self._process_batch,
             fn_kwargs=dict(is_train=is_train),
@@ -107,6 +112,7 @@ class BasePreProcessor(AbstractPreProcessor):
             load_from_cache_file=self._load_from_cache_file,
             desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
         )
+        print('timeit after _process_batch', default_timer())
         if is_train:
             features = self.subsample_features(features)
         return examples, features
@@ -414,6 +420,7 @@ class BasePreProcessor(AbstractPreProcessor):
         return context
 
     @staticmethod
+    @workaround_for_dataset_cast_decorator
     def _insert_example_ids(examples: Batch) -> Batch:
         """
         Add arbitrary, unique example_ids to examples.
