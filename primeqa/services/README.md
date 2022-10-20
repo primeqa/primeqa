@@ -27,7 +27,7 @@ Before continuing below make sure you have PrimeQA [installed](https://primeqa.g
 
 <h3>📜 TLS and Certificate Management</h3>
 
-PrimeQA service gRPC and REST server supports mutual or two-way TLS authentication (also known as mTLS). Application's [`config.ini`](orchestrator/service/config/config.ini) file contains the default certificate paths, but they can be overridden using environment variables.
+PrimeQA service gRPC and REST server supports mutual or two-way TLS authentication (also known as mTLS). Application's [`config.ini`](./config/config.ini) file contains the default certificate paths, but they can be overridden using environment variables.
 
 Self-signed certificates are generated and packaged with the Docker build.
 Self-signed certs _may be_ required for local development and testing. If you want to generate them, follow the steps below:
@@ -61,8 +61,7 @@ rm -rf security/certs/client/client.csr
 ```
 
 **IMPORTANT:**
-
-- By default, the application tries to load certs from `/opt/tls`. You will need to update appropriate `tls_*` variables in [`config.ini`](orchestrator/service/config/config.ini) during local use.
+- By default, PrimeQA services are set up to run without SSL. We recommend that you set up certificats and update the config.ini and set `require_ssl` to `true`. The application tries to load certs from `/opt/tls`. You will need to update appropriate `tls_*` variables in [`config.ini`](./config/config.ini) during local use.
 
 - We recommend to generate certificates with official signing authority and use them via volume mounts in the application container.
 
@@ -71,12 +70,12 @@ rm -rf security/certs/client/client.csr
 Please see the default values in config.ini [here](./config/config.ini). These can be overridden using environment variables.
 
 - By default, the service starts as a `grpc` service. Set the <b>mode</b> to `rest` to start as a REST server. 
-- By default, `require_ssl` is set to true.
-- Set the `grpc_port` and/or `rest_port` as needed.
+- By default, `require_ssl` is set to false.
+- Set the `grpc_port` and/or `rest_port` to a free port number.
 
 <h3>💻 Local</h3> 
 
-- Update [here](./config/config.ini).
+- Update config [here](./config/config.ini).
 - Open [application.py](./application.py) and run/debug
 
 This will start a `ReaderService`, a `IndexerService` and a `RetrieverService` and the following lines will be displayed:
@@ -88,18 +87,18 @@ This will start a `ReaderService`, a `IndexerService` and a `RetrieverService` a
 I1020 12:14:01.815917763 2539136 socket_utils_common_posix.cc:353] TCP_USER_TIMEOUT is available. TCP_USER_TIMEOUT will be used thereafter
 {"time":"2022-10-20 12:14:01,817", "name": "GrpcServer", "level": "INFO", "message": "Server instance started on port 50055 - initialization took 0 seconds"}
 ```
-- Use one of the clients to send requests to the service
+- Use one of the [Clients](./Clients) to send requests to the service.
 
 <h3>💻 Docker</h3>
 
 Please verify if Docker is properly setup with `docker run hello-world`
 
-<h4> Build Docker image </h4>
+<h4> Build Docker Image </h4>
 
 ```
 docker build -f Dockerfiles/Dockerfile.cpu -t primeqa:$(cat VERSION) --build-arg image_version:$(cat VERSION) .
 ```
-<h4> Run container </h4>
+<h4> Run Container </h4>
 
 The container needs write access to a cache directory for caching Huggingface model and datasets.  Additionally will need write access to a store directory for index creation. 
 
@@ -108,15 +107,80 @@ chmod -R 777 $HOME/.cache/
 chmod -R 777 $PWD/store/
 ```
 
-```
-docker run --rm --name primeqa -it -p 50051:50051 -p 50052:50052 --mount type=bind,source="$(pwd)"/store,target=/store --mount type=bind,source="$HOME"/.cache/huggingface/,target=/cache/huggingface/ -e STORE_DIR=/store -e mode=grpc -e require_ssl=false primeqa:$(cat VERSION)
-```
+To start a `gRPC` service, run the following command, replace `<host-port>` with a free port number:
+`
+docker run --rm --name primeqa -it -p <host-port>:50051 --mount type=bind,source="$(pwd)"/store,target=/store --mount type=bind,source="$HOME"/.cache/huggingface/,target=/cache/huggingface/ -e STORE_DIR=/store -e mode=grpc -e require_ssl=false primeqa:$(cat VERSION)
+`
+
+To start a `rest` service, run the following command, replace `<host-port>` with a free port number:
+
+`
+docker run --rm --name primeqa -it -p <host-port>:50052 --mount type=bind,source="$(pwd)"/store,target=/store --mount type=bind,source="$HOME"/.cache/huggingface/,target=/cache/huggingface/ -e STORE_DIR=/store -e mode=rest -e require_ssl=false primeqa:$(cat VERSION)
+`
+
+WARNING: The PrimeQA orchestrator and UI will only work with gRPC deployment without SSL. The parameter `require-ssl` must be set to `false`.
 
 <h3>💻 Clients</h3>
+
 <h4>Python</h4>
-TODO: Refer to orchestrator for example on how to make gRPC calls
+TODO: Refer to the PrimeQA Orchestrator for examples on how to make gRPC calls via python.
+
 <h4>GUI</h4>
 [BloomRPC](https://github.com/uw-labs/bloomrpc) is a decent GUI gRPC client.
+
+<h4>REST</h4>
+Go to http://localhost:{rest_port}/docs
+
+Example CURL to send a request to the `ExtractiveReader`
+
+```
+curl -X 'POST' \
+  'http://9.59.199.84:50057/answers' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "reader": {
+    "reader_id": "ExtractiveReader"
+  },
+  "queries": [
+    "How many of Warsaw'\''s inhabitants spoke Polish in 1933?"
+  ],
+  "contexts": [
+    [
+      "most diverse city in Poland, with significant numbers of foreign-born inhabitants. In addition to the Polish majority, there was a significant Jewish minority in Warsaw. According to the Russian census of 1897, out of the total population of 638,000, Jews constituted 219,000 (around 34% percent). Warsaw'\''s prewar Jewish population of more than 350,000 constituted about 30 percent of the city'\''s total population. In 1933, out of 1,178,914 inhabitants 833,500 were of Polish mother tongue. World War II changed the demographics of the city, and to this day there is much less ethnic diversity than in the previous 300 years of"
+    ]
+  ]
+}'
+```
+Example output:
+```
+[
+  [
+    {
+      "text": "833,500",
+      "start_char_offset": 452,
+      "end_char_offset": 459,
+      "confidence_score": 0.704502638571937,
+      "context_index": 0
+    },
+    {
+      "text": "1,178,914 inhabitants 833,500",
+      "start_char_offset": 430,
+      "end_char_offset": 459,
+      "confidence_score": 0.1990295438872201,
+      "context_index": 0
+    },
+    {
+      "text": "out of 1,178,914 inhabitants 833,500",
+      "start_char_offset": 423,
+      "end_char_offset": 459,
+      "confidence_score": 0.09646781754084299,
+      "context_index": 0
+    }
+  ]
+]
+```
+
 
 <h2>Additional References</h2>
 <h3>Getting started with Docker</h3>
@@ -128,6 +192,3 @@ If you are unfamiliar with Docker, you may want to take a look at:
 
 <h3>Getting started with GRPC</h3>
 Please take a look at [GRPC Introduction](https://grpc.io/docs/what-is-grpc/introduction/)
-
-
-
