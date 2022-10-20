@@ -27,7 +27,7 @@ Before continuing below make sure you have PrimeQA [installed](https://primeqa.g
 
 <h3>📜 TLS and Certificate Management</h3>
 
-PrimeQA service gRPC and REST server supports mutual or two-way TLS authentication (also known as mTLS). Application's [`config.ini`](./config/config.ini) file contains the default certificate paths, but they can be overridden using environment variables.
+PrimeQA service gRPC and REST server supports mutual or two-way TLS authentication (also known as mTLS). Application's [config.ini](./config/config.ini) file contains the default certificate paths, but they can be overridden using environment variables.
 
 Self-signed certificates are generated and packaged with the Docker build.
 Self-signed certs _may be_ required for local development and testing. If you want to generate them, follow the steps below:
@@ -67,7 +67,7 @@ rm -rf security/certs/client/client.csr
 
 <h2>🛠 Build & Deployment </h2>
 <h3>💻 Config</h3>
-Please see the default values in config.ini [here](./config/config.ini). These can be overridden using environment variables.
+Please see the default values in [here](./config/config.ini). These can be overridden using environment variables.
 
 - By default, the service starts as a `grpc` service. Set the <b>mode</b> to `rest` to start as a REST server. 
 - By default, `require_ssl` is set to false.
@@ -126,9 +126,11 @@ WARNING: The PrimeQA orchestrator and UI will only work with gRPC deployment wit
 TODO: Refer to the PrimeQA Orchestrator for examples on how to make gRPC calls via python.
 
 <h4>GUI</h4>
+
 [BloomRPC](https://github.com/uw-labs/bloomrpc) is a decent GUI gRPC client.
 
 <h4>REST</h4>
+
 Go to http://localhost:{rest_port}/docs
 
 Example CURL to send a request to the `ExtractiveReader`
@@ -191,4 +193,5 @@ If you are unfamiliar with Docker, you may want to take a look at:
 - [Docker for beginners](https://docker-curriculum.com/)
 
 <h3>Getting started with GRPC</h3>
+
 Please take a look at [GRPC Introduction](https://grpc.io/docs/what-is-grpc/introduction/)
