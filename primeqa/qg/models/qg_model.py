@@ -14,31 +14,35 @@ class QGModel():
         the model name. One example could be 't5-base'.
 
         Args:
-            model_path (String): Either Name of the model or the path to the pre-trained model
+            model_path (str): Either Name of the model or the path to the pre-trained model
+            modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'.
         """        
         if modality not in ['table', 'passage', 'hybrid']:
             raise NotImplementedError('This modality is not supported: ' + modality)
 
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
-        # adding special tokens to tokenizer which will be used to convert SQL and Passage+Answer to string
-        # expanding token embeddings in model
         
-        sql_tokens_list = [QGSpecialTokens.sep, QGSpecialTokens.cond, QGSpecialTokens.ans,
-                        QGSpecialTokens.header, QGSpecialTokens.hsep]
-        for sql_token in sql_tokens_list:
-            if sql_token not in self._tokenizer.vocab: # add only when special-tokens aren't already there
-                self._tokenizer.add_tokens([sql_token])
-        self._model.resize_token_embeddings(len(self._tokenizer.vocab))
+        special_tokens_list = []
 
         self.modality = modality 
         if self.modality == 'passage':
+            special_tokens_list.append(QGSpecialTokens.sep)
             self.answer_sampler = AnswerSampler()
         elif self.modality == 'table':
+            special_tokens_list.extend([QGSpecialTokens.sep, QGSpecialTokens.cond, QGSpecialTokens.ans,
+                            QGSpecialTokens.header, QGSpecialTokens.hsep])
             self.sql_sampler = SimpleSqlSampler()
         else:
             self.path_sampler = PathSampler(lang)
 
+        # adding special tokens to tokenizer which will be used to convert SQL and Passage+Answer to string
+        for special_token in special_tokens_list:
+            if special_token not in self._tokenizer.vocab: # add only when special-tokens aren't already there
+                self._tokenizer.add_tokens([special_token])
+        # expanding token embeddings in model
+        self._model.resize_token_embeddings(len(self._tokenizer.vocab))
+    
     @property
     def model(self):
         """ Propery of TableQG model.

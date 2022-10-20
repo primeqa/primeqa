@@ -107,7 +107,7 @@ class TestTraining(UnitTest):
         do_search = True
         if do_search:
             ranks_fn = os.path.join(output_dir, 'ranking.tsv')
-            args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nprobe': 1, 'nranks': 1, 'model_type': model_type,}
+            args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'l2', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nranks': 1, 'model_type': model_type,}
 
             with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                 colBERTConfig = ColBERTConfig(**args_dict)

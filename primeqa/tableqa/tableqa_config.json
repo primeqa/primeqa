@@ -1,0 +1,12 @@
+{
+"data_path_root": "data/wikisql/",
+"num_aggregation_labels":4,
+"use_answer_as_supervision": true,
+"answer_loss_cutoff": 0.664694,
+"cell_selection_preference": 0.207951,
+"huber_loss_delta": 0.121194,
+"init_cell_selection_weights_to_zero": true,
+"select_one_column":true, 
+"allow_empty_column_selection":true, 
+"temperature": 0.0352513
+}

@@ -19,6 +19,7 @@ class Arguments():
         self.add_argument('--run', dest='run', default=Run.name)
 
         self.add_argument('--local_rank', dest='rank', default=-1, type=int)
+        self.add_argument('--rng_seed', dest='rng_seed', default=12345, type=int)
 
     def add_model_parameters(self):
         # Core Arguments
@@ -124,8 +125,9 @@ class Arguments():
 
     def add_retrieval_input(self):
         self.add_index_use_input()
-        self.add_argument('--nprobe', dest='nprobe', default=2, type=int)
-        self.add_argument('--ncandidates', dest='ncandidates', type=int, default=8192)
+        self.add_argument('--ncells', dest='ncells', default=None, type=int)
+        self.add_argument('--centroid_score_threshold', dest='centroid_score_threshold', default=None, type=float)
+        self.add_argument('--ndocs', dest='ndocs', default=None, type=int)
         self.add_argument('--retrieve_only', dest='retrieve_only', default=False, action='store_true')
 
     def add_argument(self, *args, **kw_args):

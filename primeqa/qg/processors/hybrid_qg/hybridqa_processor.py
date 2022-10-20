@@ -2,29 +2,57 @@ import json
 import numpy as np
 from copy import deepcopy
 
+from typing import Dict
+from dataclasses import dataclass
+
 import stanza
 from tqdm import tqdm
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from primeqa.qg.utils.constants import QGSpecialTokens
+
+from transformers import PreTrainedTokenizer
 
 from sklearn.metrics.pairwise import linear_kernel
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-
-class HybridQADataset():
-    def __init__(self, dataset_name='hybrid_qa'):
+@dataclass
+class HybridQAProcessor():
+    def __init__(self, tokenizer=None, input_max_len=512, target_max_len=20):
         """
         Class for sampling hybrid chains from a table and its linked passages, to be used for HybridQG training.
         Args:
             dataset_name (str): Supports only hybrid_qa for now.
         """
-        self.dataset_name = dataset_name
+        self.tokenizer = tokenizer
+        self.input_max_len = input_max_len
+        self.target_max_len = target_max_len
         self.nlp_model = stanza.Pipeline(lang='en', processors='tokenize', verbose=False)
-
         self.answer_separator = " %s " % (QGSpecialTokens.ans)
         self.hop_separator = " %s " % (QGSpecialTokens.hsep)
         self.meta_separator = " %s " % (QGSpecialTokens.header)
+
+    def __call__(self, dataset) -> Dataset:
+        ignore_cols = ["question_id", "question", "table_id", "answer_text", "question_postag", "table"]
+        processed_dataset = dataset.map(self.preprocess_data, batched=True, remove_columns=ignore_cols)
+        tokenized_data = processed_dataset.map(self.convert_to_features, batched=True)
+        columns = ['input_ids', 'attention_mask', 'target_ids', 'target_attention_mask']
+        tokenized_data.set_format(type='torch', columns=columns)
+        return tokenized_data
     
+    def convert_to_features(self, example_batch: Dict):
+    	# TODO explicitly provide truncation/padding strategy
+    	input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
+    									pad_to_max_length=True, max_length=self.input_max_len)
+    	target_encodings = self.tokenizer.batch_encode_plus(example_batch['label'], 
+    									pad_to_max_length=True, max_length=self.target_max_len)
+    	encodings = {
+    		'input_ids': input_encodings['input_ids'], 
+    		'attention_mask': input_encodings['attention_mask'],
+    		'target_ids': target_encodings['input_ids'],
+    		'target_attention_mask': target_encodings['attention_mask']
+    	}
+    	return encodings
+
     def hybrid_chain_to_t5_sequence(self, qdict, chain_id=0):
         # puts hybrid chain in a format T5 can understand
         ans = qdict['answer_text']
@@ -86,10 +114,10 @@ class HybridQADataset():
         for hybrid_chain in hybrid_chain_list:
             hybrid_chain_text.append([row[node]['text'] for node in hybrid_chain['chain']])
         return hybrid_chain_list, hybrid_chain_text
-    
+
     def hybrid_chains(self, data, beam_size=10, num_hops=[3,4], num_chains_per_hops=4):
         processed_data_dict = {'question': [], 'input': []}
-        for qid, qdict in tqdm(enumerate(data), desc="Extracting chains"):
+        for qid, qdict in enumerate(data):
             row = qdict.pop('row')
             question_repr = self.tfid_model.transform([qdict['question']])
     
@@ -120,7 +148,7 @@ class HybridQADataset():
             t5_input_sequence, target = self.hybrid_chain_to_t5_sequence(qdict)
             processed_data_dict['question'].append(target)
             processed_data_dict['input'].append(t5_input_sequence)
-        return processed_data_dict
+        return processed_data_dict['input'], processed_data_dict['question']
 
     def link_sents_to_cells(self, qdict):
         # Split passages in to sentences. Sentences becomes nodes with 'text' and 'link'
@@ -144,86 +172,81 @@ class HybridQADataset():
                 linked_cell['links'].append(sent_name)
         return qdict
                         
-    def preprocess_hybridqa_data(self, data):
+    def preprocess_hybridqa_data(self, *args):
         # identify passages linked to cells in the rows of table.
         # make a nice dict to store this "structured fused block"
         new_data = []
-        all_text_list = []
-        for sample in tqdm(data):
-            question = sample['question']
-            question_id = sample['question_id']
-            answer_text = sample['answer_text']
-            table_id = sample['table_id']
+        question, answer_text, table = args
+        sample = {'question': question, 'answer_text': answer_text}
+        for tkey in ['url', 'title', 'section_title', 'section_text', 'uid', 'intro']: 
+            sample[tkey] = table[tkey]
 
-            #ignore if question or answer is None
-            if not question.strip() or not answer_text.strip(): continue
-            
-            table = sample.pop('table')
-            for tkey in ['url', 'title', 'section_title', 'section_text', 'uid', 'intro']: 
-                sample[tkey] = table[tkey]
-
-            header = table['header']
-            num_cols = len(header)
-            tabular_data = table['data']
-            num_rows = len(tabular_data)//num_cols
-            
-            rows = np.split(np.array(tabular_data), num_rows)
-            
-            linked_cell_keys = range(num_cols)
-            
-            all_text_list.extend([question, sample['intro']])
+        header = table['header']
+        num_cols = len(header)
+        tabular_data = table['data']
+        num_rows = len(tabular_data)//num_cols
+        
+        rows = np.split(np.array(tabular_data), num_rows)
+        
+        linked_cell_keys = range(num_cols)
+        
+        all_text_list = [question, sample['intro']]
     
-            sample['rows'] = []
-            for row_id, row in enumerate(rows):
-                row_dict = {}
-                passage_counter = 0
-                all_row_text = []
-                answer_row_ids = []
-                for i, cell in enumerate(row):
-                    value = cell['value']
-                    col_name = header[i]
-                    cell_text = f'The {col_name} is {value}.'
-                    urls = cell['urls']
-                    row_dict[f'cell_{i}'] = {}
-                    row_dict[f'cell_{i}']['text'] = cell_text
-                    all_row_text.append(cell_text)
-                    all_text_list.append(cell_text)
-                    row_dict[f'cell_{i}']['links'] = [f'cell_{j}' for j in linked_cell_keys if i != j]
+        sample['rows'] = []
+        for row_id, row in enumerate(rows):
+            row_dict = {}
+            passage_counter = 0
+            all_row_text = []
+            answer_row_ids = []
+            for i, cell in enumerate(row):
+                value = cell['value']
+                col_name = header[i]
+                cell_text = f'The {col_name} is {value}.'
+                urls = cell['urls']
+                row_dict[f'cell_{i}'] = {}
+                row_dict[f'cell_{i}']['text'] = cell_text
+                all_row_text.append(cell_text)
+                all_text_list.append(cell_text)
+                row_dict[f'cell_{i}']['links'] = [f'cell_{j}' for j in linked_cell_keys if i != j]
     
-                    #process only cells have linked passages
-                    for psg_url in urls:
-                        summary = psg_url['summary']
-                        passage_url = psg_url['url']
-                        all_row_text.append(summary)
-                        all_text_list.append(summary)
-                        row_dict[f'passage_{passage_counter}'] = {}
-                        row_dict[f'passage_{passage_counter}']['text'] = summary
-                        row_dict[f'passage_{passage_counter}']['links'] = f'cell_{i}'
-                        row_dict[f'cell_{i}']['links'].append(f'passage_{passage_counter}')
-                        passage_counter += 1
+                #process only cells have linked passages
+                for psg_url in urls:
+                    summary = psg_url['summary']
+                    passage_url = psg_url['url']
+                    all_row_text.append(summary)
+                    all_text_list.append(summary)
+                    row_dict[f'passage_{passage_counter}'] = {}
+                    row_dict[f'passage_{passage_counter}']['text'] = summary
+                    row_dict[f'passage_{passage_counter}']['links'] = f'cell_{i}'
+                    row_dict[f'cell_{i}']['links'].append(f'passage_{passage_counter}')
+                    passage_counter += 1
     
-                #indentify answer positions in table and its linked passages
-                all_row_text = ' '.join(all_row_text).lower()
-                if answer_text.lower() in all_row_text:
-                    answer_row_ids.append([row_id, all_row_text.count(answer_text.lower())])
+            #indentify answer positions in table and its linked passages
+            all_row_text = ' '.join(all_row_text).lower()
+            if answer_text.lower() in all_row_text:
+                answer_row_ids.append([row_id, all_row_text.count(answer_text.lower())])
 
-                sample['rows'].append(row_dict)
-                
-                # if answer occurs just once in the row text
-                if len(answer_row_ids) == 1 and answer_row_ids[0][1] == 1:
-                    sample['row'] = sample['rows'][answer_row_ids[0][0]] # answer row
-                    #split the passage and link sentences to cells individualy
-                    sample['row'] = self.link_sents_to_cells(sample['row'])
+            sample['rows'].append(row_dict)
+            
+            # if answer occurs just once in the row text
+            if len(answer_row_ids) == 1 and answer_row_ids[0][1] == 1:
+                sample['row'] = sample['rows'][answer_row_ids[0][0]] # answer row
+                #split the passage and link sentences to cells individualy
+                sample['row'] = self.link_sents_to_cells(sample['row'])
 
-            del sample['rows']
-            if sample.get('row'):
-                new_data.append(sample)
-        return new_data, all_text_list
+        del sample['rows']
+        if sample.get('row'):
+            return ([sample], all_text_list)
 
-    def preprocess_data_for_qg(self, data_split='train', beam_size=10, num_hops=[3,4], num_chains_per_hops=4):
-        data = load_dataset(self.dataset_name, split=data_split)
-        processed_data_dict = {'question': [], 'input': []}
-        data, all_text = self.preprocess_hybridqa_data(data)
-        self.tfid_model = TfidfVectorizer().fit(all_text)
-        data = self.hybrid_chains(data, beam_size=beam_size, num_hops=num_hops, num_chains_per_hops=num_chains_per_hops)
-        return data
+    def preprocess_data(self, example_batch: Dict):
+        processed_data_dict = {'label': [], 'input': []}
+        for question, answer, table in tqdm(zip(example_batch['question'], example_batch['answer_text'], example_batch['table']), desc="Extracting chains"):
+            if not question.strip() or not answer.strip(): continue
+            data_all_text = self.preprocess_hybridqa_data(question, answer, table)
+            if data_all_text is None: continue
+            data, all_text = data_all_text
+            self.tfid_model = TfidfVectorizer().fit(all_text)
+            input, question = self.hybrid_chains(data)
+            processed_data_dict['input'].extend(input)
+            processed_data_dict['label'].extend(question)
+        return processed_data_dict
