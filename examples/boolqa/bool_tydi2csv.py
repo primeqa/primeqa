@@ -68,18 +68,22 @@ class BoolTyDiSubset:
         
         count = 0
         # train
+        qtype_file_a, evc_file_a, qtype_writer_a, evidence_span_writer_a = self.get_writers(output_dir, "train_plus_na")
         qtype_file, evc_file, qtype_writer, evidence_span_writer = self.get_writers(output_dir, "train")
         for example in dataset['train']:
             count += 1
+            question_text, passage_text, label = self.get_data(example, lower_case=lower_case)            
+            if label == "YES" or label == "NO":
+                qtype='boolean'
+            else:
+                qtype='other'
+
+            qtype_writer_a.writerow([str(count), question_text,example['language'],qtype]) 
             # skip NA since we don't know if they are boolean or short answer
             if example['annotations']['passage_answer_candidate_index'][0] == -1 or \
              (example['annotations']['minimal_answers_start_byte'][0] == -1 and example['annotations']['yes_no_answer'][0] == 'NONE'):
-                continue
-            question_text, passage_text, label = self.get_data(example, lower_case=lower_case)
-            if label == "YES" or label == "NO":
-                qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
-            else:
-                qtype_writer.writerow([str(count), question_text,example['language'],"other"])
+                continue                           
+            qtype_writer.writerow([str(count), question_text,example['language'],qtype])
             evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
