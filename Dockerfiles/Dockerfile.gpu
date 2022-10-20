@@ -104,7 +104,7 @@ ENV grpc_port 50051
 EXPOSE ${grpc_port}
 
 # Expose REST server port
-ENV rest_port 50051
+ENV rest_port 50052
 EXPOSE ${rest_port}
 
 # Create application user
