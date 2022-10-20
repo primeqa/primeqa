@@ -55,7 +55,7 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
             label = {
                 'label': example['label'],
                 'example_id': example['example_id'],
-                'language': example['language'],
+                'language': example['language'] if 'language' in example else 'default',
                 'question': example['question']
             }
             references.append(label)
@@ -71,12 +71,51 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
             masked_predict_scores=predict_scores.copy()
             masked_predict_scores[:,mask]=-9e19
         else:
-            masked_predict_scores=predict_scores
+                masked_predict_scores=predict_scores
 
         predictions = np.argmax(masked_predict_scores, axis=1)
         return predictions
 
 
+
+    def process(self, examples, features, predict_scores) -> EvalPrediction:
+        print('in process')
+        ipredictions=self._get_prediction_from_predict_scores(predict_scores)
+
+        fields = zip(features[self.id_key],
+            features["question"],
+            ipredictions, 
+            predict_scores)
+
+        preds_for_metric=[]
+        examples_json={}
+
+        for (ex, (example_id, question, item, scores)) in zip(examples, fields):
+            item_label = self.label_list[item]
+            p = {
+                "pred":str(item_label),
+                "conf":str(scores[item]),
+                "question":question,
+                "language":ex["language"],
+                "scores": { label:float(score) for label,score in zip(self.label_list, scores)}
+            }
+            preds_for_metric.append(p)
+
+            ex[self.output_label_prefix+'_pred'] = p['pred']
+            ex[self.output_label_prefix+'_scores'] = p['scores']
+            ex[self.output_label_prefix+'_conf'] = p['conf']
+            examples_json[example_id] = [ ex ]
+
+        # noinspection PyTypeChecker
+        return EvalPredictionWithProcessing(
+            label_ids=None,
+            predictions=examples_json,
+            processed_predictions=preds_for_metric,
+        )    
+
+
+
+    # TODO can we wrap a call to process, much of the logic is similar
     def process_references_and_predictions(self, examples, features, predict_scores) -> EvalPrediction:
         print('in process_references_and_predictions')
         references = self.prepare_examples_as_references(examples)
@@ -101,7 +140,7 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
                 "confidence":str(scores[item]),
                 "example_id":str(example_id),
                 "question":example["question"],
-                "language":example["language"],
+                "language":example["language"] if "language" in example else "default",
                 "scores":str_scores
             }
             preds_for_metric.append(p)

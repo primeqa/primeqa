@@ -13,7 +13,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../..'))
+# sys.path.append(os.path.abspath("../primeqa"))
+sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('_ext'))
 
 # -- Project information -----------------------------------------------------
 
@@ -32,11 +34,20 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
+    'sphinx_design',
+    # 'recommonmark',
+    'edit_on_github',
+    'sphinx.ext.coverage'
 ]
 
-# Enable extensions
+# Enable myst extensions
+myst_enable_extensions = ["colon_fence"]
 
-autosummary_generate = True  # Turn on sphinx.ext.autosummary
+# Turn on sphinx.ext.autosummary
+autosummary_generate = True 
+
+# Configuration of sphinx.ext.coverage
+coverage_show_missing_items = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -62,3 +73,140 @@ source_suffix = {
     '.txt': 'markdown',
     '.md': 'markdown',
 }
+
+html_theme_options = {
+    "use_edit_page_button": True,
+    "navbar_end": ["navbar-icon-links", "theme-switcher"],
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/primeqa/primeqa/",
+            "icon": "https://badgen.net/github/stars/primeqa/primeqa?icon=github",
+            "type": "url",
+        },
+        # {
+        #     "name": "GitHub",
+        #     "url": "https://github.com/primeqa/primeqa",
+        #     "icon": "fab fa-github-square",
+        #     "type": "fontawesome",
+        # },
+        #  {
+        #     "name": "Support",
+        #     "url": "https://github.com/primeqa/primeqa/discussions",
+        #     "icon": "fa fa-comment fa-fw",
+        #     "type": "fontawesome",
+        # },
+        {
+            "name": "Slack",
+            "url": "https://join.slack.com/t/primeqaworkspace/shared_invite/zt-1edc4fn7n-6aUO0CCvDOMOLb0drROwSw",
+            "icon": "https://cdn.bfldr.com/5H442O3W/at/pl546j-7le8zk-6gwiyo/Slack_Mark.svg?auto=webp&format=png",
+            "type": "url",
+        },
+   ],
+    "show_prev_next": True,
+    "navbar_align": "content",
+    "logo":{
+        "text": "PrimeQA: The Prime Repository for QA",
+    },
+    "globaltoc_collapse": True,
+    "globaltoc_includehidden": False,
+    "globaltoc_maxdepth": 2,
+    "favicons": [
+        { 
+            "rel": "icon",
+            "sizes": "16x16",
+            "href": "primeqa_logo.png",
+        },
+        {
+            "rel": "icon",
+            "sizes": "32x32",
+            "href": "primeqa_logo.png",
+        },
+        {
+            "rel": "apple-touch-icon",
+            "sizes": "180x180",
+            "href": "primeqa_logo.png"
+        },
+    ],
+    # "page_sidebar_items": ["custom-right-section.html", "page-toc", "edit-this-page"],
+    "page_sidebar_items": ["custom-right-section.html", "page-toc"],
+    # "footer_items": ["copyright", "sphinx-version"],
+    "footer_items": [],
+
+}
+
+html_context = {
+    "github_user": "primeqa",
+    "github_repo": "primeqa",
+    "github_version": "main",
+    # "edit_page_url_template": "{{ my_vcs_site }}{{ file_name }}{{ some_other_arg }}",
+    # "my_vcs_site": "https://github.com/primeqa/primeqa/edit/main/docs/",
+    # "file_name": "",
+    # "some_other_arg": "",
+    "default_mode": "light"
+}
+
+edit_on_github_project = 'primeqa/primeqa'
+edit_on_github_branch = 'main'
+
+html_css_files = [
+    "custom.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css"
+]
+
+html_sidebars = { 
+        "index": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "installation": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "development": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "testing": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "pull_request_template": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "orchestrator": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "tooling_ui": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "README": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "api/index": [
+            "search-field.html"
+        ],
+        "api/boolqa/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/calibration/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/distillation/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/ir/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/mrc/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/pipelines/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/qg/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/util/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+        "api/tableqa/index": [
+            "search-field.html","custom-left-section-api-pkg.html"
+        ],
+     }

@@ -33,9 +33,11 @@ from datasets import load_dataset, load_metric, Dataset, Features, Value, ClassL
 from numpy.lib.function_base import append
 from primeqa.text_classification.processors.postprocessors.text_classifier import TextClassifierPostProcessor
 from primeqa.text_classification.processors.preprocessors.text_classifier import TextClassifierPreProcessor
+from primeqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_run_mrc_output
 from primeqa.text_classification.metrics.classification import Classification
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.text_classification.trainers.nway import NWayTrainer
+from primeqa.mrc.run_mrc import object_reference # TODO this should be a utils file
 
 import transformers
 from transformers import (
@@ -145,7 +147,7 @@ class DataTrainingArguments:
         metadata={"help": "a field that can be used as a unique identifier of input records"}
     )
     language_key: str = field(
-        default="language",
+        default=None,
         metadata={"help": "a field that can be used as a unique identifier of input records"}
     )
     output_label_prefix: str = field(
@@ -206,6 +208,30 @@ class ModelArguments:
         },
     )
 
+@dataclass
+class TaskArguments:
+    """
+    Task specific arguments.
+    """
+    preprocessor: object_reference = field(
+        default=TextClassifierPreProcessor,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [TextClassifierPreProcessor]
+                  }
+    )
+    postprocessor: object_reference = field(
+        default=TextClassifierPostProcessor,
+        metadata={"help": "The name of the postprocessor to use.",
+                  "choices": [TextClassifierPostProcessor]
+                  }
+    )
+    do_mrc_pipeline: bool = field(
+        default=False,
+        metadata={
+            "help": "if true, then the predict dataset will be loaded from json format produced by run_mrc.py"
+        }
+    )
+
 def create_a_backup_file_if_file_exists(original_file: str):
     if path.isfile(original_file):
         backup_file = '%s.bak' % original_file
@@ -221,18 +247,67 @@ def save_to_json_file(obj_to_save, out_file_path, with_backup=True, indent=4, so
     with open(out_file_path, 'w') as outfile:
         json.dump(obj_to_save, outfile, indent=indent, sort_keys=sort_keys)
 
+
+def restrict_labels(dataset : Dataset, sentence1_key : str, label_list : List[str]) -> Dataset:
+    ''' discard instances whose label is not in the label list '''
+    examples_with_label = []
+    for example in dataset:
+        if example['label'] in label_list and example[sentence1_key] != None:
+            examples_with_label.append(example)
+    df = pd.DataFrame(examples_with_label)
+    return Dataset.from_pandas(df)
+# TODO - something like this is more idiomatic for pandas?
+# df_all=datasets['train'].to_pandas()
+# mask=~df_all[data_args.sentence1_key].isna() & df_all['label'].isin(data_args.label_list)
+# df=df_all[mask]
+
+
+def balance_dataset(data_args, datasets):
+    '''balance the number of labels in a dataset'''
+    examples_by_label = {}
+
+    for label in data_args.label_list:
+        examples_by_label[label] = []
+
+    for example in datasets['train']:
+        examples_by_label[example['label']].append(example)
+            
+        # min class size is smaller than dataset size
+    min_count = len(datasets['train'])
+
+    for label in examples_by_label:
+        if len(examples_by_label[label]) < min_count:
+            min_count = len(examples_by_label[label])
+        
+    balanced_examples = []
+
+    if data_args.max_train_samples is not None and data_args.max_train_samples < min_count * len(examples_by_label):
+        min_count = int(data_args.max_train_samples / len(examples_by_label))
+
+    for label in examples_by_label:
+        def seed():
+          return 0.1
+            # should we have something like this? its possible the data is sorted in some manner (eg alphabetically)
+        random.shuffle(examples_by_label[label], seed)
+        balanced_examples.extend(examples_by_label[label][:min_count])
+    random.shuffle(balanced_examples)
+    df = pd.DataFrame(balanced_examples)
+    logger.info("balanced (down sampling) dataset to " + str(min_count) + " per class.")
+    return Dataset.from_pandas(df)
+
+
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args, task_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
     else:
-        model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+        model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
     # Detecting last checkpoint.
     last_checkpoint = None
@@ -315,30 +390,30 @@ def main():
     if not data_args.overwrite_cache:
         cache_dir=model_args.cache_dir
 
+    features_input={
+        data_args.example_id_key: Value('string'), 
+        data_args.sentence1_key: Value('string'), 
+        'label': Value('string')
+    }
+    if data_args.language_key is not None:
+        features_input[ data_args.language_key ] = Value('string')
     if data_args.sentence2_key is not None:
-        features = Features(
-            {data_args.example_id_key: Value('string'), 
-            data_args.sentence1_key: Value('string'), 
-            data_args.sentence2_key: Value('string'),
-            data_args.language_key: Value('string'), 
-            'label': Value('string')})
+        features_input[ data_args.sentence2_key ] = Value('string')
+    features = Features( features_input )
+
+    if task_args.do_mrc_pipeline:
+        datasets={'test':create_dataset_from_run_mrc_output(data_args.test_file, unpack=False)}
     else:
-        features = Features(
-            {data_args.example_id_key: Value('string'), 
-            data_args.sentence1_key: Value('string'), 
-            data_args.language_key: Value('string'), 
-            'label': Value('string')})
-    
-    if data_args.train_file is not None and data_args.train_file.endswith(".csv") or data_args.test_file is not None and data_args.test_file.endswith(".csv"):
-        # Loading a dataset from local csv files
-        datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter=",", features=features)
-    elif (data_args.train_file is not None and data_args.train_file.endswith(".tsv")) or (data_args.validation_file is not None \
-     and data_args.validation_file.endswith(".tsv")) or (data_args.test_file is not None and data_args.test_file.endswith(".tsv")):
-        # Loading a dataset from local csv files
-        datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter="\t", features=features)
-    else:
-        # Loading a dataset from local json files
-        datasets = load_dataset("json", data_files=data_files, cache_dir=cache_dir, features=features)
+        if data_args.train_file is not None and data_args.train_file.endswith(".csv") or data_args.test_file is not None and data_args.test_file.endswith(".csv"):
+            # Loading a dataset from local csv files
+            datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter=",", features=features)
+        elif (data_args.train_file is not None and data_args.train_file.endswith(".tsv")) or (data_args.validation_file is not None \
+        and data_args.validation_file.endswith(".tsv")) or (data_args.test_file is not None and data_args.test_file.endswith(".tsv")):
+            # Loading a dataset from local csv files
+            datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir, delimiter="\t", features=features)
+        else:
+            # Loading a dataset from local json files
+            datasets = load_dataset("json", data_files=data_files, cache_dir=cache_dir, features=features)
 
     # Labels - load from file
     num_labels = len(data_args.label_list)
@@ -348,50 +423,21 @@ def main():
 
     # discard instances whose label is not in the label list
     if training_args.do_train:
-        logger.info("Discard training instanced not in label list, if any.")
-        examples_with_label = []
-
-        for example in datasets['train']:
-            if example['label'] in data_args.label_list and example[data_args.sentence1_key] != None:
-                examples_with_label.append(example)
-        df = pd.DataFrame(examples_with_label)
-        datasets['train'] = Dataset.from_pandas(df)
-
+        logger.info("Discard training instance not in label list, if any.")
+        datasets['train']=restrict_labels(datasets['train'], data_args.sentence1_key, data_args.label_list)
         if len(datasets['train']) == 0:
             raise ValueError("No training data left with labels provided in label list")
 
-    # balance the dataset
+    if training_args.do_eval:
+        logger.info("Discard eval instance not in label list, if any.")
+        datasets['validation']=restrict_labels(datasets['validation'], data_args.sentence1_key, data_args.label_list)
+        if len(datasets['validation']) == 0:
+            raise ValueError("No validation data left with labels provided in label list")
+
+    # balance the training dataset
     if training_args.do_train and data_args.balanced:
-        examples_by_label = {}
-
-        for label in data_args.label_list:
-            examples_by_label[label] = []
-
-        for example in datasets['train']:
-            examples_by_label[example['label']].append(example)
-            
-        # min class size is smaller than dataset size
-        min_count = len(datasets['train'])
-
-        for label in examples_by_label:
-            if len(examples_by_label[label]) < min_count:
-                min_count = len(examples_by_label[label])
+        datasets['train'] = balance_dataset(data_args, datasets)
         
-        balanced_examples = []
-
-        if data_args.max_train_samples is not None and data_args.max_train_samples < min_count * len(examples_by_label):
-            min_count = int(data_args.max_train_samples / len(examples_by_label))
-
-        for label in examples_by_label:
-            def seed():
-              return 0.1
-            # should we have something like this? its possible the data is sorted in some manner (eg alphabetically)
-            random.shuffle(examples_by_label[label], seed)
-            balanced_examples.extend(examples_by_label[label][:min_count])
-        random.shuffle(balanced_examples)
-        df = pd.DataFrame(balanced_examples)
-        datasets['train'] = Dataset.from_pandas(df)
-        logger.info("balanced (down sampling) dataset to " + str(min_count) + " per class.")
             
     # See more about loading any type of standard or custom dataset at
     # https://huggingface.co/docs/datasets/loading_datasets.html.
@@ -438,7 +484,7 @@ def main():
         )
     max_seq_length = min(data_args.max_seq_length, tokenizer.model_max_length)
 
-    preprocessor_class = BoolQAClassifierPreProcessor # TODO task_args.preprocssor
+    preprocessor_class = task_args.preprocessor
     preprocessor = preprocessor_class(
         example_id_key=data_args.example_id_key,
         sentence1_key=data_args.sentence1_key,
@@ -501,7 +547,7 @@ def main():
     else:
         data_collator = None
 
-    postprocessor_class = BoolQAClassifierPostProcessor  # TODO # taskargs.
+    postprocessor_class = task_args.postprocessor
     postprocessor = postprocessor_class(
         k=10, 
         drop_label=data_args.drop_label,
@@ -509,6 +555,8 @@ def main():
         id_key=data_args.example_id_key,
         output_label_prefix=data_args.output_label_prefix
     )
+
+    training_args.metric_for_best_model='eval_all_avg_f1'
 
     # Initialize our Trainer
     trainer = NWayTrainer(
@@ -520,7 +568,7 @@ def main():
         compute_metrics=compute_metrics,
         tokenizer=tokenizer,
         data_collator=data_collator,
-        post_process_function=postprocessor.process_references_and_predictions, 
+        post_process_function=postprocessor.process if task_args.do_mrc_pipeline else postprocessor.process_references_and_predictions, 
     )
 
     # Training
@@ -551,9 +599,15 @@ def main():
     # Predict on unlabeled data
     if training_args.do_predict:
         logger.info("*** Predict ***")
-        predictions = trainer.evaluate(metric_key_prefix="predict")   
-        eval_preds = postprocessor.process_references_and_predictions(eval_examples, eval_dataset, predictions)
-        save_to_json_file(eval_preds, os.path.join(training_args.output_dir, f"predict_results.json"))
+        predict_dataset=predict_dataset.remove_columns('label')
+        predictions = trainer.predict(predict_dataset, predict_examples)
+        # TODO I don't think process_reference_and_predictions should be called here
+
+        with open(os.path.join(training_args.output_dir, 'predictions.json'), 'w') as f:
+            json.dump(predictions.predictions, f, indent=4)
+        with open(os.path.join(training_args.output_dir, 'predictions_processed.json'), 'w') as f:
+            json.dump(predictions.processed_predictions, f, indent=4)
+
 
 
 def _mp_fn(index):
