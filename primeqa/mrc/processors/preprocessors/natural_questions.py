@@ -62,20 +62,22 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             self._single_context_multiple_passages = True
 
 
-    def adapt_dataset(self, dataset: Dataset, is_train: bool, keep_html: bool=True) -> Dataset:
+    def adapt_dataset(self, dataset: Dataset, is_train: bool, keep_html: bool=True, max_top_level_spans_to_include: int=48) -> Dataset:
         """
         Process dataset examples to rename fields, create context and set answer offset.
         Args:
              dataset: Dataset to be processed.
              is_train: True for training otherwise False.
              keep_html: True if keep html token in context otherwise false.
+             max_top_level_spans_to_include: The number of top level spans considered for featurization.
         Returns:
              Precossed dataset.
         """
         
         self.validate_schema(dataset, is_train)
         dataset = dataset.map(
-            functools.partial(self._rename_examples_create_context_and_adjust_offset, is_train=is_train, keep_html=keep_html),
+            functools.partial(self._rename_examples_create_context_and_adjust_offset, is_train=is_train,
+                              keep_html=keep_html, max_top_level_spans_to_include=max_top_level_spans_to_include),
             load_from_cache_file=self._load_from_cache_file,
             num_proc=self._num_workers
         )
@@ -83,7 +85,11 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
         return dataset
 
 
-    def _rename_examples_create_context_and_adjust_offset(self, example: Example, is_train: bool, keep_html: bool=True):
+    def _rename_examples_create_context_and_adjust_offset(self,
+                                                          example: Example,
+                                                          is_train: bool,
+                                                          keep_html: bool=True,
+                                                          max_top_level_spans_to_include: int=48):
         """
         Rename examples to BasePreProcessor schema,
         create context from document token,
@@ -93,30 +99,49 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
              example: Dataset example.
              is_train: True for training otherwise False.
              keep_html: True if keep html token in context otherwise false.
+             max_top_level_spans_to_include: The number of top level spans considered for featurization.
         Returns:
-             Precossed example.
+             Processed example.
         """
 
         # rename example
         example['example_id'] = example['id']
         example['question'] = example['question']['text']
         example['language'] = 'english'
-        example['document_html'] = example['document']['html']
         example['document_tokens'] = example['document']['tokens']
+
+        end_byte_of_max_top_level_spans = example['document_tokens']['end_byte'][-1]
+        if is_train and max_top_level_spans_to_include > 0:
+            number_of_top_level_spans = 0
+            for i in range(len(example['long_answer_candidates']['top_level'])):
+                if example['long_answer_candidates']['top_level'][i]:
+                    number_of_top_level_spans += 1
+                    if number_of_top_level_spans >= max_top_level_spans_to_include:
+                        end_byte_of_max_top_level_spans = example['long_answer_candidates']['end_byte'][i]
+                        break
 
         passage_candidates = {}
         passage_candidates['start_positions'] = example['long_answer_candidates']['start_byte']
         passage_candidates['end_positions'] = example['long_answer_candidates']['end_byte']
+#        passage_candidates['top_level'] = example['long_answer_candidates']['top_level']
         example['passage_candidates'] = passage_candidates
-        del example['long_answer_candidates']
 
-        example['target'] = self.get_annotations(example['annotations'], example['passage_candidates'])
+        del example['long_answer_candidates']
+        del example['document']['html']
+
+        example['target'] = self.get_annotations(example['annotations'], end_byte_of_max_top_level_spans)
 
         # create context from document tokens, and build alignment between char and token.
         context = ""
         char_to_token = []
         token_to_char = []
-        num_tokens = len(example['document_tokens']['token'])
+
+        num_tokens = 0
+        for i in range(len(example['document_tokens']['token'])):
+            if example['document_tokens']['start_byte'][i] >= end_byte_of_max_top_level_spans:
+                break
+            else:
+                num_tokens += 1
 
         for i in range(num_tokens):
             if not keep_html and example['document_tokens']['is_html'][i]:
@@ -164,41 +189,43 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             else:
                 raise ValueError('End position of short answer can not be set to the token based context.')
 
-        num_passages = len(example['passage_candidates']['start_positions'])
-        for i in range(num_passages):
-            passage_start_position = example['passage_candidates']['start_positions'][i]
-            passage_end_position = example['passage_candidates']['end_positions'][i]
+        if example['target']['passage_indices'][0] == -1:
+            return example
 
-            for j in range(num_tokens):
-                if example['context_token_to_char'][j] == -1:
-                    continue
-                if example['document_tokens']['start_byte'][j] >= passage_start_position:
-                    break
-            if j < num_tokens:
-                example['passage_candidates']['start_positions'][i] = example['context_token_to_char'][j]
-            else:
-                raise ValueError('Start position of passage candidate can not be set to the token based context.')
+        i = example['target']['passage_indices'][0]
+        passage_start_position = example['passage_candidates']['start_positions'][i]
+        passage_end_position = example['passage_candidates']['end_positions'][i]
 
-            for j in range(num_tokens - 1, -1, -1):
-                if example['context_token_to_char'][j] == -1:
-                    continue
-                if example['document_tokens']['end_byte'][j] <= passage_end_position:
-                    break
-            if j >= 0:
-                example['passage_candidates']['end_positions'][i] = example['context_token_to_char'][j] + \
-                                                                    len(example['document_tokens']['token'][j])
-            else:
-                raise ValueError('End position of passage candidate can not be set to the token based context.')
+        for j in range(num_tokens):
+            if example['context_token_to_char'][j] == -1:
+                continue
+            if example['document_tokens']['start_byte'][j] >= passage_start_position:
+                break
+        if j < num_tokens:
+            example['passage_candidates']['start_positions'][i] = example['context_token_to_char'][j]
+        else:
+            raise ValueError('Start position of passage candidate can not be set to the token based context.')
+
+        for j in range(num_tokens - 1, -1, -1):
+            if example['context_token_to_char'][j] == -1:
+                continue
+            if example['document_tokens']['end_byte'][j] <= passage_end_position:
+                break
+        if j >= 0:
+            example['passage_candidates']['end_positions'][i] = example['context_token_to_char'][j] + \
+                                                                len(example['document_tokens']['token'][j])
+        else:
+            raise ValueError('End position of passage candidate can not be set to the token based context.')
 
         return example
 
 
-    def get_annotations(self, annotations, paragraphs):
+    def get_annotations(self, annotations, end_byte_of_max_top_level_spans):
         """
         Process NQ annotations into preprocessor format.
         Args:
              annotations: Annotations of NQ example.
-             paragraphs: Passage_candidates of NQ example.
+             end_byte_of_max_top_level_spans: The end byte of the first K top level spans.
         Returns:
              Annotations in preprocessor format.
         """
@@ -209,18 +236,25 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
         nq_annotations['passage_indices'] = []
         nq_annotations['yes_no_answer'] = []
         for i in range(len(annotations['id'])):
-            start_byte, end_byte = annotations['short_answers'][i]['start_byte'],annotations['short_answers'][i]['end_byte']
+            start_bytes, end_bytes = annotations['short_answers'][i]['start_byte'], annotations['short_answers'][i]['end_byte']
             
-            if len(start_byte) == 0:
+            if len(start_bytes) == 0:
                 start_byte = -1
                 end_byte = -1
                 candidate_index = -1
             else:
-                start_byte = start_byte[0]
-                end_byte = end_byte[0]
+                start_byte = start_bytes[0]
+                end_byte = end_bytes[0]
                 candidate_index = annotations['long_answer'][i]['candidate_index']
+                if start_byte >= end_byte_of_max_top_level_spans:
+                    start_byte = -1
+                    end_byte = -1
+                    candidate_index = -1
+                elif end_byte > end_byte_of_max_top_level_spans:
+                    end_type = end_byte_of_max_top_level_spans
             if end_byte < start_byte:
                 self._logger.error("end_byte < start_byte")
+                assert(end_byte >= start_byte)
 
             yes_no_answer = annotations['yes_no_answer'][i]
             yes_no_answer = self._yes_no_answer_to_str[yes_no_answer]
