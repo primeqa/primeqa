@@ -300,13 +300,17 @@ class BasePreProcessor(AbstractPreProcessor):
         if self._subsample_all_features:
             return dataset
 
+        if isinstance(dataset['subsample_type'], int):
+            dataset['subsample_type'] = [dataset['subsample_type']]
         keep_indices = [i for i, st in enumerate(dataset['subsample_type']) if self._keep_feature(st)]
         if len(keep_indices) == 0:
              raise ValueError("No features remaining after subsampling")
+        try:
+            dataset = dataset.select(keep_indices)
+        except IndexError as ex:
+            raise ValueError("Unable to perform subsampling") from ex
 
-        dataset = dataset.select(keep_indices)
-
-        dataset = dataset.remove_columns('subsample_type')
+#        dataset = dataset.remove_columns('subsample_type')
         return dataset
 
     def _keep_feature(self, st: SubsampleType) -> bool:
