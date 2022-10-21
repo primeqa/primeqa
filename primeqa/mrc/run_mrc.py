@@ -33,6 +33,7 @@ from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
+from primeqa.mrc.processors.preprocessors.tydiboolqa_bpes import TyDiBoolQAPreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
@@ -243,7 +244,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
+                  "choices": [BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor,TyDiBoolQAPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
