@@ -6,6 +6,7 @@ import json
 import torch
 import gc
 import glob
+import random
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
@@ -127,6 +128,10 @@ class DataTrainingArguments:
         default="primary_task", metadata={
             "help": "The configuration name of the dataset to use (via the datasets library)."
         }
+    )
+    dataset_list_file: Optional[str] = field(
+        default=None, metadata={"help": "List of datasets used in training. Each line has: "
+                                        "dataset_name dataset_config_name sampling_rate preprocessor postprocessor."}
     )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
@@ -369,7 +374,37 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    if data_args.train_file is not None or data_args.eval_file is not None:
+    if data_args.dataset_list_file is not None:
+        raw_dataset_list = []
+        sampling_rate_list = []
+        preprocessor_name_list = []
+        postprocessor_name_list = []
+        with open(data_args.dataset_list_file) as f:
+            for line in f:
+                dataset_name, dataset_config_name, sampling_rate, preprocessor_name, postprocessor_name = \
+                    line.strip().split()
+                sampling_rate_list.append(float(sampling_rate))
+                preprocessor_name_list.append(preprocessor_name)
+                postprocessor_name_list.append(postprocessor_name)
+                logger.info(f"Loading {dataset_name}")
+                if dataset_name.lower() == "natural_questions":
+                    raw_dataset = datasets.load_dataset(
+                        dataset_name,
+                        dataset_config_name,
+                        cache_dir=model_args.cache_dir,
+                        beam_runner="DirectRunner",
+                        revision="main"
+                    )
+                else:
+                    raw_dataset = datasets.load_dataset(
+                        dataset_name,
+                        dataset_config_name,
+                        cache_dir=model_args.cache_dir,
+                    )
+                raw_dataset_list.append(raw_dataset)
+        if len(raw_dataset_list) == 0:
+            raise ValueError(f"No dataset loaded from {data_args.dataset_list_file}.")
+    elif data_args.train_file is not None or data_args.eval_file is not None:
         data_files = {}
 
         if data_args.train_file is not None: 
@@ -397,49 +432,92 @@ def main():
             )
 
     # load preprocessor
-    preprocessor_class = task_args.preprocessor
-    preprocessor = preprocessor_class(
-        stride=data_args.doc_stride,
-        tokenizer=tokenizer,
-        negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
-        negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
-        load_from_cache_file=not data_args.overwrite_cache,
-        max_seq_len=data_args.max_seq_length,
-        num_workers=data_args.preprocessing_num_workers,
-        max_q_char_len=data_args.max_q_char_len,
-        single_context_multiple_passages=data_args.single_context_multiple_passages,
-        max_contexts=data_args.max_contexts,
-    )
+    if data_args.dataset_list_file is not None:
+        preprocessor_list = []
+        for p in preprocessor_name_list:
+            preprocessor = object_reference(p)(
+                stride=data_args.doc_stride,
+                tokenizer=tokenizer,
+                negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+                negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+                load_from_cache_file=not data_args.overwrite_cache,
+                max_seq_len=data_args.max_seq_length,
+                num_workers=data_args.preprocessing_num_workers,
+                max_q_char_len=data_args.max_q_char_len,
+                single_context_multiple_passages=data_args.single_context_multiple_passages,
+                max_contexts=data_args.max_contexts,
+            )
+            preprocessor_list.append(preprocessor)
+    else:
+        preprocessor_class = task_args.preprocessor
+        preprocessor = preprocessor_class(
+            stride=data_args.doc_stride,
+            tokenizer=tokenizer,
+            negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+            negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+            load_from_cache_file=not data_args.overwrite_cache,
+            max_seq_len=data_args.max_seq_length,
+            num_workers=data_args.preprocessing_num_workers,
+            max_q_char_len=data_args.max_q_char_len,
+            single_context_multiple_passages=data_args.single_context_multiple_passages,
+            max_contexts=data_args.max_contexts,
+        )
 
     # process train data
     if training_args.do_train:
-        train_dataset = raw_datasets["train"]
-        max_train_samples = data_args.max_train_samples
-        if max_train_samples is not None:
-            # We will select sample from whole data if argument is specified
-            train_dataset = train_dataset.select(range(max_train_samples))
-        # Train Feature Creation
-        with training_args.main_process_first(desc="train dataset map pre-processing"):
-            _, train_dataset = preprocessor.process_train(train_dataset)
+        if data_args.dataset_list_file is not None:
+            train_dataset_list = []
+            for i, d in enumerate(raw_dataset_list):
+                current_train_dataset = d["train"]
+                max_train_samples = int(len(current_train_dataset) * sampling_rate_list[i])
+                selected_indices = random.sample(range(len(current_train_dataset)), max_train_samples)
+                current_train_dataset = current_train_dataset.select(selected_indices)
+                # Train Feature Creation
+                with training_args.main_process_first(desc="train dataset map pre-processing"):
+                    _, processed_train_dataset = preprocessor_list[i].process_train(current_train_dataset)
+                train_dataset_list.append(processed_train_dataset)
+#            assert(train_dataset_list[0].features.type == train_dataset_list[-1].features.type)
+            train_dataset = datasets.concatenate_datasets(train_dataset_list).shuffle().shuffle().shuffle()
+        else:
+            train_dataset = raw_datasets["train"]
+            max_train_samples = data_args.max_train_samples
+            if max_train_samples is not None:
+                # We will select sample from whole data if argument is specified
+                train_dataset = train_dataset.select(range(max_train_samples))
+            # Train Feature Creation
+            with training_args.main_process_first(desc="train dataset map pre-processing"):
+                _, train_dataset = preprocessor.process_train(train_dataset)
 
     # process val data
     if training_args.do_eval:
-        eval_examples = raw_datasets["validation"]
-        max_eval_samples = data_args.max_eval_samples
-        if max_eval_samples is not None:
+        if data_args.dataset_list_file is not None:
+            # The first dataset in dataset_list_file is used for eval
+            eval_examples = raw_dataset_list[0]["validation"]
+            if sampling_rate_list[0] < 1.0:
+                max_eval_samples = int(len(eval_examples) * sampling_rate_list[0])
+                selected_indices = random.sample(range(len(eval_examples)), max_eval_samples)
+                eval_examples = eval_examples.select(selected_indices)
+            with training_args.main_process_first(desc="validation dataset map pre-processing"):
+                eval_examples, eval_dataset = preprocessor_list[0].process_eval(eval_examples)
+        else:
+            eval_examples = raw_datasets["validation"]
+            max_eval_samples = data_args.max_eval_samples
+            if max_eval_samples is not None:
             # We will select sample from whole data if argument is specified
-            eval_examples = eval_examples.select(range(max_eval_samples))
-        # Validation Feature Creation
-        with training_args.main_process_first(desc="validation dataset map pre-processing"):
-            eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+                eval_examples = eval_examples.select(range(max_eval_samples))
+            # Validation Feature Creation
+            with training_args.main_process_first(desc="validation dataset map pre-processing"):
+                eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
-    postprocessor_class = task_args.postprocessor
-
     # noinspection PyProtectedMember
+    if data_args.dataset_list_file is not None:
+        postprocessor_class = object_reference(postprocessor_name_list[0])
+    else:
+        postprocessor_class = task_args.postprocessor
     postprocessor = postprocessor_class(
         k=data_args.n_best_logits,
         n_best_size=data_args.n_best_size,
