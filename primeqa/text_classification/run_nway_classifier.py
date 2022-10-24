@@ -37,7 +37,7 @@ from primeqa.boolqa.processors.dataset.mrc2dataset import create_dataset_from_ru
 from primeqa.text_classification.metrics.classification import Classification
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.text_classification.trainers.nway import NWayTrainer
-from primeqa.mrc.run_mrc import object_reference # TODO this should be a utils file
+from primeqa.mrc.run_mrc_utils import object_reference # TODO this should be a utils file
 
 import transformers
 from transformers import (
@@ -296,16 +296,17 @@ def balance_dataset(data_args, datasets):
     return Dataset.from_pandas(df)
 
 
-def main():
+def main(raw_args):
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
-    if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+    if len(raw_args) == 2 and raw_args[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args, task_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args, task_args = parser.parse_json_file(json_file=os.path.abspath(raw_args[1]))
+    elif len(raw_args) == 1:
+        model_args, data_args, training_args, task_args = parser.parse_dict(raw_args[0])
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
@@ -597,7 +598,7 @@ def main():
         trainer.save_metrics("eval", metrics)
 
     # Predict on unlabeled data
-    if training_args.do_predict:
+    if training_args.do_predict or task_args.do_mrc_pipeline:
         logger.info("*** Predict ***")
         predict_dataset=predict_dataset.remove_columns('label')
         predictions = trainer.predict(predict_dataset, predict_examples)
