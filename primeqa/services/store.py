@@ -12,6 +12,7 @@ from primeqa.services.utils import generate_id, load_json, save_json
 
 DIR_NAME_INDEXES = "indexes"
 DIR_NAME_INDEX = "index"
+DIR_NAME_MODELS = "models"
 DIR_NAME_CHECKPOINTS = "checkpoints"
 DIR_NAME_MODELS = "models"
 FILENAME_INFORMATION = "information"
@@ -55,6 +56,10 @@ class Store:
         # Check if checkpoints directory exist, if not create one
         if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS)):
             os.makedirs(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS))
+        
+        # Check if models directory exist, if not create one
+        if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_MODELS)):
+            os.makedirs(os.path.join(self.root_dir, DIR_NAME_MODELS))
 
     def exists(self, path: str):
         return os.path.exists(path)
