@@ -44,10 +44,16 @@ class TapexModel():
             Dict: Returns a dictionary of query and the predicted answer.
         """
         table = pd.DataFrame.from_dict(data_dict)
-        inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
-        outputs = model.generate(**encoding)
-        answers = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        inputs = self._tokenizer(table, queries_list, padding='max_length', return_tensors="pt")
+        print(queries_list)
+        outputs = self._model.generate(**inputs)
+        answers = self._tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        print(answers)
         
+
+        
+
+
         query_answer_dict = {}
         for query, answer in zip(queries_list, answers):
             query_answer_dict[query] = answer
