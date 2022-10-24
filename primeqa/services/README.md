@@ -122,8 +122,10 @@ WARNING: The PrimeQA orchestrator and UI will only work with gRPC deployment wit
 
 <h3>💻 Clients</h3>
 
-<h4>Python</h4>
-Refer to the [PrimeQA Orchestrator](https://github.com/primeqa/primeqa-orchestrator) for examples on how to make gRPC calls via python.
+<h4>Python</h4> 
+
+[PrimeQA Orchestrator](https://github.com/primeqa/primeqa-orchestrator) has example code on how to make gRPC calls via python
+
 
 <h4>GUI</h4>
 
