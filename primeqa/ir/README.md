@@ -56,15 +56,12 @@ This table shows two lines from the file, with the positive and negative passage
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen <maximum_number_of_document_tokens> \
     --bsize <training_batch_size> \
     --accum <number_of_gradient_accumulation_steps> \
     --maxsteps <number_of_training_steps> \
-    --save_steps <number_of_training_steps_between_saving_checkpoins>
-    --mask-punctuation \
+    --save_steps <number_of_training_steps_between_saving_checkpoins> \
     --lr <learnig_rate> \
-    --similarity <l2_or_cosine> \
     --model_type xlm-roberta-base \
     --triples <training_data> \
     --root <experiments_root_directory> \
@@ -135,9 +132,7 @@ python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
     --doc_maxlen <maximum_number_of_document_tokens> \
-    --mask-punctuation \
     --bsize <indexing_batch_size> \
-    --similarity <l2_or_cosine> \
     --checkpoint <model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
@@ -192,22 +187,15 @@ The command uses a model and index as created in the previous training and index
 python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen <maximum_number_of_document_tokens> \
-    --mask-punctuation \
     --bsize <search_batch_size> \
-    --similarity <l2_or_cosine> \
-    --retrieve_only \
     --queries <query_file> \
-    --checkpoint <model_checkpoint> \
-    --collection <document_collection> \
-    --root <experiments_root_directory> \
-    --experiment <experiment_label> \
-    --index_name <index_label> \
-    --ranks_fn <scores_and_ranks>
+    --model_name_or_path <model_filename_or_directory> \
+    --index_location <directory_containing_index_files> \
+    --output_dir <output_directory>
 ```
 
-The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output_directory>`, in a file named `ranked_passages.tsv`.
 
 #### PLAID hyperparameters
 
