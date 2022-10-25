@@ -23,7 +23,7 @@ class Arguments():
 
     def add_model_parameters(self):
         # Core Arguments
-        self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine', 'l2'])
+        self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine'])
         self.add_argument('--dim', dest='dim', default=128, type=int)
         self.add_argument('--query_maxlen', dest='query_maxlen', default=32, type=int)
         self.add_argument('--doc_maxlen', dest='doc_maxlen', default=180, type=int)
@@ -49,7 +49,10 @@ class Arguments():
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
         self.add_argument('--bsize', dest='bsize', default=32, type=int)
         self.add_argument('--accumsteps', dest='accumsteps', default=1, type=int)
-        self.add_argument('--amp', dest='amp', default=False, action='store_true')
+        self.add_argument('--amp', dest='amp', default=True, action='store_true')
+        self.add_argument('--no_amp', dest='amp', default=False, action='store_false')
+        self.parser.set_defaults(amp=True)
+
         # adding shuffle option
         self.add_argument('--shuffle_every_epoch', dest='shuffle_every_epoch', default=False, action='store_true')
         # support checkpoint
@@ -78,7 +81,9 @@ class Arguments():
     def add_model_inference_parameters(self):
         self.add_argument('--checkpoint', dest='checkpoint', required=True)
         self.add_argument('--bsize', dest='bsize', default=128, type=int)
-        self.add_argument('--amp', dest='amp', default=False, action='store_true')
+        self.add_argument('--amp', dest='amp', default=True, action='store_true')
+        self.add_argument('--no_amp', dest='amp', default=False, action='store_false')
+        self.parser.set_defaults(amp=True)
 
     def add_training_input(self):
         self.add_argument('--triples', dest='triples', required=True)
