@@ -247,20 +247,16 @@ The resulting .tsv file, containing query IDs, document IDs, ranks, and scores i
 ### Sparse Index Retrieval
 
 The command requires an index and a queries tsv file as input.
+
 ```shell
 python primeqa/ir/run_ir.py \
       --do_search \
       --engine_type BM25 \
-      --index_path <index-dir> \
-      --queries_path  <query_file> \
-      --nhits <num-hits> \
-      --use_bm25 \
-      --k1 <bm25-score-k1> \
-      --b <bm25-score-b> \
-      --threads  <num-processing-threads> \
+      --index_location <index-dir> \
+      --queries  <query_file> \ 
       --output_dir <output-dir>
 ```
-The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output-dir>`.
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output-dir>` in 'ranked_passages.tsv' file.
 
 This table shows the sample lines from the search results tsv file:
 
