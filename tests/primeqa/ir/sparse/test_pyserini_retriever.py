@@ -57,7 +57,7 @@ class TestPyseriniRetriever(UnitTest):
     def test_retrieve(self, index_location, queries, expected_search_results):
         searcher = PyseriniRetriever(index_location)
         for i, query in enumerate(queries):
-            hits = searcher.retrieve(query,top_k=2)
+            hits = searcher.retrieve(query,topK=2)
             expected_results = expected_search_results[i]
             self._validate_search_results(hits, expected_results)
 
@@ -65,7 +65,7 @@ class TestPyseriniRetriever(UnitTest):
         searcher = PyseriniRetriever(index_location)
         qids = ['0','1','2']
         assert(len(qids) == len(queries))
-        qid_to_hits = searcher.batch_retrieve(queries, qids, top_k=2)
+        qid_to_hits = searcher.batch_retrieve(queries, qids, topK=2)
         for i, qid in enumerate(qids):
             hits = qid_to_hits[qid]
             expected_results = expected_search_results[i]
