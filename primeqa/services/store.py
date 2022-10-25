@@ -56,7 +56,7 @@ class Store:
         # Check if checkpoints directory exist, if not create one
         if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS)):
             os.makedirs(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS))
-        
+
         # Check if models directory exist, if not create one
         if not os.path.exists(os.path.join(self.root_dir, DIR_NAME_MODELS)):
             os.makedirs(os.path.join(self.root_dir, DIR_NAME_MODELS))

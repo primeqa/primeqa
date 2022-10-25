@@ -764,7 +764,7 @@ class RestServer:
             uvicorn.Server(server_config).run()
             self._logger.info(
                 "Server instance started on port %s - initialization took %s seconds",
-                self._config.grpc_port,
+                self._config.rest_port,
                 time.time() - start_t,
             )
         except Exception as ex:

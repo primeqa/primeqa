@@ -55,7 +55,7 @@ class ReaderFactory:
     ):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
-        
+
         # Step 2: Create unique hash based on reader's class name and keyword arguments
         instance_id = hash(
             f"{reader.__name__}::{json.dumps(reader_kwargs, sort_keys=True)}"
@@ -66,15 +66,13 @@ class ReaderFactory:
                 raise ValueError(
                     f"{reader.__name__} is currently being loading. Please try again in a short while."
                 )
-                
+
             # Step 3.b: Add to loading
             cls._loading.append(instance_id)
 
             # Step 3.c: Start creating instance
             cls._logger.info(
-                "%s - initializing with arguments: %s",
-                reader.__name__,
-                reader_kwargs
+                "%s - initializing with arguments: %s", reader.__name__, reader_kwargs
             )
             instance = reader(**reader_kwargs)
             start_t = time.time()
@@ -125,8 +123,9 @@ class RetrieverFactory:
 
             # Step 3.c: Start creating instance
             cls._logger.info(
-                "%s - initializing",
+                "%s - initializing with arguments: %s",
                 retriever.__name__,
+                retriever_kwargs,
             )
             instance = retriever(**retriever_kwargs)
             start_t = time.time()
@@ -177,8 +176,7 @@ class IndexerFactory:
 
             # Step 3.c: Start creating instance
             cls._logger.info(
-                "%s - initializing",
-                indexer.__name__,
+                "%s - initializing with arguments: %s", indexer.__name__, indexer_kwargs
             )
             instance = indexer(**indexer_kwargs)
             start_t = time.time()
@@ -192,5 +190,5 @@ class IndexerFactory:
             # Step 3.d: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
             cls._loading.remove(instance_id)
-            
+
         return cls._instances[instance_id]
