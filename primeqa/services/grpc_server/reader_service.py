@@ -3,10 +3,22 @@ from typing import Union
 
 from grpc import ServicerContext, StatusCode
 
+from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
-from primeqa.services.grpc_server.utils import parse_parameter_value
+from primeqa.services.grpc_server.utils import (
+    parse_parameter_value,
+    generate_parameters,
+)
+from primeqa.services.parameters import get_parameter_type
+from primeqa.services.factories import (
+    READERS_REGISTRY,
+    ReaderFactory,
+)
 from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderServicer
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
+    GetReadersRequest,
+    GetReadersResponse,
+    ReaderComponent,
     GetAnswersRequest,
     Answer,
     AnswersForContext,
@@ -24,27 +36,6 @@ class ReaderService(ReaderServicer):
         self._config = config
         self.loaded_readers = {}
         self._logger.info("%s is successfully initialized.", self.__class__.__name__)
-
-    def GetReaders(
-        self, request: GetReadersRequest, context: ServicerContext
-    ) -> GetReadersResponse:
-        """_summary_
-
-        Args:
-            request (GetReadersRequest):
-            context (ServicerContext): gRPC context information for method call
-
-        Returns:
-            GetReadersResponse: List of available readers
-        """
-        return GetReadersResponse(
-            readers=[
-                ReaderComponent(
-                    reader_id=reader_id, parameters=generate_parameters(reader)
-                )
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
-        )
 
     def GetReaders(
         self, request: GetReadersRequest, context: ServicerContext

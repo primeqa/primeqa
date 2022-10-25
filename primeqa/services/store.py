@@ -34,12 +34,8 @@ EXTN_SQL_LITE = ".sqlite"
 #            <checkpoint>/
 #                       <model-id>.dnn|<model-id>.model
 # models/
-#        <model-id>.dnn|<model-id>.model
-# pipelines/
-#        <pipeline-id>/
-#                   checkpoints/
-#                               <timestamp>/
-#                                       *.dnn|*.model
+#        <model-id>/
+#               *.dnn|*.model
 #############################################################################################
 class Store:
     def __init__(self):

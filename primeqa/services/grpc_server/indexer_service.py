@@ -4,37 +4,23 @@ from typing import Union
 from grpc import ServicerContext, StatusCode
 from google.protobuf.json_format import MessageToDict
 
+from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
 from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus
-from primeqa.services.parameters import get_parameter_type
-from primeqa.services.factories import (
-    INDEXERS_REGISTRY,
-    IndexerFactory,
-)
-from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus
-from primeqa.services.parameters import get_parameter_type
-from primeqa.services.factories import (
-    INDEXERS_REGISTRY,
-    IndexerFactory,
-)
+from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
-    (
     parse_parameter_value,
     generate_parameters,
 )
-from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
-from primeqa.services.exceptions import ErrorMessages,
-    generate_parameters,
+from primeqa.services.parameters import get_parameter_type
+from primeqa.services.factories import (
+    INDEXERS_REGISTRY,
+    IndexerFactory,
 )
-from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2_grpc import (
     IndexerServicer,
 )
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
-    GetIndexersRequest,
-    GetIndexersResponse,
-    IndexerComponent,
-    GenerateIndexResponse,
     GetIndexersRequest,
     GetIndexersResponse,
     IndexerComponent,
@@ -60,30 +46,6 @@ class IndexerService(IndexerServicer):
         self._config = config
         self._store = StoreFactory.get_store()
         self._logger.info("%s is successfully initialized.", self.__class__.__name__)
-
-    def GetIndexers(
-        self, request: GetIndexersRequest, context: ServicerContext
-    ) -> GetIndexersResponse:
-        """_summary_
-
-        Args:
-            request (GetIndexersRequest):
-            context (ServicerContext): gRPC context information for method call
-
-        Returns:
-            GetIndexersResponse: List of available indexers
-        """
-        return GetIndexersResponse(
-            indexers=[
-                IndexerComponent(
-                    indexer_id=indexer_id,
-                    parameters=generate_parameters(
-                        indexer, skip=["index_root", "index_name"]
-                    ),
-                )
-                for indexer_id, indexer in INDEXERS_REGISTRY.items()
-            ]
-        )
 
     def GetIndexers(
         self, request: GetIndexersRequest, context: ServicerContext
