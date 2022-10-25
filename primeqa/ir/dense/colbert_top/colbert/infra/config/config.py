@@ -1,15 +1,7 @@
 from dataclasses import dataclass
 
 from .base_config import BaseConfig
-from .settings import (
-    RunSettings,
-    ResourceSettings,
-    DocSettings,
-    QuerySettings,
-    TrainingSettings,
-    IndexingSettings,
-    SearchSettings,
-)
+from .settings import *
 
 
 @dataclass
@@ -18,14 +10,6 @@ class RunConfig(BaseConfig, RunSettings):
 
 
 @dataclass
-class ColBERTConfig(
-    RunSettings,
-    ResourceSettings,
-    DocSettings,
-    QuerySettings,
-    TrainingSettings,
-    IndexingSettings,
-    SearchSettings,
-    BaseConfig,
-):
+class ColBERTConfig(RunSettings, ResourceSettings, DocSettings, QuerySettings, TrainingSettings,
+                    IndexingSettings, SearchSettings, BaseConfig):
     pass
