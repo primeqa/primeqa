@@ -21,15 +21,15 @@ class Options(DPROptions):
     def __init__(self):
         # from dpr_apply.__init__
         super().__init__()
-        self.output = ''
+        self.output_dir = ''
         self.kilt_data = ''
-        self.n_docs_for_provenance = 20  # we'll supply this many document ids for reporting provenance
+        self.top_k = 20  # we'll supply this many document ids for reporting provenance
         self.retrieve_batch_size = 32
-        self.include_passages = False  # if set, we return the list of passages too
+        self.do_not_include_passages = False
         # ^ from dpr_apply
 
         # from corpus_server_direct.__init__
-        self.corpus_dir = ''
+        self.index_location = ''
         # ^ from corpus_server_direct.__init__
 
         self.qry_tokenizer_path = 'facebook/dpr-question_encoder-multiset-base'
@@ -37,13 +37,13 @@ class Options(DPROptions):
 
         self.query_file_type = 'id_text'
 
-        self.__required_args__ = ['corpus_dir', 'output']
+        self.__required_args__ = ['index_location', 'output_dir']
 
         # for compatibility with run_ir.py
         self.engine_type = 'DPR'
         self.do_search = False
 
-        self.output_simple_tsv = False
+        self.output_json = False
 
 class DPRSearcher():
     def __init__(self):
@@ -65,9 +65,9 @@ class DPRSearcher():
 
         # from corpus_server_direct.run
         # we either have a single index.faiss or we have an index for each offsets/passages
-        if os.path.exists(os.path.join(self.opts.corpus_dir, "index.faiss")):
-            self.passages = Corpus(os.path.join(self.opts.corpus_dir))
-            index = ANNIndex(os.path.join(self.opts.corpus_dir, "index.faiss"))
+        if os.path.exists(os.path.join(self.opts.index_location, "index.faiss")):
+            self.passages = Corpus(os.path.join(self.opts.index_location))
+            index = ANNIndex(os.path.join(self.opts.index_location, "index.faiss"))
             self.shards = None
             self.dim = index.dim()
         else:
@@ -75,13 +75,13 @@ class DPRSearcher():
             # loop over the different index*.faiss
             # so we have a list of (index, passages)
             # we search each index, then take the top-k results overall
-            logger.info(f'Using sharded faiss, reading shards from {self.opts.corpus_dir}')
-            for filename in os.listdir(self.opts.corpus_dir):
+            logger.info(f'Using sharded faiss, reading shards from {self.opts.index_location}')
+            for filename in os.listdir(self.opts.index_location):
                 if filename.startswith('passages') and filename.endswith('.json.gz.records'):
                     name = filename[len("passages"):-len(".json.gz.records")]
                     logger.info(f'Reading {filename}')
-                    self.shards.append((ANNIndex(os.path.join(self.opts.corpus_dir, f'index{name}.faiss')),
-                                   Corpus(os.path.join(self.opts.corpus_dir, f'passages{name}.json.gz.records'))))
+                    self.shards.append((ANNIndex(os.path.join(self.opts.index_location, f'index{name}.faiss')),
+                                   Corpus(os.path.join(self.opts.index_location, f'passages{name}.json.gz.records'))))
             self.dim = self.shards[0][0].dim()
             assert all([self.dim == shard[0].dim() for shard in self.shards])
             logger.info(f'Using sharded faiss with {len(self.shards)} shards.')
@@ -138,16 +138,16 @@ class DPRSearcher():
                 assert query_vectors.shape[1] == self.dim
 
                 if self.shards is None:
-                    scores, indexes = self.index.search(query_vectors, self.opts.n_docs_for_provenance)
+                    scores, indexes = self.index.search(query_vectors, self.opts.top_k)
                     docs = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
                 else:
-                    docs = merge_results(query_vectors, self.opts.n_docs_for_provenance)
+                    docs = merge_results(query_vectors, self.opts.top_k)
 
                 doc_dicts = [{'pid': [dqk['pid'] for dqk in dq],
                               'title': [dqk['title'] for dqk in dq],
                               'text': [dqk['text'] for dqk in dq]} for dq in docs]
 
-                doc_vectors = np.zeros([batch_size, self.opts.n_docs_for_provenance, self.dim], dtype=np.float32)
+                doc_vectors = np.zeros([batch_size, self.opts.top_k, self.dim], dtype=np.float32)
                 for qi, docs_qi in enumerate(docs):
                     gpids = []
                     for ki, doc_qi_ki in enumerate(docs_qi):
@@ -174,7 +174,7 @@ class DPRSearcher():
             retrieved_doc_ids = [dd['pid'] for dd in docs]
 
             passages = None
-            if self.opts.include_passages:
+            if not self.opts.do_not_include_passages:
                 passages = [{'titles': dd['title'], 'texts': dd['text'], 'scores': doc_scores[dndx].tolist()} for dndx, dd in enumerate(docs)]
 
             return retrieved_doc_ids, passages
@@ -191,16 +191,17 @@ class DPRSearcher():
 
         # from dpr_apply
         def record_one_instance(output, inst_id, input, doc_ids, passages):
-            if self.opts.output_simple_tsv:
-                for rank, doc_id in enumerate(doc_ids):
-                    output.writerow([inst_id, doc_id, rank, passages['scores'][rank]])
-            else:
+            if self.opts.output_json:
                 wids = to_distinct_doc_ids(doc_ids)
                 pred_record = {'id': inst_id, 'input': input, 'output': [{'answer': '', 'provenance': [{'wikipedia_id': wid} for wid in wids]}]}
                 if passages:
                     pred_record['passages'] = [{'pid': pid, 'title': title, 'text': text, 'score': float(score)}
                                                for pid, title, text, score in zip(doc_ids, passages['titles'], passages['texts'], passages['scores'])]
                 output.write(json.dumps(pred_record, indent=4) + '\n')
+            else:
+                 for rank, doc_id in enumerate(doc_ids):
+                    output.writerow([inst_id, doc_id, rank, passages['scores'][rank]])
+
             if self.report.is_time():
                logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
 
@@ -214,11 +215,15 @@ class DPRSearcher():
         if self.opts.world_size > 1:
             raise NotImplementedError(f'Distributed not supported (yet).')
         if mode == None or mode == 'queries_and_results_in_files':
-            with write_open(self.opts.output) as output_fh:
-                if self.opts.output_simple_tsv:
-                    output = csv.writer(output_fh, delimiter="\t", quotechar='"')
-                else:
+            if not os.path.exists(self.opts.output_dir):
+                logger.info(f'Creating directory {self.opts.output_dir}')
+                os.makedirs(self.opts.output_dir)
+
+            with write_open(os.path.join(self.opts.output_dir,  'ranked_passages.tsv')) as output_fh:
+                if self.opts.output_json:
                     output = output_fh
+                else:
+                    output = csv.writer(output_fh, delimiter="\t", quotechar='"')
                 id_batch, query_batch = [], []
                 for line_ndx, line in enumerate(read_lines(self.opts.queries)):
                     if self.opts.query_file_type == 'id_text':
@@ -237,7 +242,7 @@ class DPRSearcher():
                     one_batch(id_batch, query_batch, output)
             logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
         elif mode == 'query_list':
-            self.opts.n_docs_for_provenance = top_k
+            self.opts.top_k = top_k
             retrieved_doc_ids, passages = retrieve(query_batch)
             # retrieved_doc_ids: topN list of lists of doc IDs as strings
             # passages: topN list of dicts {'titles', 'texts', 'scores' as floats}

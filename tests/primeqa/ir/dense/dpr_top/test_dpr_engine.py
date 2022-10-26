@@ -129,10 +129,9 @@ class TestDprEngine(UnitTest):
             "--qry_encoder_path", os.path.join(output_dir, "qry_encoder"),
             "--qry_tokenizer_path", "facebook/dpr-question_encoder-multiset-base",
             "--retrieve_batch_size", "1",
-            "--include_passages",
-            "--corpus_dir", output_dir,
-            "--output", os.path.join(output_dir, "search_output"),
-            "--n_docs_for_provenance", "1"]
+            "--index_location", output_dir,
+            "--output_dir", os.path.join(output_dir, "search_output"),
+            "--top_k", "1"]
 
         with patch.object(sys, 'argv', test_args):
             searcher = DPRSearcher()

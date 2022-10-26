@@ -221,16 +221,12 @@ python primeqa/ir/run_ir.py \
     --queries <query_file> \
     --qry_encoder_path <context_encoder_model> \
     --retrieve_batch_size <search_batch_size> \
-    --corpus_dir <index_directory> \
-    --output <scores_and_ranks> \ 
-    --n_docs_for_provenance <number_of_items_per_query_retrieved> \
-    --output_simple_tsv \
-    --query_file_type text_answers
+    --index_location <directory_containing_index_files> \
+    --top_k <number_of_items_per_query_retrieved> \
+    --output_dir <output_directory>
 ```
 
-The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<scores_and_ranks>`.
-
-
+The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output_directory>`, in a file named `ranked_passages.tsv`.
 
 ### Sparse Index Retrieval
 

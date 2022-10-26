@@ -104,7 +104,7 @@ class Arguments():
         self.add_argument('--collection', dest='collection', default=None)
         self.add_argument('--qrels', dest='qrels', default=None)
         self.add_argument('--output_dir', dest='output_dir', required=True)
-        self.add_argument('--topK', dest='topK', default=100, type=int)
+        self.add_argument('--top_k', dest='topK', default=100, type=int)
 
     def add_reranking_input(self):
         self.add_ranking_input()
