@@ -128,7 +128,7 @@ class TestDprEngine(UnitTest):
             "--queries", os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum_en.tsv"),
             "--qry_encoder_path", os.path.join(output_dir, "qry_encoder"),
             "--qry_tokenizer_path", "facebook/dpr-question_encoder-multiset-base",
-            "--retrieve_batch_size", "1",
+            "--bsize", "1",
             "--index_location", output_dir,
             "--output_dir", os.path.join(output_dir, "search_output"),
             "--top_k", "1"]
