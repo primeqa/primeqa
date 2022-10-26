@@ -19,8 +19,8 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 class TestTraining(UnitTest):
     def test_batchers(self):
         test_files_location = 'tests/resources/ir_dense'
-        if os.getcwd().endswith('pycharm/pycharm-community-2022.1/bin'):
-            test_files_location = 'PrimeQA/tests/resources/ir_dense'
+        if 'DATA_FILES_FOR_DENSE_IR_TESTS_PATH' in os.environ:
+            test_files_location = os.environ['DATA_FILES_FOR_DENSE_IR_TESTS_PATH']
 
         rank = 0
         nranks = 1
@@ -106,7 +106,7 @@ class TestTraining(UnitTest):
         do_search = True
         if do_search:
             ranks_fn = os.path.join(output_dir, 'ranking.tsv')
-            args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nranks': 1, 'model_type': model_type,}
+            args_dict = {'root': output_dir, 'experiment': 'test_indexing' , 'rank': -1, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn, 'bsize': 1, 'amp': True, 'queries': queries_fn, 'collection': collection_fn, 'ranks_fn': ranks_fn, 'topK': 1, 'index_root': output_dir, 'index_name': 'index_name', 'nranks': 1, 'model_type': model_type, 'index_location' : os.path.join(output_dir, 'test_indexing', 'indexes', 'index_name' ) }
             with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                 colBERTConfig = ColBERTConfig(**args_dict)
                 searcher = Searcher(args_dict['index_name'], checkpoint=args_dict['checkpoint'], collection=args_dict['collection'], config=colBERTConfig)
