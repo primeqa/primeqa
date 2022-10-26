@@ -32,7 +32,8 @@ class Options(DPROptions):
         self.index_location = ''
         # ^ from corpus_server_direct.__init__
 
-        self.qry_tokenizer_path = 'facebook/dpr-question_encoder-multiset-base'
+        self.default_qry_tokenizer_path = 'facebook/dpr-question_encoder-multiset-base'
+        self.qry_tokenizer_path = self.default_qry_tokenizer_path
         self.queries = ''
 
         self.query_file_type = 'id_text'
@@ -58,8 +59,12 @@ class DPRSearcher():
         # TODO: compare with in BiEncoderTrainer: "self.args = BiEncoderTrainArgs().fill_from_args()"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_path)
+        self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.model_name_or_path)
+        self.qencoder = self.qencoder.to(self.device)
         self.qencoder.eval()
+
+        if self.opts.default_qry_tokenizer_path == self.opts.qry_tokenizer_path:
+            logger.warning(f'Using default tokenizer in {self.opts.default_qry_tokenizer_path}.  If that is not what you want, specify the tokenizer in \'--qry_tokenizer_path\' argument.')
         self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_tokenizer_path)
         #self.tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.opts.qry_encoder_path)
 

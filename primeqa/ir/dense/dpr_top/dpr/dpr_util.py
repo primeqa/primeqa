@@ -11,7 +11,7 @@ class DPROptions(HypersBase):
         super().__init__()
         self.corpus_endpoint = ''
         self.port = 5001
-        self.qry_encoder_path = ''
+        self.model_name_or_path = ''  # used as qry_encoder_path
         self.rag_model_path = ''
         self.__required_args__ = ['corpus_endpoint']
 

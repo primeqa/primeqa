@@ -220,12 +220,14 @@ python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type DPR \
     --queries <query_file> \
-    --qry_encoder_path <context_encoder_model> \
+    --model_name_or_path <query_encoder_model> \
     --bsize <search_batch_size> \
     --index_location <directory_containing_index_files> \
     --top_k <number_of_items_per_query_retrieved> \
     --output_dir <output_directory>
 ```
+
+The engine uses a default tokenizer (currently `facebook/dpr-ctx_encoder-multiset-base`).  If needed, the tokenizer may be specified using the `--qry_tokenizer_path` argument.
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in `<output_directory>`, in a file named `ranked_passages.tsv`.
 

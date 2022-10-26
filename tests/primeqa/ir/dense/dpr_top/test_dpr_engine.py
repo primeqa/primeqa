@@ -126,7 +126,7 @@ class TestDprEngine(UnitTest):
         test_args = [
             "prog",
             "--queries", os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum_en.tsv"),
-            "--qry_encoder_path", os.path.join(output_dir, "qry_encoder"),
+            "--model_name_or_path", os.path.join(output_dir, "qry_encoder"),
             "--qry_tokenizer_path", "facebook/dpr-question_encoder-multiset-base",
             "--bsize", "1",
             "--index_location", output_dir,
