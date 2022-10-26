@@ -192,6 +192,7 @@ python primeqa/ir/run_ir.py \
     --queries <query_file> \
     --model_name_or_path <model_filename_or_directory> \
     --index_location <directory_containing_index_files> \
+    --top_k <number_of_items_per_query_retrieved> \
     --output_dir <output_directory>
 ```
 
@@ -220,7 +221,7 @@ python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --queries <query_file> \
     --qry_encoder_path <context_encoder_model> \
-    --retrieve_batch_size <search_batch_size> \
+    --bsize <search_batch_size> \
     --index_location <directory_containing_index_files> \
     --top_k <number_of_items_per_query_retrieved> \
     --output_dir <output_directory>

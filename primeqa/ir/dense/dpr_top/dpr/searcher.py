@@ -24,7 +24,7 @@ class Options(DPROptions):
         self.output_dir = ''
         self.kilt_data = ''
         self.top_k = 20  # we'll supply this many document ids for reporting provenance
-        self.retrieve_batch_size = 32
+        self.bsize = 32
         self.do_not_include_passages = False
         # ^ from dpr_apply
 
@@ -235,7 +235,7 @@ class DPRSearcher():
                         raise NotImplementedError(f"Query file type {self.opts.query_file_type} is not implemented (yet).")
                     id_batch.append(qry_id)
                     query_batch.append(qry_text)
-                    if len(query_batch) == self.opts.retrieve_batch_size:
+                    if len(query_batch) == self.opts.bsize:
                         one_batch(id_batch, query_batch, output)
                         id_batch, query_batch = [], []
                 if len(query_batch) > 0:
