@@ -259,7 +259,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         return references
 
     def process_references_and_predictions(self, examples, features, predictions) -> EvalPredictionWithProcessing:
-        references = self.prepare_examples_as_references(examples)
+        references = None
+        if not self._do_predict:
+            references = self.prepare_examples_as_references(examples)
         predictions = self.process(examples, features, predictions)
         predictions_for_metric = []
 

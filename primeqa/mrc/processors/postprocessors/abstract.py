@@ -11,8 +11,8 @@ class AbstractPostProcessor(metaclass=ABCMeta):
     """
     def __init__(self,
                  k: int,
-
-                 max_answer_length: int, single_context_multiple_passages: bool = False):
+                 max_answer_length: int, single_context_multiple_passages: bool = False,
+                 do_predict: bool = False):
         """
         Args:
             k: Max number of answers to return.
@@ -24,6 +24,7 @@ class AbstractPostProcessor(metaclass=ABCMeta):
 
         self._max_answer_length = max_answer_length
         self._single_context_multiple_passages = single_context_multiple_passages
+        self._do_predict = do_predict
 
     @abstractmethod
     def process(self, examples: Dataset, features: Dataset, predictions: tuple):

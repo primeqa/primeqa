@@ -72,16 +72,19 @@ class BasePreProcessor(AbstractPreProcessor):
         return dataset
 
     def process_train(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
-        return self._process(examples, is_train=True)
+        return self._process(examples, is_train=True, is_predict=False)
 
     def process_eval(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
-        return self._process(examples, is_train=False)
+        return self._process(examples, is_train=False, is_predict=False)
 
-    def _process(self, examples: Dataset, is_train: bool) -> Tuple[Dataset, Dataset]:
+    def process_predict(self, examples: Dataset) -> Tuple[Dataset, Dataset]:
+        return self._process(examples, is_train=False, is_predict=True)
+
+    def _process(self, examples: Dataset, is_train: bool, is_predict: bool) -> Tuple[Dataset, Dataset]:
         """
         Provides implementation for public processing methods.
         """
-        examples = self.adapt_dataset(examples, is_train)
+        examples = self.adapt_dataset(examples, is_train, is_predict)
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
 

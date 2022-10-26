@@ -118,6 +118,9 @@ class DataTrainingArguments:
         default=None, metadata={"help": "local file(s) to train on."}
     )
     eval_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to validate on."}
+    )
+    test_file: Optional[str] = field(
         default=None, metadata={"help": "local file(s) to test on."}
     )
     data_file_format: str = field(
@@ -168,6 +171,13 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                    "value if set."
+        },
+    )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of predict examples to this "
                     "value if set."
         },
     )
@@ -307,13 +317,15 @@ def main():
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
-    # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
-    # dataset) might have changed
+    # if we are doing the boolean post-processing, require do_eval or do_predict, 
+    # because the id's (not included in HF dataset) might have changed
+    # and do get mrc output to be used in boolean pipeline (used in qtc, evc, and sn)
     # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
     # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
     # do_eval is in TrainingArguments
     if task_args.do_boolean:
-        training_args.do_eval = True
+        if training_args.do_predict == False:
+            training_args.do_eval = True
         if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
             task_args.postprocessor = ExtractivePipelinePostProcessor
 
@@ -369,13 +381,15 @@ def main():
 
     # load data
     logger.info('Loading dataset')
-    if data_args.train_file is not None or data_args.eval_file is not None:
+    if data_args.train_file is not None or data_args.eval_file is not None or data_args.test_file is not None:
         data_files = {}
 
         if data_args.train_file is not None: 
             data_files['train'] = glob.glob(data_args.train_file)
         if data_args.eval_file is not None: 
             data_files['validation'] = glob.glob(data_args.eval_file)
+        if data_args.test_file is not None: 
+            data_files['test'] = glob.glob(data_args.test_file)
 
         raw_datasets = datasets.load_dataset(data_args.data_file_format, 
             data_files=data_files,
@@ -432,6 +446,17 @@ def main():
         # Validation Feature Creation
         with training_args.main_process_first(desc="validation dataset map pre-processing"):
             eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+    
+    # process predict data (no labels)
+    if training_args.do_predict or data_args.test_file is not None:
+        if "test" not in raw_datasets and "test_matched" not in raw_datasets:
+            raise ValueError("--do_predict requires a test dataset")
+        predict_examples = raw_datasets["test"]
+        max_predict_samples = data_args.max_predict_samples
+        if max_predict_samples is not None:
+            # We will select sample from whole data if argument is specified
+            predict_examples = predict_examples.select(range(max_predict_samples))
+        predict_examples, predict_dataset = preprocessor.process_predict(predict_examples)
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
@@ -448,6 +473,7 @@ def main():
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
+        do_predict=training_args.do_predict
     )
 
     eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
@@ -467,7 +493,7 @@ def main():
         tokenizer=tokenizer,
         data_collator=data_collator,
         post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-        compute_metrics=compute_metrics,
+        compute_metrics=compute_metrics
     )
 
     checkpoint = None
@@ -502,8 +528,22 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
+    # Predict on unlabeled data
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        # if using a validation dataset to do predictions remove the label
+        if 'label' in predict_dataset.column_names:
+            predict_dataset=predict_dataset.remove_columns('label')
+        predictions = trainer.predict(predict_dataset, predict_examples)
+        
+        with open(os.path.join(training_args.output_dir, 'eval_predictions.json'), 'w') as f:
+            json.dump(predictions.predictions, f, indent=4)
+        with open(os.path.join(training_args.output_dir, 'eval_predictions_processed.json'), 'w') as f:
+            json.dump(predictions.processed_predictions, f, indent=4)
+
     if task_args.do_boolean:
         logger.info("Processing of boolean questions")
+
         if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
             raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
         with open(task_args.boolean_config, 'r') as f:
@@ -522,20 +562,24 @@ def main():
         logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
             max memory {torch.cuda.max_memory_allocated()}")
 
+        logger.info("Running Question Type Classifier")
         cls_main([boolean_config['qtc']])
+        logger.info("Running Evidence Span Classifier")
         cls_main([boolean_config['evc']])
+        logger.info("Running Score Normalizer")
         sn_main([boolean_config['sn']])
 
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)
-            
-        references = postprocessor.prepare_examples_as_references(eval_examples)
-        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
-        boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
-        trainer.log_metrics("eval", boolean_eval_metric)
-        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
-        with open(path, "w") as f:
-            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
+
+        if training_args.do_eval:
+            references = postprocessor.prepare_examples_as_references(eval_examples)
+            boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+            boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+            trainer.log_metrics("eval", boolean_eval_metric)
+            path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+            with open(path, "w") as f:
+                json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
 
 
 if __name__ == '__main__':
