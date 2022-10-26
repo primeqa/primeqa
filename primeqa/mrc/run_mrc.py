@@ -1,13 +1,11 @@
 import logging
 import os
 import sys
-import traceback
 import json
 import torch
 import gc
 import glob
 from dataclasses import dataclass, field
-from importlib import import_module
 from operator import attrgetter
 from typing import Optional, Type
 
@@ -34,43 +32,12 @@ from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuesti
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
-from primeqa.boolqa.run_boolqa_classifier import main as cls_main
+from primeqa.text_classification.run_nway_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
-
+from run_mrc_utils import object_reference
 from primeqa.tableqa.run_tableqa import run_table_qa
 
-def object_reference(reference_as_str: str) -> object:
-    """
-    Given a fully qualified path to a class reference, return a pointer to the reference.
-    This will work with types, functions, methods, and other objects (e.g. dict).
 
-    Args:
-        reference_as_str: the fully qualified path (expects the fully qualified path in dot notation,
-                          e.g. primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor).
-
-    Returns:
-        reference to path given by input
-
-    Raises:
-        TypeError: Unable to resolve input path
-    """
-    def _split_into_class_and_module_name(class_path):
-        modules = class_path.split('.')
-        if len(modules) > 1:
-            return ".".join(modules[:-1]), modules[-1]
-        else:
-            return class_path, None
-
-    try:
-        module_name, object_name = _split_into_class_and_module_name(reference_as_str)
-        module_reference = import_module(module_name)
-        if object_name is None:
-            return module_reference
-        else:
-            return getattr(module_reference, object_name)
-    except Exception as ex:
-        traceback.print_exc()  # Shows additional traceback for why imports fail
-        raise TypeError(f"Unable to resolve the string {reference_as_str} to a fully qualified class path") from ex
 
 
 # modified from
@@ -551,10 +518,12 @@ def main():
 
         boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
         boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
+        boolean_config['qtc']['do_mrc_pipeline']='True'
         boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
-        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/eval_predictions.json"
+        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/predictions.json"
+        boolean_config['evc']['do_mrc_pipeline']='True'
         boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/eval_predictions.json"
+        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/predictions.json"
 
         if model: del model
         gc.collect()

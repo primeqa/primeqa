@@ -68,19 +68,26 @@ class BoolTyDiSubset:
         
         count = 0
         # train
+        qtype_file_na, evc_file_na, qtype_writer_na, evidence_span_writer_na = self.get_writers(output_dir, "train_na")
         qtype_file, evc_file, qtype_writer, evidence_span_writer = self.get_writers(output_dir, "train")
         for example in dataset['train']:
             count += 1
+            question_text, passage_text, label = self.get_data(example, lower_case=lower_case)            
+            if label == "YES" or label == "NO":
+                qtype='boolean'
+            else:
+                qtype='other'
+
+
             # skip NA since we don't know if they are boolean or short answer
             if example['annotations']['passage_answer_candidate_index'][0] == -1 or \
              (example['annotations']['minimal_answers_start_byte'][0] == -1 and example['annotations']['yes_no_answer'][0] == 'NONE'):
-                continue
-            question_text, passage_text, label = self.get_data(example, lower_case=lower_case)
-            if label == "YES" or label == "NO":
-                qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
-            else:
-                qtype_writer.writerow([str(count), question_text,example['language'],"other"])
-            evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
+                qtype_writer_na.writerow([str(count), question_text,example['language'],qtype])
+                evidence_span_writer_na.writerow([str(count), question_text, example['language'], label, passage_text])
+                continue                           
+            qtype_writer.writerow([str(count), question_text,example['language'],qtype])
+            if qtype=='boolean':
+                evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
         qtype_file.close()
         evc_file.close()
         # dev and eval
@@ -98,13 +105,14 @@ class BoolTyDiSubset:
                 if is_dev:
                     qtype_writer.writerow([str(count), question_text,example['language'],"boolean"])
                 qtype_writer_e.writerow([str(count), question_text,example['language'],"boolean"])
+                if is_dev:
+                    evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
+                evidence_span_writer_e.writerow([str(count), question_text, example['language'], label, passage_text])                  
             else:
                 if is_dev:
                     qtype_writer.writerow([str(count), question_text,example['language'],"other"])
                 qtype_writer_e.writerow([str(count), question_text,example['language'],"other"])
-            if is_dev:
-                evidence_span_writer.writerow([str(count), question_text, example['language'], label, passage_text])
-            evidence_span_writer_e.writerow([str(count), question_text, example['language'], label, passage_text])
+
         qtype_file.close()
         evc_file.close()
         qtype_file_e.close()
