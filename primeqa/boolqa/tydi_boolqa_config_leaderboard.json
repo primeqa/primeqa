@@ -3,27 +3,23 @@
         "id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": null,
-        "label_list": [
-            "boolean",
-            "other"
-        ],
+        "label_list": ["boolean","other"],
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "/dccstor/srosent2/primeqa/experiments/qtc/xlmr/output"
+        "model_name_or_path": "/dccstor/srosent2/primeqa/experiments/qtc/xlmr/output",
+        "do_predict": true
     },
     "evc": {
         "id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": "passage_answer_text",
-        "label_list": [
-            "no",
-            "yes"
-        ],
+        "label_list": ["no", "yes"],
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/expts/leaderboard/evc/a0_1e-5_10_1235"
+        "model_name_or_path": "/dccstor/jsmc-nmt-01/bool/expts/leaderboard/evc/a0_1e-5_10_1235",
+        "do_predict": true
     },
     "sn": {
         "do_apply": true,

@@ -18,7 +18,7 @@ def main(args):
                         args.qtc_is_boolean_label, 
                         args.evc_no_answer_class)
     elif args.do_train:
-        sn = ScoreNormalizer(args.google_format)
+        sn = ScoreNormalizer(google_format=args.google_format)
         sn.train(args.train_file,
                  args.gold_file,
                  args.output_dir,

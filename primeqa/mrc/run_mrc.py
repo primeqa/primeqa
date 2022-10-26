@@ -516,27 +516,24 @@ def main():
         with open(task_args.boolean_config, 'r') as f:
             boolean_config = json.load(f)
 
-        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
-        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
-        boolean_config['qtc']['do_mrc_pipeline']='True'
-        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
-        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/predictions.json"
-        boolean_config['evc']['do_mrc_pipeline']='True'
-        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/predictions.json"
 
-        if model: del model
-        gc.collect()
-        torch.cuda.empty_cache()
-        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
-            max memory {torch.cuda.max_memory_allocated()}")
+        def run_bool_component(name, test_file="predictions.json", do_mrc=False):
+            boolean_config[name]['output_dir'] = training_args.output_dir + "/" + name
+            boolean_config[name]['test_file'] = training_args.output_dir + "/" + test_file
+            if do_mrc:
+                boolean_config[name]['do_mrc_pipeline']='True'
 
-        logger.info("Running Question Type Classifier")
-        cls_main([boolean_config['qtc']])
-        logger.info("Running Evidence Span Classifier")
-        cls_main([boolean_config['evc']])
-        logger.info("Running Score Normalizer")
-        sn_main([boolean_config['sn']])
+            if model: del model
+            gc.collect()
+            torch.cuda.empty_cache()
+            logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+                max memory {torch.cuda.max_memory_allocated()}")
+            logger.info("Running " + name)
+            cls_main([boolean_config[name]])
+
+        run_bool_component('qtc', test_file="eval_predictions.json", do_mrc=True)
+        run_bool_component('evc', do_mrc=True)
+        run_bool_component('sn')
 
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)

@@ -296,16 +296,16 @@ def balance_dataset(data_args, datasets):
     return Dataset.from_pandas(df)
 
 
-def main(raw_args):
+def main(raw_args=None):
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
-    if len(raw_args) == 2 and raw_args[1].endswith(".json"):
+    if raw_args is not None and len(raw_args) == 2 and raw_args[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
         model_args, data_args, training_args, task_args = parser.parse_json_file(json_file=os.path.abspath(raw_args[1]))
-    elif len(raw_args) == 1:
+    elif raw_args is not None and len(raw_args) == 1:
         model_args, data_args, training_args, task_args = parser.parse_dict(raw_args[0])
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
