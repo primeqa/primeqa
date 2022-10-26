@@ -131,7 +131,7 @@ class DataTrainingArguments:
     )
     dataset_list_file: Optional[str] = field(
         default=None, metadata={"help": "List of datasets used in training. Each line has: "
-                                        "dataset_name dataset_config_name sampling_rate preprocessor postprocessor."}
+                                        "dataset_name dataset_config_name sampling_rate preprocessor postprocessor eval_metrics."}
     )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
@@ -379,13 +379,15 @@ def main():
         sampling_rate_list = []
         preprocessor_name_list = []
         postprocessor_name_list = []
+        eval_metrics_list = []
         with open(data_args.dataset_list_file) as f:
             for line in f:
-                dataset_name, dataset_config_name, sampling_rate, preprocessor_name, postprocessor_name = \
+                dataset_name, dataset_config_name, sampling_rate, preprocessor_name, postprocessor_name, eval_metrics = \
                     line.strip().split()
                 sampling_rate_list.append(float(sampling_rate))
                 preprocessor_name_list.append(preprocessor_name)
                 postprocessor_name_list.append(postprocessor_name)
+                eval_metrics_list.append(eval_metrics)
                 logger.info(f"Loading {dataset_name}")
                 if dataset_name.lower() == "natural_questions":
                     raw_dataset = datasets.load_dataset(
@@ -528,7 +530,10 @@ def main():
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
 
-    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+    if data_args.dataset_list_file is not None:
+        eval_metrics = getattr(sys.modules[__name__], eval_metrics_list[0])()
+    else:
+        eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
         return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
