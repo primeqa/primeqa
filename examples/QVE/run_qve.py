@@ -41,10 +41,6 @@ from squad_processing import squad_convert_examples_to_features
 from model import BertForSequenceClassification,BertForQuestionAnswering
 from transformers.data.processors.squad import SquadV1Processor
 
-try:
-    from torch.utils.tensorboard import SummaryWriter
-except ImportError:
-    from tensorboardX import SummaryWriter
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +252,6 @@ def train_qa(args, model,train_dataloader, optimizer):
     return total_loss/len(train_dataloader)
 
 def train(args, train_dataset, dev_dataset, qve_model, qa_model, tokenizer):
-    tb_writer = SummaryWriter()
 
     # Model re-init
     # Seed must be set before instantiating the model when using model_init.
@@ -500,8 +495,6 @@ def train(args, train_dataset, dev_dataset, qve_model, qa_model, tokenizer):
             break
 
     train_pbar.close()
-    if tb_writer:
-        tb_writer.close()
 
     logger.info("\n\nTraining completed.\n\n")
 
@@ -875,6 +868,7 @@ def main():
             args.tokenizer_name if args.tokenizer_name else args.qve_model_name_or_path,
             do_lower_case=args.do_lower_case,
             cache_dir=args.cache_dir if args.cache_dir else None,
+            use_fast=False,
         )
 
         config = AutoConfig.from_pretrained(
