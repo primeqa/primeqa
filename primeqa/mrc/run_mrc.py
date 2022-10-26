@@ -422,6 +422,12 @@ def main():
         max_contexts=data_args.max_contexts,
     )
 
+    # if filtering, check that both column name and column values are provided
+    if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_name is None:
+            raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
+                      "requires --dataset_filter_column_name to be provided.")
+
     # process train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
@@ -444,7 +450,7 @@ def main():
         if data_args.dataset_filter_column_values is not None:
             logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
             eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
-            logger.info(f"Filtered EVAL dataset size {train_dataset.num_rows}")
+            logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:
             # We will select sample from whole data if argument is specified
