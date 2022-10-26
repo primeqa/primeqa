@@ -139,7 +139,7 @@ class RestServer:
 
                 try:
                     instance = ReaderFactory.get(reader, reader_kwargs)
-                except ValueError as err:
+                except (ValueError, TypeError) as err:
                     raise Error(err.args[0]) from err
 
                 # Step 5: Run apply method
@@ -305,7 +305,7 @@ class RestServer:
                 # Step 7: Create indexer instance
                 try:
                     instance = IndexerFactory.get(indexer, indexer_kwargs)
-                except ValueError as err:
+                except (ValueError, TypeError) as err:
                     raise Error(err.args[0]) from err
 
                 # Step 8: Save index information
@@ -481,7 +481,7 @@ class RestServer:
                 # Step 5: Create retriever instance
                 try:
                     instance = RetrieverFactory.get(retriever, retriever_kwargs)
-                except ValueError as err:
+                except (ValueError, TypeError) as err:
                     raise Error(err.args[0]) from err
 
                 # Step 6: Retrieve

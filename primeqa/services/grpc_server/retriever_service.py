@@ -160,7 +160,7 @@ class RetrieverService(RetrieverServicer):
         # Step 5: Create retriever instance
         try:
             instance = RetrieverFactory.get(retriever, retriever_kwargs)
-        except ValueError as err:
+        except (ValueError, TypeError) as err:
             context.set_code(StatusCode.INVALID_ARGUMENT)
             context.set_details(err.args[0])
             return RetrieveResponse()
