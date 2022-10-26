@@ -39,11 +39,10 @@ from transformers.modeling_outputs import (
 )
 
 from transformers.models.bert.modeling_bert import (
-    BertModel,
     BertPreTrainedModel,
     BertPooler,
+    BertModel,
 )
-
 
 
 
@@ -64,8 +63,7 @@ class BertPoolerMarginal(nn.Module):
     def forward(self, hidden_states, marginal_info):
         # We "pool" the model by simply taking the hidden state corresponding
         # to the first token.
-        first_token_tensor = hidden_states[:, 0]
-        pooled_output = self.sequential1(first_token_tensor)
+        pooled_output = self.sequential1(hidden_states)
         pooled_output = torch.cat((pooled_output, marginal_info), dim=1)
         pooled_output = self.sequential2(pooled_output)
         return pooled_output
@@ -89,7 +87,6 @@ class BertForSequenceClassification(BertPreTrainedModel):
             attention_mask=None,
             token_type_ids=None,
             position_ids=None,
-            qa_position_ids=None,
             marginal_info=None,
             head_mask=None,
             inputs_embeds=None,
@@ -112,7 +109,6 @@ class BertForSequenceClassification(BertPreTrainedModel):
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
             position_ids=position_ids,
-            marginal_info=marginal_info,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
             output_attentions=output_attentions,
@@ -122,8 +118,8 @@ class BertForSequenceClassification(BertPreTrainedModel):
 
         pooled_output = outputs[1]
         pooled_output = self.dropout(pooled_output)
-
-        pooled_output = self.pooler(pooled_output, marginal_info)
+        if self.config.marginal:
+            pooled_output = self.pooler(pooled_output, marginal_info)
 
         logits = self.classifier(pooled_output)
 

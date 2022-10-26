@@ -7,7 +7,7 @@ import numpy as np
 from tqdm import tqdm
 
 from transformers.file_utils import is_tf_available, is_torch_available
-from transformers.tokenization_bert import whitespace_tokenize
+from transformers.models.bert.tokenization_bert import whitespace_tokenize
 from transformers.tokenization_utils_base import TruncationStrategy
 from transformers.utils import logging
 from transformers.data.processors.utils import DataProcessor
@@ -88,7 +88,7 @@ def _is_whitespace(c):
 
 
 def squad_convert_example_to_features(
-        example, max_seq_length, doc_stride, max_query_length, padding_strategy, is_training
+    example, max_seq_length, doc_stride, max_query_length, padding_strategy, is_training
 ):
     features = []
     if is_training and not example.is_impossible:
@@ -97,18 +97,28 @@ def squad_convert_example_to_features(
         end_position = example.end_position
 
         # If the answer cannot be found in the text, then skip this example.
-        actual_text = " ".join(example.doc_tokens[start_position: (end_position + 1)])
+        actual_text = " ".join(example.doc_tokens[start_position : (end_position + 1)])
         cleaned_answer_text = " ".join(whitespace_tokenize(example.answer_text))
         if actual_text.find(cleaned_answer_text) == -1:
-            logger.warning("Could not find answer: '%s' vs. '%s'", actual_text, cleaned_answer_text)
+            logger.warning(f"Could not find answer: '{actual_text}' vs. '{cleaned_answer_text}'")
             return []
 
     tok_to_orig_index = []
     orig_to_tok_index = []
     all_doc_tokens = []
-    for (i, token) in enumerate(example.doc_tokens):
+    for i, token in enumerate(example.doc_tokens):
         orig_to_tok_index.append(len(all_doc_tokens))
-        sub_tokens = tokenizer.tokenize(token)
+        if tokenizer.__class__.__name__ in [
+            "RobertaTokenizer",
+            "LongformerTokenizer",
+            "BartTokenizer",
+            "RobertaTokenizerFast",
+            "LongformerTokenizerFast",
+            "BartTokenizerFast",
+        ]:
+            sub_tokens = tokenizer.tokenize(token, add_prefix_space=True)
+        else:
+            sub_tokens = tokenizer.tokenize(token)
         for sub_token in sub_tokens:
             tok_to_orig_index.append(i)
             all_doc_tokens.append(sub_token)
@@ -139,8 +149,6 @@ def squad_convert_example_to_features(
         else tokenizer.model_max_length - tokenizer.max_len_single_sentence
     )
     sequence_pair_added_tokens = tokenizer.model_max_length - tokenizer.max_len_sentences_pair
-
-    # all_doc_tokens=all_doc_tokens[:tok_start_position] + ["[unused100]"] + all_doc_tokens[tok_start_position:tok_end_position+1] + ["[unused101]"] + all_doc_tokens[tok_end_position+1:]
 
     span_doc_tokens = all_doc_tokens
     while len(spans) * doc_stride < len(all_doc_tokens):
@@ -176,10 +184,9 @@ def squad_convert_example_to_features(
                 non_padded_ids = encoded_dict["input_ids"][: encoded_dict["input_ids"].index(tokenizer.pad_token_id)]
             else:
                 last_padding_id_position = (
-                        len(encoded_dict["input_ids"]) - 1 - encoded_dict["input_ids"][::-1].index(
-                    tokenizer.pad_token_id)
+                    len(encoded_dict["input_ids"]) - 1 - encoded_dict["input_ids"][::-1].index(tokenizer.pad_token_id)
                 )
-                non_padded_ids = encoded_dict["input_ids"][last_padding_id_position + 1:]
+                non_padded_ids = encoded_dict["input_ids"][last_padding_id_position + 1 :]
 
         else:
             non_padded_ids = encoded_dict["input_ids"]
@@ -202,7 +209,7 @@ def squad_convert_example_to_features(
         spans.append(encoded_dict)
 
         if "overflowing_tokens" not in encoded_dict or (
-                "overflowing_tokens" in encoded_dict and len(encoded_dict["overflowing_tokens"]) == 0
+            "overflowing_tokens" in encoded_dict and len(encoded_dict["overflowing_tokens"]) == 0
         ):
             break
         span_doc_tokens = encoded_dict["overflowing_tokens"]
@@ -222,12 +229,12 @@ def squad_convert_example_to_features(
         cls_index = span["input_ids"].index(tokenizer.cls_token_id)
 
         # p_mask: mask with 1 for token than cannot be in the answer (0 for token which can be in an answer)
-        # Original TF implem also keep the classification token (set to 0)
+        # Original TF implementation also keep the classification token (set to 0)
         p_mask = np.ones_like(span["token_type_ids"])
         if tokenizer.padding_side == "right":
-            p_mask[len(truncated_query) + sequence_added_tokens:] = 0
+            p_mask[len(truncated_query) + sequence_added_tokens :] = 0
         else:
-            p_mask[-len(span["tokens"]): -(len(truncated_query) + sequence_added_tokens)] = 0
+            p_mask[-len(span["tokens"]) : -(len(truncated_query) + sequence_added_tokens)] = 0
 
         pad_token_indices = np.where(span["input_ids"] == tokenizer.pad_token_id)
         special_token_indices = np.asarray(
@@ -273,8 +280,7 @@ def squad_convert_example_to_features(
                 span["token_type_ids"],
                 cls_index,
                 p_mask.tolist(),
-                example_index=0,
-                # Can not set unique_id and example_index here. They will be set after multiple processing.
+                example_index=0,  # Can not set unique_id and example_index here. They will be set after multiple processing.
                 unique_id=0,
                 paragraph_len=span["paragraph_len"],
                 token_is_max_context=span["token_is_max_context"],
