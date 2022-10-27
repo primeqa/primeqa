@@ -328,6 +328,11 @@
        Natural Questions
       </a>
      </li>
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#mrqa">
+       MRQA
+      </a>
+     </li>
     </ul>
    </li>
    <li class="toc-h3 nav-item toc-entry">
@@ -470,6 +475,7 @@
 <li><p>MLQA</p></li>
 <li><p>Natural Questions(NQ)</p></li>
 <li><p>Custom Data</p></li>
+<li><p>MRQA</p></li>
 </ul>
 <p>Currently supported TableQA datasets :</p>
 <ul class="simple">
@@ -678,6 +684,24 @@ For the MLQA configuration with context language EN and question language DE use
 <span class="n">R</span><span class="nd">@P</span><span class="o">=</span><span class="mf">0.9</span><span class="p">:</span> <span class="mf">10.16</span><span class="o">%</span> <span class="p">(</span><span class="n">actual</span> <span class="n">p</span><span class="o">=</span><span class="mf">90.00</span><span class="o">%</span><span class="p">,</span> <span class="n">score</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">7.425</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="mrqa">
+<h4><a class="reference external" href="https://huggingface.co/datasets/mrqa">MRQA</a><a class="headerlink" href="#mrqa" title="Permalink to this headline">#</a></h4>
+<p>The dataset is a collection of 18 existing QA dataset (carefully selected subset of them) and converted to the same format (SQuAD like format)</p>
+<p>For the MRQA dataset use the following additional command line arguments:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>      --dataset_name mrqa <span class="se">\</span>
+      --dataset_config_name plain_text <span class="se">\</span>
+      --preprocessor primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor <span class="se">\</span>
+      --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor <span class="se">\</span>
+      --eval_metrics SQUAD 
+</pre></div>
+</div>
+<p>Additionally, to specify a MRQA subset e.g. <code class="docutils literal notranslate"><span class="pre">SQuAD</span></code>, <code class="docutils literal notranslate"><span class="pre">NaturalQuestionsShort</span></code>, <code class="docutils literal notranslate"><span class="pre">TriviaQA-web</span></code>, use the command line argments  <code class="docutils literal notranslate"><span class="pre">--dataset_filter_column_name</span></code> to specify a column name and <code class="docutils literal notranslate"><span class="pre">--dataset_filter_column_values</span></code> to specify a list of column values.  The example below selects <code class="docutils literal notranslate"><span class="pre">SQuAD</span></code> and <code class="docutils literal notranslate"><span class="pre">HotpotQA</span></code> examples using the column <code class="docutils literal notranslate"><span class="pre">subset</span></code> in the MRQA dataset.  The script <code class="docutils literal notranslate"><span class="pre">run_mrc.py</span></code> shuffles the train examples, eval examples are kept in the same order as read in from the source.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>      --dataset_filter_column_values SQuAD HotpotQA
+      --dataset_filter_column_name subset
+</pre></div>
+</div>
+<p>Cross domain experiments can be run by running train and eval as separate processes. The</p>
 </section>
 </section>
 <section id="custom-data">

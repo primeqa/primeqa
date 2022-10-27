@@ -1,0 +1,30 @@
+primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor
+==========================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.mrqa
+
+.. autoclass:: MRQAPreprocessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MRQAPreprocessor.adapt_dataset
+      ~MRQAPreprocessor.label_features_for_subsampling
+      ~MRQAPreprocessor.process_eval
+      ~MRQAPreprocessor.process_train
+      ~MRQAPreprocessor.subsample_features
+      ~MRQAPreprocessor.validate_schema
+   
+   
+
+   
+   
+   
