@@ -51,6 +51,6 @@ jobs:
           echo "Run TableQA tests"
           pytest -s --cov primeqa/tableqa --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/tableqa 
           echo "Run all except IR and MRC and tableqa tests"
-          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=18 --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
+          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=15 --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
           echo "******* Finished running tests *******"
       - run: echo "🍏 This job's status is ${{ job.status }}."
