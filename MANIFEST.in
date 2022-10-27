@@ -1,9 +1,5 @@
 include README.md
 include VERSION
 include .coveragerc
-include **/*.cpp
-include **/*.cu
-include primeqa/logger/*.ini
-include primeqa/services/config/*.ini
 global-exclude __pycache__
 global-exclude *.py[co]

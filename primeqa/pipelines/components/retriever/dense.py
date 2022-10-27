@@ -39,6 +39,7 @@ class ColBERTRetriever(RetrieverComponent):
             "description": "Path to collection",
         },
     )
+
     max_num_documents: int = field(
         default=100,
         metadata={

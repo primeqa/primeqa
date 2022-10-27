@@ -2,8 +2,7 @@ import os
 import torch
 
 from tqdm import tqdm
-from typing import Union, List, Dict
-
+from typing import Union
 
 from primeqa.ir.dense.colbert_top.colbert.data import Collection, Queries, Ranking
 
@@ -12,15 +11,16 @@ from primeqa.ir.dense.colbert_top.colbert.search.index_storage import IndexScore
 
 from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
-from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
 
-TextQueries = Union[str, List[str], Dict[int, str], Queries]
+TextQueries = Union[str, 'list[str]', 'dict[int, str]', Queries]
 
 
 class Searcher:
     def __init__(self, index, checkpoint=None, collection=None, config=None):
         print_memory_stats()
+<<<<<<< HEAD
         
         initial_config = ColBERTConfig.from_existing(Run().config, config)
 
@@ -37,6 +37,13 @@ class Searcher:
                 )
             )
  
+=======
+
+        initial_config = ColBERTConfig.from_existing(config, Run().config)
+
+        default_index_root = initial_config.index_root_
+        self.index = os.path.join(default_index_root, index)
+>>>>>>> parent of b9297e1d (Add gRPC and REST service layer for few components in PrimeQA (#334))
         self.index_config = ColBERTConfig.load_from_index(self.index)
 
         self.checkpoint = checkpoint or self.index_config.checkpoint
@@ -59,7 +66,7 @@ class Searcher:
         self.config.configure(**kw_args)
 
     def encode(self, text: TextQueries):
-        queries = text if isinstance(text, list) else [text]
+        queries = text if type(text) is list else [text]
         bsize = 128 if len(queries) > 128 else None
 
         self.checkpoint.query_tokenizer.query_maxlen = self.config.query_maxlen
