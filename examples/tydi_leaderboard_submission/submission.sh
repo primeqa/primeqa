@@ -25,9 +25,12 @@ RUN_MRC='/model/primeqa/mrc/run_mrc.py'
 python ${RUN_MRC} \
   --model_name_or_path ${MRC_MODEL} \
   --output_dir ${OUTPUT_PATH} \
+  --test_file ${INPUT_PATH} \
+  --do_predict \
   --per_device_eval_batch_size 128 --overwrite_output_dir \
   --do_boolean --boolean_config ${BOOLEAN_CONFIG} \
-  --max_eval_samples 100 --overwrite_cache
+  --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
+  --max_predict_samples 100 --overwrite_cache
 
 
 
