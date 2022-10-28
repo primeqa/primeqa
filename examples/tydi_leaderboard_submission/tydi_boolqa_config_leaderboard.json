@@ -1,0 +1,30 @@
+{
+    "qtc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": null,
+        "label_list": ["boolean","other"],
+        "output_label_prefix": "question_type",
+        "overwrite_cache": true,
+        "use_auth_token": true,
+        "model_name_or_path": "/models/primeqa/models/qtc",
+        "do_predict": true
+    },
+    "evc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": "passage_answer_text",
+        "label_list": ["no", "yes"],
+        "output_label_prefix": "boolean_answer",
+        "overwrite_cache": true,
+        "use_auth_token": true,
+        "model_name_or_path": "/models/primeqa/models/qtc/",
+        "do_predict": true
+    },
+    "sn": {
+        "do_apply": true,
+        "model_name_or_path": "/models/primeqa/models/sn/score_normalizer_svm.pickle",
+        "qtc_is_boolean_label": "boolean",
+        "evc_no_answer_class": "no_answer"
+    }
+}
