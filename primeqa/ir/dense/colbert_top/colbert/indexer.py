@@ -3,6 +3,7 @@ import time
 
 import torch
 import random
+
 import numpy as np
 
 import torch.multiprocessing as mp
@@ -33,7 +34,7 @@ class Indexer:
         # set model_type from checkpoint's config
         # config.model_type = self.checkpoint_config.model_type
 
-        self.config = ColBERTConfig.from_existing(self.checkpoint_config, config, Run().config)
+        self.config = ColBERTConfig.from_existing(Run().config, self.checkpoint_config, config)
 
         # set model_type from checkpoint's config
         # self.config.model_type = self.checkpoint_config.model_type
