@@ -30,7 +30,7 @@ python ${RUN_MRC} \
   --per_device_eval_batch_size 128 --overwrite_output_dir \
   --do_boolean --boolean_config ${BOOLEAN_CONFIG} \
   --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
-  --max_predict_samples 100 --overwrite_cache
+  --overwrite_cache
 
 
 
