@@ -52,7 +52,6 @@ echo "========"
 echo "STEP 3: run boolean mrc on split 1"
 echo "========"
 python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
-       --train_file '/dccstor/srosent2/primeqa/data/train/tydi/tydiqa-v1.0-train-*.jsonl.gz' \
        --eval_file ${eval_dir}/tydiqa-v1.0-dev-01.jsonl.gz \
        --output_dir ${output_dir}/mrc-dev01 --fp16 \
        --do_eval \
