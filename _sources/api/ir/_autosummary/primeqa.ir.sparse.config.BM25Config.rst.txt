@@ -29,13 +29,14 @@ primeqa.ir.sparse.config.BM25Config
       ~BM25Config.b
       ~BM25Config.corpus_path
       ~BM25Config.fieldnames
+      ~BM25Config.index_location
       ~BM25Config.index_path
       ~BM25Config.k1
-      ~BM25Config.nhits
       ~BM25Config.output_dir
       ~BM25Config.overwrite
-      ~BM25Config.queries_path
+      ~BM25Config.queries
       ~BM25Config.threads
+      ~BM25Config.topK
       ~BM25Config.use_bm25
    
    

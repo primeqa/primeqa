@@ -464,15 +464,12 @@ This table shows two lines from the file, with the positive and negative passage
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_train <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
-    --amp <span class="se">\</span>
     --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
     --bsize &lt;training_batch_size&gt; <span class="se">\</span>
     --accum &lt;number_of_gradient_accumulation_steps&gt; <span class="se">\</span>
     --maxsteps &lt;number_of_training_steps&gt; <span class="se">\</span>
-    --save_steps &lt;number_of_training_steps_between_saving_checkpoins&gt;
-    --mask-punctuation <span class="se">\</span>
+    --save_steps &lt;number_of_training_steps_between_saving_checkpoins&gt; <span class="se">\</span>
     --lr &lt;learnig_rate&gt; <span class="se">\</span>
-    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
     --model_type xlm-roberta-base <span class="se">\</span>
     --triples &lt;training_data&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
@@ -585,9 +582,7 @@ An example of a collection file is <a class="reference external" href="https://g
     --do_index <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
     --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
-    --mask-punctuation <span class="se">\</span>
     --bsize &lt;indexing_batch_size&gt; <span class="se">\</span>
-    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
     --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
     --collection &lt;document_collection&gt; <span class="se">\</span>
     --root &lt;experiments_root_directory&gt; <span class="se">\</span>
@@ -638,22 +633,16 @@ An example of a queries data file is <a class="reference external" href="https:/
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
     --do_search <span class="se">\</span>
     --engine_type ColBERT <span class="se">\</span>
-    --amp <span class="se">\</span>
     --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
-    --mask-punctuation <span class="se">\</span>
     --bsize &lt;search_batch_size&gt; <span class="se">\</span>
-    --similarity &lt;l2_or_cosine&gt; <span class="se">\</span>
-    --retrieve_only <span class="se">\</span>
     --queries &lt;query_file&gt; <span class="se">\</span>
-    --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
-    --collection &lt;document_collection&gt; <span class="se">\</span>
-    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt; <span class="se">\</span>
-    --index_name &lt;index_label&gt; <span class="se">\</span>
-    --ranks_fn &lt;scores_and_ranks&gt;
+    --model_name_or_path &lt;model_filename_or_directory&gt; <span class="se">\</span>
+    --index_location &lt;directory_containing_index_files&gt; <span class="se">\</span>
+    --top_k &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
+    --output_dir &lt;output_directory&gt;
 </pre></div>
 </div>
-<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output_directory&gt;</span></code>, in a file named <code class="docutils literal notranslate"><span class="pre">ranked_passages.tsv</span></code>.</p>
 <section id="plaid-hyperparameters">
 <h4>PLAID hyperparameters<a class="headerlink" href="#plaid-hyperparameters" title="Permalink to this headline">#</a></h4>
 <p>The hyperparameters <code class="docutils literal notranslate"><span class="pre">ncells</span></code>, <code class="docutils literal notranslate"><span class="pre">centroid_score_threshold</span></code>, and <code class="docutils literal notranslate"><span class="pre">ndocs</span></code> can optionally be used to trade off between retrieval accuracy and speed. If these are not set explicitly they instead default to pre-configured values based on <code class="docutils literal notranslate"><span class="pre">k</span></code> as shown in the following table:</p>
@@ -694,16 +683,15 @@ An example of a queries data file is <a class="reference external" href="https:/
     --do_search <span class="se">\</span>
     --engine_type DPR <span class="se">\</span>
     --queries &lt;query_file&gt; <span class="se">\</span>
-    --qry_encoder_path &lt;context_encoder_model&gt; <span class="se">\</span>
-    --retrieve_batch_size &lt;search_batch_size&gt; <span class="se">\</span>
-    --corpus_dir &lt;index_directory&gt; <span class="se">\</span>
-    --output &lt;scores_and_ranks&gt; <span class="se">\ </span>
-    --n_docs_for_provenance &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
-    --output_simple_tsv <span class="se">\</span>
-    --query_file_type text_answers
+    --model_name_or_path &lt;query_encoder_model&gt; <span class="se">\</span>
+    --bsize &lt;search_batch_size&gt; <span class="se">\</span>
+    --index_location &lt;directory_containing_index_files&gt; <span class="se">\</span>
+    --top_k &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
+    --output_dir &lt;output_directory&gt;
 </pre></div>
 </div>
-<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;scores_and_ranks&gt;</span></code>.</p>
+<p>The engine uses a default tokenizer (currently <code class="docutils literal notranslate"><span class="pre">facebook/dpr-ctx_encoder-multiset-base</span></code>).  If needed, the tokenizer may be specified using the <code class="docutils literal notranslate"><span class="pre">--qry_tokenizer_path</span></code> argument.</p>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output_directory&gt;</span></code>, in a file named <code class="docutils literal notranslate"><span class="pre">ranked_passages.tsv</span></code>.</p>
 </section>
 <section id="sparse-index-retrieval">
 <h3>Sparse Index Retrieval<a class="headerlink" href="#sparse-index-retrieval" title="Permalink to this headline">#</a></h3>
@@ -711,17 +699,12 @@ An example of a queries data file is <a class="reference external" href="https:/
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
       --do_search <span class="se">\</span>
       --engine_type BM25 <span class="se">\</span>
-      --index_path &lt;index-dir&gt; <span class="se">\</span>
-      --queries_path  &lt;query_file&gt; <span class="se">\</span>
-      --nhits &lt;num-hits&gt; <span class="se">\</span>
-      --use_bm25 <span class="se">\</span>
-      --k1 &lt;bm25-score-k1&gt; <span class="se">\</span>
-      --b &lt;bm25-score-b&gt; <span class="se">\</span>
-      --threads  &lt;num-processing-threads&gt; <span class="se">\</span>
+      --index_location &lt;index-dir&gt; <span class="se">\</span>
+      --queries  &lt;query_file&gt; <span class="se">\ </span>
       --output_dir &lt;output-dir&gt;
 </pre></div>
 </div>
-<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output-dir&gt;</span></code>.</p>
+<p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output-dir&gt;</span></code> in ‘ranked_passages.tsv’ file.</p>
 <p>This table shows the sample lines from the search results tsv file:</p>
 <table class="colwidths-auto table">
 <thead>

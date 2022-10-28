@@ -54,6 +54,7 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.gpus
       ~ColBERTConfig.gpus_
       ~ColBERTConfig.ignore_scores
+      ~ColBERTConfig.index_location
       ~ColBERTConfig.index_name
       ~ColBERTConfig.index_path
       ~ColBERTConfig.index_path_
@@ -76,6 +77,7 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.nranks
       ~ColBERTConfig.num_partitions_max
       ~ColBERTConfig.nway
+      ~ColBERTConfig.output_dir
       ~ColBERTConfig.overwrite
       ~ColBERTConfig.path_
       ~ColBERTConfig.queries

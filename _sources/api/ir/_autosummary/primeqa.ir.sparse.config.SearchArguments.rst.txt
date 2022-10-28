@@ -26,11 +26,11 @@ primeqa.ir.sparse.config.SearchArguments
    .. autosummary::
    
       ~SearchArguments.b
-      ~SearchArguments.index_path
+      ~SearchArguments.index_location
       ~SearchArguments.k1
-      ~SearchArguments.nhits
       ~SearchArguments.output_dir
-      ~SearchArguments.queries_path
+      ~SearchArguments.queries
+      ~SearchArguments.topK
       ~SearchArguments.use_bm25
    
    
