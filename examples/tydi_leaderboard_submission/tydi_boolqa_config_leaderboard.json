@@ -7,7 +7,7 @@
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "/models/primeqa/models/qtc",
+        "model_name_or_path": "/model/models/qtc",
         "do_predict": true
     },
     "evc": {
@@ -18,12 +18,12 @@
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "/models/primeqa/models/qtc/",
+        "model_name_or_path": "/model/models/qtc/",
         "do_predict": true
     },
     "sn": {
         "do_apply": true,
-        "model_name_or_path": "/models/primeqa/models/sn/score_normalizer_svm.pickle",
+        "model_name_or_path": "/model/models/sn/score_normalizer_svm.pickle",
         "qtc_is_boolean_label": "boolean",
         "evc_no_answer_class": "no_answer"
     }

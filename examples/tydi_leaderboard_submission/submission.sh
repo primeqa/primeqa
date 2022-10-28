@@ -18,15 +18,15 @@ OUTPUT_PATH=$2
 
 # TODO add back --fp16
 
-MRC_MODEL='/models/primeqa/models/mrc'
-BOOLEAN_CONFIG='/models/primeqa/examples/tydi_leaderboard_submission/tydi_boolqa_config_leaderboard.json'
+MRC_MODEL='/model/models/mrc'
+BOOLEAN_CONFIG='/model/examples/tydi_leaderboard_submission/tydi_boolqa_config_leaderboard.json'
+RUN_MRC='/model/primeqa/mrc/run_mrc.py'
 
-
-python /model/primeqa/mrc/run_mrc.py \
-  --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large  \
+python ${RUN_MRC} \
+  --model_name_or_path ${MRC_MODEL} \
   --output_dir ${OUTPUT_PATH} \
   --per_device_eval_batch_size 128 --overwrite_output_dir \
-  --do_boolean --boolean_config primeqa/boolqa/tydi_boolqa_config.json \
+  --do_boolean --boolean_config ${BOOLEAN_CONFIG} \
   --max_eval_samples 100 --overwrite_cache
 
 
