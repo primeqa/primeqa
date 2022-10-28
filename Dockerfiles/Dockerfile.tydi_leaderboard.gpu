@@ -129,7 +129,7 @@ RUN mkdir -p ${HF_HOME} && chmod -R 777 ${HF_HOME}
 # Run service
 # CMD ["tini", "--", "python", "-m", "primeqa.services.application"]
 
-USER 2000
+
 
 #
 # below here leaderboard-specific stuff
@@ -138,11 +138,12 @@ ENV BASE_MODEL_DIR /model
 WORKDIR ${BASE_MODEL_DIR}
 COPY . .
 #
-ENV DOCKER_CHALLENGE_DIR docker/tydiqa/
-ENV DOCKER_DIR ${DOCKER_CHALLENGE_DIR}/single-model/
 
-ENV CHALLENGE_MODEL_DIR /tydiqa_model
-RUN ln -s ${BASE_MODEL_DIR} ${CHALLENGE_MODEL_DIR}
+WORKDIR /tydiqa_model
 # Put submission.sh where Google expects it
-RUN ln -s /model/primeqa/examples/tydi_leaderboard_submission/submission.sh ./submission.sh
+COPY examples/tydi_leaderboard_submission/submission.sh ./submission.sh
 RUN chmod +x ./submission.sh
+
+
+
+USER 2000
