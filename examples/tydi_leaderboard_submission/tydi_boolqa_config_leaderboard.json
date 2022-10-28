@@ -18,7 +18,7 @@
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "/model/models/qtc/",
+        "model_name_or_path": "/model/models/evc/",
         "do_predict": true
     },
     "sn": {
