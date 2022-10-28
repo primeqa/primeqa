@@ -11,7 +11,7 @@ import logging
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
-from primeqa.ir.sparse.bm25_engine import BM25Engine
+#from primeqa.ir.sparse.bm25_engine import BM25Engine
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ def main():
                 searcher = Searcher(args.index_name, checkpoint=args.checkpoint, collection=args.collection, config=colBERTConfig)
 
                 rankings = searcher.search_all(args.queries, args.topK)
-                out_fn = args.ranks_fn
+                out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 rankings.save(out_fn)
 
     elif process_args.engine_type == 'DPR':
