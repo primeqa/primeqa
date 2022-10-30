@@ -42,7 +42,7 @@ def generate_splits(input_file, split_file, output_dir):
     for line in gzip.open(input_file, 'rt', encoding='utf-8'):
         if len(line.strip()) > 0:
             data = json.loads(line)
-            split_files[example_ids[str(data["example_id"])]].write(line + "\n")
+            split_files[example_ids[str(data["example_id"])]].write(line)
     split_files["split1"].close()
     split_files["split2"].close()
 
@@ -52,7 +52,7 @@ def main():
     original = "input_dir/tydiqa-v1.0-dev.jsonl.gz"
     # set this to the location to save the new split
     output_dir = "output_dir"
-
+    
     generate_splits(original, split_dir, output_dir)
 
 if __name__ == '__main__':

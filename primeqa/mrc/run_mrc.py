@@ -549,17 +549,20 @@ def main():
             if do_mrc:
                 boolean_config[name]['do_mrc_pipeline']='True'
 
+            gc.collect()
+            torch.cuda.empty_cache()
             logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
                 max memory {torch.cuda.max_memory_allocated()}")
             logger.info("Running " + name)
-            cls_main([boolean_config[name]])
+            if name == 'sn':
+                sn_main([boolean_config[name]])
+            else:
+                cls_main([boolean_config[name]])
 
         if model: del model
-        gc.collect()
-        torch.cuda.empty_cache()
         run_bool_component('qtc', test_file="eval_predictions.json", do_mrc=True)
-        run_bool_component('evc', do_mrc=True)
-        run_bool_component('sn')
+        run_bool_component('evc', test_file="/qtc/predictions.json", do_mrc=True)
+        run_bool_component('sn',  test_file="/evc/predictions.json")
 
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)
