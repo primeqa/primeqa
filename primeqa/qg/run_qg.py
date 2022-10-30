@@ -74,13 +74,13 @@ class DataTrainingArguments:
             "help": "Config of the dataset loaded, e.g. 'secondary_task' for TyDiQA"
         },
     )
-    train_file_path: Optional[str] = field(
-        default="train_data.pt",
-        metadata={"help": "Path for cached train dataset"},
+    train_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "local file(s) in .json to train on."},
     )
-    valid_file_path: Optional[str] = field(
+    eval_file: Optional[str] = field(
         default="valid_data.pt",
-        metadata={"help": "Path for cached valid dataset"},
+        metadata={"help": "local file(s) in .json to evaluate on."},
     )
     max_len: Optional[int] = field(
         default=512,
@@ -184,6 +184,8 @@ def main(raw_args):
 
     qg_model = QGModel(model_args.model_name_or_path, modality=model_args.modality)
 
+
+
     qgdl = QGDataLoader(
         tokenizer=qg_model.tokenizer,
         dataset_name=data_args.dataset_name,
@@ -191,13 +193,28 @@ def main(raw_args):
         input_max_len=data_args.max_len,
         target_max_len=data_args.target_max_len,
     )
+
+    train_dataset = None
+    valid_dataset = None
+    if data_args.train_file is not None:
+        dataset = load_dataset("json", data_files=data_args.train_file)
+        dataset = dataset['train']
+        train_dataset = qgdl.create(dataset=dataset)
+    elif data_args.eval_file is not None:
+        dataset = load_dataset("json", data_files=data_args.eval_file)
+        # this is not a bug, by default huggingface datasets library loads any data as train split
+        dataset = dataset['train']
+        vaild_dataset = qgdl.create(dataset=dataset)
+
     if training_args.do_train or training_args.do_eval:
-        train_dataset = qgdl.create(
-            dataset_split="train", dataset_config=data_args.dataset_config
-        )
-        valid_dataset = qgdl.create(
-            dataset_split="validation", dataset_config=data_args.dataset_config
-        )
+        if data_args.train_file is None:
+            train_dataset = qgdl.create(
+                dataset_split="train", dataset_config=data_args.dataset_config
+            )
+        if data_args.eval_file is None:
+            valid_dataset = qgdl.create(
+                dataset_split="validation", dataset_config=data_args.dataset_config
+            )
 
         compute_metrics = rouge_metrics(qg_model.tokenizer)
 
