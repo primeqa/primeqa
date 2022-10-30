@@ -24,7 +24,7 @@ RUN_MRC='/model/primeqa/mrc/run_mrc.py'
 
 # we assume that a scratch directory is available.
 # this avoids permission issues writing the lock file if /input is mounted read-only
-cp ${INPUT_PATH} /scratch/input/
+cp ${INPUT_PATH} /scratch/input
 
 python ${RUN_MRC} \
   --model_name_or_path ${MRC_MODEL} \
