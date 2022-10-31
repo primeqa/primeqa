@@ -184,6 +184,7 @@ class ColBERT(BaseColBERT):
         # assert self.colbert_config.similarity == 'cosine'
 
         if self.colbert_config.similarity == 'l2':
+            assert False, 'l2 similarity is not supported'
             assert self.colbert_config.interaction == 'colbert'
             return (-1.0 * ((Q.unsqueeze(2) - D_padded.unsqueeze(1))**2).sum(-1)).max(-1).values.sum(-1)
 

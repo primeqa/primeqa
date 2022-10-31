@@ -78,11 +78,11 @@ class RunSettings:
 
             return script_name
 
-        return 'none'
+        return None
 
     @property
     def path_(self):
-        return os.path.join(self.root, self.experiment, self.script_name_, self.name)
+        return os.path.join(self.root, self.experiment, self.script_name_, self.name) if self.script_name_ is not None else os.path.join(self.root, self.experiment, self.name)
 
     @property
     def device_(self):
@@ -99,11 +99,10 @@ class ResourceSettings:
     queries: str = DefaultVal(None)
     index_name: str = DefaultVal(None)
 
-
 @dataclass
 class DocSettings:
     dim: int = DefaultVal(128)
-    doc_maxlen: int = DefaultVal(220)
+    doc_maxlen: int = DefaultVal(180)
     mask_punctuation: bool = DefaultVal(True)
 
 
@@ -158,6 +157,7 @@ class TrainingSettings:
     init_from_lm: str = DefaultVal(None)
     local_models_repository: str = DefaultVal(None)
     ranks_fn: str = DefaultVal(None)
+    output_dir: str = DefaultVal(None)
     topK: int = DefaultVal(100)
 
     # used in distillation (Student/Teacher) training
@@ -175,6 +175,7 @@ class TrainingSettings:
 @dataclass
 class IndexingSettings:
     index_path: str = DefaultVal(None)
+    index_location: str = DefaultVal(None)
 
     nbits: int = DefaultVal(1)
 
