@@ -80,7 +80,7 @@ def _convert_nq_prediction_to_tydi(nq_prediction: Dict[str, Any], example: Dict[
                            minimal_answer=dict(start_byte_offset=nq_prediction['start_position'],
                                                end_byte_offset=nq_prediction['end_position']),
                            passage_answer_score=nq_prediction['confidence_score'],
-                           yes_or_no_answer=_set_boolean(nq_prediction['yes_no_answer']),
+                           yes_no_answer=_set_boolean(nq_prediction['yes_no_answer']),
                            passage_answer_index=nq_prediction['passage_index'],
                            language=example['language'])
     tydi_prediction = _convert_start_and_end_positions_from_chars_to_bytes(example, tydi_prediction)
