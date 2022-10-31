@@ -20,14 +20,16 @@ OUTPUT_PATH=$2
 MRC_MODEL='/model/models/mrc'
 BOOLEAN_CONFIG='/model/examples/tydi_leaderboard_submission/tydi_boolqa_config_leaderboard.json'
 RUN_MRC='/model/primeqa/mrc/run_mrc.py'
+POSTPROCESSING_SCRIPT_LOCATION='/model/examples/tydi_leaderboard_submission/convert_prediction_format.py'
 
 # we assume that a scratch directory is available.
 # this avoids permission issues writing the lock file if /input is mounted read-only
 cp ${INPUT_PATH} /scratch/input
+mkdir -p /scratch/work/
 
 python ${RUN_MRC} \
   --model_name_or_path ${MRC_MODEL} \
-  --output_dir ${OUTPUT_PATH} \
+  --output_dir /scratch/work/ \
   --test_file /scratch/input \
   --do_predict \
   --fp16 \
@@ -38,6 +40,6 @@ python ${RUN_MRC} \
 
 
 
-#python ${POSTPROCESSING_SCRIPT_LOCATION} --gold_path "${SYMLINKED_INPUT_PATH}" \
-#                                         --predictions_path "${OUTPUT_DIR}/predictions.json" \
-#                                         --output_path "${OUTPUT_PATH}"
+python ${POSTPROCESSING_SCRIPT_LOCATION} --gold_path "/scratch/input" \
+                                         --predictions_path "/scratch/work/sn/eval_predictions_processed.json" \
+                                         --output_path "${OUTPUT_PATH}"
