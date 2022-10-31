@@ -79,7 +79,7 @@ class DataTrainingArguments:
         metadata={"help": "local file(s) in .json to train on."},
     )
     eval_file: Optional[str] = field(
-        default="valid_data.pt",
+        default=None,
         metadata={"help": "local file(s) in .json to evaluate on."},
     )
     max_len: Optional[int] = field(
@@ -200,24 +200,26 @@ def main(raw_args):
         dataset = load_dataset("json", data_files=data_args.train_file)
         dataset = dataset['train']
         train_dataset = qgdl.create(dataset=dataset)
-    elif data_args.eval_file is not None:
+    if data_args.eval_file is not None:
         dataset = load_dataset("json", data_files=data_args.eval_file)
         # this is not a bug, by default huggingface datasets library loads any data as train split
         dataset = dataset['train']
-        vaild_dataset = qgdl.create(dataset=dataset)
+        valid_dataset = qgdl.create(dataset=dataset)
 
-    if training_args.do_train or training_args.do_eval:
+    if training_args.do_train:
         if data_args.train_file is None:
             train_dataset = qgdl.create(
                 dataset_split="train", dataset_config=data_args.dataset_config
             )
+    if training_args.do_eval:
         if data_args.eval_file is None:
             valid_dataset = qgdl.create(
                 dataset_split="validation", dataset_config=data_args.dataset_config
             )
 
-        compute_metrics = rouge_metrics(qg_model.tokenizer)
-
+    compute_metrics = rouge_metrics(qg_model.tokenizer)
+   
+    if training_args.do_train or training_args.do_eval:
         trainer = QGTrainer(
             model=qg_model.model,
             tokenizer=qg_model.tokenizer,
@@ -227,14 +229,15 @@ def main(raw_args):
             data_collator=T2TDataCollator(),
             compute_metrics=compute_metrics,
         )
+        compute_metrics = rouge_metrics(qg_model.tokenizer)
 
     if training_args.do_train:
-        trainer.train(
+        train_result =trainer.train(
             model_path=model_args.model_name_or_path
             if os.path.isdir(model_args.model_name_or_path)
             else None
         )
-        train_result = trainer.save_model()
+        trainer.save_model()
 
         metrics = train_result.metrics
         trainer.log_metrics("train", metrics)

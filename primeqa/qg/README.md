@@ -32,6 +32,7 @@ Currently supported datasets for training include:
 - WikiSQL (QG for TableQA)
 - SQuAD, SQuAD_v2 (QG for PassageQA i.e. MRC)
 - TydiQA (Multilingual QG)
+- Custom Data in Squad/TydiQA format.
 
 ## Example Usage
 An example for training the model on WikiSQL dataset:
@@ -69,7 +70,7 @@ An example usage for training the model on TydiQA dataset:
 
 ```bash
 python primeqa/qg/run_qg.py\
-    --model_name_or_path mt5-base \
+    --model_name_or_path google/mt5-base \
     --modality passage \
     --dataset_name tydiqa \
     --do_train \
@@ -92,3 +93,19 @@ We evaluated the generated questions against the gold standard questions availab
 ```     
 
 Inference can be done for PassageQG over a given passage. Check this [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/qg/passageqg_inference.ipynb) for more information.
+
+One can also train and/or evaluate QG on custom data which is prepared in squad or tydiqa format (a sample file [here](https://github.com/primeqa/primeqa/blob/main/examples/custom_mrc/custom_data/examples_train_squad.jsonl)). 
+An example usage of qg training and evauation using custom data files is as follows:
+
+```bash
+python primeqa/qg/run_qg.py\
+    --model_name_or_path google/mt5-base \
+    --modality passage \
+    --train_file <path to sample train file> \
+    --do_train \
+    --do_eval \
+    --eval_file <path to sample eval file> \
+    --output_dir models/qg/$DIR_NAME \
+    --learning_rate 0.0001 \
+    --num_train_epochs 4
+```
