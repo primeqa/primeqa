@@ -134,6 +134,7 @@ RUN mkdir -p ${HF_HOME} && chmod -R 777 ${HF_HOME}
 #
 # below here leaderboard-specific stuff
 #
+RUN mkdir -p /scratch && chmod -R 777 /scratch
 ENV BASE_MODEL_DIR /model
 WORKDIR ${BASE_MODEL_DIR}
 COPY . .
@@ -143,3 +144,5 @@ WORKDIR /tydiqa_model
 # Put submission.sh where Google expects it
 COPY examples/tydi_leaderboard_submission/submission.sh ./submission.sh
 RUN chmod +x ./submission.sh
+
+USER 2000

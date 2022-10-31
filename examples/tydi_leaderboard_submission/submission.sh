@@ -16,17 +16,21 @@ set -u  # This is after conda setup as conda setup has unbound vars which trigge
 INPUT_PATH=$1
 OUTPUT_PATH=$2
 
-# TODO add back --fp16
 
 MRC_MODEL='/model/models/mrc'
 BOOLEAN_CONFIG='/model/examples/tydi_leaderboard_submission/tydi_boolqa_config_leaderboard.json'
 RUN_MRC='/model/primeqa/mrc/run_mrc.py'
 
+# we assume that a scratch directory is available.
+# this avoids permission issues writing the lock file if /input is mounted read-only
+cp ${INPUT_PATH} /scratch/input
+
 python ${RUN_MRC} \
   --model_name_or_path ${MRC_MODEL} \
   --output_dir ${OUTPUT_PATH} \
-  --test_file ${INPUT_PATH} \
+  --test_file /scratch/input \
   --do_predict \
+  --fp16 \
   --per_device_eval_batch_size 128 --overwrite_output_dir \
   --do_boolean --boolean_config ${BOOLEAN_CONFIG} \
   --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
