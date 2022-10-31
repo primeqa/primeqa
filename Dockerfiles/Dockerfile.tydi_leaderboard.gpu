@@ -144,5 +144,3 @@ WORKDIR /tydiqa_model
 # Put submission.sh where Google expects it
 COPY examples/tydi_leaderboard_submission/submission.sh ./submission.sh
 RUN chmod +x ./submission.sh
-
-USER 2000
