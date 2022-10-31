@@ -26,6 +26,7 @@ metrics
    :template: custom-module-template.rst
    :recursive:
 
+   primeqa.mrc.metrics.mlqa
    primeqa.mrc.metrics.nq_f1
    primeqa.mrc.metrics.squad
    primeqa.mrc.metrics.tydi_f1

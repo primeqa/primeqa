@@ -1,0 +1,32 @@
+mlqa
+====
+
+.. automodule:: primeqa.mrc.metrics.mlqa.mlqa
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      MLQA
+   
+   
+
+   
+   
+   
+
+
+

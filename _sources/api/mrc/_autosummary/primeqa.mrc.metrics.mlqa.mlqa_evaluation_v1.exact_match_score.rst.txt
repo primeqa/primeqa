@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.mlqa.mlqa\_evaluation\_v1.exact\_match\_score
+=================================================================
+
+.. currentmodule:: primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1
+
+.. autofunction:: exact_match_score

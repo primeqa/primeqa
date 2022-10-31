@@ -1,0 +1,37 @@
+mlqa\_evaluation\_v1
+====================
+
+.. automodule:: primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      evaluate
+      exact_match_score
+      f1_score
+      metric_max_over_ground_truths
+      mixed_segmentation
+      normalize_answer
+      whitespace_tokenize
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

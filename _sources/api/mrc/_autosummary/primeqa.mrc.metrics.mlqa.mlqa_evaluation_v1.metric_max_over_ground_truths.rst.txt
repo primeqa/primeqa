@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.mlqa.mlqa\_evaluation\_v1.metric\_max\_over\_ground\_truths
+===============================================================================
+
+.. currentmodule:: primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1
+
+.. autofunction:: metric_max_over_ground_truths

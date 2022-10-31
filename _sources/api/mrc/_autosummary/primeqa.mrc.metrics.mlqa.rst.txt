@@ -1,0 +1,31 @@
+mlqa
+====
+
+.. automodule:: primeqa.mrc.metrics.mlqa
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.mrc.metrics.mlqa.mlqa
+   primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1
+

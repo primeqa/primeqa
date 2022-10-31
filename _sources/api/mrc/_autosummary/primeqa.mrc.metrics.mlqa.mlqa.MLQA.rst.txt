@@ -1,0 +1,46 @@
+primeqa.mrc.metrics.mlqa.mlqa.MLQA
+==================================
+
+.. currentmodule:: primeqa.mrc.metrics.mlqa.mlqa
+
+.. autoclass:: MLQA
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MLQA.add
+      ~MLQA.add_batch
+      ~MLQA.compute
+      ~MLQA.download_and_prepare
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MLQA.citation
+      ~MLQA.codebase_urls
+      ~MLQA.description
+      ~MLQA.experiment_id
+      ~MLQA.features
+      ~MLQA.format
+      ~MLQA.homepage
+      ~MLQA.info
+      ~MLQA.inputs_description
+      ~MLQA.license
+      ~MLQA.name
+      ~MLQA.reference_urls
+      ~MLQA.streamable
+   
+   

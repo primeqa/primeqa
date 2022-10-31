@@ -1,0 +1,6 @@
+primeqa.mrc.metrics.mlqa.mlqa\_evaluation\_v1.evaluate
+======================================================
+
+.. currentmodule:: primeqa.mrc.metrics.mlqa.mlqa_evaluation_v1
+
+.. autofunction:: evaluate
