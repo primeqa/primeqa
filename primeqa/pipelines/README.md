@@ -88,6 +88,7 @@ Follow the steps below to use the extractive reader:
 import json
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
 reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+reader.load()
 ```
 - Step 2: Execute the reader in inference mode:
 ```python
@@ -98,4 +99,78 @@ as the seat of government for the new nation, it is Australia's
 largest inland city"""]
 answers = reader.apply(question,context)  
 print(json.dumps(answers, indent=4))  
+```
+
+
+### Generative FiD Reader
+
+- Step 1:  Initialize the reader.
+```python
+import json
+from primeqa.pipelines.components.reader.generative import GenerativeFiDReader
+fid_reader = GenerativeFiDReader()
+fid_reader.load()
+```
+
+- Step 2: Execute the reader in inference mode:
+```python
+question = ["What causes the trail behind jets at high altitude?"]
+context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is based 
+            on the erroneous belief that long-lasting condensation trails are 
+            \"chemtrails\" consisting of chemical or biological agents left in the 
+            sky by high-flying aircraft, sprayed for nefarious purposes undisclosed 
+            to the general public. Believers in this conspiracy theory say that while 
+            normal contrails dissipate relatively quickly, contrails that linger must 
+            contain additional substances. Those who subscribe to the theory speculate 
+            that the purpose of the chemical release may be solar radiation management,
+            weather modification, psychological manipulation, human population control, 
+            or biological or chemical warfare, and that the trails are causing 
+            respiratory illnesses""",
+            """Associated with jet streams is a phenomenon known as clear-air turbulence 
+            (CAT), caused by vertical and horizontal wind shear caused by jet streams. 
+            The CAT is strongest on the cold air side of the jet, next to and just under 
+            the axis of the jet. Clear-air turbulence can cause aircraft to plunge and so 
+            present a passenger safety hazard that has caused fatal accidents, such as the 
+            death of one passenger on United Airlines Flight 826. 
+            Section: Uses.:Possible future power generation.""",
+            """Contrails are a manmade type of cirrus cloud formed when water vapor from 
+            the exhaust of a jet engine condenses on particles, which come from either the 
+            surrounding air or the exhaust itself, and freezes, leaving behind a visible trail. 
+            The exhaust can also trigger the formation of cirrus by providing ice nuclei 
+            when there is an insufficient naturally-occurring supply in the atmosphere. 
+            One of the environmental impacts of aviation is that persistent contrails can 
+            form into large mats of cirrus, and increased air traffic has been implicated 
+            as one possible cause of the increasing frequency and amount of cirrus"""]]
+answers = fid_reader.apply(question,context)  
+print(json.dumps(answers, indent=4)) 
+```
+
+## QA Pipeline
+
+- Step 1:  Initialize the retriever. You can choose any of the IR models we currently have ....
+
+```python
+retriever = ColBERTRetriever()
+# The parameters of the retriever to be determined
+retriever.set_parameter_value()
+```
+
+- Step 2:  Initialize the reader model. You can choose any the generative QA model we currently have ...
+
+```python
+reader = GenerativeFiDReader("PrimeQA/fid_dpr_bart_large")
+```
+
+- Step 3:  Initialize the QA pipeline model. 
+
+```python
+lfqa_pipeline = QAPipeline(retriever, reader)
+lfqa_pipeline.load()
+```
+
+- Step 4:  Execute the generative pipeline in inference mode. 
+
+```python
+query="What causes the trail behind jets at high altitude?",
+answers = lfqa_pipeline.predict(query)
 ```

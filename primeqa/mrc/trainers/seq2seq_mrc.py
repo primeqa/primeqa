@@ -98,3 +98,37 @@ class MRCSeq2SeqTrainer(Seq2SeqTrainer):
 
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
         return metrics
+    
+    def predict(self, predict_dataset, 
+                predict_examples, 
+                ignore_keys=None, 
+                metric_key_prefix: str = "test",  
+                max_length: Optional[int] = None,
+                num_beams: Optional[int] = None,):
+        
+        self._max_length = max_length if max_length is not None else self.args.generation_max_length
+        self._num_beams = num_beams if num_beams is not None else self.args.generation_num_beams
+        predict_dataloader = self.get_test_dataloader(predict_dataset)
+
+        # Temporarily disable metric computation, we will do it in the loop here.
+     
+        self.compute_metrics = None
+        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        try:
+            output = eval_loop(
+                predict_dataloader,
+                description="Prediction",
+                # No point gathering the predictions if there are no metrics, otherwise we defer to
+                # self.args.prediction_loss_only
+                prediction_loss_only=False,
+                ignore_keys=ignore_keys,
+            )
+        finally:
+            pass
+
+        if self.post_process_function is not None:
+            predictions = self.post_process_function(predict_examples, predict_dataset, output)
+        else:
+            predictions = {}
+
+        return predictions

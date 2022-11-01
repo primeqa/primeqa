@@ -52,16 +52,18 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
         passage_ids, passage_masks = self.encode_passages(inputs)
         #TODO:  padding is set to True, should be in the input args
         padding = "max_length"
-        with self._tokenizer.as_target_tokenizer():
-            labels = self._tokenizer(targets, max_length=self._max_answer_len, padding=padding, truncation=True)
-        if padding == "max_length" and self._ignore_pad_token_for_loss:
-            labels["input_ids"] = [
-                [(l if l != self._tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
-            ]
+        if targets:
+            with self._tokenizer.as_target_tokenizer():
+                labels = self._tokenizer(targets, max_length=self._max_answer_len, padding=padding, truncation=True)
+            if padding == "max_length" and self._ignore_pad_token_for_loss:
+                labels["input_ids"] = [
+                    [(l if l != self._tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+                ]
         model_inputs = {}
         model_inputs["input_ids"] = passage_ids
         model_inputs["attention_mask"] = passage_masks
-        model_inputs["labels"] = labels["input_ids"]
+        if targets:
+            model_inputs["labels"] = labels["input_ids"]
         if mode == 'train':
             model_inputs["example_id"] = indexes
         else:
@@ -99,7 +101,6 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
     def preprocess_eli5_batch_fid(self, examples, mode="train") -> Tuple[List[str], List[str]]:
         indices = []
         questions = examples[self._question_column]
-        answers = examples[self._answer_column]
         contexts = examples[self._context_column]
         n_doc = self._max_contexts
 
@@ -110,9 +111,13 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
             return [f"question: {question} passage: {t}" for t in passages]
         # multiple answers for training
         if mode == "train":
+            answers = examples[self._answer_column]
             inputs = []
             targets = []
             for idx,q in enumerate(questions):
+                if len(q) == 0: 
+                    # Skip empty questions
+                    continue
                 passages = top_passages(contexts[idx])
                 question_passages = append_question(passages, q)
                 answer_list = answers[idx]
@@ -131,6 +136,10 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                         
         elif mode == "eval": # for evaluation only take each question once
             inputs = []
+            if self._answer_column in examples:
+                answers = examples[self._answer_column]
+            else:
+                answers = []
             for idx,q in enumerate(questions):
                 passages = top_passages(contexts[idx])
                 question_passages = append_question(passages, q)
