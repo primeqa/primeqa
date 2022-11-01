@@ -96,6 +96,8 @@ to erroneous or unexpected input argument.
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | [Pull Request](pull_request_template.md) | PrimeQA Pull Request |
 | [Generate Documentation](README.md) | How Documentation works |       
+| [Orchestrator Service REST Microservice](orchestrator.md) | Proof-of-concept code for PrimeQA Orchestrator microservice |       
+| [Tooling UI](tooling_ui.md) | Demo UI |       
 
 ## PrimeQA collaborators include       
 

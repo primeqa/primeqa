@@ -61,7 +61,6 @@ _deps = {
     "jsonlines~=3.0.0": ["install", "gpu"],
     "ninja~=1.10.2.3": ["install", "gpu"],
     "nltk~=3.7": ["install", "gpu"],
-    "numpy~=1.21.5": ["install", "gpu"],
     "packaging~=21.3": ["install", "gpu"],
     "pandas~=1.3.5": ["install", "gpu"],
     "psutil~=5.9.0": ["install", "gpu"],
@@ -91,6 +90,12 @@ _deps = {
     "sphinx~=4.4.0": ["docs"],
     "sphinx_design~=0.2.0": ["docs"],
     "recommonmark~=0.7.1": ["docs"],
+    "grpcio~=1.48.1": ["install", "gpu"],
+    "grpcio-tools~=1.48.1": ["install", "gpu"],
+    "fastapi~=0.85.0": ["install", "gpu"],
+    "uvicorn~=0.18.0": ["install", "gpu"],
+    "cachetools~=5.2.0": ["install", "gpu"],
+    "sqlitedict~=2.0.0": ["install", "gpu"],
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]
@@ -123,6 +128,8 @@ setup(
     license="Apache",
     keywords="Question Answering (QA), Machine Reading Comprehension (MRC), Information Retrieval (IR)",
     packages=find_packages(".", include=include_packages),
+    include_package_data=True,
+    package_data={"": ["*.cpp", "*.cu"]},
     python_requires=">=3.7.0, <3.10.0",
     install_requires=install_requires,
     extras_require=extras,

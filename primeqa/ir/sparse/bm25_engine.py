@@ -16,20 +16,20 @@ class BM25Engine:
     def do_index(self):
         logger.info("Running BM25 indexing")
         indexer = PyseriniIndexer()
-        rc = indexer.index_collection(self.config.corpus_path, self.config.index_path, 
+        rc = indexer.index_collection(self.config.corpus_path, self.config.index_location, 
                     self.config.fieldnames, self.config.overwrite, 
                     self.config.threads, self.config.additional_indexing_args )
         logger.info(f"BM25 Indexing finished with rc: {rc}")
 
     def do_search(self):
-            logger.info("Running BM25 search")
-            queries = load_queries(self.config.queries_path)
+            logger.info("Running BM25 search with uniform parameters")
+            queries = load_queries(self.config.queries)
             logger.info(f"Loaded queries num {len(queries)}")
-            logger.info(f"Loaded index from {self.config.index_path}")
-            searcher = PyseriniRetriever(self.config.index_path,use_bm25=self.config.use_bm25,k1=self.config.k1,b=self.config.b)
-            logger.info(f"Running search num queries: {len(queries)} top_k: {self.config.nhits} threads: {self.config.threads}")
+            logger.info(f"Loaded index from {self.config.index_location}")
+            searcher = PyseriniRetriever(self.config.index_location,use_bm25=self.config.use_bm25,k1=self.config.k1,b=self.config.b)
+            logger.info(f"Running search num queries: {len(queries)} topK: {self.config.topK} threads: {self.config.threads}")
             search_results = searcher.batch_retrieve(list(queries.values()),list(queries.keys()),
-                        top_k=self.config.nhits,threads=self.config.threads)
+                        topK=self.config.topK,threads=self.config.threads)
 
             if self.config.output_dir != None:
                 logger.info(f"Writing ranked results to {self.config.output_dir}")

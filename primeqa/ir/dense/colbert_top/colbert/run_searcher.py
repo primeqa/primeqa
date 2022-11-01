@@ -21,9 +21,8 @@ def main():
     # Namespace to dict
     args_dict = vars(args)
     # remove keys not in ColBERTConfig
-    # args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'qrels', 'partitions', 'retrieve_only', 'ranks_fn', 'topK', 'input_arguments']}
     # need to keep ranks_fn and topK arguments to save the ranking results
-    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'qrels', 'partitions', 'retrieve_only', 'input_arguments']}
+    args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'qrels', 'partitions', 'input_arguments']}
     # args_dict to ColBERTConfig
     colBERTConfig = ColBERTConfig(**args_dict)
 
