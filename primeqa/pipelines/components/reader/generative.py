@@ -37,7 +37,7 @@ class GenerativeReader(ReaderComponent):
 class GenerativeFiDReader(ReaderComponent):
     
     model: str = field(
-        #default="/dccstor/mabornea2/oneqa_os/primeqa_fid/exp_bart_fid_3e-5_3e_fp16",
+        #default="PrimeQA/eli5_reader_bart_fid_colbert",
         default="/dccstor/mabornea2/oneqa_os/primeqa_fid/exp_bart_fid_3e-5_3e_fp16_colbert",
         metadata={"name": "Model"},
     )
@@ -74,14 +74,14 @@ class GenerativeFiDReader(ReaderComponent):
 
         # Initialize tokenizer
         tokenizer = AutoTokenizer.from_pretrained(
-            "/dccstor/mabornea2/oneqa_os/primeqa_fid/exp_bart_fid_3e-5_3e_fp16",
+            self.model,
             config=config,
         )
 
         config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
         model = FiDModelForDownstreamTasks.from_config(
             config,
-            "/dccstor/mabornea2/oneqa_os/primeqa_fid/exp_bart_fid_3e-5_3e_fp16",
+            self.model,
             task_heads=task_heads,
         )
         model.set_task_head(next(iter(task_heads)))
@@ -108,13 +108,11 @@ class GenerativeFiDReader(ReaderComponent):
 
         training_args = Seq2SeqTrainingArguments(
             do_eval=True,
-            output_dir="tmp",
+            output_dir="tmp_trainer",
             per_device_eval_batch_size=1,
             predict_with_generate=True,
             generation_max_length=self.max_answer_length,
             generation_num_beams=self.generation_num_beams
-            #fp16=fp16,
-            #seed=seed,
         )
 
         self._trainer = MRCSeq2SeqTrainer(

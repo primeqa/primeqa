@@ -104,6 +104,10 @@ print(json.dumps(answers, indent=4))
 
 ### Generative FiD Reader
 
+A Generative Reader takes a question and uses a set of supporting passages to qenerate an answer. Compared to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentense answers.
+PrimeQA implements a [Fusion In Decoder(FiD)](https://arxiv.org/abs/2007.01282) generative reader. 
+Follow the steps below to use the extractive reader:
+
 - Step 1:  Initialize the reader.
 ```python
 import json
@@ -147,30 +151,32 @@ print(json.dumps(answers, indent=4))
 
 ## QA Pipeline
 
-- Step 1:  Initialize the retriever. You can choose any of the IR models we currently have ....
+The QA pipeline is used for Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. Long Form Question Answering (LFQA) is a generative task where the retrieved passages are used to generate a complex multi-sentewnce answer.
+In this example we show a QA Pipeline using A ColBERT retriever  and a Fusion in Decoder (FID) generator.
+Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found [here]()
+
+- Step 1:  Initialize the retriever.
 
 ```python
-retriever = ColBERTRetriever()
-# The parameters of the retriever to be determined
-retriever.set_parameter_value()
+retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, collection = collection, max_num_documents = 3)
 ```
 
 - Step 2:  Initialize the reader model. You can choose any the generative QA model we currently have ...
 
 ```python
-reader = GenerativeFiDReader("PrimeQA/fid_dpr_bart_large")
+reader = GenerativeFiDReader(model_name_or_path = model)
 ```
 
-- Step 3:  Initialize the QA pipeline model. 
+- Step 3:  Initialize the QA pipeline. 
 
 ```python
 lfqa_pipeline = QAPipeline(retriever, reader)
 lfqa_pipeline.load()
 ```
 
-- Step 4:  Execute the generative pipeline in inference mode. 
+- Step 4:  Execute the LFQA pipeline in inference mode. 
 
 ```python
-query="What causes the trail behind jets at high altitude?",
-answers = lfqa_pipeline.predict(query)
+queries=["What causes the trail behind jets at high altitude?"]
+answers = lfqa_pipeline.run(query)
 ```

@@ -47,7 +47,6 @@ python primeqa/ir/run_ir.py \
     --root $KILT_ELI5/colbert_ir \
     --index_name kilt_wikipedia_indname \
     --experiment kilt_wikipedia_exp \
-    --similarity l2 \
     --nbits 4 \
     --kmeans_niters 10 \
     --num_partitions_max 50000 \
@@ -85,10 +84,10 @@ python primeqa/ir/run_ir.py \
     --retrieve_only \
     --queries `$KILT_ELI%/kilt-eli5-queries/${EXPT}` \
     --collection `$KILT_ELI5/passages/kilt_knowledgesource_0.tsv` \
-    --checkpoint `$COLBERT_CHECKPOINT` \
+    --model_name_or_path `$COLBERT_CHECKPOINT` \
     --index_location `$KILT_ELI5/colbert_ir/kilt_wikipedia_exp/indexes/kilt_wikipedia_indname` 
     --output_dir `$KILT_ELI5/search_results/${EXPT}`
-    --topK 100 \
+    --top_k 100 \
     --ncells 4 \
     --centroid_score_threshold 0.4 \
     --ndocs 40000 \

@@ -49,6 +49,11 @@ class RetrieverComponent(Component):
             "name": "Index name",
         },
     )
+    collection: str = field(
+        metadata={
+            "name": "The corpus file split in paragraphs",
+        },
+    )
 
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):
