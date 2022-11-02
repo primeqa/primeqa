@@ -2,7 +2,8 @@ import os
 import torch
 
 from tqdm import tqdm
-from typing import Union
+from typing import Union, List, Dict
+
 
 from primeqa.ir.dense.colbert_top.colbert.data import Collection, Queries, Ranking
 
@@ -11,27 +12,34 @@ from primeqa.ir.dense.colbert_top.colbert.search.index_storage import IndexScore
 
 from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
-from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
 
-TextQueries = Union[str, 'list[str]', 'dict[int, str]', Queries]
+TextQueries = Union[str, List[str], Dict[int, str], Queries]
 
 
 class Searcher:
     def __init__(self, index, checkpoint=None, collection=None, config=None):
         print_memory_stats()
 
-        initial_config = ColBERTConfig.from_existing(config, Run().config)
+        initial_config = ColBERTConfig.from_existing(Run().config, config)
 
-        default_index_root = initial_config.index_root_
-        self.index = os.path.join(default_index_root, index)
+        self.index = (
+            initial_config.index_path
+            if initial_config.index_path
+            else (
+                os.path.join(initial_config.index_root, index)
+                if initial_config.index_root
+                else os.path.join(initial_config.index_root_, index)
+            )
+        )
         self.index_config = ColBERTConfig.load_from_index(self.index)
 
         self.checkpoint = checkpoint or self.index_config.checkpoint
         self.checkpoint_config = ColBERTConfig.load_from_checkpoint(self.checkpoint)
         self.config = ColBERTConfig.from_existing(self.checkpoint_config, self.index_config, initial_config)
 
-        self.collection = Collection.cast(collection or self.config.collection)
+        self.collection = None
         self.configure(checkpoint=self.checkpoint, collection=self.collection)
 
         self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config)
@@ -47,7 +55,7 @@ class Searcher:
         self.config.configure(**kw_args)
 
     def encode(self, text: TextQueries):
-        queries = text if type(text) is list else [text]
+        queries = text if isinstance(text, list) else [text]
         bsize = 128 if len(queries) > 128 else None
 
         self.checkpoint.query_tokenizer.query_maxlen = self.config.query_maxlen

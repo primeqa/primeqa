@@ -108,7 +108,7 @@ class Arguments():
 
     def add_indexing_input(self):
         self.add_argument('--collection', dest='collection', required=True)
-        self.add_argument('--index_root', dest='index_root', required=True)
+        self.add_argument('--index_root', dest='index_root', default=None)
         self.add_argument('--index_name', dest='index_name', required=True)
 
     def add_compressed_index_input(self):
@@ -117,7 +117,7 @@ class Arguments():
         self.add_argument('--num_partitions_max', type=int, default=10000000)
 
     def add_index_use_input(self):
-        self.add_argument('--index_root', dest='index_root', required=True)
+        self.add_argument('--index_root', dest='index_root', default=None)
         self.add_argument('--index_name', dest='index_name', required=True)
         self.add_argument('--partitions', dest='partitions', default=None, type=int, required=False)
         self.add_argument('--index_path', dest='index_path', default=None, type=str)
