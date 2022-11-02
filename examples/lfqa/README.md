@@ -1,11 +1,13 @@
 
 # Long Form Question Answering (LFQA)
 
-LFQA is a form of generative question answering. Given a question,  the retriever component retrieves the supporting documents and a reader component generates the answer conditioned on the supporting documents.  The system generate generates complex multi-sentence answers. 
+LFQA is a form of generative question answering. Given a question,  the retriever component retrieves the supporting documents and a reader component generates the answer conditioned on the supporting documents.  The system generates complex multi-sentence answers. 
 
 ## KILT-ELI5
 
-The following shows how to build information retrieval and reader components to generate and answer for the KIlT-ELI5 dataset.
+The following shows how to build information retrieval and reader components to generate answers for the KIlT-ELI5 dataset.
+
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 ### 1. Download the data from [facebookresearch/KILT](https://github.com/facebookresearch/KILT) 
 
@@ -24,15 +26,15 @@ The dev set of KILT-ELI5 can be downloaded from [eli5-dev-kilt.jsonl](http://dl.
 The KILT Knowledge source needs to be preprocessed into a tsv format that can be used by the retrieval component.
 
 ```
-python kilt_passage_corpus.py \
-    --kilt_corpus `$KILT_ELI5/data/kilt_knowledgesource.json.gz` \
-    --output_dir `$KILT_ELI5/passages/` 
-    --passage_ids `$KILT_ELI5/kilt_passage_ids.txt`
+python examples/lfqa/kilt_passage_corpus.py \
+    --kilt_corpus $KILT_ELI5/data/kilt_knowledgesource.json \
+    --output_dir $KILT_ELI5/passages/ 
+    --passage_ids $KILT_ELI5/kilt_passage_ids.txt
 ```
 
 ### 3. Create a Dense Index with ColBERT
 
-At this point it is assume that a ColBERT checkpoint already exists at `$COLBERT_CHECKPOINT`.
+At this point it is assumed that a ColBERT checkpoint already exists at `$COLBERT_CHECKPOINT`.
 
 ```
 python primeqa/ir/run_ir.py \
@@ -40,10 +42,9 @@ python primeqa/ir/run_ir.py \
     --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 256 \
-    --checkpoint `$COLBERT_CHECKPOINT` \
-    --collection `$KILT_ELI5/passages/kilt_knowledgesource_0.tsv` \
+    --model_name_or_path $COLBERT_CHECKPOINT \
+    --collection $KILT_ELI5/passages/kilt_knowledgesource_0.tsv \
     --root $KILT_ELI5/colbert_ir \
     --index_name kilt_wikipedia_indname \
     --experiment kilt_wikipedia_exp \
@@ -56,10 +57,10 @@ python primeqa/ir/run_ir.py \
 
 ```
 python examples/lfqa/create_ir_queries_from_dataset.py \
-    --train_file `$KILT_ELI5/data/eli5-train-kilt.jsonl` \
-    --eval_file `$KILT_ELI5/data/eli5-dev-kilt.jsonl` \
+    --train_file $KILT_ELI5/data/eli5-train-kilt.jsonl \
+    --eval_file $KILT_ELI5/data/eli5-dev-kilt.jsonl \
     --queries_per_file 50000 \
-    --output_dir `$KILT_ELI5/kilt-eli5-queries` \
+    --output_dir $KILT_ELI5/queries \
 ```
 
 ### 4. Run the Search for the ELI5 Dataset
@@ -67,9 +68,9 @@ python examples/lfqa/create_ir_queries_from_dataset.py \
 The search is designed to run in parallel for chuncks of max 50000 queries. 
 
 ```
-mkdir -p $(dirname `$KILT_ELI5/search_results`)
+mkdir -p $(dirname $KILT_ELI5/search_results)
 
-query_dir=`$KILT_ELI5/kilt-eli5-queries`
+query_dir=$KILT_ELI5/queries
 
 query_files=$(for f in ${query_dir}* ; do basename $f ; done)
 
@@ -80,13 +81,13 @@ python primeqa/ir/run_ir.py \
     --engine_type ColBERT \
     --amp \
     --doc_maxlen 180 \
-    --bsize 1 \
+    --bsize 256 \
     --retrieve_only \
-    --queries `$KILT_ELI%/kilt-eli5-queries/${EXPT}` \
-    --collection `$KILT_ELI5/passages/kilt_knowledgesource_0.tsv` \
-    --model_name_or_path `$COLBERT_CHECKPOINT` \
-    --index_location `$KILT_ELI5/colbert_ir/kilt_wikipedia_exp/indexes/kilt_wikipedia_indname` 
-    --output_dir `$KILT_ELI5/search_results/${EXPT}`
+    --queries $KILT_ELI5/queries/${EXPT} \
+    --collection $KILT_ELI5/passages/kilt_knowledgesource_0.tsv \
+    --model_name_or_path $COLBERT_CHECKPOINT \
+    --index_location $KILT_ELI5/colbert_ir/kilt_wikipedia_exp/indexes/kilt_wikipedia_indname 
+    --output_dir $KILT_ELI5/search_results/${EXPT}
     --top_k 100 \
     --ncells 4 \
     --centroid_score_threshold 0.4 \
@@ -99,11 +100,11 @@ python primeqa/ir/run_ir.py \
 
 ```
 python examples/lfqa/add_passages_to_dataset.py \
-    --train_file `$KILT_ELI5/data/eli5-train-kilt.jsonl` \
-    --eval_file `$KILT_ELI5/data/eli5-dev-kilt.jsonl` \
-    --output_dir `$KILT_ELI5/kilt-eli5-colbert-passages` \
-    --search_result_location `$KILT_ELI5/search_results` \
-    --corpus_file `$KILT_ELI5/passages/kilt_knowledgesource_0.tsv` \
+    --train_file $KILT_ELI5/data/eli5-train-kilt.jsonl \
+    --eval_file $KILT_ELI5/data/eli5-dev-kilt.jsonl \
+    --output_dir $KILT_ELI5/kilt-eli5-colbert-passages \
+    --search_result_location $KILT_ELI5/search_results \
+    --collection $KILT_ELI5/passages/kilt_knowledgesource_0.tsv \
 ```
 
 ### 6. Run the Reaader Component on the Eli5 Dataset with Supporting Passages
@@ -111,8 +112,8 @@ python examples/lfqa/add_passages_to_dataset.py \
 ```
 python primeqa/primeqa/mrc/run_mrc.py \
     --model_name_or_path facebook/bart-large \
-    --train_file `$KILT_ELI5/kilt-eli5-colbert-passages/train.json` \
-    --eval_file `$KILT_ELI5/kilt-eli5-colbert-passages/dev.json` \
+    --train_file $KILT_ELI5/kilt-eli5-colbert-passages/train.json \
+    --eval_file $KILT_ELI5/kilt-eli5-colbert-passages/dev.json \
     --preprocessor primeqa.mrc.processors.preprocessors.eli5_fid.ELI5FiDPreprocessor \
     --postprocessor primeqa.mrc.processors.postprocessors.eli5_fid.ELI5FiDPostProcessor \
     --task_head primeqa.mrc.models.heads.generative.FID_HEAD \
@@ -126,7 +127,7 @@ python primeqa/primeqa/mrc/run_mrc.py \
     --generation_max_length 256 \
     --max_answer_length 256 \
     --predict_with_generate \
-    --output_dir `KILT_ELI5/eli5_reader_bart_fid_3e-5_3e_colbert` \
+    --output_dir KILT_ELI5/eli5_reader_bart_large_fid_colbert \
     --do_train --learning_rate 3e-5 --num_train_epochs 3 \
     --do_eval --per_device_train_batch_size 32 --per_device_eval_batch_size 32 \
     --gradient_accumulation_steps 1 \

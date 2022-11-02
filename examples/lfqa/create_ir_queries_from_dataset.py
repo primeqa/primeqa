@@ -40,6 +40,7 @@ def main():
     n = 0
     for t_id, t_question in zip(train_ids,train_questions):
         if len(t_question) == 0:
+            print(f"Skip question id {t_id} with empty string")
             continue
         if n % args.queries_per_file == 0:
             if n > 0:
