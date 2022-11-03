@@ -32,6 +32,11 @@ from primeqa.services.rest_server.data_models import (
 )
 from primeqa.services.rest_server.utils import generate_parameters
 
+STORE = StoreFactory.get_store()
+READERS_REGISTRY_FACTORY = READERS_REGISTRY
+RETRIEVERS_REGISTRY_FACTORY = RETRIEVERS_REGISTRY
+INDEXERS_REGISTRY_FACTORY = INDEXERS_REGISTRY
+READER_FACTORY = ReaderFactory
 
 class RestServer:
     def __init__(self, config: Settings = None, logger: logging.Logger = None):
