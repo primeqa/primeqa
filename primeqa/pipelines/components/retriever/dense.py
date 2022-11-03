@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass, field
+import json
 
 from primeqa.pipelines.components.base import RetrieverComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -30,6 +31,7 @@ class ColBERTRetriever(RetrieverComponent):
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
+            "api_support": True,
         },
     )
     collection: str = field(
@@ -44,6 +46,8 @@ class ColBERTRetriever(RetrieverComponent):
         metadata={
             "name": "Maximum number of retrieved documents",
             "range": [1, 100, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
         },
     )
     ncells: int = field(
@@ -77,6 +81,11 @@ class ColBERTRetriever(RetrieverComponent):
 
         # Placeholder variables
         self._searcher = None
+
+    def __hash__(self) -> int:
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         self._searcher = Searcher(

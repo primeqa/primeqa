@@ -3,7 +3,7 @@ from typing import Union
 
 from grpc import ServicerContext, StatusCode
 
-from primeqa.services.exceptions import ErrorMessages
+from primeqa.services.exceptions import Error, ErrorMessages
 from primeqa.services.configurations import Settings
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -49,14 +49,19 @@ class ReaderService(ReaderServicer):
         Returns:
             GetReadersResponse: List of available readers
         """
-        return GetReadersResponse(
-            readers=[
-                ReaderComponent(
-                    reader_id=reader_id, parameters=generate_parameters(reader)
-                )
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
-        )
+        try:
+            return GetReadersResponse(
+                readers=[
+                    ReaderComponent(
+                        reader_id=reader_id, parameters=generate_parameters(reader)
+                    )
+                    for reader_id, reader in READERS_REGISTRY.items()
+                ]
+            )
+        except Error as err:
+            context.set_code(StatusCode.INTERNAL)
+            context.set_details(err.args[0])
+            return GetAnswersResponse()
 
     def GetAnswers(
         self, request: GetAnswersRequest, context: ServicerContext
@@ -127,6 +132,7 @@ class ReaderService(ReaderServicer):
                     predictions = instance.apply(
                         input_texts=[query] * len(request.contexts[idx].texts),
                         context=[[text] for text in request.contexts[idx].texts],
+                        **reader_kwargs,
                     )
 
                     # Step 5.b: Add answers for current query into response object

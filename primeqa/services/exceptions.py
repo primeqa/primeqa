@@ -13,8 +13,11 @@ class ErrorMessages(str, Enum):
     INVALID_REQUEST = "E1001: Missing mandatory field: {} from request"
 
     # PARAMETER
+    INVALID_PARAMETER_DEFINITION = (
+        "E3001: Invalid {} parameter definition. Please contact us."
+    )
     INVALID_PARAMETER = (
-        "E3001: Invalid {} parameter: {}. Only pre-defined parameters can be modified."
+        "E3002: Invalid {} parameter: {}. Only pre-defined parameters can be modified."
     )
 
     # READER

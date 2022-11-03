@@ -1,5 +1,6 @@
 from typing import Union, List
 from dataclasses import dataclass, field
+import json
 
 from primeqa.pipelines.components.base import IndexerComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -33,11 +34,16 @@ class ColBERTIndexer(IndexerComponent):
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
+            "api_support": True,
         },
     )
     similarity: str = field(
         default="cosine",
-        metadata={"name": "Similarity", "options": ["cosine", "l2"]},
+        metadata={
+            "name": "Similarity",
+            "options": ["cosine", "l2"],
+            "api_support": True,
+        },
     )
     dim: int = field(
         default=128,
@@ -47,11 +53,19 @@ class ColBERTIndexer(IndexerComponent):
     )
     query_maxlen: int = field(
         default=32,
-        metadata={"name": "Maxium query length", "range": [8, 64, 8]},
+        metadata={
+            "name": "Maxium query length",
+            "range": [8, 64, 8],
+            "api_support": True,
+        },
     )
     doc_maxlen: int = field(
         default=180,
-        metadata={"name": "Maxium document length", "range": [32, 256, 4]},
+        metadata={
+            "name": "Maxium document length",
+            "range": [32, 256, 4],
+            "api_support": True,
+        },
     )
     mask_punctuation: bool = field(
         default=True,
@@ -77,6 +91,7 @@ class ColBERTIndexer(IndexerComponent):
         default=10000000,
         metadata={
             "name": "Maximum number of partitions",
+            "api_support": True,
         },
     )
 
@@ -99,6 +114,11 @@ class ColBERTIndexer(IndexerComponent):
 
         # Placeholder variables
         self._indexer = None
+
+    def __hash__(self) -> int:
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         self._indexer = Indexer(self.checkpoint, config=self._config)

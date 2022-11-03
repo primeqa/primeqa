@@ -89,10 +89,26 @@ class RestServer:
             tags=["Reader"],
         )
         def get_readers():
-            return [
-                {"reader_id": reader_id, "parameters": generate_parameters(reader)}
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
+            try:
+                return [
+                    {"reader_id": reader_id, "parameters": generate_parameters(reader)}
+                    for reader_id, reader in READERS_REGISTRY.items()
+                ]
+            except Error as err:
+                error_message = err.args[0]
+
+                # Identify error code
+                mobj = PATTERN_ERROR_MESSAGE.match(error_message)
+                if mobj:
+                    error_code = mobj.group(1).strip()
+                    error_message = mobj.group(2).strip()
+                else:
+                    error_code = 500
+
+                raise HTTPException(
+                    status_code=500,
+                    detail={"code": error_code, "message": error_message},
+                ) from None
 
         @app.post(
             "/answers",
@@ -151,6 +167,7 @@ class RestServer:
                             predictions = instance.apply(
                                 input_texts=[query] * len(request.contexts[idx]),
                                 context=[[text] for text in request.contexts[idx]],
+                                **reader_kwargs,
                             )
 
                             # Step 5.b: Add answers for current query into response object

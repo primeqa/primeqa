@@ -56,41 +56,38 @@ class ReaderFactory:
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
 
-        # Step 2: Create unique hash based on reader's class name and keyword arguments
-        instance_id = hash(
-            f"{reader.__name__}::{json.dumps(reader_kwargs, sort_keys=True)}"
+        # Step 2: Create instance
+        cls._logger.info(
+            "%s - initializing with arguments: %s", reader.__name__, reader_kwargs
         )
+        try:
+            instance = reader(**reader_kwargs)
+        except TypeError as err:
+            # Step 2.a: Log exception
+            cls._logger.warning(
+                "Failed to intialize %s with arguments: %s",
+                reader.__name__,
+                reader_kwargs,
+            )
+
+            # Step 2.b: Raise exception
+            raise err
+
+        # Step 3: Create hash based unique instance id
+        instance_id = hash(instance)
+
+        # Step 4: Load and persist instance
         if instance_id not in cls._instances:
-            # Step 3.a: Check if class is currently loading
+            # Step 4.a: Check if class is currently loading
             if instance_id in cls._loading:
                 raise ValueError(
                     f"{reader.__name__} is currently being loading. Please try again in a short while."
                 )
 
-            # Step 3.b: Add to loading
+            # Step 4.b: Add to loading
             cls._loading.append(instance_id)
 
-            # Step 3.c: Initialize instance
-            cls._logger.info(
-                "%s - initializing with arguments: %s", reader.__name__, reader_kwargs
-            )
-            try:
-                instance = reader(**reader_kwargs)
-            except TypeError as err:
-                # Step 3.c.i: Log exception
-                cls._logger.warning(
-                    "Failed to intialize %s with arguments: %s",
-                    reader.__name__,
-                    reader_kwargs,
-                )
-
-                # Step 3.c.ii: Remove reader from loading
-                cls._loading.remove(instance_id)
-
-                # Step 3.c.iii: Raise exception
-                raise err
-
-            # Step 3.d: Load instance
+            # Step 4.d: Start loading
             try:
                 start_t = time.time()
                 instance.load(load_args, load_kwargs)
@@ -113,9 +110,74 @@ class ReaderFactory:
                 # Step 3.d.iii: Raise exception
                 raise ValueError(err.args[0]) from err
 
-            # Step 3.e: Remove from loading and add to available instances
+            # Step 4.e: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
             cls._loading.remove(instance_id)
+
+        else:
+            # Step 4.a: Instance with same instance_id already exists, clean up newly created instance
+            del instance
+
+        # # Step 3: Create unique hash based on reader's class name and keyword arguments
+        # instance_id = hash(
+        #     f"{reader.__name__}::{json.dumps(reader_kwargs, sort_keys=True)}"
+        # )
+        # if instance_id not in cls._instances:
+        #     # Step 3.a: Check if class is currently loading
+        #     if instance_id in cls._loading:
+        #         raise ValueError(
+        #             f"{reader.__name__} is currently being loading. Please try again in a short while."
+        #         )
+
+        #     # Step 3.b: Add to loading
+        #     cls._loading.append(instance_id)
+
+        #     # Step 3.c: Initialize instance
+        #     cls._logger.info(
+        #         "%s - initializing with arguments: %s", reader.__name__, reader_kwargs
+        #     )
+        #     try:
+        #         instance = reader(**reader_kwargs)
+        #     except TypeError as err:
+        #         # Step 3.c.i: Log exception
+        #         cls._logger.warning(
+        #             "Failed to intialize %s with arguments: %s",
+        #             reader.__name__,
+        #             reader_kwargs,
+        #         )
+
+        #         # Step 3.c.ii: Remove reader from loading
+        #         cls._loading.remove(instance_id)
+
+        #         # Step 3.c.iii: Raise exception
+        #         raise err
+
+        #     # Step 3.d: Load instance
+        #     try:
+        #         start_t = time.time()
+        #         instance.load(load_args, load_kwargs)
+        #         cls._logger.info(
+        #             "%s - loading took %.2f seconds",
+        #             reader.__name__,
+        #             time.time() - start_t,
+        #         )
+        #     except OSError as err:
+        #         # Step 3.d.i: Log exception
+        #         cls._logger.warning(
+        #             "Failed to load %s with arguments: %s",
+        #             reader.__name__,
+        #             reader_kwargs,
+        #         )
+
+        #         # Step 3.d.ii: Remove reader from loading
+        #         cls._loading.remove(instance_id)
+
+        #         # Step 3.d.iii: Raise exception
+        #         raise ValueError(err.args[0]) from err
+
+        #     # Step 3.e: Remove from loading and add to available instances
+        #     cls._instances[instance_id] = instance
+        #     cls._loading.remove(instance_id)
 
         return cls._instances[instance_id]
 
