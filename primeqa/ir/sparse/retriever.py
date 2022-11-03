@@ -12,7 +12,7 @@ class BaseRetriever(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def retrieve(self, query: str, top_k: Optional[int] = 10):
+    def retrieve(self, query: str, topK: Optional[int] = 10):
         """
 
         Run queries against the index to retrieve ranked list of documents
@@ -38,7 +38,7 @@ class BaseRetriever(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def batch_retrieve(self,  queries: List[str], qids: List[str], top_k: int = 10, threads: int = 1):
+    def batch_retrieve(self,  queries: List[str], qids: List[str], topK: int = 10, threads: int = 1):
         """
            Run a batch of queries 
 
@@ -55,7 +55,7 @@ class BaseRetriever(metaclass=ABCMeta):
         pass
 
 class PyseriniRetriever(BaseRetriever):
-    def __init__(self, index_path: str, use_bm25: bool = True, k1: float = float(0.9), b: float = float(0.4)):
+    def __init__(self, index_location: str, use_bm25: bool = True, k1: float = float(0.9), b: float = float(0.4)):
         """
         Initialize Pyserini retriever
 
@@ -65,15 +65,15 @@ class PyseriniRetriever(BaseRetriever):
             k1 (float, optional): bm25 parameter to tune impact of term frequency Defaults to float(0.9).
             b (float, optional): bm25 constant to fine tune the effect of document length   Defaults to float(0.4).
         """
-        self.index_path = index_path
-        self.searcher = LuceneSearcher(index_path)
+        self.index_location = index_location
+        self.searcher = LuceneSearcher(index_location)
         self.searcher.set_bm25()
         if use_bm25:
             self.searcher.set_bm25(k1=k1,b=b)
-        self.top_k = 10
+        self.topK = 10
         logger.info(f'Initialized LuceneSearcher index_dir: {self.searcher.index_dir}  num_docs: {self.searcher.num_docs} use_bm25: {use_bm25} k1: {k1} b: {b}')
 
-    def retrieve(self, query: str, top_k: Optional[int] = 10):
+    def retrieve(self, query: str, topK: Optional[int] = 10):
         """
 
         Run queries against the index to retrieve ranked list of documents
@@ -97,12 +97,12 @@ class PyseriniRetriever(BaseRetriever):
 
         """
 
-        hits = self.searcher.search(query, top_k)
+        hits = self.searcher.search(query, topK)
         search_results = self._collect_hits(hits)
         return search_results
 
 
-    def batch_retrieve(self,  queries: List[str], qids: List[str], top_k: int = 10, threads: int = 1):
+    def batch_retrieve(self,  queries: List[str], qids: List[str], topK: int = 10, threads: int = 1):
 
         """
            Run a batch of queries 
@@ -119,7 +119,7 @@ class PyseriniRetriever(BaseRetriever):
                 
         """
 
-        hits = self.searcher.batch_search(queries, qids, k=top_k, threads=threads)
+        hits = self.searcher.batch_search(queries, qids, k=topK, threads=threads)
         query_to_hits = {}
         for q, hits in hits.items():
             query_to_hits[q] = self._collect_hits(hits)

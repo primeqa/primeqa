@@ -9,7 +9,7 @@ import glob
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
-from typing import Optional, Type
+from typing import Optional, Type, List
 
 import datasets
 import apache_beam as beam
@@ -33,6 +33,7 @@ from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
+from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
@@ -126,6 +127,16 @@ class DataTrainingArguments:
     dataset_config_name: str = field(
         default="primary_task", metadata={
             "help": "The configuration name of the dataset to use (via the datasets library)."
+        }
+    )
+    dataset_filter_column_name: str = field(
+        default=None, metadata={
+            "help": "Dataset column name to filter on, e.g. 'subset'"
+        }
+    )
+    dataset_filter_column_values: List[str] = field(
+        default=None, metadata={
+            "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
     overwrite_cache: bool = field(
@@ -243,7 +254,7 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
+                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
@@ -389,7 +400,7 @@ def main():
                 beam_runner=data_args.beam_runner,
                 revision="main"
             )
-        else:
+        else: 
             raw_datasets = datasets.load_dataset(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
@@ -411,9 +422,20 @@ def main():
         max_contexts=data_args.max_contexts,
     )
 
+    # if filtering, check that both column name and column values are provided
+    if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_name is None:
+            raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
+                      "requires --dataset_filter_column_name to be provided.")
+
     # process train data
     if training_args.do_train:
         train_dataset = raw_datasets["train"]
+        if data_args.dataset_filter_column_values is not None:
+            logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+            train_dataset = train_dataset.shuffle(seed=training_args.seed)
+            logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
         max_train_samples = data_args.max_train_samples
         if max_train_samples is not None:
             # We will select sample from whole data if argument is specified
@@ -425,6 +447,10 @@ def main():
     # process val data
     if training_args.do_eval:
         eval_examples = raw_datasets["validation"]
+        if data_args.dataset_filter_column_values is not None:
+            logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+            logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:
             # We will select sample from whole data if argument is specified
