@@ -96,7 +96,7 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
                 "pred":str(item_label),
                 "conf":str(scores[item]),
                 "question":question,
-                "language":ex["language"],
+                "language":ex["language"] if "language" in ex else "default",
                 "scores": { label:float(score) for label,score in zip(self.label_list, scores)}
             }
             preds_for_metric.append(p)
@@ -131,17 +131,13 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
         for (example_id, item, scores, example) in fields:
             item_label = self.label_list[item]
 
-            str_scores = ""
-            for label,score in zip(self.label_list, scores):
-                str_scores += label + ": " + str(score) + " "
-
             p = {
                 "prediction":str(item_label),
                 "confidence":str(scores[item]),
                 "example_id":str(example_id),
                 "question":example["question"],
                 "language":example["language"] if "language" in example else "default",
-                "scores":str_scores
+                "scores":{ label:float(score) for label,score in zip(self.label_list, scores)}
             }
             preds_for_metric.append(p)
 
