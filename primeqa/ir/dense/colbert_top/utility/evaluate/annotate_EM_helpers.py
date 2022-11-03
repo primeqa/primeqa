@@ -1,5 +1,4 @@
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
-#from utility.utils.dpr import DPR_normalize, has_answer
 from primeqa.ir.scripts.xortydi.utils import HasAnswerChecker
 
 def tokenize_all_answers(args):
