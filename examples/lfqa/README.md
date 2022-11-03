@@ -109,6 +109,12 @@ python examples/lfqa/add_passages_to_dataset.py \
 
 ### 6. Run the Reaader Component on the Eli5 Dataset with Supporting Passages
 
+The command below trains and evaluates an FiD generative reader model based on `facebook/bart-large`.<br>
+The number of supporting passages is 3. 
+The max length of the inout text is 256. 
+The max length of the generated anser is 256. <br>
+We train the model for 3 epochs and we save the best model at the end. 
+
 ```
 python primeqa/primeqa/mrc/run_mrc.py \
     --model_name_or_path facebook/bart-large \
