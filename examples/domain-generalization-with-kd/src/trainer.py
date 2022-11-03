@@ -114,16 +114,17 @@ class IndividualDomainBatchSampler(torch.utils.data.sampler.Sampler):
         return iter(final_samples_list)
 
 
-class MRCTrainer(Trainer):
+class MRCKdTrainer(Trainer):
     def __init__(self, *args, train_datasets, kd_args=None, eval_examples=None, eval_datasets=None, eval_filepaths=None, post_process_function=None, **kwargs):
         """
-        MRC training and evaluation.
+        Multi-source MRC distillation training and evaluation.
 
         Args:
             *args: Arguments for super-class constructor.
             eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
             eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
             post_process_function:  Function to create predictions from model outputs.
+            kd_args: Knowledge distillation arguments.
             **kwargs: Keyword arguments for super-class constructor.
         """
         super().__init__(*args, **kwargs)

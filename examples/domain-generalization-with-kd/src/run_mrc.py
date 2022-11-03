@@ -23,7 +23,7 @@ from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from trainer import MRCTrainer
+from trainer import MRCKdTrainer
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -434,7 +434,7 @@ def main():
             'temperature': model_args.kd_temperature
         }
 
-    trainer = MRCTrainer(
+    trainer = MRCKdTrainer(
         model=model,
         args=training_args,
         train_datasets=train_datasets if training_args.do_train else None,
