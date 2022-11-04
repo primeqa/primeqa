@@ -7,7 +7,7 @@ Md Arafat Sultan, Avirup Sil and Radu Florian
 
 To train and validate a model with simple joint training over multiple source domains (no distillation), run the following command:
 ```
-python src/run_mrc.py \
+python src/run_multisource_distillation_for_mrc.py \
        --model_name_or_path bert-large-uncased \
        --output_dir <path-to-output-dir> \
        --fp16 \
@@ -25,6 +25,7 @@ python src/run_mrc.py \
        --overwrite_output_dir \
        --overwrite_cache
 ```
+This basic joint training functionality is offered through this source file so that one can train a teacher model first before distillation.
 
 The argument for `train_fof` in the command is a text file; each line in this file contains a path to a training json file. All training files must conform to the Hugging Face format for custom data files. The `eval_fof` argument works similarly. Below is an example of the content of such a file:
 ```
