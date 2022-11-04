@@ -107,7 +107,7 @@ python examples/lfqa/add_passages_to_dataset.py \
     --collection $KILT_ELI5/passages/kilt_knowledgesource_0.tsv \
 ```
 
-### 6. Run the Reaader Component on the Eli5 Dataset with Supporting Passages
+### 6. Run the Reader Component on the Eli5 Dataset with Supporting Passages
 
 The command below trains and evaluates an FiD generative reader model based on `facebook/bart-large`.<br>
 The number of supporting passages is 3. 

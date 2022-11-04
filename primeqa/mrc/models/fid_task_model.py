@@ -42,6 +42,8 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
         Args:
             config: Model config
             task_heads: dict mapping task head name to constructor
+                        Task heads are given in the input for easier integration with run_mrc.py 
+                        THe task head is expected to be None and not used in the code
         """
         super().__init__(config)
         self._logger = logging.getLogger(self.__class__.__name__)
@@ -54,19 +56,6 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
 
         self._task_head = task_heads
 
-    # @property
-    # def model_(self) -> PreTrainedModel:  # using 'model' instead of 'model_' causes conflicts with some LMs (e.g. BART)
-    #     """
-    #     Returns the underlying language model. This is an alias to simplify access.
-    #     """
-    #     return getattr(self, self.base_model_prefix)
-
-    # @property
-    # def task_head(self) -> AbstractTaskHead:
-    #     """
-    #     Return the current task head or raises a `ValueError` if it has not yet been set.
-    #     """
-    #     return None
 
     def forward(self,
                 input_ids=None,

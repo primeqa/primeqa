@@ -64,13 +64,7 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
         model_inputs["attention_mask"] = passage_masks
         if targets:
             model_inputs["labels"] = labels["input_ids"]
-        if mode == 'train':
-            model_inputs["example_id"] = indexes
-        else:
-            model_inputs["example_id"] = []
-            for i in range(len(model_inputs["input_ids"])):
-                model_inputs["example_id"].append(examples["id"][i])
-            
+        model_inputs["example_id"] = indexes
         return model_inputs
     
     def encode_passages(self,batch_text_passages):
