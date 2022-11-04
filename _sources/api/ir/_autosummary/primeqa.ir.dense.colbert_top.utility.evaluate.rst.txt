@@ -21,3 +21,11 @@ evaluate
 
 
 
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM
+   primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM_helpers
+

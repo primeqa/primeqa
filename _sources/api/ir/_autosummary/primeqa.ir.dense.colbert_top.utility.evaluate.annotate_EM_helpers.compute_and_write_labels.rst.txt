@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.utility.evaluate.annotate\_EM\_helpers.compute\_and\_write\_labels
+================================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM_helpers
+
+.. autofunction:: compute_and_write_labels

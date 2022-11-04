@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.utility.evaluate.annotate\_EM.main
+================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM
+
+.. autofunction:: main

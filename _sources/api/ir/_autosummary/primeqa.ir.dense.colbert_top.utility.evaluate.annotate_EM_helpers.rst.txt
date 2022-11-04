@@ -1,0 +1,34 @@
+annotate\_EM\_helpers
+=====================
+
+.. automodule:: primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM_helpers
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      assign_label_to_passage
+      check_sizes
+      compute_and_write_labels
+      tokenize_all_answers
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

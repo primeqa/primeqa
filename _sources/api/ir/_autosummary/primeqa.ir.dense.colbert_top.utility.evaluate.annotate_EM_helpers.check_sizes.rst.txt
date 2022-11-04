@@ -1,0 +1,6 @@
+primeqa.ir.dense.colbert\_top.utility.evaluate.annotate\_EM\_helpers.check\_sizes
+=================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.utility.evaluate.annotate_EM_helpers
+
+.. autofunction:: check_sizes
