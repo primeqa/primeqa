@@ -13,6 +13,7 @@ from typing import Optional, Type
 
 import datasets
 import apache_beam as beam
+from torch.utils.data import ConcatDataset
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
@@ -23,7 +24,7 @@ from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
-from trainer import MRCKdTrainer
+from trainer import MSKD_MRCTrainer
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -186,6 +187,7 @@ class DataTrainingArguments:
                     "Otherwise it will be discarded."
         },
     )
+    
 
 @dataclass
 class TaskArguments:
@@ -229,6 +231,14 @@ class TaskArguments:
                   "choices": ["SQUAD"]
                  }
     )
+    passage_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    span_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The span level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )    
     verbose: bool = field(
         default=False,
         metadata={"help": "Prints logging info if true (including evaluation output)"}
@@ -306,48 +316,33 @@ def main():
     model.set_task_head(next(iter(task_heads)))
 
     # load data
-    logger.info('Loading datasets')
-    train_data_files = []
-    if data_args.train_fof is not None:
-        # Read all training files
-        with open(data_args.train_fof, 'r') as infile:
-            for line in infile:
-                if line.startswith('#'):
-                    continue
-                filename = line.strip()
-                if not filename:
-                    continue
-                train_data_files.append(filename)
-    validation_data_files = []
-    if data_args.eval_fof is not None:
-        # Read all validation files
-        with open(data_args.eval_fof, 'r') as infile:
-            for line in infile:
-                if line.startswith('#'):
-                    continue                
-                filename = line.strip()
-                validation_data_files.append(filename)
-
-    raw_train_datasets = []
-    for df in train_data_files:
-        raw_dataset = datasets.load_dataset(
-            data_args.data_file_format, 
-            data_files=df,
-            cache_dir=model_args.cache_dir
-        )['train']
-        raw_train_datasets.append(raw_dataset)
-            
-    raw_validation_datasets = []
-    for df in validation_data_files:
-        raw_dataset = datasets.load_dataset(
-            data_args.data_file_format, 
-            data_files=[df],
-            cache_dir=model_args.cache_dir
-        )['train'] # TODO: See if the key can be changed to 'eval'
-        raw_validation_datasets.append(raw_dataset)
+    if data_args.train_fof is not None or data_args.eval_fof is not None:
+        logger.info('Loading datasets')
+        def get_raw_datasets(fof):
+            data_files = []
+            raw_datasets = []
+            with open(fof, 'r') as infile:
+                for line in infile:
+                    if line.startswith('#'):
+                        continue
+                    filename = line.strip()
+                    if not filename:
+                        continue
+                    data_files.append(filename)                    
+                    raw_dataset = datasets.load_dataset(
+                        data_args.data_file_format, 
+                        data_files=filename,
+                        cache_dir=model_args.cache_dir
+                    )['train']
+                    raw_datasets.append(raw_dataset)
+            return raw_datasets, data_files
+        if data_args.train_fof is not None:
+            raw_train_datasets, _ = get_raw_datasets(data_args.train_fof)
+        if data_args.eval_fof is not None:            
+            raw_validation_datasets, validation_data_files = get_raw_datasets(data_args.eval_fof)
     
     # load preprocessor
-    preprocessor_class = SQUADPreprocessor
+    preprocessor_class = task_args.preprocessor
     preprocessor = preprocessor_class(
         stride=data_args.doc_stride,
         tokenizer=tokenizer,
@@ -360,44 +355,44 @@ def main():
         max_contexts=data_args.max_contexts,
     )
 
-    # process train data
-    if training_args.do_train:
-        train_datasets = []
-        max_train_samples = data_args.max_train_samples
-        for train_dataset in raw_train_datasets:
-            if max_train_samples is not None:
-                # We will select sample from whole data if argument is specified
-                train_dataset = train_dataset.select(range(max_train_samples))
-            # Train Feature Creation
-            with training_args.main_process_first(
-                    desc="train dataset map pre-processing"
-            ):
-                _, train_dataset = preprocessor.process_train(train_dataset)
-                train_datasets.append(train_dataset)
-
-    # process val data
-    if training_args.do_eval:
-        eval_examples, eval_datasets = [], []
-        max_eval_samples = data_args.max_eval_samples
-        for eval_examples_ds in raw_validation_datasets:
-            if max_eval_samples is not None:
-                # We will select sample from whole data if argument is specified
-                eval_examples_ds = eval_examples_ds.select(range(max_eval_samples))
-            # Validation Feature Creation
-            with training_args.main_process_first(
-                    desc="validation dataset map pre-processing"
-            ):
-                eval_examples_ds, eval_dataset = preprocessor.process_eval(
-                    eval_examples_ds
+    if data_args.train_fof is not None or data_args.eval_fof is not None:
+        # multi-dataset training and/or evaluation
+        def preprocess_raw_datasets(raw_datasets, max_samples, training_args, preprocess_fn, split):
+            examples, datasets = [], []
+            for dataset in raw_datasets:
+                if max_samples is not None:
+                    # We will select sample from whole data if argument is specified
+                    dataset = dataset.select(range(max_samples))
+                # Feature Creation
+                with training_args.main_process_first(
+                        desc=f"{split} dataset map pre-processing"
+                ):
+                    examples_ds, dataset = preprocess_fn(dataset)
+                    examples.append(examples_ds)                    
+                    datasets.append(dataset)
+            return examples, datasets
+        if data_args.train_fof is not None:
+            # process train data
+            if training_args.do_train:
+                _, train_datasets = preprocess_raw_datasets(
+                    raw_train_datasets, data_args.max_train_samples, training_args,
+                    preprocessor.process_train, 'train'
                 )
-                eval_examples.append(eval_examples_ds)
-                eval_datasets.append(eval_dataset)
-                
+                train_dataset = ConcatDataset(train_datasets)
+        if data_args.eval_fof is not None:
+            # process val data
+            if training_args.do_eval:        
+                eval_examples, eval_datasets = preprocess_raw_datasets(
+                    raw_validation_datasets, data_args.max_eval_samples, training_args,
+                    preprocessor.process_eval, 'validation'
+                )
+                eval_dataset = eval_datasets
+                               
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
-    postprocessor_class = SQUADPostProcessor
+    postprocessor_class = task_args.postprocessor
 
     # noinspection PyProtectedMember
     postprocessor = postprocessor_class(
@@ -412,41 +407,33 @@ def main():
 
     eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
-    def compute_metrics(p: EvalPredictionWithProcessing):
-        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
-            verbose=task_args.verbose,
-            dataset_config_name = eval_datasets[0].config_name)
+    if data_args.train_fof is not None or data_args.eval_fof is not None:
+        def compute_metrics(p: EvalPredictionWithProcessing):
+            return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+                passage_non_null_threshold=task_args.passage_non_null_threshold, 
+                span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+                dataset_config_name = eval_datasets[0].config_name)
 
-    kd_args = None
-    if training_args.do_train and model_args.kd_teacher_config_path is not None:
-        kd_teacher_config = AutoConfig.from_pretrained(
-            model_args.kd_teacher_config_path
+        kd_args = None
+        if training_args.do_train and model_args.kd_teacher_config_path is not None:
+            kd_args = {
+                'teacher_model_path': model_args.kd_teacher_model_path,
+                'teacher_config_path': model_args.kd_teacher_config_path,
+                'temperature': model_args.kd_temperature,
+                'task_heads': task_heads
+            }
+        trainer = MSKD_MRCTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_dataset if training_args.do_train else None,
+            kd_args=kd_args if training_args.do_train else None, # the only extra argument at this point
+            eval_dataset=eval_dataset if training_args.do_eval else None,
+            eval_examples=eval_examples if training_args.do_eval else None,
+            tokenizer=tokenizer,
+            data_collator=data_collator,
+            post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
+            compute_metrics=compute_metrics,
         )
-        kd_teacher = ModelForDownstreamTasks.from_config(
-            kd_teacher_config,
-            model_args.kd_teacher_model_path,
-            task_heads=task_heads
-        )
-        kd_teacher.set_task_head(next(iter(task_heads)))
-        kd_teacher.eval()
-        kd_args = {
-            'teacher': kd_teacher,
-            'temperature': model_args.kd_temperature
-        }
-
-    trainer = MRCKdTrainer(
-        model=model,
-        args=training_args,
-        train_datasets=train_datasets if training_args.do_train else None,
-        kd_args=kd_args if training_args.do_train else None,
-        eval_datasets=eval_datasets if training_args.do_eval else None,
-        eval_filepaths=validation_data_files if training_args.do_eval else None,
-        eval_examples=eval_examples if training_args.do_eval else None,
-        tokenizer=tokenizer,
-        data_collator=data_collator,
-        post_process_function=postprocessor.process_references_and_predictions,  # see QATrainer in Huggingface
-        compute_metrics=compute_metrics,
-    )
 
     checkpoint = None
     if training_args.resume_from_checkpoint is not None:
@@ -460,10 +447,12 @@ def main():
         trainer.save_model()  # Saves the tokenizer too for easy upload
 
         metrics = train_result.metrics
-        max_train_samples = (
-            data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
-        )
-        metrics["train_samples"] = min(max_train_samples, len(train_dataset))
+        if data_args.train_fof is not None:
+            len_train_datasets = sum([len(dataset) for dataset in train_datasets])
+            max_train_samples = (
+                data_args.max_train_samples * len(train_datasets) if data_args.max_train_samples is not None else len_train_datasets
+            )
+            metrics["train_samples"] = min(max_train_samples, len_train_datasets)
 
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
@@ -472,27 +461,14 @@ def main():
     # validation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
-        all_metrics = trainer.evaluate()
+        metrics = trainer.evaluate()
 
-        for i, metrics in enumerate(all_metrics):
-            max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_datasets[i])
-            metrics["eval_samples"] = min(max_eval_samples, len(eval_examples[i]))
-            trainer.log_metrics(f"eval_{i}", metrics)
-            trainer.save_metrics(f"eval_{i}", metrics)
+        if data_args.eval_fof is None:
+            max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
+            metrics["eval_samples"] = min(max_eval_samples, len(eval_examples))
 
-        combined_metrics = {}
-        for i, metrics in enumerate(all_metrics):
-            for k in metrics:
-                combined_metrics.setdefault(k, 0)
-                combined_metrics[k] += metrics[k]
-        for k in combined_metrics.keys():
-            combined_metrics[k] = combined_metrics[k] / (i + 1)
-        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else sum([len(ed) for ed in eval_datasets])
-        combined_metrics["eval_samples"] = min(
-            max_eval_samples, sum([len(ee) for ee in eval_examples])
-        )
-        trainer.log_metrics(f"eval", combined_metrics)
-        trainer.save_metrics(f"eval", combined_metrics)        
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)        
 
 if __name__ == '__main__':
     main()

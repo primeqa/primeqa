@@ -25,7 +25,7 @@ from torch import nn
 from torch.utils.data import (
     DataLoader,
     Subset,
-    ConcatDataset,
+    # ConcatDataset,
     IterableDataset
 )
 from torch.utils.data.distributed import DistributedSampler
@@ -51,6 +51,9 @@ from transformers.file_utils import (
     is_torch_tpu_available
 )
 from transformers.trainer_callback import TrainerState
+from transformers import AutoConfig
+
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 
 logger = logging.getLogger(__name__)
 
@@ -114,8 +117,8 @@ class IndividualDomainBatchSampler(torch.utils.data.sampler.Sampler):
         return iter(final_samples_list)
 
 
-class MRCKdTrainer(Trainer):
-    def __init__(self, *args, train_datasets, kd_args=None, eval_examples=None, eval_datasets=None, eval_filepaths=None, post_process_function=None, **kwargs):
+class MSKD_MRCTrainer(Trainer):
+    def __init__(self, *args, kd_args=None, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
         """
         Multi-source MRC distillation training and evaluation.
 
@@ -128,12 +131,21 @@ class MRCKdTrainer(Trainer):
             **kwargs: Keyword arguments for super-class constructor.
         """
         super().__init__(*args, **kwargs)
-        self.train_datasets = train_datasets
         self.eval_examples = eval_examples
-        self.eval_datasets = eval_datasets
-        self.eval_filepaths = eval_filepaths
+        self.eval_datasets = eval_dataset
         self.post_process_function = post_process_function
 
+        if kd_args is not None:
+            kd_teacher_config = AutoConfig.from_pretrained(
+                kd_args['teacher_config_path']
+            )
+            self.kd_teacher = ModelForDownstreamTasks.from_config(
+                kd_teacher_config,
+                kd_args['teacher_model_path'],
+                task_heads=kd_args['task_heads']
+            )
+            self.kd_teacher.set_task_head(next(iter(kd_args['task_heads'])))
+            self.kd_teacher.eval()
         self.kd_args = kd_args
 
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
@@ -294,20 +306,21 @@ class MRCKdTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
     
     def compute_distillation_loss(self, inputs, outputs):
-        kd_teacher, kd_temperature = self.kd_args['teacher'], self.kd_args['temperature']
-        if kd_teacher.device != self.model.device:
-            kd_teacher.to(self.model.device)
-        _, teacher_logits, _ = self.prediction_step(kd_teacher, inputs, prediction_loss_only=False)
+        if self.kd_teacher.device != self.model.device:
+            self.kd_teacher.to(self.model.device)
+        _, teacher_logits, _ = self.prediction_step(
+            self.kd_teacher, inputs, prediction_loss_only=False
+        )
         _, teacher_start_logits, teacher_end_logits, _ = teacher_logits
 
         loss_fct = nn.MSELoss()
         start_loss = loss_fct(
             outputs.start_logits,
-            teacher_start_logits / kd_temperature
+            teacher_start_logits / self.kd_args['temperature']
         )
         end_loss = loss_fct(
             outputs.end_logits,
-            teacher_end_logits / kd_temperature
+            teacher_end_logits / self.kd_args['temperature']
         )
         loss = (start_loss + end_loss) / 2
         return loss
@@ -411,8 +424,7 @@ class MRCKdTrainer(Trainer):
                 self._move_model_to_device(self.model, args.device)
             self.model_wrapped = self.model
 
-        #self.train_dataset = CustomConcatDataset(self.train_datasets)
-        self.train_dataset = ConcatDataset(self.train_datasets)
+        #self.train_dataset = ConcatDataset(self.train_datasets)
         
         # Keeping track whether we can can len() on the dataset or not
         train_dataset_is_sized = has_length(self.train_dataset)
@@ -495,8 +507,7 @@ class MRCKdTrainer(Trainer):
         # important: at this point:
         # self.model         is the Transformers Model
         # self.model_wrapped is DDP(Transformers Model), Deepspeed(Transformers Model), etc.
-
-
+        
         # Train!
         num_examples = (
             self.num_examples(train_dataloader) if train_dataset_is_sized else total_train_batch_size * args.max_steps
@@ -1007,7 +1018,7 @@ class MRCKdTrainer(Trainer):
 
         return EvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples)
 
-    def evaluate(self, eval_datasets=None, eval_examples=None, eval_filepaths=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+    def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
         """
         Evaluate model using either eval data passed to method (if given).
         Otherwise use data given to constructor at instantiation.
@@ -1022,23 +1033,21 @@ class MRCKdTrainer(Trainer):
             Evaluation metrics if post-processing and metric computation functions
             were provided to constructor at instantiation, otherwise an empty dict.
         """
-        eval_datasets = self.eval_datasets if eval_datasets is None else eval_datasets
+        eval_datasets = self.eval_datasets if eval_dataset is None else eval_dataset
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
-        eval_filepaths = self.eval_filepaths if eval_filepaths is None else eval_filepaths
         
         all_metrics = []
         for i, eval_dataset in enumerate(eval_datasets):
             eval_dataloader = self.get_eval_dataloader(eval_dataset)
-            # eval_examples_ = eval_examples[i]
             # # Temporarily disable metric computation, we will do it in the loop here.
             compute_metrics = self.compute_metrics
             self.compute_metrics = None
             eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
-            print(f"Evaluating on {eval_filepaths[i]}")
+            print(f"\nEvaluating on eval file {i}")
             try:
                 output = eval_loop(
                     eval_dataloader,
-                    description=f"Evaluation on {eval_filepaths[i]}",
+                    description=f"Evaluation on eval file {i}",
                     # No point gathering the predictions if there are no metrics, otherwise we defer to
                     # self.args.prediction_loss_only
                     # gather predictions if running in eval mode
@@ -1072,8 +1081,25 @@ class MRCKdTrainer(Trainer):
                 metrics = {}
             all_metrics.append(metrics)
 
+        for i, metrics in enumerate(all_metrics):
+            # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_datasets[i])
+            # metrics["eval_samples"] = min(max_eval_samples, len(eval_examples[i]))
+            # self.log_metrics(f"eval_{i}", metrics)
+            self.save_metrics(f"eval_{i}", metrics)
+        combined_metrics = {}
+        for i, metrics in enumerate(all_metrics):
+            for k in metrics:
+                combined_metrics.setdefault(k, 0)
+                combined_metrics[k] += metrics[k]
+        for k in combined_metrics.keys():
+            combined_metrics[k] = combined_metrics[k] / (i + 1)
+        # max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else sum([len(ed) for ed in eval_datasets])
+        # combined_metrics["eval_samples"] = min(
+        #         max_eval_samples, sum([len(ee) for ee in eval_examples])
+        #     )
+
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
-        return all_metrics
+        return combined_metrics
 
     def predict(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
         """
