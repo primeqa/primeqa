@@ -25,7 +25,6 @@ from torch import nn
 from torch.utils.data import (
     DataLoader,
     Subset,
-    # ConcatDataset,
     IterableDataset
 )
 from torch.utils.data.distributed import DistributedSampler
@@ -118,7 +117,7 @@ class IndividualDomainBatchSampler(torch.utils.data.sampler.Sampler):
 
 
 class MSKD_MRCTrainer(Trainer):
-    def __init__(self, *args, kd_args=None, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
+    def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
         """
         Multi-source MRC distillation training and evaluation.
 
@@ -127,7 +126,6 @@ class MSKD_MRCTrainer(Trainer):
             eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
             eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
             post_process_function:  Function to create predictions from model outputs.
-            kd_args: Knowledge distillation arguments.
             **kwargs: Keyword arguments for super-class constructor.
         """
         super().__init__(*args, **kwargs)
@@ -135,18 +133,17 @@ class MSKD_MRCTrainer(Trainer):
         self.eval_datasets = eval_dataset
         self.post_process_function = post_process_function
 
-        if kd_args is not None:
+        if self.args.kd_teacher_config_path is not None:
             kd_teacher_config = AutoConfig.from_pretrained(
-                kd_args['teacher_config_path']
+                self.args.kd_teacher_config_path
             )
             self.kd_teacher = ModelForDownstreamTasks.from_config(
                 kd_teacher_config,
-                kd_args['teacher_model_path'],
-                task_heads=kd_args['task_heads']
+                self.args.kd_teacher_model_path,
+                task_heads=self.args.task_heads
             )
-            self.kd_teacher.set_task_head(next(iter(kd_args['task_heads'])))
+            self.kd_teacher.set_task_head(next(iter(self.args.task_heads)))
             self.kd_teacher.eval()
-        self.kd_args = kd_args
 
     def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
         """
@@ -259,7 +256,7 @@ class MSKD_MRCTrainer(Trainer):
 
         with self.autocast_smart_context_manager():
             erm_loss, outputs = self.compute_erm_loss(model, inputs, return_outputs=True)
-            loss = erm_loss if self.kd_args is None else self.compute_distillation_loss(inputs, outputs)
+            loss = erm_loss if self.args.kd_teacher_model_path is None else self.compute_distillation_loss(inputs, outputs)
 
         if self.args.n_gpu > 1:
             loss = loss.mean()  # mean() to average on multi-gpu parallel training
@@ -316,11 +313,11 @@ class MSKD_MRCTrainer(Trainer):
         loss_fct = nn.MSELoss()
         start_loss = loss_fct(
             outputs.start_logits,
-            teacher_start_logits / self.kd_args['temperature']
+            teacher_start_logits / self.args.kd_temperature
         )
         end_loss = loss_fct(
             outputs.end_logits,
-            teacher_end_logits / self.kd_args['temperature']
+            teacher_end_logits / self.args.kd_temperature
         )
         loss = (start_loss + end_loss) / 2
         return loss
@@ -424,8 +421,6 @@ class MSKD_MRCTrainer(Trainer):
                 self._move_model_to_device(self.model, args.device)
             self.model_wrapped = self.model
 
-        #self.train_dataset = ConcatDataset(self.train_datasets)
-        
         # Keeping track whether we can can len() on the dataset or not
         train_dataset_is_sized = has_length(self.train_dataset)
         
