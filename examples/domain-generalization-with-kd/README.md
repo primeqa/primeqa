@@ -7,7 +7,7 @@ Md Arafat Sultan, Avirup Sil and Radu Florian
 
 To train and validate a model with simple joint training over multiple source domains (no distillation), run the following command:
 ```
-python src/run_multisource_distillation_for_mrc.py \
+python src/run__mrc.py \
        --model_name_or_path bert-large-uncased \
        --output_dir <path-to-output-dir> \
        --fp16 \
@@ -37,7 +37,7 @@ It points to three training files to be used in the experiment. The `-hf` suffix
 
 The BERT-large QA model that the above command trains can then be used as a teacher in a distillation experiment to train a BERT-base student, as follows:
 ```
-python src/run_multisource_distillation_for_mrc.py \
+python src/run_mrc.py \
        --model_name_or_path bert-base-uncased \
        --output_dir <path-to-student-output-dir> \
        --fp16 \
