@@ -34,8 +34,7 @@ from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
-from primeqa.mrc.trainers.mrc import MRCTrainer
-from primeqa.mrc.trainers.mrc_mskd import MSKD_MRCTrainer
+from primeqa.mrc.trainers.mrc import MRCTrainer, MSKD_MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
@@ -408,14 +407,9 @@ def main():
             with open(fof, 'r') as infile:
                 for line in infile:
                     filename = line.strip()
-                    if not filename:
-                        continue
+                    if not filename: continue
                     data_files.append(filename)                    
-                    raw_dataset = datasets.load_dataset(
-                        data_args.data_file_format, 
-                        data_files=filename,
-                        cache_dir=model_args.cache_dir
-                    )['train']
+                    raw_dataset = datasets.load_dataset(data_args.data_file_format, data_files=filename, cache_dir=model_args.cache_dir)['train']
                     raw_datasets.append(raw_dataset)
             return raw_datasets, data_files
         if data_args.train_fof is not None:
@@ -473,9 +467,7 @@ def main():
                     # We will select sample from whole data if argument is specified
                     dataset = dataset.select(range(max_samples))
                 # Feature Creation
-                with training_args.main_process_first(
-                        desc=f"{split} dataset map pre-processing"
-                ):
+                with training_args.main_process_first(desc=f"{split} dataset map pre-processing"):
                     examples_ds, dataset = preprocess_fn(dataset)
                     examples.append(examples_ds)                    
                     datasets.append(dataset)
@@ -483,19 +475,14 @@ def main():
         if data_args.train_fof is not None:
             # process train data
             if training_args.do_train:
-                _, train_datasets = preprocess_raw_datasets(
-                    raw_train_datasets, data_args.max_train_samples, training_args,
-                    preprocessor.process_train, 'train'
-                )
+                _, train_datasets = preprocess_raw_datasets(raw_train_datasets, data_args.max_train_samples, training_args, preprocessor.process_train, 'train')
                 train_dataset = ConcatDataset(train_datasets)
         if data_args.eval_fof is not None:
             # process val data
             if training_args.do_eval:        
-                eval_examples, eval_datasets = preprocess_raw_datasets(
-                    raw_validation_datasets, data_args.max_eval_samples, training_args,
-                    preprocessor.process_eval, 'validation'
-                )
-                eval_dataset = eval_datasets
+                eval_examples, eval_datasets = preprocess_raw_datasets(raw_validation_datasets, data_args.max_eval_samples, training_args, preprocessor.process_eval, 'validation')
+                eval_dataset = ConcatDataset(eval_datasets)
+                setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
     else:
         # process train data
         if training_args.do_train:
@@ -524,7 +511,6 @@ def main():
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
-
     # noinspection PyProtectedMember
     postprocessor = postprocessor_class(
         k=data_args.n_best_logits,
@@ -539,24 +525,17 @@ def main():
     eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     if data_args.train_fof is not None or data_args.eval_fof is not None:
-        # multi-dataset training and/or evaluation
-        def compute_metrics(p: EvalPredictionWithProcessing):
-            return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
-                passage_non_null_threshold=task_args.passage_non_null_threshold, 
-                span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
-                dataset_config_name = eval_datasets[0].config_name)
-
-        # add distillation arguments to training_args
-        if training_args.do_train and kd_args.kd_teacher_config_path is not None:
+        # add knowledge distillation arguments if any to training_args
+        if training_args.do_train and kd_args.kd_teacher_model_path is not None:
             kd_args.task_heads = task_heads
             for k in kd_args.__dict__:
                 setattr(training_args, k, getattr(kd_args, k))
-    else:
-        def compute_metrics(p: EvalPredictionWithProcessing):
-            return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
-                passage_non_null_threshold=task_args.passage_non_null_threshold, 
-                span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
-                dataset_config_name = eval_dataset.config_name)
+
+    def compute_metrics(p: EvalPredictionWithProcessing):
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold, 
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+            dataset_config_name = eval_dataset.config_name)
 
     trainer_class = task_args.trainer
     trainer = trainer_class(

@@ -130,7 +130,7 @@ class MSKD_MRCTrainer(Trainer):
         """
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
-        self.eval_datasets = eval_dataset
+        self.eval_dataset = eval_dataset
         self.post_process_function = post_process_function
 
         if self.args.kd_teacher_config_path is not None:
@@ -1020,7 +1020,7 @@ class MSKD_MRCTrainer(Trainer):
 
         Args:
             eval_examples: Each item is an eval examples `Dataset` from `BasePreprocessor.process_eval`.
-            eval_datasets: Each item is an eval features `Dataset` from `BasePreprocessor.process_eval`.
+            eval_dataset: Each underlying dataset is an eval features `Dataset` from `BasePreprocessor.process_eval`.
             ignore_keys: Keys to ignore in evaluation loop.
             metric_key_prefix: Append this prefix to metric names.
 
@@ -1028,7 +1028,7 @@ class MSKD_MRCTrainer(Trainer):
             Evaluation metrics if post-processing and metric computation functions
             were provided to constructor at instantiation, otherwise an empty dict.
         """
-        eval_datasets = self.eval_datasets if eval_dataset is None else eval_dataset
+        eval_datasets = self.eval_dataset.datasets if eval_dataset is None else eval_dataset.datasets
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
         
         all_metrics = []
