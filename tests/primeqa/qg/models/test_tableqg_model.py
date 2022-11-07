@@ -1,6 +1,7 @@
 import pytest
 from primeqa.qg.models.qg_model import QGModel
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import T5ForConditionalGeneration, T5Tokenizer
+
 
 @pytest.mark.parametrize("model_name",["t5-small"])
 def test_qg_model(model_name):

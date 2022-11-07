@@ -1,48 +1,82 @@
+<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
+<details>
+<summary>API Reference</summary>    
+
+```{eval-rst}
+
+.. autosummary::
+    :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
+   
+    primeqa.mrc
+
+```
+</details>          
+<br>
+<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
+
 # Machine Reading Comprehension (MRC)
 
-Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 ## Inference Example Usage
 The following shows how to use the MRC component within PrimeQA to extract an answer given a question and a context:
 
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
-```shell
+```python
 import json
-from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
-reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
 ```
 - Step 2: Execute the reader in inference mode:
-```shell
-question = "Which country is Canberra located in?"
-context = """Canberra is the capital city of Australia. 
+```python
+question = ["Which country is Canberra located in?"]
+context = ["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""
-answers = reader.predict(question,context)  
+largest inland city"""]
+answers = reader.apply(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 The above statements will generate an output in the form of a dictionary:
 ```shell
 [
-    {
-        "span_answer_text": "Australia",
-        "confidence_score": 0.7988516960240685
-    },
-    {
-        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
-        "confidence_score": 0.10721889035823319
-    },
-    {
-        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
-        "confidence_score": 0.09392941361769835
-    }
+    [
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 41
+            },
+            "confidence_score": 0.7988516960240685
+       },
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 168
+            },
+            "confidence_score": 0.10721889035823319
+       },
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 105
+            },
+            "confidence_score": 0.09392941361769835
+       }
 ]
 ```
 
 Additional inference examples can be found in the python [notebook](../../notebooks/mrc/mrc_usage_predict_mode.ipynb).
 
 ## Train and Evaluate
-If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](./run_mrc.py).  This runs a transformer-based MRC pipeline.
+If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
 
 ### Supported Datasets
 Currently supported MRC datasets include:
@@ -51,12 +85,14 @@ Currently supported MRC datasets include:
 - XQuAD
 - MLQA
 - Natural Questions(NQ)
+- Custom Data
+- MRQA
 
 Currently supported TableQA datasets :
 - WikiSQL
 - SQA
 
-User's can also provide data in a different format by creating their own [custom processor](#custom-processors) 
+User's can also provide their own [custom data](#custom-data) 
 
 ### Example Usage
 
@@ -194,30 +230,37 @@ R@P=0.5: 61.23% (actual p=50.01%, score threshold=3.235)
 R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
+ #### [MRQA](https://huggingface.co/datasets/mrqa)
 
-### Custom Processors
+ The dataset is a collection of 18 existing QA dataset (carefully selected subset of them) and converted to the same format (SQuAD like format)
 
-Some task arguments take references which allow for dynamic imports of existing or
-user-defined functionality.  For example, to select the `ExtractivePostProcessor` use
-`--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor`.
-Alternatively, a new postprocessor could be written and selected with 
-`--postprocessor qualified.path.to.new.postprocessor.NewPostProcessor`.
+ For the MRQA dataset use the following additional command line arguments:
+ ```shell
+       --dataset_name mrqa \
+       --dataset_config_name plain_text \
+       --preprocessor primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --eval_metrics SQUAD 
+```
+Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `TriviaQA-web`, use the command line argments  `--dataset_filter_column_name` to specify a column name and `--dataset_filter_column_values` to specify a list of column values.  The example below selects `SQuAD` and `HotpotQA` examples using the column `subset` in the MRQA dataset.  The script `run_mrc.py` shuffles the train examples, eval examples are kept in the same order as read in from the source.
+ ```shell
+       --dataset_filter_column_values SQuAD HotpotQA
+       --dataset_filter_column_name subset
+```
 
-For example, if one was implementing a new model which made predictions by means other than
-an extractive head then a `NewPostProcessor` which derived predictions from the model
-outputs would be needed.
+Cross domain experiments can be run by running train and eval as separate processes. The
 
-Similarly, when adding support for a new dataset (with a new schema) a new preprocessor would be needed.
-This would be selected by specifying `--preprocessor qualified.path.to.new.postprocessor.NewPreProcessor`
-for the `NewPreProcessor` corresponding to this dataset and schema.
+ 
+### Custom Data
 
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
 
 ## Special MRC Features:
 
 PrimeQA also supports special features for MRC systems as follows:
 
 ### Boolean Questions
-Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](../boolqa/README.md)):
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
@@ -254,7 +297,7 @@ To run [confidence calibration](https://arxiv.org/abs/2101.07942) on your fine-t
 
 PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
-For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See `examples/listqa/README.md` for more information and a use case using NQ list data:
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
        --learning_rate 5e-05 \
@@ -307,4 +350,4 @@ The format of dataset required for training and evaluation is:
 
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
-Our python [notebook](../../notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).
+Our python [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tableqa_inference.ipynb) shows how to test the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup).

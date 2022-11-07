@@ -38,7 +38,7 @@ class AnswerSampler():
         doc = Document([], text=text)
         self.lang_identify(doc)
         if doc.lang not in self.lang_codes:
-            NotImplementedError('This language is not supported: ' + doc.lang)
+            raise NotImplementedError('This language is not supported: ' + doc.lang)
         return doc.lang
 
     def get_named_entities(self, text):
@@ -51,7 +51,7 @@ class AnswerSampler():
             output = self.ner_models[lang](text)
             return [ent.text for ent in output.ents]
         else:
-            NotImplementedError
+            raise NotImplementedError
     
     def create_qg_input(self, 
                         data_list, 
