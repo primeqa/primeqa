@@ -9,7 +9,7 @@ import glob
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
-from typing import Optional, Type
+from typing import Optional, Type, List
 
 from torch.utils.data import ConcatDataset
 
@@ -30,11 +30,14 @@ from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipeli
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
-from primeqa.mrc.trainers.mrc import MRCTrainer, MSKD_MRCTrainer
+from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
+from primeqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.trainers.mrc_mskd import MSKD_MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
@@ -145,11 +148,21 @@ class DataTrainingArguments:
         default=None, metadata={"help": "file of local file(s) to test on, for multi-dataset evaluation"}
     )    
     data_file_format: str = field(
-        default="json", metadata={"help": "the format of the local dataset files (json, csv, text, pandas)"}
+        default="json", metadata={"help": "the format of the local dataset files (json, jsonl, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
             "help": "The configuration name of the dataset to use (via the datasets library)."
+        }
+    )
+    dataset_filter_column_name: str = field(
+        default=None, metadata={
+            "help": "Dataset column name to filter on, e.g. 'subset'"
+        }
+    )
+    dataset_filter_column_values: List[str] = field(
+        default=None, metadata={
+            "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
     overwrite_cache: bool = field(
@@ -269,11 +282,11 @@ class TaskArguments:
         metadata={"help": "The name of the trainer to use.",
                   "choices": [MRCTrainer,MSKD_MRCTrainer]
                   }
-    )
+    )    
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
+                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
@@ -436,7 +449,7 @@ def main():
                 beam_runner=data_args.beam_runner,
                 revision="main"
             )
-        else:
+        else: 
             raw_datasets = datasets.load_dataset(
                 data_args.dataset_name,
                 data_args.dataset_config_name,
@@ -457,6 +470,12 @@ def main():
         single_context_multiple_passages=data_args.single_context_multiple_passages,
         max_contexts=data_args.max_contexts,
     )
+
+    # if filtering, check that both column name and column values are provided
+    if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_name is None:
+            raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
+                      "requires --dataset_filter_column_name to be provided.")
 
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         # multi-dataset training and/or evaluation
@@ -487,6 +506,11 @@ def main():
         # process train data
         if training_args.do_train:
             train_dataset = raw_datasets["train"]
+            if data_args.dataset_filter_column_values is not None:
+                logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+                train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+                train_dataset = train_dataset.shuffle(seed=training_args.seed)
+                logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
             max_train_samples = data_args.max_train_samples
             if max_train_samples is not None:
                 # We will select sample from whole data if argument is specified
@@ -498,6 +522,10 @@ def main():
         # process val data
         if training_args.do_eval:
             eval_examples = raw_datasets["validation"]
+            if data_args.dataset_filter_column_values is not None:
+                logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+                eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+                logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
             max_eval_samples = data_args.max_eval_samples
             if max_eval_samples is not None:
                 # We will select sample from whole data if argument is specified
@@ -511,6 +539,7 @@ def main():
     data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
+
     # noinspection PyProtectedMember
     postprocessor = postprocessor_class(
         k=data_args.n_best_logits,
@@ -521,8 +550,14 @@ def main():
         confidence_model_path=model_args.confidence_model_path,
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
     )
-
+    
     eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
+
+    def compute_metrics(p: EvalPredictionWithProcessing):
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold, 
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+            dataset_config_name = eval_dataset.config_name)
 
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         # add knowledge distillation arguments if any to training_args
@@ -530,12 +565,6 @@ def main():
             kd_args.task_heads = task_heads
             for k in kd_args.__dict__:
                 setattr(training_args, k, getattr(kd_args, k))
-
-    def compute_metrics(p: EvalPredictionWithProcessing):
-        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
-            passage_non_null_threshold=task_args.passage_non_null_threshold, 
-            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
-            dataset_config_name = eval_dataset.config_name)
 
     trainer_class = task_args.trainer
     trainer = trainer_class(
@@ -576,6 +605,7 @@ def main():
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
         metrics = trainer.evaluate()
+
         if data_args.eval_fof is None:
             max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(eval_dataset)
             metrics["eval_samples"] = min(max_eval_samples, len(eval_examples))
