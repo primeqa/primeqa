@@ -22,7 +22,7 @@ from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
-from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
+from primeqa.text_classification.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
