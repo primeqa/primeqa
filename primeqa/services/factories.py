@@ -70,20 +70,50 @@ class ReaderFactory:
             # Step 3.b: Add to loading
             cls._loading.append(instance_id)
 
-            # Step 3.c: Start creating instance
+            # Step 3.c: Initialize instance
             cls._logger.info(
                 "%s - initializing with arguments: %s", reader.__name__, reader_kwargs
             )
-            instance = reader(**reader_kwargs)
-            start_t = time.time()
-            instance.load(load_args, load_kwargs)
-            cls._logger.info(
-                "%s - loading took %.2f seconds",
-                reader.__name__,
-                time.time() - start_t,
-            )
+            try:
+                instance = reader(**reader_kwargs)
+            except TypeError as err:
+                # Step 3.c.i: Log exception
+                cls._logger.warning(
+                    "Failed to intialize %s with arguments: %s",
+                    reader.__name__,
+                    reader_kwargs,
+                )
 
-            # Step 3.d: Remove from loading and add to available instances
+                # Step 3.c.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.c.iii: Raise exception
+                raise err
+
+            # Step 3.d: Load instance
+            try:
+                start_t = time.time()
+                instance.load(load_args, load_kwargs)
+                cls._logger.info(
+                    "%s - loading took %.2f seconds",
+                    reader.__name__,
+                    time.time() - start_t,
+                )
+            except OSError as err:
+                # Step 3.d.i: Log exception
+                cls._logger.warning(
+                    "Failed to load %s with arguments: %s",
+                    reader.__name__,
+                    reader_kwargs,
+                )
+
+                # Step 3.d.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.d.iii: Raise exception
+                raise ValueError(err.args[0]) from err
+
+            # Step 3.e: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
             cls._loading.remove(instance_id)
 
@@ -121,20 +151,50 @@ class RetrieverFactory:
             # Step 3.b: Add to loading
             cls._loading.append(instance_id)
 
-            # Step 3.c: Start creating instance
+            # Step 3.c: Initialize instance
             cls._logger.info(
                 "%s - initializing with arguments: %s",
                 retriever.__name__,
                 retriever_kwargs,
             )
-            instance = retriever(**retriever_kwargs)
-            start_t = time.time()
-            instance.load(load_args, load_kwargs)
-            cls._logger.info(
-                "%s - loading took %.2f seconds",
-                retriever.__name__,
-                time.time() - start_t,
-            )
+            try:
+                instance = retriever(**retriever_kwargs)
+            except TypeError as err:
+                # Step 3.c.i: Log exception
+                cls._logger.warning(
+                    "Failed to intialize %s with arguments: %s",
+                    retriever.__name__,
+                    retriever_kwargs,
+                )
+
+                # Step 3.c.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.c.iii: Raise exception
+                raise err
+
+            # Step 3.d: Load instance
+            try:
+                start_t = time.time()
+                instance.load(load_args, load_kwargs)
+                cls._logger.info(
+                    "%s - loading took %.2f seconds",
+                    retriever.__name__,
+                    time.time() - start_t,
+                )
+            except OSError as err:
+                # Step 3.d.i: Log exception
+                cls._logger.warning(
+                    "Failed to load %s with arguments: %s",
+                    retriever.__name__,
+                    retriever_kwargs,
+                )
+
+                # Step 3.d.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.d.iii: Raise exception
+                raise ValueError(err.args[0]) from err
 
             # Step 3.d: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
@@ -174,18 +234,48 @@ class IndexerFactory:
             # Step 3.b: Add to loading
             cls._loading.append(instance_id)
 
-            # Step 3.c: Start creating instance
+            # Step 3.c: Initialize instance
             cls._logger.info(
                 "%s - initializing with arguments: %s", indexer.__name__, indexer_kwargs
             )
-            instance = indexer(**indexer_kwargs)
-            start_t = time.time()
-            instance.load(load_args, load_kwargs)
-            cls._logger.info(
-                "%s - loading took %.2f seconds",
-                indexer.__name__,
-                time.time() - start_t,
-            )
+            try:
+                instance = indexer(**indexer_kwargs)
+            except TypeError as err:
+                # Step 3.c.i: Log exception
+                cls._logger.warning(
+                    "Failed to intialize %s with arguments: %s",
+                    indexer.__name__,
+                    indexer_kwargs,
+                )
+
+                # Step 3.c.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.c.iii: Raise exception
+                raise err
+
+            # Step 3.d: Load instance
+            try:
+                start_t = time.time()
+                instance.load(load_args, load_kwargs)
+                cls._logger.info(
+                    "%s - loading took %.2f seconds",
+                    indexer.__name__,
+                    time.time() - start_t,
+                )
+            except OSError as err:
+                # Step 3.d.i: Log exception
+                cls._logger.warning(
+                    "Failed to load %s with arguments: %s",
+                    indexer.__name__,
+                    indexer_kwargs,
+                )
+
+                # Step 3.d.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.d.iii: Raise exception
+                raise ValueError(err.args[0]) from err
 
             # Step 3.d: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
