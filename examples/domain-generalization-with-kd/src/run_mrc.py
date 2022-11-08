@@ -350,6 +350,12 @@ def main():
     else:
         model_args, data_args, training_args, task_args, kd_args = parser.parse_args_into_dataclasses()
 
+    # add knowledge distillation arguments if any to training_args
+    if training_args.do_train and kd_args.kd_teacher_model_path is not None:
+        kd_args.task_heads = task_args.task_heads
+        for k in kd_args.__dict__:
+            setattr(training_args, k, getattr(kd_args, k))
+            
     # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
     # dataset) might have changed
     # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
@@ -359,8 +365,7 @@ def main():
         training_args.do_eval = True
         if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
             task_args.postprocessor = ExtractivePipelinePostProcessor
-
-
+            
     logger = logging.getLogger(__name__)
     if task_args.verbose:
         logging.basicConfig(level = logging.INFO)
@@ -415,20 +420,22 @@ def main():
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
         def get_raw_datasets(fof):
-            data_files = []
             raw_datasets = []
             with open(fof, 'r') as infile:
                 for line in infile:
                     filename = line.strip()
                     if not filename: continue
-                    data_files.append(filename)                    
                     raw_dataset = datasets.load_dataset(data_args.data_file_format, data_files=filename, cache_dir=model_args.cache_dir)['train']
                     raw_datasets.append(raw_dataset)
-            return raw_datasets, data_files
+            return raw_datasets #, data_files
         if data_args.train_fof is not None:
-            raw_train_datasets, _ = get_raw_datasets(data_args.train_fof)
+            raw_train_datasets = get_raw_datasets(data_args.train_fof)
         if data_args.eval_fof is not None:            
-            raw_validation_datasets, validation_data_files = get_raw_datasets(data_args.eval_fof)    
+            raw_validation_datasets = get_raw_datasets(data_args.eval_fof)
+        raw_datasets = {
+            'train': raw_train_datasets,
+            'validation': raw_validation_datasets 
+        }
     elif data_args.train_file is not None or data_args.eval_file is not None:
         data_files = {}
 
@@ -477,62 +484,49 @@ def main():
             raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
                       "requires --dataset_filter_column_name to be provided.")
 
-    if data_args.train_fof is not None or data_args.eval_fof is not None:
-        # multi-dataset training and/or evaluation
-        def preprocess_raw_datasets(raw_datasets, max_samples, training_args, preprocess_fn, split):
-            examples, datasets = [], []
-            for dataset in raw_datasets:
-                if max_samples is not None:
-                    # We will select sample from whole data if argument is specified
-                    dataset = dataset.select(range(max_samples))
-                # Feature Creation
-                with training_args.main_process_first(desc=f"{split} dataset map pre-processing"):
-                    examples_ds, dataset = preprocess_fn(dataset)
-                    examples.append(examples_ds)                    
-                    datasets.append(dataset)
-            return examples, datasets
+    def process_raw_datasets(raw_datasets, max_samples, training_args, process_fn, split):
+        examples, datasets = [], []
+        for dataset in raw_datasets:
+            if max_samples is not None:
+                # We will select sample from whole data if argument is specified
+                dataset = dataset.select(range(max_samples))
+            # Feature Creation
+            with training_args.main_process_first(desc=f"{split} dataset map pre-processing"):
+                examples_ds, dataset = process_fn(dataset)
+                examples.append(examples_ds)                    
+                datasets.append(dataset)
+        return examples, datasets
+    # process train data
+    if training_args.do_train:
         if data_args.train_fof is not None:
-            # process train data
-            if training_args.do_train:
-                _, train_datasets = preprocess_raw_datasets(raw_train_datasets, data_args.max_train_samples, training_args, preprocessor.process_train, 'train')
-                train_dataset = ConcatDataset(train_datasets)
-        if data_args.eval_fof is not None:
-            # process val data
-            if training_args.do_eval:        
-                eval_examples, eval_datasets = preprocess_raw_datasets(raw_validation_datasets, data_args.max_eval_samples, training_args, preprocessor.process_eval, 'validation')
-                eval_dataset = ConcatDataset(eval_datasets)
-                setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
-    else:
-        # process train data
-        if training_args.do_train:
-            train_dataset = raw_datasets["train"]
+            train_datasets = raw_datasets['train']
+        else:
+            train_dataset = raw_datasets['train']
             if data_args.dataset_filter_column_values is not None:
                 logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
                 train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
                 train_dataset = train_dataset.shuffle(seed=training_args.seed)
                 logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
-            max_train_samples = data_args.max_train_samples
-            if max_train_samples is not None:
-                # We will select sample from whole data if argument is specified
-                train_dataset = train_dataset.select(range(max_train_samples))
-            # Train Feature Creation
-            with training_args.main_process_first(desc="train dataset map pre-processing"):
-                _, train_dataset = preprocessor.process_train(train_dataset)
-
-        # process val data
-        if training_args.do_eval:
-            eval_examples = raw_datasets["validation"]
+            train_datasets = [train_dataset]
+        # Train feature creation
+        _, train_datasets = process_raw_datasets(train_datasets, data_args.max_train_samples, training_args, preprocessor.process_train, 'train')
+        train_dataset = ConcatDataset(train_datasets) if data_args.train_fof is not None else train_datasets[0]
+    # process val data
+    if training_args.do_eval:
+        eval_examples = raw_datasets['validation']
+        if data_args.eval_fof is None:
             if data_args.dataset_filter_column_values is not None:
                 logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
                 eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
                 logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
-            max_eval_samples = data_args.max_eval_samples
-            if max_eval_samples is not None:
-                # We will select sample from whole data if argument is specified
-                eval_examples = eval_examples.select(range(max_eval_samples))
-            # Validation Feature Creation
-            with training_args.main_process_first(desc="validation dataset map pre-processing"):
-                eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
+            eval_examples = [eval_examples]
+        # Validation feature creation
+        eval_examples, eval_datasets = process_raw_datasets(eval_examples, data_args.max_eval_samples, training_args, preprocessor.process_eval, 'validation')
+        if data_args.eval_fof is not None:
+            eval_dataset = ConcatDataset(eval_datasets)
+            setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
+        else:
+            eval_examples, eval_dataset = eval_examples[0], eval_dataset[0]        
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
@@ -558,13 +552,6 @@ def main():
             passage_non_null_threshold=task_args.passage_non_null_threshold, 
             span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
             dataset_config_name = eval_dataset.config_name)
-
-    if data_args.train_fof is not None or data_args.eval_fof is not None:
-        # add knowledge distillation arguments if any to training_args
-        if training_args.do_train and kd_args.kd_teacher_model_path is not None:
-            kd_args.task_heads = task_heads
-            for k in kd_args.__dict__:
-                setattr(training_args, k, getattr(kd_args, k))
 
     trainer_class = task_args.trainer
     trainer = trainer_class(
