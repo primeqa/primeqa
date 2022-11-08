@@ -504,7 +504,7 @@ class RestServer:
                 # Step 6: Retrieve
                 try:
                     results = instance.retrieve(
-                        input_texts=request.queries,
+                        input_texts=request.queries, **retriever_kwargs
                     )
                 except TypeError as err:
                     raise Error(
