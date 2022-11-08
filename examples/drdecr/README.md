@@ -93,7 +93,6 @@ python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --lr 1.5e-6 \
     --bsize 192 \
     --accum 6 \
@@ -116,7 +115,6 @@ python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --lr 6e-6 \
     --bsize 192 \
     --accum 6 \
@@ -144,7 +142,6 @@ python primeqa/ir/run_ir.py \
     --engine_type ColBERT \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 192 \
     --accum 6 \
     --maxsteps 84897 \
@@ -152,7 +149,7 @@ python primeqa/ir/run_ir.py \
     --query_weight 0.5 \
     --triples ./data/en-7lan_2ep_triple.other.clean \
     --teacher_triples ./data/en-7lan_2ep_triple.en.clean \
-	--root ./results/KD_PC \
+    --root ./results/KD_PC \
     --experiment PC \
     --distill_query_passage_separately True \
     --loss_function MSE \
@@ -175,7 +172,6 @@ python primeqa/ir/run_ir.py \
     --engine_type ColBERT \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 192 \
     --accum 6 \
     --lr 6e-6 \
@@ -183,7 +179,7 @@ python primeqa/ir/run_ir.py \
     --student_teacher_temperature 2 \
     --triples ./data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
     --teacher_triples ./data/xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv \
-	--root ./results/KD_XOR \
+    --root ./results/KD_XOR \
     --experiment XOR \
     --model_type xlm-roberta-large \
     --teacher_model_type xlm-roberta-large \
@@ -207,9 +203,8 @@ python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 256 \
-    --checkpoint ${CP_PATH} \
+    --model_name_or_path ${CP_PATH} \
     --collection ./data/psgs_w100.tsv \
     --index_name ${CHECKPOINT}_index \
     --root ${OUTPUT_DIR} \
@@ -233,11 +228,9 @@ python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 1 \
-    --retrieve_only \
     --queries ./data/xortydi_dev.tsv \
-    --checkpoint ${CP_PATH} \
+    --model_name_or_path ${CP_PATH} \
     --root ${OUTPUT_DIR} \
     --index_name ${CHECKPOINT}_index \
     --experiment ${CHECKPOINT}_retrieve \
@@ -245,13 +238,13 @@ python primeqa/ir/run_ir.py \
     --ncells 4 \
     --centroid_score_threshold 0.4 \
     --ndocs 100000 \
-    --ranks_fn ${OUTPUT_DIR}/colbert-LAST_retrieve.tsv \
+    --output_dir ${OUTPUT_DIR} \
 > ${OUTPUT_DIR}/${CHECKPOINT}_retrieve.log
 ```
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores will be stored in:
 `
-./results/post_training/colbert-LAST_retrieve.tsv
+./results/post_training/ranked_passages.tsv
 `
 
 ## Step 5: Relevance Scoring
@@ -262,15 +255,15 @@ To obtain the relevance scores on the XOR-TyDi development set, the scores have 
    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py \
     -c ./data/psgs_w100.tsv \
     -q ./data/xor_dev_retrieve_eng_span_v1.jsonl \
-    -p ./results/post_training/colbert-LAST_retrieve.tsv \
-    -o ./results/post_training/colbert-LAST_retrieve_xortydi_format.json
+    -p ./results/post_training/ranked_passages.tsv \
+    -o ./results/post_training/ranked_passages_xortydi_format.json
 ```
 
 Finally, to obtain the XOR-TyDi scores, run:
 ```
 python eval_xor_retrieve.py \
     --data_file ./data/xor_dev_retrieve_eng_span_v1.jsonl \
-    --pred_file ./results/post_training/colbert-LAST_retrieve_xortydi_format.json > ./results/post_training/xorqa.metrics
+    --pred_file ./results/post_training/ranked_passages_xortydi_format.json > ./results/post_training/xorqa.metrics
 ```
 
 The `eval_xor_retrieve.py` script can be downloaded from the XORTyDI repo here: https://github.com/AkariAsai/XORQA
