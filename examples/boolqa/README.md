@@ -27,12 +27,6 @@ Evidence Span:
 |166917|หม่อมราชวงศ์สุขุมพันธุ์ บริพัตร เรียนจบจากที่ไหน ?|thai|NONE| หมวดหมู่:หม่อมราชวงศ์ หมวดหมู่:ราชสกุลบริพัตร หมวดหมู่:นักการเมืองไทย สุขุมพันธุ์ หมวดหมู่:พรรคประชาธิปัตย์ หมวดหมู่:รองศาสตราจารย์ หมวดหมู่:อาจารย์คณะรัฐศาสตร์ หมวดหมู่:บุคคลจากคณะรัฐศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ป.ช. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ว.ม. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ต.จ. (ฝ่ายหน้า) หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ บ.ภ. หมวดหมู่:บุคคลจากมหาวิทยาลัยออกซฟอร์ด หมวดหมู่:สมาชิกสภาผู้แทนราษฎรกรุงเทพมหานคร หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบสัดส่วน หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบบัญชีรายชื่อ หมวดหมู่:ชาวไทยเชื้อสายมลายู  หมวดหมู่:ราชสกุลปาลกะวงศ์|
 |166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|NONE|"Proxima Centauri (yaani nyota ya Kantarusi iliyo karibu zaidi nasi) imegunduliwa kuwa na sayari moja. Vipimo vinavyopatikana hadi sasa zinaonyesha uwezekano mkubwa ya kwamba sayari hii ni ya mwamba (kama dunia yetu, Mirihi au Zuhura) na inaweza kuwa na angahewa, tena katika upeo wa joto unaoruhusu kuwepo kwa uhai. [1]"|
 
-### Train the Score Normalizer:
-
-```
-bash examples/boolqa/train_score_normalizer_for_tydi.sh
-```
-
 ### Adapting the MRC component
 We use as a starting point an MRC model trained on NQ, TyDi, and SQuad.  We then do 1 additional epoch of training
 with TyDi.  Since Tydi does not provide minimal answer begin and ends for boolean questions, we use a custom preprocessor 
@@ -56,12 +50,44 @@ python primeqa/mrc/run_mrc.py \
 ```
 This procedure yielded `eval_avg_minimal_f1=0.7006`.
 
-### Training the EVC component
+### Training the QTC and EVC components
 
-First we subset the tydi data so that the EVC trainer only sees the answerable boolean questions:
+First we subset the tydi data so that the QTC trainer only sees the answerable questions and the EVC trainer only sees the answerable boolean questions:
 ```
 python examples/boolqa/bool_tydi2csv.py --output_dir ${DATA_DIR}
 ```
+This script will output files for QTC (`qtype_*.csv`) and EVC (`evidence_span_*.csv`) for train, validation, and testing. The test files will have all questions (including unanswerable) in the dev set without labels.
+
+#### QTC
+
+```
+seed=42
+epochs=3
+lr=5e-5
+python /primeqa/text_classification/run_nway_classifier.py \
+       --model_name_or_path xlm-roberta-large \
+       --do_train \
+       --do_eval \
+       --train_file ${DATA_DIR}/qtype_train.csv \
+       --validation_file ${DATA_DIR}/qtype_val.csv \
+       --output_dir ${OUTPUT_DIR} \
+       --balanced \
+       --output_label_prefix 'qtype' \
+       --per_device_eval_batch_size 128 \
+       --per_device_train_batch_size 64 \
+       --save_steps -1 \
+       --sentence1_key "question" \
+       --label_list "boolean" "other" \
+       --num_train_epochs ${epochs} \
+       --learning_rate ${lr} \
+       --seed ${seed}
+
+```
+This yielded f-measures of 0.969 on the boolean questions, and 0.996 on the short answer questions.
+
+
+#### EVC 
+
 Then we train the classifier
 ```
 epochs=10
@@ -90,3 +116,12 @@ python primeqa/text_classification/run_nway_classifier.py \
   --output_label_prefix evc
 ```
 This yielded f-measures of 0.6 on the NO questions, and 0.93 on the YES questions.
+
+
+### Training the Score Normalizer:
+
+The following script will split the training data into to two parts to train and evaluate the score normalizer (90%/10%). It will run `run_mrc.py` with `--do_boolean` on the training portion (90%) to get the scores produced from `run_mrc.py` and the question type labels (`boolean`, `other`). Finally, the scores and question labels will be used to train the the score normalizer and evaluate on the remaining portion of the training set (10%). The final output will be stored in the `run_mrc.py` prediction file in `output_dir/sn`.
+
+```
+bash examples/boolqa/train_score_normalizer_for_tydi.sh
+```
