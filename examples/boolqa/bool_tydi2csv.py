@@ -1,6 +1,8 @@
-# In this file download TyDi HF dataset and save the question and gold answer passage in csv format
-# for all boolean questions for training and for all questions from dev:
-# example_id, question, language, answer
+# In this file download TyDi HF dataset and save the output for question type classification (qtc): question, qtype label (boolean/other)
+# and evidence span classifier (evc): question, gold answer passage, boolean label (yes/no) in csv format
+# for all answerable questions for training validation and for all questions as predict/test mode:
+# qtc:  example_id, question, language, label
+# evc: example_id, question, language, label, passage_text
 
 import csv
 from copy import deepcopy
@@ -15,7 +17,7 @@ from typing import Optional, Type
 @dataclass
 class BoolTyDiCSVArguments:
     """
-    Arguments pertaining to processing nq.
+    Arguments pertaining to processing TyDi for Boolean.
     """
     output_dir: str= field(default='./examples/boolqa/', metadata={"help": "directory to output file(s) in csv format"}
     )
@@ -29,11 +31,11 @@ class BoolTyDiCSVArguments:
     )
 class BoolTyDiSubset:
     """
-    Class to process the full NQ dataset and get the list subset
+    Class to process the full TyDi Google Format dataset and get the list subset
 
     main function is process which requires the following inputs:
 
-    input_file = location of NQ dataset file(s)
+    input_file = location of TyDi dataset file(s)
     output_file = location for output
     num_lines = number of lines to read (-1 for all)
     verbose = verbose printing for debugging
