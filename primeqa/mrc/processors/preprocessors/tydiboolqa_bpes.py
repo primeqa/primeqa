@@ -29,8 +29,6 @@ class TyDiBoolQAPreprocessor(TyDiQAPreprocessor):  # TODO type signatures for al
         example_idx=features_dict['example_idx']
         offsets=features_dict['offset_mapping']
         if target_type == TargetType.NO or target_type == TargetType.YES:
-            start_position = features_dict['start_positions']
-            end_position = features_dict['end_positions']
             input_ids = features_dict['input_ids']
             example = examples[example_idx]
             target=example['target']
@@ -43,6 +41,8 @@ class TyDiBoolQAPreprocessor(TyDiQAPreprocessor):  # TODO type signatures for al
                                         for (tok_start, tok_end) in offsets]
 
             # start/end in tokens is given by the first True and last True in after the query in token_is_inside_passage
+            # this step converts (character-based) offsets to (token-based) token positions,
+            # as well as ensuring that the token is not split across a passage boundary
             query_end_position=input_ids.index(self._tokenizer.sep_token_id)+2
             try:
                 passage_start_position = token_is_inside_passage.index(True,query_end_position)
