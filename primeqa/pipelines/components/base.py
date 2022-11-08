@@ -13,6 +13,10 @@ class Component(ABC):
 @dataclass(init=False, repr=False, eq=False)
 class ReaderComponent(Component):
     @abstractmethod
+    def __hash__(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
@@ -49,6 +53,10 @@ class RetrieverComponent(Component):
             "name": "Index name",
         },
     )
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        raise NotImplementedError
 
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):

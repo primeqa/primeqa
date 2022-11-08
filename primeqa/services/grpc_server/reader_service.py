@@ -124,10 +124,26 @@ class ReaderService(ReaderServicer):
             return GetAnswersResponse()
 
         # Step 5: Run apply method
+        instance_fields = [
+            k
+            for k, v in instance.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
         answers_response = GetAnswersResponse()
         try:
             for idx, query in enumerate(request.queries):
                 # Step 5.a: Run "apply" per query
+                self._logger.info(
+                    "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
+                    instance.__class__.__name__,
+                    {
+                        k: getattr(instance, k) if k in instance_fields else v
+                        for k, v in reader_kwargs.items()
+                    },
+                    query,
+                    request.contexts[idx].texts,
+                )
                 try:
                     predictions = instance.apply(
                         input_texts=[query] * len(request.contexts[idx].texts),

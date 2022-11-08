@@ -42,7 +42,7 @@ class ColBERTRetriever(RetrieverComponent):
         },
     )
     max_num_documents: int = field(
-        default=100,
+        default=5,
         metadata={
             "name": "Maximum number of retrieved documents",
             "range": [1, 100, 1],
@@ -83,8 +83,17 @@ class ColBERTRetriever(RetrieverComponent):
         self._searcher = None
 
     def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
         return hash(
-            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields}, sort_keys=True)}"
         )
 
     def load(self, *args, **kwargs):
@@ -96,10 +105,17 @@ class ColBERTRetriever(RetrieverComponent):
         )
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
+        # Step 1: Locally update object variable values, if provided
+        max_num_documents = (
+            kwargs["max_num_documents"]
+            if "max_num_documents" in kwargs
+            else self.max_num_documents
+        )
+
         # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
         ranking_results = self._searcher.search_all(
             {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
-            k=self.max_num_documents,
+            k=max_num_documents,
         )
         return [
             [(result[0], result[-1]) for result in results_per_query]
