@@ -6,9 +6,9 @@ from transformers import (WEIGHTS_NAME, AdamW, BertConfig, BertTokenizer,
                         squad_convert_examples_to_features)
 from torch.utils.data import DataLoader
 from tqdm import tqdm,trange
-from models.bert.table_encoder import RowClassifierSC
-from utils.partial_label_utils import partial_label_data_loader, pl_min_group_loss
-from utils.json_utils import read_data
+from primeqa.hybridqa.models.table_encoder import RowClassifierSC
+from primeqa.hybridqa.utils.partial_label_utils import partial_label_data_loader, pl_min_group_loss
+from primeqa.hybridqa.utils.io_utils import read_data
 from transformers import RobertaConfig, RobertaTokenizer, RobertaModel,AdamW,get_linear_schedule_with_warmup
 import torch
 import torch.nn as nn
