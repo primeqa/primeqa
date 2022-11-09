@@ -76,11 +76,11 @@ class DataTrainingArguments:
     )
     train_file: Optional[str] = field(
         default=None,
-        metadata={"help": "local file(s) in .json to train on."},
+        metadata={"help": "local file(s) in .jsonl to train on."},
     )
     eval_file: Optional[str] = field(
         default=None,
-        metadata={"help": "local file(s) in .json to evaluate on."},
+        metadata={"help": "local file(s) in .jsonl to evaluate on."},
     )
     max_len: Optional[int] = field(
         default=512,
@@ -196,23 +196,24 @@ def main(raw_args):
 
     train_dataset = None
     valid_dataset = None
-    if data_args.train_file is not None:
-        dataset = load_dataset("json", data_files=data_args.train_file)
-        dataset = dataset['train']
-        train_dataset = qgdl.create(dataset=dataset)
-    if data_args.eval_file is not None:
-        dataset = load_dataset("json", data_files=data_args.eval_file)
-        # this is not a bug, by default huggingface datasets library loads any data as train split
-        dataset = dataset['train']
-        valid_dataset = qgdl.create(dataset=dataset)
 
     if training_args.do_train:
-        if data_args.train_file is None:
+        if data_args.train_file is not None:
+            dataset = load_dataset("json", data_files=data_args.train_file)
+            dataset = dataset['train']
+            train_dataset = qgdl.create(dataset=dataset)
+        else:
             train_dataset = qgdl.create(
                 dataset_split="train", dataset_config=data_args.dataset_config
             )
+    
     if training_args.do_eval:
-        if data_args.eval_file is None:
+        if data_args.eval_file is not None:
+            dataset = load_dataset("json", data_files=data_args.eval_file)
+            # this is not a bug, by default huggingface datasets library loads any data as train split
+            dataset = dataset['train']
+            valid_dataset = qgdl.create(dataset=dataset)
+        else:
             valid_dataset = qgdl.create(
                 dataset_split="validation", dataset_config=data_args.dataset_config
             )

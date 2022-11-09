@@ -32,7 +32,7 @@ Currently supported datasets for training include:
 - WikiSQL (QG for TableQA)
 - SQuAD, SQuAD_v2 (QG for PassageQA i.e. MRC)
 - TydiQA (Multilingual QG)
-- Custom Data in Squad/TydiQA format.
+- Custom Data in a file in Squad/TydiQA format.
 
 ## Example Usage
 An example for training the model on WikiSQL dataset:
