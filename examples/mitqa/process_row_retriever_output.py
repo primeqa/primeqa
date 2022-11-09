@@ -8,7 +8,7 @@ from tqdm import tqdm
 from fuzzywuzzy import fuzz
 import numpy as np
 import json
-from utils.table_utils import fetch_table
+from primeqa.hybridqa.utils.table_utils import fetch_table
 import sys
 import argparse
 
