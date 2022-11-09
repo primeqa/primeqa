@@ -1,8 +1,9 @@
 from pickle import NONE
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
+from primeqa.tableqa.models.tableqa_base_model import TableQABaseModel
 
-class TapasModel():
+class TapasModel(TableQABaseModel):
     def __init__(self,model_name_path,config=None):
         """TableQA model class
 
