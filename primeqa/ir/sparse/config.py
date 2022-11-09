@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import dataclasses
+import typing
 
 @dataclass
 class IndexingArguments():
@@ -10,7 +11,7 @@ class IndexingArguments():
 
     corpus_path: str = field(default=None, metadata={"help":"Path to a corpus tsv or json file or directory"})
 
-    fieldnames: list = field(default=None, metadata={"help":"fields names to use to identify document_id, title, text if corpus tsv has no headings"})
+    fieldnames: typing.List[str] = field(default=None, metadata={"help":"fields names to use to identify document_id, title, text if corpus tsv has no headings"})
 
     additional_indexing_args: str = field(default='--storePositions --storeDocvectors --storeRaw', metadata={"help":'pyserini index options'})
 
