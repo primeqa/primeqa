@@ -74,13 +74,13 @@ class DataTrainingArguments:
             "help": "Config of the dataset loaded, e.g. 'secondary_task' for TyDiQA"
         },
     )
-    train_file_path: Optional[str] = field(
-        default="train_data.pt",
-        metadata={"help": "Path for cached train dataset"},
+    train_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "local file(s) in .jsonl to train on."},
     )
-    valid_file_path: Optional[str] = field(
-        default="valid_data.pt",
-        metadata={"help": "Path for cached valid dataset"},
+    eval_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "local file(s) in .jsonl to evaluate on."},
     )
     max_len: Optional[int] = field(
         default=512,
@@ -154,10 +154,10 @@ def main(raw_args):
     training_args.prediction_loss_only = False
 
     if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
-        and training_args.do_train
-        and not training_args.overwrite_output_dir
+            os.path.exists(training_args.output_dir)
+            and os.listdir(training_args.output_dir)
+            and training_args.do_train
+            and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -191,16 +191,34 @@ def main(raw_args):
         input_max_len=data_args.max_len,
         target_max_len=data_args.target_max_len,
     )
+
+    train_dataset = None
+    valid_dataset = None
+
+    if training_args.do_train:
+        if data_args.train_file is not None:
+            dataset = load_dataset("json", data_files=data_args.train_file)
+            dataset = dataset['train']
+            train_dataset = qgdl.create(dataset=dataset)
+        else:
+            train_dataset = qgdl.create(
+                dataset_split="train", dataset_config=data_args.dataset_config
+            )
+
+    if training_args.do_eval:
+        if data_args.eval_file is not None:
+            dataset = load_dataset("json", data_files=data_args.eval_file)
+            # this is not a bug, by default huggingface datasets library loads any data as train split
+            dataset = dataset['train']
+            valid_dataset = qgdl.create(dataset=dataset)
+        else:
+            valid_dataset = qgdl.create(
+                dataset_split="validation", dataset_config=data_args.dataset_config
+            )
+
+    compute_metrics = rouge_metrics(qg_model.tokenizer)
+
     if training_args.do_train or training_args.do_eval:
-        train_dataset = qgdl.create(
-            dataset_split="train", dataset_config=data_args.dataset_config
-        )
-        valid_dataset = qgdl.create(
-            dataset_split="validation", dataset_config=data_args.dataset_config
-        )
-
-        compute_metrics = rouge_metrics(qg_model.tokenizer)
-
         trainer = QGTrainer(
             model=qg_model.model,
             tokenizer=qg_model.tokenizer,
@@ -210,14 +228,15 @@ def main(raw_args):
             data_collator=T2TDataCollator(),
             compute_metrics=compute_metrics,
         )
+        compute_metrics = rouge_metrics(qg_model.tokenizer)
 
     if training_args.do_train:
-        trainer.train(
+        train_result = trainer.train(
             model_path=model_args.model_name_or_path
             if os.path.isdir(model_args.model_name_or_path)
             else None
         )
-        train_result = trainer.save_model()
+        trainer.save_model()
 
         metrics = train_result.metrics
         trainer.log_metrics("train", metrics)
