@@ -1,0 +1,32 @@
+tydiboolqa\_bpes
+================
+
+.. automodule:: primeqa.mrc.processors.preprocessors.tydiboolqa_bpes
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      TyDiBoolQAPreprocessor
+   
+   
+
+   
+   
+   
+
+
+

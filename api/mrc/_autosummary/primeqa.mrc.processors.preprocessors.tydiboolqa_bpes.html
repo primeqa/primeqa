@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor &#8212; PrimeQA  documentation</title>
+    <title>tydiboolqa_bpes &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -1027,28 +1027,28 @@
        </li>
       </ul>
      </li>
-     <li class="toctree-l3 current active has-children">
+     <li class="toctree-l3 has-children">
       <a class="reference internal" href="primeqa.mrc.processors.preprocessors.squad.html">
        squad
       </a>
-      <input checked="" class="toctree-checkbox" id="toctree-checkbox-39" name="toctree-checkbox-39" type="checkbox"/>
+      <input class="toctree-checkbox" id="toctree-checkbox-39" name="toctree-checkbox-39" type="checkbox"/>
       <label for="toctree-checkbox-39">
        <i class="fas fa-chevron-down">
        </i>
       </label>
-      <ul class="current">
-       <li class="toctree-l4 current active">
-        <a class="current reference internal" href="#">
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.html">
          primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor
         </a>
        </li>
       </ul>
      </li>
-     <li class="toctree-l3 has-children">
-      <a class="reference internal" href="primeqa.mrc.processors.preprocessors.tydiboolqa_bpes.html">
+     <li class="toctree-l3 current active has-children">
+      <a class="current reference internal" href="#">
        tydiboolqa_bpes
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-40" name="toctree-checkbox-40" type="checkbox"/>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-40" name="toctree-checkbox-40" type="checkbox"/>
       <label for="toctree-checkbox-40">
        <i class="fas fa-chevron-down">
        </i>
@@ -1170,7 +1170,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.rst.txt", '_blank');
+                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.processors.preprocessors.tydiboolqa_bpes.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -1200,146 +1200,20 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="primeqa-mrc-processors-preprocessors-squad-squadpreprocessor">
-<h1>primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor<a class="headerlink" href="#primeqa-mrc-processors-preprocessors-squad-squadpreprocessor" title="Permalink to this headline">#</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.mrc.processors.preprocessors.squad.</span></span><span class="sig-name descname"><span class="pre">SQUADPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="primeqa.mrc.processors.preprocessors.base.BasePreProcessor.html#primeqa.mrc.processors.preprocessors.base.BasePreProcessor" title="primeqa.mrc.processors.preprocessors.base.BasePreProcessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.mrc.processors.preprocessors.base.BasePreProcessor</span></code></a></p>
-<p>Preprocessor for the SQuAD 1.1 data.
-Note this preprocessor only supports <cite>single_context_multiple_passages=True</cite> and will
-override the value accordingly.</p>
-<p class="rubric">Methods</p>
+  <section id="module-primeqa.mrc.processors.preprocessors.tydiboolqa_bpes">
+<span id="tydiboolqa-bpes"></span><h1>tydiboolqa_bpes<a class="headerlink" href="#module-primeqa.mrc.processors.preprocessors.tydiboolqa_bpes" title="Permalink to this headline">#</a></h1>
+<p class="rubric">Classes</p>
 <table class="longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adapt_dataset</span></code></a></p></td>
-<td><p>Convert dataset into standardized format accepted by the preprocessor.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label_features_for_subsampling</span></code></a></p></td>
-<td><p>Annotate each training feature with a 'subsample_type' of type <cite>SubsampleType</cite> for subsampling.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_eval" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_eval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_eval</span></code></a></p></td>
-<td><p>Process eval examples into features.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_train" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_train</span></code></a></p></td>
-<td><p>Process training examples into features.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.subsample_features" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.subsample_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subsample_features</span></code></a></p></td>
-<td><p>Subsample training features according to 'subsample_type':</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.validate_schema" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a></p></td>
-<td><p>Validate the data schema is correct for this preprocessor.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.mrc.processors.preprocessors.tydiboolqa_bpes.TyDiBoolQAPreprocessor.html#primeqa.mrc.processors.preprocessors.tydiboolqa_bpes.TyDiBoolQAPreprocessor" title="primeqa.mrc.processors.preprocessors.tydiboolqa_bpes.TyDiBoolQAPreprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TyDiBoolQAPreprocessor</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset">
-<span class="sig-name descname"><span class="pre">adapt_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datasets.arrow_dataset.Dataset</span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset" title="Permalink to this definition">#</a></dt>
-<dd><p>Convert dataset into standardized format accepted by the preprocessor.
-This method will likely need to be overridden when subclassing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> – data to adapt.</p></li>
-<li><p><strong>is_train</strong> – whether the dataset is for training.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Adapted dataset.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling">
-<span class="sig-name descname"><span class="pre">label_features_for_subsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokenized_examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">transformers.tokenization_utils_base.BatchEncoding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Batch</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.tokenization_utils_base.BatchEncoding</span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling" title="Permalink to this definition">#</a></dt>
-<dd><p>Annotate each training feature with a ‘subsample_type’ of type <cite>SubsampleType</cite> for subsampling.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>tokenized_examples</strong> – featurized examples to annotate.</p></li>
-<li><p><strong>examples</strong> – original examples corresponding to the <cite>tokenized_examples</cite> features.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Returns: <cite>tokenized_examples</cite> annotated with ‘subsample_type’ for subsampling.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_eval">
-<span class="sig-name descname"><span class="pre">process_eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_eval" title="Permalink to this definition">#</a></dt>
-<dd><p>Process eval examples into features.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>examples</strong> – examples to process into features.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>tuple (examples, features) comprising examples adapted into standardized format and processed input features for model.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_train">
-<span class="sig-name descname"><span class="pre">process_train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.process_train" title="Permalink to this definition">#</a></dt>
-<dd><p>Process training examples into features.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>examples</strong> – examples to process into features.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>tuple (examples, features) comprising examples adapted into standardized format and processed input features for model.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.subsample_features">
-<span class="sig-name descname"><span class="pre">subsample_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datasets.arrow_dataset.Dataset</span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.subsample_features" title="Permalink to this definition">#</a></dt>
-<dd><p>Subsample training features according to ‘subsample_type’:</p>
-<ul class="simple">
-<li><p>All positive features are kept.</p></li>
-<li><p>All negative features from an example that has an answer are kept with probability <cite>self._negative_sampling_prob_when_has_answer</cite>.</p></li>
-<li><p>All negative features from an example that has no answer are kept with probability <cite>self._negative_sampling_prob_when_no_answer</cite>.</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dataset</strong> – features to subsample.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>subsampled features.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.validate_schema">
-<span class="sig-name descname"><span class="pre">validate_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_adaptation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.validate_schema" title="Permalink to this definition">#</a></dt>
-<dd><p>Validate the data schema is correct for this preprocessor.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> – data to validate schema of</p></li>
-<li><p><strong>is_train</strong> – whether the data is for training</p></li>
-<li><p><strong>pre_adaptation</strong> – whether adapt_dataset has been called. This allows for optional fields
-(e.g. example_id) to be imputed during adaptation.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>None</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – The data is not in the correct schema.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 
 

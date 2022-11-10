@@ -1,0 +1,30 @@
+primeqa.mrc.processors.preprocessors.tydiboolqa\_bpes.TyDiBoolQAPreprocessor
+============================================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.tydiboolqa_bpes
+
+.. autoclass:: TyDiBoolQAPreprocessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TyDiBoolQAPreprocessor.adapt_dataset
+      ~TyDiBoolQAPreprocessor.label_features_for_subsampling
+      ~TyDiBoolQAPreprocessor.process_eval
+      ~TyDiBoolQAPreprocessor.process_train
+      ~TyDiBoolQAPreprocessor.subsample_features
+      ~TyDiBoolQAPreprocessor.validate_schema
+   
+   
+
+   
+   
+   

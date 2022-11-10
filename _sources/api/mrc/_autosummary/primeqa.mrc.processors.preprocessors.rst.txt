@@ -31,6 +31,7 @@ preprocessors
    primeqa.mrc.processors.preprocessors.mrqa
    primeqa.mrc.processors.preprocessors.natural_questions
    primeqa.mrc.processors.preprocessors.squad
+   primeqa.mrc.processors.preprocessors.tydiboolqa_bpes
    primeqa.mrc.processors.preprocessors.tydiqa
    primeqa.mrc.processors.preprocessors.tydiqa_google
 
