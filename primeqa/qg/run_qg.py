@@ -154,10 +154,10 @@ def main(raw_args):
     training_args.prediction_loss_only = False
 
     if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
-        and training_args.do_train
-        and not training_args.overwrite_output_dir
+            os.path.exists(training_args.output_dir)
+            and os.listdir(training_args.output_dir)
+            and training_args.do_train
+            and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -196,33 +196,30 @@ def main(raw_args):
 
     train_dataset = None
     valid_dataset = None
-    data_files={}
-    
-    if data_args.train_file is not None: 
-        data_files['train'] = glob.glob(data_args.train_file)
-    if data_args.eval_file is not None: 
-        data_files['validation'] = glob.glob(data_args.eval_file)
-    
-    dataset = load_dataset("json", data_files=data_files)
-    
+
     if training_args.do_train:
         if data_args.train_file is not None:
-            train_dataset = qgdl.create(dataset_split="train",dataset=dataset)
+            dataset = load_dataset("json", data_files=data_args.train_file)
+            dataset = dataset['train']
+            train_dataset = qgdl.create(dataset=dataset)
         else:
             train_dataset = qgdl.create(
                 dataset_split="train", dataset_config=data_args.dataset_config
             )
-    
+
     if training_args.do_eval:
         if data_args.eval_file is not None:
-            valid_dataset = qgdl.create(dataset_split="validation",dataset=dataset)
+            dataset = load_dataset("json", data_files=data_args.eval_file)
+            # this is not a bug, by default huggingface datasets library loads any data as train split
+            dataset = dataset['train']
+            valid_dataset = qgdl.create(dataset=dataset)
         else:
             valid_dataset = qgdl.create(
                 dataset_split="validation", dataset_config=data_args.dataset_config
             )
 
     compute_metrics = rouge_metrics(qg_model.tokenizer)
-   
+
     if training_args.do_train or training_args.do_eval:
         trainer = QGTrainer(
             model=qg_model.model,
@@ -236,7 +233,7 @@ def main(raw_args):
         compute_metrics = rouge_metrics(qg_model.tokenizer)
 
     if training_args.do_train:
-        train_result =trainer.train(
+        train_result = trainer.train(
             model_path=model_args.model_name_or_path
             if os.path.isdir(model_args.model_name_or_path)
             else None
