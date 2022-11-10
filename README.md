@@ -69,6 +69,23 @@ pip install -e .[all]
 Please note that dependencies (specified in [setup.py](./setup.py)) are pinned to provide a stable experience.
 When installing from source these can be modified, however this is not officially supported.
 
+**Note:** in many environments, conda-forge based faiss libraries perform substantially better than the default ones installed with pip. To install faiss libraries from conda-forge, use the following steps:
+
+- Create and activate a conda environment
+- Install faiss libraries, using a command
+
+```conda install -c conda-forge faiss=1.7.0 faiss-gpu=1.7.0```
+
+- In `setup.py`, remove the faiss-related lines:
+
+```commandline
+"faiss-cpu~=1.7.2": ["install", "gpu"],
+"faiss-gpu~=1.7.2": ["gpu"],
+```
+
+- Continue with the `pip install` commands as desctibed above.
+
+
 ### JAVA requirements
 Java 11 is required for BM25 retrieval. 
 
