@@ -126,7 +126,7 @@ def main():
                 searcher = Searcher(args.index_name, checkpoint=args.checkpoint, collection=args.collection, config=colBERTConfig)
 
                 rankings = searcher.search_all(args.queries, args.topK)
-                out_fn = args.ranks_fn
+                out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 rankings.save(out_fn)
 
     elif process_args.engine_type == 'DPR':

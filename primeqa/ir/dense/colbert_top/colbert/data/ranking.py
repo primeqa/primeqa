@@ -4,7 +4,7 @@ import ujson
 from primeqa.ir.dense.colbert_top.colbert.infra.provenance import Provenance
 
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
-from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, groupby_first_item
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message, groupby_first_item, create_directory
 from primeqa.ir.dense.colbert_top.utility.utils.save_metadata import get_metadata_only
 
 
@@ -62,6 +62,7 @@ class Ranking:
 
     def save(self, new_path):
         assert 'tsv' in new_path.strip('/').split('/')[-1].split('.'), "TODO: Support .json[l] too."
+        create_directory(os.path.dirname(new_path))
 
         with Run().open(new_path, 'w') as f:
             for items in self.flat_ranking:

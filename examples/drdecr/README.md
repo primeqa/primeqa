@@ -89,7 +89,6 @@ There are two rounds of fine tuning involved in this step.
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
     --lr 1.5e-6 \
@@ -99,7 +98,6 @@ python primeqa/ir/run_ir.py \
     --triples ./data/ColBERT.C3_3_20_biased200_triples_text.tsv \
     --root ./results \
     --experiment NQ \
-    --similarity l2 \
     --model_type xlm-roberta-base \
 > ./results/NQ_out.log 
 ```
@@ -114,7 +112,6 @@ The trained model will be stored in:
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
     --lr 6e-6 \
@@ -124,7 +121,6 @@ python primeqa/ir/run_ir.py \
     --triples ./data/XOR/data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
     --root ./results \
     --experiment XOR \
-    --similarity l2 \
     --model_type xlm-roberta-base \
     --checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/XOR_out.log 
@@ -143,7 +139,6 @@ In the following Knowledge Distillation (KD) steps, the model resulting from the
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
     --mask-punctuation \
@@ -156,7 +151,6 @@ python primeqa/ir/run_ir.py \
     --teacher_triples ./data/en-7lan_2ep_triple.en.clean \
 	--root ./results/KD_PC \
     --experiment PC \
-    --similarity l2 \
     --distill_query_passage_separately True \
     --loss_function MSE \
     --model_type xlm-roberta-base \
@@ -176,7 +170,6 @@ results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
     --mask-punctuation \
@@ -189,7 +182,6 @@ python primeqa/ir/run_ir.py \
     --teacher_triples ./data/xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv \
 	--root ./results/KD_XOR \
     --experiment XOR \
-    --similarity l2 \
     --model_type xlm-roberta-base \
     --teacher_model_type xlm-roberta-base \
     --checkpoint ./results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
@@ -211,11 +203,9 @@ CHECKPOINT=colbert-LAST;
 python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --mask-punctuation \
     --bsize 256 \
-    --similarity l2 \
     --checkpoint ${CP_PATH} \
     --collection ./data/psgs_w100.tsv \
     --index_name ${CHECKPOINT}_index \
@@ -240,14 +230,13 @@ python primeqa/ir/run_ir.py \
     --doc_maxlen 180 \
     --mask-punctuation \
     --bsize 4 \
-    --similarity l2 \
     --retrieve_only \
     --queries ./data/xortydi_dev.tsv \
     --checkpoint ${CP_PATH} \
     --root ${OUTPUT_DIR} \
     --index_name ${CHECKPOINT}_index \
     --experiment ${CHECKPOINT}_retrieve \
-    --topK 100 \
+    --top_k 100 \
     --ncells 4 \
     --centroid_score_threshold 0.4 \
     --ndocs 40000 \
