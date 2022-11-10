@@ -183,7 +183,7 @@ Create a directory under `models` and copy `pytorch_model.bin`, `config.json` an
 
   ```
     {
-      "index_id": "insurancelib",
+      "index_id": "<collection-name>",
       "status": "READY"
     }
   ```
