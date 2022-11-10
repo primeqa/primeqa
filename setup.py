@@ -76,7 +76,6 @@ _deps = {
     "stanza~=1.4.0": ["install", "gpu"],
     "torch~=1.11.0": ["install", "gpu"],
     "torch~=1.11.0": ["install", "gpu"],
-    "torch-scatter~=2.0.9": ["install","gpu"],
     "transformers~=4.24.0": ["install", "gpu"],
     "sentencepiece~=0.1.96": ["install", "gpu"],
     "ujson~=5.1.0": ["install"],
