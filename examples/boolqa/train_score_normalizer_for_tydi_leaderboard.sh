@@ -2,8 +2,8 @@
 # This uses the tydi google preprocessor to generate the appropriate format for the TyDi leaderboard submission.
 
 output_dir="<Location to store output>"
-model_dir='<local model or model on HF hub'
-data_dir='<location of TyDi dev split in two files'
+model_dir="<local model or model on HF hub"
+data_dir="<location of TyDi dev split in two files"
 
 echo "========"
 echo "STEP 1: run mrc and qtc on split 0"
@@ -42,17 +42,3 @@ python primeqa/boolqa/run_score_normalizer.py \
         --gold_file ${data_dir}/tydiqa-v1.0-dev-00.jsonl.gz \
         --output_dir ${output_dir} \
         --google_format
-
-echo "========"
-echo "STEP 3: run boolean mrc on split 1"
-echo "========"
-python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
-       --eval_file ${data_dir}/tydiqa-v1.0-dev-01.jsonl.gz \
-       --output_dir ${output_dir}/mrc-dev01 --fp16 \
-       --do_eval \
-       --per_device_eval_batch_size 128 \
-       --do_boolean --boolean_config  primeqa/boolqa/tydi_boolqa_config.json \
-       --overwrite_output_dir \
-       --overwrite_cache \
-       --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
-       --preprocessing_num_workers 10

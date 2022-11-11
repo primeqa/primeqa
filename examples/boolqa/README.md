@@ -16,35 +16,6 @@ independent of question type.
 
 - Finally we integrate these models into the configuration file so that the `do_boolean` option in `run_mrc.py` can use them.
 
-## Description
-
-Instructions for generating csv files for boolean question type and evidence span classification from the [TyDi HF]() dataset. The outputted files can be used in companion with [run_nway_classifier.py](../../primeqa/text_classification/run_nway_classifier.py) (see [README](../../primeqa/text_classification/README.md)) for classification. 
-
-```
-TRAIN_OUTPUT_FILE = /location/to/save/output.csv
-
-PrimeQA/examples/boolqa/bool_tydi2csv.py
-        --output_dir $TRAIN_OUTPUT_DIR
-```
-
-There is also the option to save all text in lower case using the `--lower_case` argument.
-
-This will dump train and dev files for question type (`qtype_*.csv`) and evidence span (`evidence_span_*.csv`). The outputted files are formatted as follows:
-
-Question Type:
-
-|example_id|question|language|label|
-| :---: | :---: | :---: | :---: |
-|166917|หม่อมราชวงศ์สุขุมพันธุ์ บริพัตร เรียนจบจากที่ไหน ?|thai|other|
-|166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|other|
-
-Evidence Span:
-
-|example_id|question|language|label|passage|
-| :---: | :---: | :---: | :---: | :---: |
-|166917|หม่อมราชวงศ์สุขุมพันธุ์ บริพัตร เรียนจบจากที่ไหน ?|thai|NONE| หมวดหมู่:หม่อมราชวงศ์ หมวดหมู่:ราชสกุลบริพัตร หมวดหมู่:นักการเมืองไทย สุขุมพันธุ์ หมวดหมู่:พรรคประชาธิปัตย์ หมวดหมู่:รองศาสตราจารย์ หมวดหมู่:อาจารย์คณะรัฐศาสตร์ หมวดหมู่:บุคคลจากคณะรัฐศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ป.ช. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ว.ม. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ต.จ. (ฝ่ายหน้า) หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ บ.ภ. หมวดหมู่:บุคคลจากมหาวิทยาลัยออกซฟอร์ด หมวดหมู่:สมาชิกสภาผู้แทนราษฎรกรุงเทพมหานคร หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบสัดส่วน หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบบัญชีรายชื่อ หมวดหมู่:ชาวไทยเชื้อสายมลายู  หมวดหมู่:ราชสกุลปาลกะวงศ์|
-|166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|NONE|"Proxima Centauri (yaani nyota ya Kantarusi iliyo karibu zaidi nasi) imegunduliwa kuwa na sayari moja. Vipimo vinavyopatikana hadi sasa zinaonyesha uwezekano mkubwa ya kwamba sayari hii ni ya mwamba (kama dunia yetu, Mirihi au Zuhura) na inaweza kuwa na angahewa, tena katika upeo wa joto unaoruhusu kuwepo kwa uhai. [1]"|
-
 ### Adapting the MRC component
 We use as a starting point an MRC model trained on NQ, TyDi, and SQuad.  Support for training this model is coming soon.
 We then do 1 additional epoch of training
@@ -72,12 +43,32 @@ This procedure yielded `eval_avg_minimal_f1=0.7006`.
 ### Training the QTC and EVC components
 
 First we subset the tydi data so that the QTC trainer only sees the answerable questions and the EVC trainer only sees the answerable boolean questions:
+
 ```
 python examples/boolqa/bool_tydi2csv.py --output_dir ${DATA_DIR}
 ```
-This script will output files for QTC (`qtype_*.csv`) and EVC (`evidence_span_*.csv`) for train, validation, and testing. The test files will have all questions (including unanswerable) in the dev set without labels.
+
+There is also the option to save all text in lower case using the `--lower_case` argument.
+
+This script will output files for QTC (`qtype_*.csv`) and EVC (`evidence_span_*.csv`) for train, validation, and testing. The test files will have all questions (including unanswerable) in the dev set without labels. Sample output is below.
+
+Question Type:
+
+|example_id|question|language|label|
+| :---: | :---: | :---: | :---: |
+|166917|หม่อมราชวงศ์สุขุมพันธุ์ บริพัตร เรียนจบจากที่ไหน ?|thai|other|
+|166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|other|
+
+Evidence Span:
+
+|example_id|question|language|label|passage|
+| :---: | :---: | :---: | :---: | :---: |
+|166917|หม่อมราชวงศ์สุขุมพันธุ์ บริพัตร เรียนจบจากที่ไหน ?|thai|NONE| หมวดหมู่:หม่อมราชวงศ์ หมวดหมู่:ราชสกุลบริพัตร หมวดหมู่:นักการเมืองไทย สุขุมพันธุ์ หมวดหมู่:พรรคประชาธิปัตย์ หมวดหมู่:รองศาสตราจารย์ หมวดหมู่:อาจารย์คณะรัฐศาสตร์ หมวดหมู่:บุคคลจากคณะรัฐศาสตร์ จุฬาลงกรณ์มหาวิทยาลัย หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ป.ช. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ม.ว.ม. หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ ต.จ. (ฝ่ายหน้า) หมวดหมู่:สมาชิกเครื่องราชอิสริยาภรณ์ บ.ภ. หมวดหมู่:บุคคลจากมหาวิทยาลัยออกซฟอร์ด หมวดหมู่:สมาชิกสภาผู้แทนราษฎรกรุงเทพมหานคร หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบสัดส่วน หมวดหมู่:สมาชิกสภาผู้แทนราษฎรไทยแบบบัญชีรายชื่อ หมวดหมู่:ชาวไทยเชื้อสายมลายู  หมวดหมู่:ราชสกุลปาลกะวงศ์|
+|166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|NONE|"Proxima Centauri (yaani nyota ya Kantarusi iliyo karibu zaidi nasi) imegunduliwa kuwa na sayari moja. Vipimo vinavyopatikana hadi sasa zinaonyesha uwezekano mkubwa ya kwamba sayari hii ni ya mwamba (kama dunia yetu, Mirihi au Zuhura) na inaweza kuwa na angahewa, tena katika upeo wa joto unaoruhusu kuwepo kwa uhai. [1]"|
 
 #### QTC
+
+Then we train the QTC classifier
 
 ```
 seed=42
@@ -107,7 +98,7 @@ This yielded f-measures of 0.969 on the boolean questions, and 0.996 on the shor
 
 #### EVC 
 
-Then we train the classifier
+Then we train the EVC classifier
 ```
 epochs=10
 seed=1235
@@ -139,8 +130,73 @@ This yielded f-measures of 0.6 on the NO questions, and 0.93 on the YES question
 
 ### Training the Score Normalizer:
 
-The following script will split the training data into to two parts to train and evaluate the score normalizer (90%/10%). It will run `run_mrc.py` with `--do_boolean` on the training portion (90%) to get the scores produced from `run_mrc.py` and the question type labels (`boolean`, `other`). Finally, the scores and question labels will be used to train the the score normalizer and evaluate on the remaining portion of the training set (10%). The final output will be stored in the `run_mrc.py` prediction file in `output_dir/sn`.
+The following script will use two halves of the dev data to train and evaluate the score normalizer. It will run `run_mrc.py` on the first half to get the scores produced from `run_mrc.py` and `run_nway_classifier.py` with the QTC data to get the question type labels (`boolean`, `other`). You must supply the following arguments in the script: 
 
 ```
-bash examples/boolqa/train_score_normalizer_for_tydi.sh
+output_dir="<Location to store output>"
+model_dir="<local model or model on HF hub"
+data_dir="<location of TyDi dev split in two files"
 ```
+Run the script using the following command:
+
+```
+bash examples/boolqa/train_score_normalizer_for_tydi_leaderboard.sh
+```
+
+### Run Boolean MRC:
+
+The scores and question labels produced by the score normalizer will be used to evaluate the second half of the dev set. The final output will be stored in the `run_mrc.py` prediction file in `output_dir/sn`.
+
+The `${config.json}` file must be configured for `--do_boolean` before running `run_mrc.py`:
+
+```
+
+
+{
+    "qtc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": null,
+        "label_list": ["boolean","other"],
+        "output_label_prefix": "question_type",
+        "overwrite_cache": true,
+        "use_auth_token": true,
+        "model_name_or_path": "${qtc_model}",
+        "do_predict": true
+    },
+    "evc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": "passage_answer_text",
+        "label_list": ["no", "yes"],
+        "output_label_prefix": "boolean_answer",
+        "overwrite_cache": true,
+        "use_auth_token": true,
+        "model_name_or_path": "${evc_model}",
+        "do_predict": true
+    },
+    "sn": {
+        "do_apply": true,
+        "model_name_or_path": "${sn_model}",
+        "qtc_is_boolean_label": "boolean",
+        "evc_no_answer_class": "no_answer"
+    }
+}
+```
+
+You can now run `run_mrc.py`!
+
+```
+python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
+       --eval_file ${data_dir}/tydiqa-v1.0-dev-01.jsonl.gz \
+       --output_dir ${output_dir}/mrc-dev01 --fp16 \
+       --do_eval \
+       --per_device_eval_batch_size 128 \
+       --do_boolean --boolean_config  ${config.json} \
+       --overwrite_output_dir \
+       --overwrite_cache \
+       --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
+```
+
+
+The yielded f-measures of 0.751 Minimal and	0.780 Passage on the second half of the TyDi dev set using the best model.
