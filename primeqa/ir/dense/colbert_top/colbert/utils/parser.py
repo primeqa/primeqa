@@ -43,7 +43,7 @@ class Arguments():
         self.add_argument('--checkpoint', dest='checkpoint', default=None, required=False)
 
         self.add_argument('--init_from_lm', dest='init_from_lm', default=None, required=False)
-        self.add_argument('--model_type', dest='model_type', default='bert-base-uncased', choices=['bert-base-uncased', 'bert-large-uncased','xlm-roberta-base','xlm-roberta-large', 'tinybert'], required=False)
+        self.add_argument('--model_type', dest='model_type', default='bert-base-uncased', choices=['bert-base-uncased', 'bert-large-uncased','xlm-roberta-base','xlm-roberta-large', 'tinybert', 'custom_v6'], required=False)
 
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
@@ -70,7 +70,7 @@ class Arguments():
         self.add_argument('--teacher_checkpoint', dest='teacher_checkpoint', default=None, required=False)
         self.add_argument('--student_teacher_temperature', dest='student_teacher_temperature', default=1.0, type=float)
         self.add_argument('--student_teacher_top_loss_weight', dest='student_teacher_top_loss_weight', default=0.5, type=float)
-        self.add_argument('--teacher_model_type', dest='teacher_model_type', choices=['bert-base-uncased','bert-large-uncased','roberta-base','roberta-large', 'xlm-roberta-base','xlm-roberta-large','bert-base-multilingual-cased','bert-base-multilingual-uncased'], default=None, required=False )
+        self.add_argument('--teacher_model_type', dest='teacher_model_type', choices=['bert-base-uncased','bert-large-uncased','roberta-base','roberta-large', 'xlm-roberta-base','xlm-roberta-large', 'facebook/xlm-roberta-xl', 'bert-base-multilingual-cased','bert-base-multilingual-uncased'], default=None, required=False )
         self.add_argument('--teacher_doc_maxlen', dest='teacher_doc_maxlen', default=180, type=int)
         self.add_argument('--distill_query_passage_separately', dest='distill_query_passage_separately', default=False, required=False, type=bool)
         self.add_argument('--query_only', dest='query_only', default=False, required=False, type=bool)
