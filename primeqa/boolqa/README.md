@@ -18,6 +18,10 @@
 
 # TyDiQA with support for Boolean questions
 
+Here we describe how PrimeQA supports both the boolean questions and the short answer questions  in the TyDiQA dataset.  This
+description is inference-only, assuming existing models.  For a description of how such models are trained as part of the 
+11/1/2022 TyDiQA leaderboard submission, see the [README](../../examples/boolqa/README.md) 
+
 The TyDiQA dataset can be decoded, with full support for both the boolean and short-answer questions in two different ways:
 First, as a single command line argument in `run_mrc.py` to run all steps, and secondly, as a step-by-step process detailed in the 
 later sections of this README.  
