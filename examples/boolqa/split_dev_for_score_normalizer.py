@@ -7,6 +7,7 @@ import json
 import gzip
 import logging
 from venv import create
+import argparse
 
 def get_ids_from_files(file_name, f_out, split):
     
@@ -46,12 +47,26 @@ def generate_splits(input_file, split_file, output_dir):
     split_files["split1"].close()
     split_files["split2"].close()
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='create the data split for training the tydi score normalizer')
+    parser.add_argument('--output_dir',
+        help='the output directory',
+        type=str)  
+    parser.add_argument('--original_tydi_dir',
+        help='directory the original tydi is located in',
+        type=str)  
+    args = parser.parse_args()
+    return args
+    
+
 def main():
+    args = parse_arguments()
+
     split_dir = "examples/boolqa"
     # set this to the location of the original tydi downloaded from google:
-    original = "input_dir/tydiqa-v1.0-dev.jsonl.gz"
+    original = args.original_tydi_dir + "/tydiqa-v1.0-dev.jsonl.gz"
     # set this to the location to save the new split
-    output_dir = "output_dir"
+    output_dir = args.output_dir
     
     generate_splits(original, split_dir, output_dir)
 

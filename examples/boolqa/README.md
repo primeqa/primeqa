@@ -130,13 +130,20 @@ This yielded f-measures of 0.6 on the NO questions, and 0.93 on the YES question
 
 ### Training the Score Normalizer:
 
-The following script will use two halves of the dev data to train and evaluate the score normalizer. It will run `run_mrc.py` on the first half to get the scores produced from `run_mrc.py` and `run_nway_classifier.py` with the QTC data to get the question type labels (`boolean`, `other`). You must supply the following arguments in the script: 
+Before training the score normalizer, the TyDi dev set must be split in two halves using the following script:
+
+```
+python examples/boolqa/split_dev_for_score_normalizer.py --original_tydi_dir <original_tydi_dev> --output_dir <output_dir>
+```
+
+The following script will use the two halves of the dev data generated above to train and evaluate the score normalizer. It will run `run_mrc.py` on the first half to get the scores produced from `run_mrc.py` and `run_nway_classifier.py` with the QTC data to get the question type labels (`boolean`, `other`). You must supply the following arguments in the script: 
 
 ```
 output_dir="<Location to store output>"
 model_dir="<local model or model on HF hub"
 data_dir="<location of TyDi dev split in two files"
 ```
+
 Run the script using the following command:
 
 ```
