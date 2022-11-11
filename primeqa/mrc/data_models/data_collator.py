@@ -4,11 +4,14 @@ from transformers.file_utils import PaddingStrategy
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 import torch
 
-# Modified from DataCollatorForSeq2Seq
-# convert feature list to tensor
+
 @dataclass
 class FiDDataCollator:
-
+    r"""
+    Modified from DataCollatorForSeq2Seq
+    Do not pad the features for FID 
+    The padding has been done in the preprocessor
+    """
     tokenizer: PreTrainedTokenizerBase
     model: Optional[Any] = None
     padding: Union[bool, str, PaddingStrategy] = True

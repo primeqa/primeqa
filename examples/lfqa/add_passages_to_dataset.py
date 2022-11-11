@@ -1,3 +1,8 @@
+# This reads the original KILT-ELI5 train and dev files in jsonl format
+# Reads the search results: the ids of the matching passages for every question 
+# Uses the passage ids to extract the passage text from the collection 
+# For every example in the KILT-ELI5 files, create a new field called passages
+# Save the KILT-ELI5 with supporting passages on disk
 import argparse
 import os
 from datasets import load_dataset
@@ -16,10 +21,10 @@ def parse_arguments():
         help='the QA test file',
         type=str)
     parser.add_argument('--search_result_location',  
-        help='the output directory with the search result for the train dev and test queries',
+        help='the output directory with the search result for the train, dev and test queries',
         type=str) 
     parser.add_argument('--collection',  
-        help='The corpus file with all passages',
+        help='The corpus file with all the passages',
         type=str) 
     parser.add_argument('--output_dir',  
         help='the output directory with the train and dev queries',

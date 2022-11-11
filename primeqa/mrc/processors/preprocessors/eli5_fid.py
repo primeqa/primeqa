@@ -71,10 +71,10 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
         '''
         Param: 
             batch_text_passages: (bsz, n_doc, )
+            all passages are encoded and padded to max_length
+            not using max padding will complicate the FID Data Collator
+            the input in the FID system does not need to be padded again
         '''
-        # all passages are encoded and padded to max_length
-        # not using max padding will complicate the FID Data Collator
-        # the input in the FID system does not need to be padded again
         passage_ids, passage_masks = [], []
         for text_passages in batch_text_passages:
             p = self._tokenizer(

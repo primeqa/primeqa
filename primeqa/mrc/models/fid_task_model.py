@@ -8,6 +8,17 @@ from transformers.modeling_outputs import BaseModelOutput
 from primeqa.mrc.models.heads.abstract import AbstractTaskHead
 
 class EncoderWrapper(torch.nn.Module):
+    """
+    EncoderWrapper for the FiD model
+    
+    B - Batch size
+    N the number of passages per example
+    L the max seq length
+    
+    The EncoderWrapper transforms the input from  B * (N * L) to (B * N) * L
+    Every passage of size L is encoded separatelly 
+    After the encoder, concatenate encoder output for all N passages
+    """
     def __init__(self, encoder, use_checkpoint=False):
         super().__init__()
         self.encoder = encoder
@@ -15,7 +26,7 @@ class EncoderWrapper(torch.nn.Module):
     
     def forward(self, input_ids=None, attention_mask=None, return_dict=False, **kwargs):
         # total_length = n_passages * passage_length
-        if input_ids.dim() == 3: # the generate() function directly call the encoder, so we don't have chance to resize before encoder TODO
+        if input_ids.dim() == 3: # the generate() function directly calls the encoder, so we don't have chance to resize before encoder
             input_ids = input_ids.view(input_ids.size(0), -1)
         bsz, total_length = input_ids.shape # B * (N * L)
         passage_length = total_length // self.n_passages
@@ -32,7 +43,8 @@ class EncoderWrapper(torch.nn.Module):
 
 class FiDModelForDownstreamTasks(PreTrainedModel):
     """
-    Language model for downstream tasks.  Tasks are implemented via task heads which subclass `AbstractTaskHead`.
+    Generative language model for downstream tasks.  
+    For the generative model the task head is not used
     """
 
     def __init__(self,
@@ -43,7 +55,7 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
             config: Model config
             task_heads: dict mapping task head name to constructor
                         Task heads are given in the input for easier integration with run_mrc.py 
-                        THe task head is expected to be None and not used in the code
+                        The task head is expected to be None and not used in the code
         """
         super().__init__(config)
         self._logger = logging.getLogger(self.__class__.__name__)

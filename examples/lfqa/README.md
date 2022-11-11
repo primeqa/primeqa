@@ -5,7 +5,7 @@ LFQA is a form of generative question answering. Given a question,  the retrieve
 
 ## KILT-ELI5
 
-The following shows how to build information retrieval and reader components to generate answers for the KIlT-ELI5 dataset.
+The following shows how to build retriever and reader components to generate answers for the KIlT-ELI5 dataset.
 
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
@@ -35,7 +35,7 @@ python examples/lfqa/kilt_passage_corpus.py \
 ### 3. Create a Dense Index with ColBERT
 
 At this point it is assumed that a ColBERT checkpoint already exists at `$COLBERT_CHECKPOINT`.
-
+Instructions for training a ColBERT model can be found [here](https://github.com/primeqa/primeqa/blob/main/primeqa/ir/README.md)
 ```
 python primeqa/ir/run_ir.py \
     --do_index \
@@ -53,7 +53,9 @@ python primeqa/ir/run_ir.py \
     --num_partitions_max 50000 \
 ```
 
-### 4. Create the Query Files for the ELI5 Dataset
+### 4. Create the Query Files for the KILT-ELI5 Dataset
+
+The query files are used by the retriever to search the index for supporting documents. Since the KILT-ELI5 dataset has a large number of examples, we recommend creating multiple query files that can be used to perform the search in parallel. 
 
 ```
 python examples/lfqa/create_ir_queries_from_dataset.py \
@@ -63,9 +65,9 @@ python examples/lfqa/create_ir_queries_from_dataset.py \
     --output_dir $KILT_ELI5/queries \
 ```
 
-### 4. Run the Search for the ELI5 Dataset
+### 4. Run the Search for the KILT-ELI5 Dataset
 
-The search is designed to run in parallel for chuncks of max 50000 queries. 
+The search is designed to run in parallel for chunks of max 50000 queries. 
 
 ```
 mkdir -p $(dirname $KILT_ELI5/search_results)
@@ -96,7 +98,7 @@ python primeqa/ir/run_ir.py \
 ; done
 ```
 
-### 5. Add the Supporting Passages for the ELI5 Dataset
+### 5. Add the Supporting Passages for the KILT-ELI5 Dataset
 
 ```
 python examples/lfqa/add_passages_to_dataset.py \
@@ -107,12 +109,12 @@ python examples/lfqa/add_passages_to_dataset.py \
     --collection $KILT_ELI5/passages/kilt_knowledgesource_0.tsv \
 ```
 
-### 6. Run the Reader Component on the Eli5 Dataset with Supporting Passages
+### 6. Run the Reader Component on the KILT-ELI5 Dataset with Supporting Passages
 
 The command below trains and evaluates an FiD generative reader model based on `facebook/bart-large`.<br>
-The number of supporting passages is 3. 
-The max length of the inout text is 256. 
-The max length of the generated anser is 256. <br>
+The number of supporting passages is 3. <br>
+The max length of the input text is 256. <br>
+The max length of the generated answer is 256. <br>
 We train the model for 3 epochs and we save the best model at the end. 
 
 ```

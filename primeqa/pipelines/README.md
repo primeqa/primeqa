@@ -104,7 +104,7 @@ print(json.dumps(answers, indent=4))
 
 ### Generative FiD Reader
 
-A Generative Reader takes a question and uses a set of supporting passages to qenerate an answer. Compared to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.
+A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.
 
 PrimeQA implements a [Fusion In Decoder(FiD)](https://arxiv.org/abs/2007.01282) generative reader. 
 
@@ -163,19 +163,20 @@ Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be fou
 
 ```python
 retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, collection = collection, max_num_documents = 3)
+retriever.load()
 ```
 
-- Step 2:  Initialize the reader model. You can choose any the generative QA model we currently have ...
+- Step 2:  Initialize the reader model. 
 
 ```python
 reader = GenerativeFiDReader(model_name_or_path = model)
+reader.load()
 ```
 
 - Step 3:  Initialize the QA pipeline. 
 
 ```python
 lfqa_pipeline = QAPipeline(retriever, reader)
-lfqa_pipeline.load()
 ```
 
 - Step 4:  Execute the LFQA pipeline in inference mode. 
