@@ -1,3 +1,21 @@
+## Training a full TyDi model
+
+Here we describe how to train the TyDi model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDi leaderboard on 11/1/2022.
+This model has full support for boolean questions.  For simplified inference-only TyDi with suppport for boolean questions using earlier models,
+please see [here](../../primeqa/boolqa/README.md).
+Training this model is a multistage process:
+
+- first we customize a general-purpose MRC model to Tydi
+
+- then we train a question type classifier that determines if questions are short answer or yes/no.
+
+- then we train an evidence classifier that decides how the yes/no quesitons should be answered
+
+- then we train a score normalizer so that the answerable/non-answerable distinctions are reflected in the confidence score,
+independent of question type.
+
+- Finally we integrate these models into the configuration file so that the `do_boolean` option in `run_mrc.py` can use them.
+
 ## Description
 
 Instructions for generating csv files for boolean question type and evidence span classification from the [TyDi HF]() dataset. The outputted files can be used in companion with [run_nway_classifier.py](../../primeqa/text_classification/run_nway_classifier.py) (see [README](../../primeqa/text_classification/README.md)) for classification. 
@@ -28,7 +46,8 @@ Evidence Span:
 |166918|Ukubwa wa Rijili Kantori ni kiasi gani?|swahili|NONE|"Proxima Centauri (yaani nyota ya Kantarusi iliyo karibu zaidi nasi) imegunduliwa kuwa na sayari moja. Vipimo vinavyopatikana hadi sasa zinaonyesha uwezekano mkubwa ya kwamba sayari hii ni ya mwamba (kama dunia yetu, Mirihi au Zuhura) na inaweza kuwa na angahewa, tena katika upeo wa joto unaoruhusu kuwepo kwa uhai. [1]"|
 
 ### Adapting the MRC component
-We use as a starting point an MRC model trained on NQ, TyDi, and SQuad.  We then do 1 additional epoch of training
+We use as a starting point an MRC model trained on NQ, TyDi, and SQuad.  Support for training this model is coming soon.
+We then do 1 additional epoch of training
 with TyDi.  Since Tydi does not provide minimal answer begin and ends for boolean questions, we use a custom preprocessor 
 that maps the passage answer begin and ends as the reference for training examples.  We will not need this preprocessor at inference time.
 ```
