@@ -4,11 +4,15 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert import HF_ColBERT
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
-
 # xlmr imports
 from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
+
+# custom_v6 imports
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom_v6 import HF_ColBERT_custom_v6
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_custom_v6 import DocTokenizerCustomV6
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_custom_v6 import QueryTokenizerCustomV6
 
 import os
 import json
@@ -53,6 +57,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         # e.g. from https://huggingface.co/huawei-noah/TinyBERT_General_4L_312D/tree/main
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         colbert = HF_ColBERT_XLMR.from_pretrained(name, colbert_config)
+    elif model_type=='custom_v6':
+        colbert = HF_ColBERT_custom_v6.from_pretrained(name, colbert_config)
     else:
         raise NotImplementedError
 
@@ -79,6 +85,8 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
         return QueryTokenizer(maxlen, 'bert-base-uncased',attend_to_mask_tokens)
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return QueryTokenizerXLMR(maxlen, model_type)
+    elif model_type=='custom_v6':
+        return QueryTokenizerCustomV6(maxlen, model_type)
     else:
         raise NotImplementedError
 
@@ -103,5 +111,7 @@ def get_doc_tokenizer(model_type, maxlen):
         return DocTokenizer(maxlen, 'bert-base-uncased')
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return DocTokenizerXLMR(maxlen, model_type)
+    elif model_type=='custom_v6':
+        return DocTokenizerCustomV6(maxlen, model_type)
     else:
         raise NotImplementedError
