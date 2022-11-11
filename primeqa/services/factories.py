@@ -80,11 +80,15 @@ class ReaderFactory:
 
             # Step 4.d: Start loading
             try:
-                cls._logger.info("Loading %s ...", reader.__name__)
+                cls._logger.info(
+                    "Loading '%s' reader with parameters = %s",
+                    reader.__name__,
+                    reader_kwargs,
+                )
                 start_t = time.time()
                 instance.load(load_args, load_kwargs)
                 cls._logger.info(
-                    "%s - loading took %.2f seconds",
+                    "'%s' reader - loading took %.2f seconds",
                     reader.__name__,
                     time.time() - start_t,
                 )
@@ -159,11 +163,15 @@ class RetrieverFactory:
 
             # Step 4.d: Start loading
             try:
-                cls._logger.info("Loading %s ...", retriever.__name__)
+                cls._logger.info(
+                    "Loading '%s' retriever with parameters = %s",
+                    retriever.__name__,
+                    retriever_kwargs,
+                )
                 start_t = time.time()
                 instance.load(load_args, load_kwargs)
                 cls._logger.info(
-                    "%s - loading took %.2f seconds",
+                    "'%s' retriever - loading took %.2f seconds",
                     retriever.__name__,
                     time.time() - start_t,
                 )

@@ -150,6 +150,12 @@ class ReaderService(ReaderServicer):
                         context=[[text] for text in request.contexts[idx].texts],
                         **reader_kwargs,
                     )
+                    self._logger.info(
+                        "Applying '%s' reader for query = '%s' returns predictions = %s",
+                        instance.__class__.__name__,
+                        query,
+                        predictions,
+                    )
 
                     # Step 5.b: Add answers for current query into response object
                     answers_response.query_answers.append(
