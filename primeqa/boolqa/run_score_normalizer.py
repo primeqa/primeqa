@@ -18,7 +18,7 @@ def main(args):
                         args.qtc_is_boolean_label, 
                         args.evc_no_answer_class)
     elif args.do_train:
-        sn = ScoreNormalizer()
+        sn = ScoreNormalizer(google_format=args.google_format)
         sn.train(args.train_file,
                  args.gold_file,
                  args.output_dir,
@@ -54,6 +54,8 @@ def parse_arguments():
                     help='the value assigned to the question_type_pred field for boolean questions')
     parser.add_argument('--evc_no_answer_class', type=str, default='no_answer',
                     help='the class label in the boolean_answer_scores field for no_answer questions')
+    parser.add_argument('--google_format', action='store_true',
+                    help='Use Google TyDi format instead of HF TyDi format')
     
     args = parser.parse_args()
     return args
