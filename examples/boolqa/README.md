@@ -1,7 +1,7 @@
-## Training a full TyDi model
+# Training a full TyDiQA model
 
-Here we describe how to train the TyDi model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDi leaderboard on 11/1/2022.
-This model has full support for boolean questions.  For simplified inference-only TyDi with suppport for boolean questions using earlier models,
+Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDi leaderboard on 11/1/2022.
+This model has full support for boolean questions.  For simplified inference-only TyDiQA with suppport for boolean questions using earlier models,
 please see [here](../../primeqa/boolqa/README.md).
 Training this model is a multistage process:
 
