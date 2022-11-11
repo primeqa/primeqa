@@ -159,10 +159,26 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 5: Run apply method
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
                 answers_response = []
                 try:
                     for idx, query in enumerate(request.queries):
                         # Step 5.a: Run "apply" per query
+                        self._logger.info(
+                            "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
+                            instance.__class__.__name__,
+                            {
+                                k: getattr(instance, k) if k in instance_fields else v
+                                for k, v in reader_kwargs.items()
+                            },
+                            query,
+                            request.contexts[idx].texts,
+                        )
                         try:
                             predictions = instance.apply(
                                 input_texts=[query] * len(request.contexts[idx]),
@@ -502,9 +518,30 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 6: Retrieve
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
+                self._logger.info(
+                    "Applying '%s' retriever with parameters = %s for queries = %s",
+                    instance.__class__.__name__,
+                    {
+                        k: getattr(instance, k) if k in instance_fields else v
+                        for k, v in retriever_kwargs.items()
+                    },
+                    request.queries,
+                )
                 try:
                     results = instance.retrieve(
                         input_texts=request.queries, **retriever_kwargs
+                    )
+                    self._logger.info(
+                        "Applying '%s' retriever for queries = %s returns results = %s",
+                        instance.__class__.__name__,
+                        request.queries,
+                        results,
                     )
                 except TypeError as err:
                     raise Error(

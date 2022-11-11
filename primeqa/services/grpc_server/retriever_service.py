@@ -183,6 +183,12 @@ class RetrieverService(RetrieverServicer):
         )
         try:
             results = instance.retrieve(input_texts=request.queries, **retriever_kwargs)
+            self._logger.info(
+                "Applying '%s' retriever for queries = %s returns results = %s",
+                instance.__class__.__name__,
+                request.queries,
+                results,
+            )
         except TypeError:
             context.set_code(StatusCode.INTERNAL)
             context.set_details(

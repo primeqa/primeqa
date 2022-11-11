@@ -14,6 +14,15 @@ class Component(ABC):
 class ReaderComponent(Component):
     @abstractmethod
     def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `ReaderComponent`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -56,6 +65,15 @@ class RetrieverComponent(Component):
 
     @abstractmethod
     def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `RetrieverComponent`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
         raise NotImplementedError
 
     @abstractmethod

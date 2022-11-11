@@ -16,10 +16,16 @@ class ColBERTRetriever(RetrieverComponent):
         index_name: str
         checkpoint (str, optional): Model to load. Defaults to checkpoint in index configuration.
         collection (str, optional): collection to load. Defaults to collection in index configuration.
-        max_num_documents (int, optional): Maximum number of retrieved document. Defaults to 100.
+        max_num_documents (int, optional): Maximum number of retrieved document. Defaults to 5.
         ncells (int, optional): Number of cells. Defaults to None.
         centroid_score_threshold (float, optional): Centroid score threshold. Defaults to None.
         ndocs (int, optional): Number of documents in PLAID Stage 1. Defaults to None.
+
+    Important:
+    1. Each field has metadata property which can carry additional information for other downstream usages.
+    2. Two special keys (api_support and exclude_from_hash) are defined in "metadata" property.
+        a. api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.
+        b. exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.
 
     Returns:
         _type_: _description_
