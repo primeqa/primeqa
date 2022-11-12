@@ -205,5 +205,5 @@ python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
        --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
 ```
 
-
+As before, the final results are in `${output_dir}/run/sn/all_results.json`.
 The yielded f-measures of 0.751 Minimal and	0.780 Passage on the second half of the TyDi dev set using the best model.
