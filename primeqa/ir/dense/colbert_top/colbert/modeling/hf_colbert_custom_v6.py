@@ -66,7 +66,7 @@ class HF_ColBERT_custom_v6(RobertaModel):
             # based on reading /dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22/vocab.json
             config.vocab_size = 65536
             config.bos_token_id = 0
-            config.pad_token_id = 1
+            # config.pad_token_id = 1
             config.eos_token_id = 2
             config.pad_token_id = 0
             obj = super().from_pretrained(base, config=config, state_dict=state_dict, colbert_config=colbert_config)
@@ -85,7 +85,7 @@ class HF_ColBERT_custom_v6(RobertaModel):
         # based on reading /dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22/vocab.json
         config.vocab_size = 65536
         config.bos_token_id = 0
-        config.pad_token_id = 1
+        # config.pad_token_id = 1
         config.eos_token_id = 2
         config.pad_token_id = 0
         #config1 = AutoConfig.from_pretrained('/dccstor/bsiyer6/public/nasa/model')
