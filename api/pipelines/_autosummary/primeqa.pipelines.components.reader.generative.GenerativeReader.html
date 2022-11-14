@@ -466,6 +466,15 @@
 <dd><p>Bases: <a class="reference internal" href="primeqa.pipelines.components.base.ReaderComponent.html#primeqa.pipelines.components.base.ReaderComponent" title="primeqa.pipelines.components.base.ReaderComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.pipelines.components.base.ReaderComponent</span></code></a></p>
 <p>_summary_</p>
 <p>Args:</p>
+<p>Important:
+1. Each field has metadata property which can carry additional information for other downstream usages.
+2. Two special keys (api_support and exclude_from_hash) are defined in “metadata” property.</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.</p></li>
+<li><p>exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.</p></li>
+</ol>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>_description_</p>

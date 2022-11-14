@@ -468,7 +468,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>str</em><em>, </em><em>optional</em>) – Model. Defaults to “PrimeQA/tydiqa-primary-task-xlm-roberta-large”.</p></li>
+<li><p><strong>model</strong> (<em>str</em><em>, </em><em>optional</em>) – Model. Defaults to “PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110”.</p></li>
 <li><p><strong>use_fast</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set to “True”, uses the fast version of the tokenizer. Defaults to True.</p></li>
 <li><p><strong>stride</strong> (<em>int</em><em>, </em><em>optional</em>) – Step size to move sliding window across context. Defaults to 128.</p></li>
 <li><p><strong>max_seq_len</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.</p></li>
@@ -479,11 +479,27 @@
 <li><p><strong>min_score_threshold</strong> – (float, optional): Minimum score threshold. Defaults to None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>_description_</p>
+</dl>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<ol class="arabic simple">
+<li><p>Each field has metadata property which can carry additional information for other downstream usages.</p></li>
+<li><dl class="simple">
+<dt>Two special keys (api_support and exclude_from_hash) are defined in “metadata” property.</dt><dd><ol class="loweralpha simple">
+<li><p>api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.</p></li>
+<li><p>exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.</p></li>
+</ol>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>_type_</p>
+</dl>
+</li>
+</ol>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>_description_</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>_type_</p>
 </dd>
 </dl>
 <p class="rubric">Methods</p>

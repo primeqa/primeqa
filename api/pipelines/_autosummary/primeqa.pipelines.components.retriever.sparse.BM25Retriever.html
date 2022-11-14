@@ -462,7 +462,7 @@
 <h1>primeqa.pipelines.components.retriever.sparse.BM25Retriever<a class="headerlink" href="#primeqa-pipelines-components-retriever-sparse-bm25retriever" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="primeqa.pipelines.components.retriever.sparse.BM25Retriever">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.pipelines.components.retriever.sparse.</span></span><span class="sig-name descname"><span class="pre">BM25Retriever</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.pipelines.components.retriever.sparse.BM25Retriever" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.pipelines.components.retriever.sparse.</span></span><span class="sig-name descname"><span class="pre">BM25Retriever</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_num_documents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.pipelines.components.retriever.sparse.BM25Retriever" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="primeqa.pipelines.components.base.RetrieverComponent.html#primeqa.pipelines.components.base.RetrieverComponent" title="primeqa.pipelines.components.base.RetrieverComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.pipelines.components.base.RetrieverComponent</span></code></a></p>
 <p>_summary_</p>
 <dl class="field-list simple">
@@ -470,14 +470,25 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index_root</strong> – str</p></li>
 <li><p><strong>index_name</strong> – str</p></li>
-<li><p><strong>max_num_documents</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of document. Defaults to 100.</p></li>
+<li><p><strong>max_num_documents</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of document. Defaults to 5.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>_description_</p>
+</dl>
+<p>Important:
+1. Each field has metadata property which can carry additional information for other downstream usages.
+2. Two special keys (api_support and exclude_from_hash) are defined in “metadata” property.</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.</p></li>
+<li><p>exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.</p></li>
+</ol>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>_description_</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>_type_</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>_type_</p>
 </dd>
 </dl>
 <p class="rubric">Methods</p>
