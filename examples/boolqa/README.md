@@ -1,11 +1,11 @@
 # Training a full TyDiQA model
 
-Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDi leaderboard on 11/1/2022.
+Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDiQA leaderboard on 11/1/2022.
 This model has full support for boolean questions.  For simplified inference-only TyDiQA with suppport for boolean questions using earlier models,
 please see [here](../../primeqa/boolqa/README.md).
 Training this model is a multistage process:
 
-- first we customize a general-purpose MRC model to Tydi
+- first we customize a general-purpose MRC model for TyDiQA
 
 - then we train a question type classifier that determines if questions are short answer or yes/no.
 
@@ -17,9 +17,9 @@ independent of question type.
 - Finally we integrate these models into the configuration file so that the `do_boolean` option in `run_mrc.py` can use them.
 
 ### Adapting the MRC component
-We use as a starting point an MRC model trained on NQ, TyDi, and SQuad.  Support for training this model is coming soon.
+We use as a starting point an MRC model trained on NQ, TyDiQA, and SQuAD.  Support for training this model is coming soon.
 We then do 1 additional epoch of training
-with TyDi.  Since Tydi does not provide minimal answer begin and ends for boolean questions, we use a custom preprocessor 
+with TyDiQA.  Since TyDiQA does not provide minimal answer begin and ends for boolean questions, we use a custom preprocessor 
 that maps the passage answer begin and ends as the reference for training examples.  We will not need this preprocessor at inference time.
 ```
 epochs=1
@@ -130,7 +130,7 @@ This yielded f-measures of 0.6 on the NO questions, and 0.93 on the YES question
 
 ### Training the Score Normalizer:
 
-Before training the score normalizer, the TyDi dev set (downloaded from [here](https://github.com/google-research-datasets/tydiqa#download-the-dataset)) must be split in two halves using the following script:
+Before training the score normalizer, the TyDiQA dev set (downloaded from [here](https://github.com/google-research-datasets/tydiqa#download-the-dataset)) must be split in two halves using the following script:
 
 ```
 python examples/boolqa/split_dev_for_score_normalizer.py --original_tydi_dir <location of original_tydi_dev> --output_dir <output_dir>
@@ -141,7 +141,7 @@ The following script will use the two halves of the dev data generated above to 
 ```
 output_dir="<Location to store output>"
 model_dir="<local model or model on HF hub"
-data_dir="<location of TyDi dev split in two files"
+data_dir="<location of TyDiQA dev split in two files"
 ```
 
 Run the script using the following command:
@@ -206,4 +206,4 @@ python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
 ```
 
 As before, the final results are in `${output_dir}/run/sn/all_results.json`.
-The yielded f-measures of 0.751 Minimal and	0.780 Passage on the second half of the TyDi dev set using the best model.
+The yielded f-measures of 0.751 Minimal and	0.780 Passage on the second half of the TyDiQA dev set using the best model.
