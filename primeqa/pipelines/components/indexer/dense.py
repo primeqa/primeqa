@@ -1,5 +1,6 @@
 from typing import Union, List
 from dataclasses import dataclass, field
+import json
 
 from primeqa.pipelines.components.base import IndexerComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -25,6 +26,12 @@ class ColBERTIndexer(IndexerComponent):
         kmeans_niters (int, optional): Number of iterations (kmeans). Defaults to 4.
         num_partitions_max (int, optional): Maximum partions size. Defaults to 10000000.
 
+    Important:
+    1. Each field has metadata property which can carry additional information for other downstream usages.
+    2. Two special keys (api_support and exclude_from_hash) are defined in "metadata" property.
+        a. api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.
+        b. exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.
+
     Raises:
         TypeError: _description_
     """
@@ -33,11 +40,16 @@ class ColBERTIndexer(IndexerComponent):
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
+            "api_support": True,
         },
     )
     similarity: str = field(
         default="cosine",
-        metadata={"name": "Similarity", "options": ["cosine", "l2"]},
+        metadata={
+            "name": "Similarity",
+            "options": ["cosine", "l2"],
+            "api_support": True,
+        },
     )
     dim: int = field(
         default=128,
@@ -47,11 +59,19 @@ class ColBERTIndexer(IndexerComponent):
     )
     query_maxlen: int = field(
         default=32,
-        metadata={"name": "Maxium query length", "range": [8, 64, 8]},
+        metadata={
+            "name": "Maxium query length",
+            "range": [8, 64, 8],
+            "api_support": True,
+        },
     )
     doc_maxlen: int = field(
         default=180,
-        metadata={"name": "Maxium document length", "range": [32, 256, 4]},
+        metadata={
+            "name": "Maxium document length",
+            "range": [32, 256, 4],
+            "api_support": True,
+        },
     )
     mask_punctuation: bool = field(
         default=True,
@@ -77,6 +97,7 @@ class ColBERTIndexer(IndexerComponent):
         default=10000000,
         metadata={
             "name": "Maximum number of partitions",
+            "api_support": True,
         },
     )
 
@@ -99,6 +120,11 @@ class ColBERTIndexer(IndexerComponent):
 
         # Placeholder variables
         self._indexer = None
+
+    def __hash__(self) -> int:
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         self._indexer = Indexer(self.checkpoint, config=self._config)

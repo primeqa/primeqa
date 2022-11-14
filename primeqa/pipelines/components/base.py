@@ -13,6 +13,19 @@ class Component(ABC):
 @dataclass(init=False, repr=False, eq=False)
 class ReaderComponent(Component):
     @abstractmethod
+    def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `ReaderComponent`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
@@ -49,6 +62,19 @@ class RetrieverComponent(Component):
             "name": "Index name",
         },
     )
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `RetrieverComponent`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):

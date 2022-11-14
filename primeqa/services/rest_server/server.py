@@ -89,10 +89,26 @@ class RestServer:
             tags=["Reader"],
         )
         def get_readers():
-            return [
-                {"reader_id": reader_id, "parameters": generate_parameters(reader)}
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
+            try:
+                return [
+                    {"reader_id": reader_id, "parameters": generate_parameters(reader)}
+                    for reader_id, reader in READERS_REGISTRY.items()
+                ]
+            except Error as err:
+                error_message = err.args[0]
+
+                # Identify error code
+                mobj = PATTERN_ERROR_MESSAGE.match(error_message)
+                if mobj:
+                    error_code = mobj.group(1).strip()
+                    error_message = mobj.group(2).strip()
+                else:
+                    error_code = 500
+
+                raise HTTPException(
+                    status_code=500,
+                    detail={"code": error_code, "message": error_message},
+                ) from None
 
         @app.post(
             "/answers",
@@ -143,14 +159,37 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 5: Run apply method
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
                 answers_response = []
                 try:
                     for idx, query in enumerate(request.queries):
                         # Step 5.a: Run "apply" per query
+                        self._logger.info(
+                            "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
+                            instance.__class__.__name__,
+                            {
+                                k: getattr(instance, k) if k in instance_fields else v
+                                for k, v in reader_kwargs.items()
+                            },
+                            query,
+                            request.contexts[idx].texts,
+                        )
                         try:
                             predictions = instance.apply(
                                 input_texts=[query] * len(request.contexts[idx]),
                                 context=[[text] for text in request.contexts[idx]],
+                                **reader_kwargs,
+                            )
+                            self._logger.info(
+                                "Applying '%s' reader for query = '%s' returns predictions = %s",
+                                instance.__class__.__name__,
+                                query,
+                                predictions,
                             )
 
                             # Step 5.b: Add answers for current query into response object
@@ -485,9 +524,30 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 6: Retrieve
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
+                self._logger.info(
+                    "Applying '%s' retriever with parameters = %s for queries = %s",
+                    instance.__class__.__name__,
+                    {
+                        k: getattr(instance, k) if k in instance_fields else v
+                        for k, v in retriever_kwargs.items()
+                    },
+                    request.queries,
+                )
                 try:
                     results = instance.retrieve(
-                        input_texts=request.queries,
+                        input_texts=request.queries, **retriever_kwargs
+                    )
+                    self._logger.info(
+                        "Applying '%s' retriever for queries = %s returns results = %s",
+                        instance.__class__.__name__,
+                        request.queries,
+                        results,
                     )
                 except TypeError as err:
                     raise Error(
