@@ -7,11 +7,12 @@ Md Arafat Sultan, Avirup Sil and Radu Florian
 
 To train and validate a model with simple joint training over multiple source domains (no distillation), run the following command:
 ```
-python src/run__mrc.py \
+python primeqa/mrc/run_mrc.py \
        --model_name_or_path bert-large-uncased \
        --output_dir <path-to-output-dir> \
        --fp16 \
        --do_train \
+       --trainer primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer \
        --train_fof <path-to-file-containing-train-file-locations> \
        --learning_rate 3e-5 \
        --per_device_train_batch_size 16 \
@@ -22,6 +23,10 @@ python src/run__mrc.py \
        --save_strategy epoch \
        --do_eval \
        --eval_fof <path-to-file-containing-validation-file-locations> \
+       --per_device_eval_batch_size 128 \
+       --eval_metrics SQUAD \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --overwrite_output_dir \
        --overwrite_cache
 ```
@@ -42,6 +47,7 @@ python src/run_mrc.py \
        --output_dir <path-to-student-output-dir> \
        --fp16 \
        --do_train \
+       --trainer primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer \
        --train_fof <path-to-file-containing-train-file-locations> \
        --learning_rate 3e-5 \
        --per_device_train_batch_size 16 \
@@ -57,6 +63,8 @@ python src/run_mrc.py \
        --eval_fof <path-to-file-containing-validation-file-locations> \
        --per_device_eval_batch_size 128 \
        --eval_metrics SQUAD \
+       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --overwrite_output_dir \
        --overwrite_cache       
 ```

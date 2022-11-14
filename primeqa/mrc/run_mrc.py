@@ -350,8 +350,8 @@ def main():
     else:
         model_args, data_args, training_args, task_args, kd_args = parser.parse_args_into_dataclasses()
 
-    # add knowledge distillation arguments if any to training_args
-    if training_args.do_train and kd_args.kd_teacher_model_path is not None:
+    if training_args.do_train and data_args.train_fof is not None:
+        # add knowledge distillation arguments to training_args        
         kd_args.task_heads = task_args.task_heads
         for k in kd_args.__dict__:
             setattr(training_args, k, getattr(kd_args, k))
@@ -416,7 +416,6 @@ def main():
     model.set_task_head(next(iter(task_heads)))
 
     # load data
-    logger.info('Loading dataset')
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
         def get_raw_datasets(fof):
@@ -428,40 +427,41 @@ def main():
                     raw_dataset = datasets.load_dataset(data_args.data_file_format, data_files=filename, cache_dir=model_args.cache_dir)['train']
                     raw_datasets.append(raw_dataset)
             return raw_datasets #, data_files
+        raw_datasets = {}
         if data_args.train_fof is not None:
             raw_train_datasets = get_raw_datasets(data_args.train_fof)
+            raw_datasets['train'] = raw_train_datasets
         if data_args.eval_fof is not None:            
             raw_validation_datasets = get_raw_datasets(data_args.eval_fof)
-        raw_datasets = {
-            'train': raw_train_datasets,
-            'validation': raw_validation_datasets 
-        }
-    elif data_args.train_file is not None or data_args.eval_file is not None:
-        data_files = {}
-
-        if data_args.train_file is not None: 
-            data_files['train'] = glob.glob(data_args.train_file)
-        if data_args.eval_file is not None: 
-            data_files['validation'] = glob.glob(data_args.eval_file)
-
-        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-            data_files=data_files,
-            cache_dir=model_args.cache_dir)
+            raw_datasets['validation'] = raw_validation_datasets
     else:
-        if data_args.dataset_name == "natural_questions":
-            raw_datasets = datasets.load_dataset(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                cache_dir=model_args.cache_dir,
-                beam_runner=data_args.beam_runner,
-                revision="main"
-            )
-        else: 
-            raw_datasets = datasets.load_dataset(
-                data_args.dataset_name,
-                data_args.dataset_config_name,
-                cache_dir=model_args.cache_dir
-            )
+        logger.info('Loading dataset')        
+        if data_args.train_file is not None or data_args.eval_file is not None:
+            data_files = {}
+
+            if data_args.train_file is not None: 
+                data_files['train'] = glob.glob(data_args.train_file)
+            if data_args.eval_file is not None: 
+                data_files['validation'] = glob.glob(data_args.eval_file)
+
+            raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+                data_files=data_files,
+                cache_dir=model_args.cache_dir)
+        else:
+            if data_args.dataset_name == "natural_questions":
+                raw_datasets = datasets.load_dataset(
+                    data_args.dataset_name,
+                    data_args.dataset_config_name,
+                    cache_dir=model_args.cache_dir,
+                    beam_runner=data_args.beam_runner,
+                    revision="main"
+                )
+            else: 
+                raw_datasets = datasets.load_dataset(
+                    data_args.dataset_name,
+                    data_args.dataset_config_name,
+                    cache_dir=model_args.cache_dir
+                )
 
     # load preprocessor
     preprocessor_class = task_args.preprocessor
@@ -526,7 +526,7 @@ def main():
             eval_dataset = ConcatDataset(eval_datasets)
             setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
         else:
-            eval_examples, eval_dataset = eval_examples[0], eval_dataset[0]        
+            eval_examples, eval_dataset = eval_examples[0], eval_datasets[0]        
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))

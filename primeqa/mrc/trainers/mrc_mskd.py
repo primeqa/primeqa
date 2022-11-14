@@ -133,7 +133,7 @@ class MSKD_MRCTrainer(Trainer):
         self.eval_dataset = eval_dataset
         self.post_process_function = post_process_function
 
-        if self.args.kd_teacher_config_path is not None:
+        if self.args.do_train and self.args.kd_teacher_config_path is not None:
             kd_teacher_config = AutoConfig.from_pretrained(
                 self.args.kd_teacher_config_path
             )
