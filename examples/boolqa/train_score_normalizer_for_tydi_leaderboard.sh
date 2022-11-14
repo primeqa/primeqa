@@ -4,6 +4,7 @@
 output_dir="<Location to store output>"
 model_dir="<local model or model on HF hub"
 data_dir="<location of TyDi dev split in two files"
+qtc_model="<location of query type classifier model directory"
 
 echo "========"
 echo "STEP 1: run mrc and qtc on split 0"
@@ -16,11 +17,11 @@ python primeqa/mrc/run_mrc.py --model_name_or_path $model_dir \
        --overwrite_output_dir \
        --overwrite_cache \
        --preprocessor primeqa.mrc.processors.preprocessors.tydiqa_google.TyDiQAGooglePreprocessor \
-       --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor \
+       --postprocessor primeqa.text_classification.processors.postprocessors.extractive.ExtractivePipelinePostProcessor \
        --preprocessing_num_workers 10
 
 python primeqa/text_classification/run_nway_classifier.py \
-       --model_name_or_path "<QTC model>" \
+       --model_name_or_path ${qtc_model} \
        --example_id_key example_id --sentence1_key question \
        --label_list "boolean", "other" \
        --output_label_prefix question_type \
