@@ -19,7 +19,7 @@ class ExtractiveReader(ReaderComponent):
     """_summary_
 
     Args:
-        model (str, optional): Model. Defaults to "PrimeQA/tydiqa-primary-task-xlm-roberta-large".
+        model (str, optional): Model. Defaults to "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110".
         use_fast (bool, optional): If set to "True", uses the fast version of the tokenizer. Defaults to True.
         stride (int, optional): Step size to move sliding window across context. Defaults to 128.
         max_seq_len (int, optional): Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.
