@@ -1,0 +1,18 @@
+{
+    "retrievers" : [
+        {
+            "name": "ColBERTRetriever",
+            "checkpoint": "<path-to-colbert-model-file>",
+            "index_root": "index-root-dir",
+            "index_name": "index-subdirectory",
+            "max_num_documents": 5,
+            "corpus_tsv_file_path": "<corpus-tsv-file>"
+        }
+    ],
+    "reader" : {
+        "name": "ExtractiveReader",
+        "model_name_or_path": "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+        "max_answer_length": 1000,
+        "max_num_answers": 3
+    }
+}

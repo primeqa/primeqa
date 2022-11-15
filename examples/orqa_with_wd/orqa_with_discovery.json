@@ -1,0 +1,18 @@
+{
+    "retrievers" : [
+        {
+            "name": "WatsonDiscoveryRetriever",
+            "endpoint": "<IBM® Watson Discovery Cloud/CP4D Instance Endpoint>",
+            "apikey": "<API key (If using IBM® Watson Discovery Cloud instance)>",
+            "project_id": "<IBM® Watson Discovery Project ID>",
+            "index_name": "<collection-name>",
+            "max_num_documents": 5
+        }
+    ],
+    "reader" : {
+        "name": "ExtractiveReader",
+        "model_name_or_path": "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+        "max_answer_length": 1000,
+        "max_num_answers": 10
+    }
+}
