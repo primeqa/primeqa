@@ -29,7 +29,7 @@ from torch.utils.data import (
 )
 from torch.utils.data.distributed import DistributedSampler
 
-from transformers import Trainer, is_datasets_available
+from transformers import is_datasets_available
 from transformers.trainer_pt_utils import (
     IterableDatasetShard,
     find_batch_size,
@@ -52,6 +52,7 @@ from transformers.file_utils import (
 from transformers.trainer_callback import TrainerState
 from transformers import AutoConfig
 
+from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 
 logger = logging.getLogger(__name__)
@@ -116,7 +117,7 @@ class IndividualDomainBatchSampler(torch.utils.data.sampler.Sampler):
         return iter(final_samples_list)
 
 
-class MSKD_MRCTrainer(Trainer):
+class MSKD_MRCTrainer(MRCTrainer):
     def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
         """
         Multi-source MRC distillation training and evaluation.
@@ -145,53 +146,6 @@ class MSKD_MRCTrainer(Trainer):
             self.kd_teacher.set_task_head(next(iter(self.args.task_heads)))
             self.kd_teacher.eval()
 
-    def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
-        """
-        Infer needed `Dataset` columns matching model and (active) model head argument names.
-        Remove unneeded columns from `dataset`.
-
-        Since this is a private method being overridden we override the calling methods as well.
-
-        Args:
-            dataset: `Dataset` to remove unneeded columns from
-            description: `dataset` description
-
-        Returns:
-            `dataset` with unneeded columns removed.
-        """
-        if not self.args.remove_unused_columns:
-            return dataset
-        if self._signature_columns is None:
-            # Inspect model and task head forward signature to keep only the arguments it accepts.
-            model_signature = inspect.signature(self.model.forward)
-            task_head_signature = inspect.signature(self.model.task_head.forward)
-
-            signature_columns = set(model_signature.parameters.keys())
-            signature_columns |= task_head_signature.parameters.keys()
-            signature_columns -= {'kwargs'}
-
-            # Labels may be named label or label_ids, the default data collator handles that.
-            signature_columns |= {"label", "label_ids"}
-
-            self._signature_columns = list(signature_columns)
-
-        columns = [k for k in self._signature_columns if k in dataset.column_names]
-        ignored_columns = list(set(dataset.column_names) - set(self._signature_columns))
-        if len(ignored_columns) > 0:
-            dset_description = "" if description is None else f"in the {description} set "
-            logger.info(
-                f"The following columns {dset_description} don't have a corresponding argument in "
-                f"`{self.model.__class__.__name__}.forward` and have been ignored: {', '.join(ignored_columns)}."
-            )
-
-        if version.parse(datasets.__version__) < version.parse("1.4.0"):
-            dataset.set_format(
-                type=dataset.format["type"], columns=columns, format_kwargs=dataset.format["format_kwargs"]
-            )
-            return dataset
-        else:
-            return dataset.remove_columns(ignored_columns)
-
     def get_train_dataloader(self) -> DataLoader:
         """
         Returns the training torch `DataLoader`.
@@ -216,7 +170,7 @@ class MSKD_MRCTrainer(Trainer):
             batch_size=self.args.train_batch_size
         )
 
-        data_loader = DataLoader(
+        return DataLoader(
             dataset=train_dataset,
             collate_fn=self.data_collator,
             batch_size=self.args.train_batch_size,
@@ -225,9 +179,51 @@ class MSKD_MRCTrainer(Trainer):
             num_workers=self.args.dataloader_num_workers,
             pin_memory=True, drop_last=True
         )
-        
-        return data_loader
 
+    def compute_erm_loss(self, model, inputs, return_outputs=False):
+        """
+        How the loss is computed by Trainer. By default, all models return the loss in the first element.
+
+        Subclass and override for custom behavior.
+        """
+        if self.label_smoother is not None and "labels" in inputs:
+            labels = inputs.pop("labels")
+        else:
+            labels = None
+        outputs = model(**inputs)
+        # Save past state if it exists
+        # TODO: this needs to be fixed and made cleaner later.
+        if self.args.past_index >= 0:
+            self._past = outputs[self.args.past_index]
+
+        if labels is not None:
+            loss = self.label_smoother(outputs, labels)
+        else:
+            # We don't use .loss here since the model may return tuples instead of ModelOutput.
+            loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
+
+        return (loss, outputs) if return_outputs else loss
+    
+    def compute_distillation_loss(self, inputs, outputs):
+        if self.kd_teacher.device != self.model.device:
+            self.kd_teacher.to(self.model.device)
+        _, teacher_logits, _ = self.prediction_step(
+            self.kd_teacher, inputs, prediction_loss_only=False
+        )
+        _, teacher_start_logits, teacher_end_logits, _ = teacher_logits
+
+        loss_fct = nn.MSELoss()
+        start_loss = loss_fct(
+            outputs.start_logits,
+            teacher_start_logits / self.args.kd_temperature
+        )
+        end_loss = loss_fct(
+            outputs.end_logits,
+            teacher_end_logits / self.args.kd_temperature
+        )
+        loss = (start_loss + end_loss) / 2
+        return loss
+    
     def training_step(self, model: nn.Module, inputs: Dict[str, Union[torch.Tensor, Any]]) -> torch.Tensor:
         """
         Perform a training step on a batch of inputs.
@@ -277,50 +273,6 @@ class MSKD_MRCTrainer(Trainer):
             loss.backward()
 
         return loss.detach(), outputs
-
-    def compute_erm_loss(self, model, inputs, return_outputs=False):
-        """
-        How the loss is computed by Trainer. By default, all models return the loss in the first element.
-
-        Subclass and override for custom behavior.
-        """
-        if self.label_smoother is not None and "labels" in inputs:
-            labels = inputs.pop("labels")
-        else:
-            labels = None
-        outputs = model(**inputs)
-        # Save past state if it exists
-        # TODO: this needs to be fixed and made cleaner later.
-        if self.args.past_index >= 0:
-            self._past = outputs[self.args.past_index]
-
-        if labels is not None:
-            loss = self.label_smoother(outputs, labels)
-        else:
-            # We don't use .loss here since the model may return tuples instead of ModelOutput.
-            loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
-
-        return (loss, outputs) if return_outputs else loss
-    
-    def compute_distillation_loss(self, inputs, outputs):
-        if self.kd_teacher.device != self.model.device:
-            self.kd_teacher.to(self.model.device)
-        _, teacher_logits, _ = self.prediction_step(
-            self.kd_teacher, inputs, prediction_loss_only=False
-        )
-        _, teacher_start_logits, teacher_end_logits, _ = teacher_logits
-
-        loss_fct = nn.MSELoss()
-        start_loss = loss_fct(
-            outputs.start_logits,
-            teacher_start_logits / self.args.kd_temperature
-        )
-        end_loss = loss_fct(
-            outputs.end_logits,
-            teacher_end_logits / self.args.kd_temperature
-        )
-        loss = (start_loss + end_loss) / 2
-        return loss
 
     def train(
         self,
@@ -604,6 +556,7 @@ class MSKD_MRCTrainer(Trainer):
 
             step = -1
             for step, inputs in enumerate(epoch_iterator):
+
                 # Skip past any already trained steps if resuming training
                 if steps_trained_in_current_epoch > 0:
                     steps_trained_in_current_epoch -= 1
@@ -791,228 +744,6 @@ class MSKD_MRCTrainer(Trainer):
 
         return TrainOutput(self.state.global_step, train_loss, metrics)
 
-    def get_eval_dataloader(self, eval_dataset: Optional[Dataset] = None) -> DataLoader:
-        """
-        Returns the evaluation torch `DataLoader`.
-
-        Subclass and override this method if you want to inject some custom behavior.
-
-        Args:
-            eval_dataset: If provided, will override `self.eval_dataset`. If it is an `datasets.Dataset`, columns not
-                          accepted by the `model.forward()` method are automatically removed.
-                          It must implement `__len__`.
-
-        """
-
-        if eval_dataset is None and self.eval_dataset is None:
-            raise ValueError("Trainer: evaluation requires an eval_dataset.")
-        eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
-
-        if is_datasets_available() and isinstance(eval_dataset, datasets.Dataset):
-            eval_dataset = self._remove_unused_columns(eval_dataset, description="evaluation")
-
-        if isinstance(eval_dataset, torch.utils.data.IterableDataset):
-            if self.args.world_size > 1:
-                eval_dataset = IterableDatasetShard(
-                    eval_dataset,
-                    batch_size=self.args.per_device_eval_batch_size,
-                    drop_last=self.args.dataloader_drop_last,
-                    num_processes=self.args.world_size,
-                    process_index=self.args.process_index,
-                )
-            return DataLoader(
-                eval_dataset,
-                batch_size=self.args.eval_batch_size,
-                collate_fn=self.data_collator,
-                num_workers=self.args.dataloader_num_workers,
-                pin_memory=self.args.dataloader_pin_memory,
-            )
-
-        eval_sampler = self._get_eval_sampler(eval_dataset)
-
-        return DataLoader(
-            eval_dataset,
-            sampler=eval_sampler,
-            batch_size=self.args.eval_batch_size,
-            collate_fn=self.data_collator,
-            drop_last=self.args.dataloader_drop_last,
-            num_workers=self.args.dataloader_num_workers,
-            pin_memory=self.args.dataloader_pin_memory,
-        )
-
-    def evaluation_loop(
-        self,
-        dataloader: DataLoader,
-        description: str,
-        prediction_loss_only: Optional[bool] = None,
-        ignore_keys: Optional[List[str]] = None,
-        metric_key_prefix: str = "eval",
-    ) -> EvalLoopOutput:
-        """
-        Prediction/evaluation loop, shared by `Trainer.evaluate()` and `Trainer.predict()`.
-
-        Works both with or without labels.
-        """
-        args = self.args
-
-        prediction_loss_only = prediction_loss_only if prediction_loss_only is not None else args.prediction_loss_only
-
-        # if eval is called w/o train init deepspeed here
-        if args.deepspeed and not self.deepspeed:
-
-            # XXX: eval doesn't have `resume_from_checkpoint` arg but we should be able to do eval
-            # from the checkpoint eventually
-            deepspeed_engine, _, _ = deepspeed_init(
-                self, num_training_steps=0, resume_from_checkpoint=None, inference=True
-            )
-            self.model = deepspeed_engine.module
-            self.model_wrapped = deepspeed_engine
-            self.deepspeed = deepspeed_engine
-
-        model = self._wrap_model(self.model, training=False)
-
-        # if full fp16 or bf16 eval is wanted and this ``evaluation`` or ``predict`` isn't called
-        # while ``train`` is running, cast it to the right dtype first and then put on device
-        if not self.is_in_train:
-            if args.fp16_full_eval:
-                model = model.to(dtype=torch.float16, device=args.device)
-            elif args.bf16_full_eval:
-                model = model.to(dtype=torch.bfloat16, device=args.device)
-
-        batch_size = dataloader.batch_size
-        logger.info(f"***** Running {description} *****")
-        if has_length(dataloader.dataset):
-            logger.info(f"  Num examples = {self.num_examples(dataloader)}")
-        else:
-            logger.info("  Num examples: Unknown")
-        logger.info(f"  Batch size = {batch_size}")
-
-        model.eval()
-
-        self.callback_handler.eval_dataloader = dataloader
-        # Do this before wrapping.
-        eval_dataset = dataloader.dataset
-
-        if is_torch_tpu_available():
-            dataloader = pl.ParallelLoader(dataloader, [args.device]).per_device_loader(args.device)
-
-        if args.past_index >= 0:
-            self._past = None
-
-        # Initialize containers
-        # losses/preds/labels on GPU/TPU (accumulated for eval_accumulation_steps)
-        losses_host = None
-        preds_host = None
-        labels_host = None
-        # losses/preds/labels on CPU (final containers)
-        all_losses = None
-        all_preds = None
-        all_labels = None
-        # Will be useful when we have an iterable dataset so don't know its length.
-
-        observed_num_examples = 0
-        # Main evaluation loop
-        for step, inputs in enumerate(dataloader):
-            # Update the observed num examples
-            observed_batch_size = find_batch_size(inputs)
-            if observed_batch_size is not None:
-                observed_num_examples += observed_batch_size
-                # For batch samplers, batch_size is not known by the dataloader in advance.
-                if batch_size is None:
-                    batch_size = observed_batch_size
-
-            # Prediction step
-            loss, logits, labels = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
-
-            if is_torch_tpu_available():
-                xm.mark_step()
-
-            # Update containers on host
-            if loss is not None:
-                losses = self._nested_gather(loss.repeat(batch_size))
-                losses_host = losses if losses_host is None else torch.cat((losses_host, losses), dim=0)
-            if labels is not None:
-                labels = self._pad_across_processes(labels)
-                labels = self._nested_gather(labels)
-                labels_host = labels if labels_host is None else nested_concat(labels_host, labels, padding_index=-100)
-            if logits is not None:
-                logits = self._pad_across_processes(logits)
-                logits = self._nested_gather(logits)
-                if self.preprocess_logits_for_metrics is not None:
-                    logits = self.preprocess_logits_for_metrics(logits, labels)
-                preds_host = logits if preds_host is None else nested_concat(preds_host, logits, padding_index=-100)
-            self.control = self.callback_handler.on_prediction_step(args, self.state, self.control)
-
-            # Gather all tensors and put them back on the CPU if we have done enough accumulation steps.
-            if args.eval_accumulation_steps is not None and (step + 1) % args.eval_accumulation_steps == 0:
-                if losses_host is not None:
-                    losses = nested_numpify(losses_host)
-                    all_losses = losses if all_losses is None else np.concatenate((all_losses, losses), axis=0)
-                if preds_host is not None:
-                    logits = nested_numpify(preds_host)
-                    all_preds = logits if all_preds is None else nested_concat(all_preds, logits, padding_index=-100)
-                if labels_host is not None:
-                    labels = nested_numpify(labels_host)
-                    all_labels = (
-                        labels if all_labels is None else nested_concat(all_labels, labels, padding_index=-100)
-                    )
-
-                # Set back to None to begin a new accumulation
-                losses_host, preds_host, labels_host = None, None, None
-
-        if args.past_index and hasattr(self, "_past"):
-            # Clean the state at the end of the evaluation loop
-            delattr(self, "_past")
-
-        # Gather all remaining tensors and put them back on the CPU
-        if losses_host is not None:
-            losses = nested_numpify(losses_host)
-            all_losses = losses if all_losses is None else np.concatenate((all_losses, losses), axis=0)
-        if preds_host is not None:
-            logits = nested_numpify(preds_host)
-            all_preds = logits if all_preds is None else nested_concat(all_preds, logits, padding_index=-100)
-        if labels_host is not None:
-            labels = nested_numpify(labels_host)
-            all_labels = labels if all_labels is None else nested_concat(all_labels, labels, padding_index=-100)
-
-        # Number of samples
-        if has_length(eval_dataset):
-            num_samples = len(eval_dataset)
-        # The instance check is weird and does not actually check for the type, but whether the dataset has the right
-        # methods. Therefore we need to make sure it also has the attribute.
-        elif isinstance(eval_dataset, IterableDatasetShard) and hasattr(eval_dataset, "num_examples"):
-            num_samples = eval_dataset.num_examples
-        else:
-            num_samples = observed_num_examples
-
-        # Number of losses has been rounded to a multiple of batch_size and in a distributed training, the number of
-        # samplers has been rounded to a multiple of batch_size, so we truncate.
-        if all_losses is not None:
-            all_losses = all_losses[:num_samples]
-        if all_preds is not None:
-            all_preds = nested_truncate(all_preds, num_samples)
-        if all_labels is not None:
-            all_labels = nested_truncate(all_labels, num_samples)
-
-        # Metrics!
-        if self.compute_metrics is not None and all_preds is not None and all_labels is not None:
-            metrics = self.compute_metrics(EvalPrediction(predictions=all_preds, label_ids=all_labels))
-        else:
-            metrics = {}
-
-        # To be JSON-serializable, we need to remove numpy types or zero-d tensors
-        metrics = denumpify_detensorize(metrics)
-
-        if all_losses is not None:
-            metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
-
-        # Prefix all keys with metric_key_prefix + '_'
-        for key in list(metrics.keys()):
-            if not key.startswith(f"{metric_key_prefix}_"):
-                metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
-
-        return EvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples)
-
     def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
         """
         Evaluate model using either eval data passed to method (if given).
@@ -1095,43 +826,3 @@ class MSKD_MRCTrainer(Trainer):
 
         self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
         return combined_metrics
-
-    def predict(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
-        """
-        Obtain the predictions using either eval data passed to method (if given).
-        Otherwise use data given to constructor at instantiation.
-
-        Args:
-            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
-            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
-            ignore_keys: Keys to ignore in evaluation loop.
-
-        Returns:
-            Answer predictions if post-processing function was provided to constructor 
-            at instantiation, otherwise an empty dict.
-        """
-        eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
-        eval_examples = self.eval_examples if eval_examples is None else eval_examples
-
-        
-        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
-        try:
-            output = eval_loop(
-                eval_dataloader,
-                description="Evaluation",
-                # No point gathering the predictions if there are no metrics, otherwise we defer to
-                # self.args.prediction_loss_only
-                # gather predictions if running in eval mode
-                prediction_loss_only=self.args.prediction_loss_only, #True if compute_metrics is None else None,
-                ignore_keys=ignore_keys,
-            )
-        finally:
-            pass
-
-        if self.post_process_function is not None:
-            eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
-        else:
-            eval_preds = {}
-
-        return eval_preds
