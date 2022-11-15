@@ -2,8 +2,7 @@ from torch.utils.data import Dataset,DataLoader
 import random
 import pandas as pd
 import torch
-# from blingfire import text_to_sentences
-from nltk.tokenize import sent_tokenize
+from blingfire import text_to_sentences
 import numpy as  np
 
 class TableQADataset(Dataset):
@@ -106,18 +105,18 @@ class TableQADatasetQRSconcat(Dataset):
         question_str = self.cls_token+" "+question_str+" "+self.sep_token+" "
         table_str = ""
         for c,r in table_row.items():
-            table_str+=str(c)+" is "+str(r)+" . "
+            table_str+=str(c)+" is "+str(r)+" . " # table_str+=str(c)+" "+self.val_sep+" "+str(r)+" "+self.col_sep+" "
         question_str = question_str+table_str+" "+self.sep_token+" "+gold_sentences
         #print("question Annotated",question_str)
         return question_str
     def get_sentence_containing_answer_text(self,table_passage_row,answer_text,st_out_text):
         sentences = []
-        all_sentences = sent_tokenize(table_passage_row)
+        all_sentences = text_to_sentences(table_passage_row).split("\n")
         for s in all_sentences:
             if answer_text.lower() in s.lower():
                 sentences.append(s)
         # adding sentences filtered using sentence-transformer similarity measure.
-        sentences.extend(sent_tokenize(st_out_text))
+        sentences.extend(text_to_sentences(st_out_text).split("\n")) 
         # permuting sentences.
         sentences = np.random.permutation(sentences)
         sentences = ' '.join(sentences)
@@ -183,7 +182,7 @@ class TableQADatasetQRconcat(Dataset):
 
     def get_sentence_containing_answer_text(self,table_passage_row,answer_text):
         sentences = []
-        all_sentences = sent_tokenize(table_passage_row)
+        all_sentences = text_to_sentences(table_passage_row).split("\n")
         for s in all_sentences:
             if answer_text.lower() in s.lower():
                 sentences.append(s)
