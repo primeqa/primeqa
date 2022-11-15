@@ -9,7 +9,7 @@
     :template: custom-module-template.rst
     :recursive:
    
-    primeqa.mrc
+    primeqa.docvqa
 
 ```
 </details>          
