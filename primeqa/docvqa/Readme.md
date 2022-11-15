@@ -60,7 +60,7 @@ The above statements will generate an output in the form of a dictionary:
 ```
 
 ## Evaluate
-If you want to perform a fully functional train and inference procedure for the MRC components, then the primary script to use is [run_mrc.py](https://github.com/primeqa/primeqa/blob/main/primeqa/mrc/run_mrc.py).  This runs a transformer-based MRC pipeline.
+If you want to perform inference procedure for the DocVQA component, then the primary script to use is [run_docvqa.py](https://github.com/primeqa/primeqa/blob/main/primeqa/docvqa/run_docvqa.py).  This runs a transformer-based DocVQA pipeline.
 
 ### Supported Datasets
 Currently only [Docvqa](https://rrc.cvc.uab.es/?ch=17&com=downloads) dataset is supported. A custom dataset for evaluation is also supported with a directory structure similar to docvqa dataset.
@@ -73,6 +73,6 @@ python primeqa/docvqa/run_docvqa.py --dev_data_path ${DEV_DATA_PATH} --do_eval
 ```
 This yields the following results:
 ```
-***** eval metrics *****
-ANLS Score:
+INFO:__main__:*** Scoring Predictions ***
+INFO:__main__:ANLS Score: 66.476
 ```
