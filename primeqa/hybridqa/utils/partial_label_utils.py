@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from datasets.dataset import TableQADatasetQRSconcat
+from primeqa.hybridqa.processors.dataset import TableQADatasetQRSconcat
 
 def partial_label_data_loader(data, tokenized_data, batch_size, pos_fraction=0.001, group_fraction=1.0):
 

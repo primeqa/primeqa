@@ -54,7 +54,7 @@ from transformers.data.metrics.squad_metrics import (
 # )
 import string
 from transformers.data.processors.utils import DataProcessor
-from utils.utils import readGZip
+from primeqa.hybridqa.utils.utils import readGZip
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -860,7 +860,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 
         processor = SquadProcessor()
         if evaluate:
-            examples = processor.get_dev_examples(args.predict_file)
+            examples = processor.get_dev_examples(args.eval_file)
         else:
             examples = processor.get_train_examples(args.train_file)
 
@@ -918,7 +918,7 @@ def main():
         help="Number of updates steps to accumulate before performing a backward/update pass.",
     )   
     parser.add_argument(
-        "--predict_file",
+        "--eval_file",
         default=None,
         type=str,
         help="The input evaluation file. If a data dir is specified, will look for the file there"
@@ -973,10 +973,10 @@ def main():
         "be truncated to this length.",
     )
     parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
-    parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
-    parser.add_argument("--do_stage3", action="store_true", help="Whether to run eval on the dev set.")    
+    parser.add_argument("--do_predict", action="store_true", help="Whether to run eval on the dev set.")
+    parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")    
     parser.add_argument(
-        "--do_lower_case", action="store_true", help="Set this flag if you are using an uncased model."
+        "--do_lower_case", default=True, action="store_true", help="Set this flag if you are using an uncased model."
     )
 
     parser.add_argument("--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.")
@@ -1115,7 +1115,7 @@ def main():
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory    
-    if args.do_eval and args.local_rank in [-1, 0]:
+    if args.do_predict and args.local_rank in [-1, 0]:
         results = {}
         logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
         checkpoints = []
@@ -1126,7 +1126,7 @@ def main():
         model.to(args.device)
 
         # Evaluate
-        with open(args.predict_file, 'r') as f:
+        with open(args.eval_file, 'r') as f:
             full_split = json.load(f)
         
         key2idx = {}
@@ -1137,16 +1137,19 @@ def main():
         for k, step in key2idx.items():
             full_split[step]['pred'] = prediction.get(k, 'None')
 
-        with open('passage_only_predictions.json', 'w') as f:
+        if not os.path.exists(args.output_dir):
+            os.makedirs(args.output_dir)
+        eval_ans_file = os.path.join(args.output_dir, 'passage_only_predictions.json')
+        with open(eval_ans_file, 'w') as f:
             json.dump(full_split, f, indent=2)
 
-    if args.do_stage3 and args.local_rank in [-1, 0]:
+    if args.do_eval and args.local_rank in [-1, 0]:
         logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
         model = model_class.from_pretrained(args.model_name_or_path)
         model.to(args.device)
         
         #evaluate(args, model, tokenizer, prefix=global_step)
-        with open(args.predict_file, 'r') as f:
+        with open(args.eval_file, 'r') as f:
             data = json.load(f)
 
         full_split = []
@@ -1167,7 +1170,10 @@ def main():
         #for _ in data:
         #    assert isinstance(_['pred'], str), "there are some unprocessed stage3 examples"
 
-        with open(args.pred_ans_file, 'w') as f:
+        if not os.path.exists(args.output_dir):
+            os.makedirs(args.output_dir)
+        pred_ans_file = os.path.join(args.output_dir, 'pred_test.json')
+        with open(pred_ans_file, 'w') as f:
             json.dump(data, f, indent=2)
 
 
