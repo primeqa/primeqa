@@ -1,13 +1,13 @@
 import os
-
+import json
 import fitz
 
 import torch
 from transformers import pipeline
 
-import cv2
-import pytesseract
-from pytesseract import Output
+#import cv2
+#import pytesseract
+#from pytesseract import Output
 
 
 class DocVQAModel():
@@ -41,6 +41,39 @@ class DocVQAModel():
             max(0, min(1000, int(1000 * (box[2] / width)))),
             max(0, min(1000, int(1000 * (box[3] / height)))),
         ]
+
+    def read_custom_ocr(self, ocr_file):
+        with open(ocr_file) as ofp:
+            data = json.load(ofp)
+
+        ocr_results = data['recognitionResults'] # type = list
+        bboxes, Words = [], []
+        for ocr_result in ocr_results:
+            # type = dict
+            width = ocr_result['width'] # type = int
+            height = ocr_result['height'] # type = int
+            lines = ocr_result['lines'] # type = list
+            for line in lines:
+                # type = dict
+                line_boundingBox = line['boundingBox'] # type = list
+                line_text = line['text'] # type = str
+                words = line['words'] # type = list
+                for word in words:
+                    # type = dict
+                    boundingBox = word['boundingBox'] # type = list
+                    text = word['text'] # type = str
+                    x1,y1,x2,y2,x3,y3,x4,y4 = boundingBox 
+                    new_x1 = min([x1,x2,x3,x4])
+                    new_x2 = max([x1,x2,x3,x4])
+                    new_y1 = min([y1,y2,y3,y4])
+                    new_y2 = max([y1,y2,y3,y4])
+                    assert new_x2 >= new_x1
+                    assert new_y2 >= new_y1
+                    normalized_box = self.normalize_box([new_x1,new_y1,new_x2,new_y2], width, height)
+                    bboxes.append(normalized_box)
+                    Words.append(text)
+        
+        return Words, bboxes
 
     def preprocess_pdf(self, pdf, tolerance=2, page_no=1):
         """
@@ -131,19 +164,21 @@ class DocVQAModel():
         """This function takes a table dictionary and a list of queries as input and returns the answer to the queries using the DocVQA model.
 
         Args:
-            images_queries_list (List): List of queries per image
+            images_queries_list (List): List of queries per image/context
 
         Returns:
-            Dict: Returns a dictionary of query and the predicted answer.
+            Dict: Returns a dictionary of queries and predicted answers.
         """
         
         query_answer_dicts = []
         for image, queries in images_queries_list:
             _, extention = os.path.splitext(image)
-            if extention.lower() not in ['.png', '.pdf', '.jpeg', '.jpg', '.ps', '.jp2']:
+            if extention.lower() not in ['.png', '.pdf', '.jpeg', '.jpg', '.ps', '.jp2', '.json']:
                 raise AssertionError('File format of type %s not supported' % (extention))
-
-            if extention in [".pdf", ".ps"]:
+            
+            if extention == ".json":
+                words, bboxes = self.read_custom_ocr(image)
+            elif extention in [".pdf", ".ps"]:
                 words, bboxes = self.preprocess_pdf(image, page_no=page)
             else:
                 words, bboxes = self.preprocess_image(image)
