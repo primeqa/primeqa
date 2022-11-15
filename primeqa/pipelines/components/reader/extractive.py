@@ -41,7 +41,7 @@ class ExtractiveReader(ReaderComponent):
     """
 
     model: str = field(
-        default="PrimeQA/tydiqa-primary-task-xlm-roberta-large",
+        default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
         metadata={"name": "Model", "api_support": True},
     )
     use_fast: bool = field(
