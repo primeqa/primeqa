@@ -1,6 +1,6 @@
 from torch.utils.data import WeightedRandomSampler
 import argparse
-from datasets.dataset import TableQADatasetQRSconcat
+from primeqa.hybridqa.processors.dataset import TableQADatasetQRSconcat
 from transformers import (WEIGHTS_NAME, AdamW, BertConfig, BertTokenizer, 
                         BertModel, get_linear_schedule_with_warmup, 
                         squad_convert_examples_to_features)
