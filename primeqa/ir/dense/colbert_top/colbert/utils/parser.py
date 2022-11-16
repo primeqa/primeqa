@@ -43,7 +43,7 @@ class Arguments():
         self.add_argument('--checkpoint', dest='checkpoint', default=None, required=False)
 
         self.add_argument('--init_from_lm', dest='init_from_lm', default=None, required=False)
-        self.add_argument('--model_type', dest='model_type', default='bert-base-uncased', choices=['bert-base-uncased', 'bert-large-uncased','xlm-roberta-base','xlm-roberta-large', 'tinybert', 'custom_v6'], required=False)
+        self.add_argument('--model_type', dest='model_type', default='bert-base-uncased', choices=['bert-base-uncased', 'bert-large-uncased','xlm-roberta-base', 'xlm-roberta-large', 'roberta-base', 'roberta-large', 'tinybert', 'custom_v6'], required=False)
 
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)

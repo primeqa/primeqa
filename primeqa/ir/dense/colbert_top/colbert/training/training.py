@@ -134,7 +134,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             # we don't need the keys in the lm head
             keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
                             'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.decoder.bias', 'lm_head.bias']
-            if config.model_type == 'xlm-roberta-base' or config.model_type == 'custom_v6':
+            if config.model_type == 'xlm-roberta-base' or config.model_type == 'roberta-base' or config.model_type == 'roberta-large' or config.model_type == 'custom_v6':
                 # TODO other model types may have a few extra keys to handle also ...
 
                 # resolve conflict between bert and roberta

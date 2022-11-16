@@ -14,6 +14,11 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom_v6 import H
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_custom_v6 import DocTokenizerCustomV6
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_custom_v6 import QueryTokenizerCustomV6
 
+# Roberta imports
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_roberta import HF_ColBERT_Roberta
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_roberta import DocTokenizerRoberta
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta import QueryTokenizerRoberta
+
 import os
 import json
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
@@ -57,6 +62,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         # e.g. from https://huggingface.co/huawei-noah/TinyBERT_General_4L_312D/tree/main
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         colbert = HF_ColBERT_XLMR.from_pretrained(name, colbert_config)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        colbert = HF_ColBERT_Roberta.from_pretrained(name, colbert_config)
     elif model_type=='custom_v6':
         colbert = HF_ColBERT_custom_v6.from_pretrained(name, colbert_config)
     else:
@@ -85,6 +92,8 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
         return QueryTokenizer(maxlen, 'bert-base-uncased',attend_to_mask_tokens)
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return QueryTokenizerXLMR(maxlen, model_type)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        return QueryTokenizerRoberta(maxlen, model_type)
     elif model_type=='custom_v6':
         return QueryTokenizerCustomV6(maxlen, model_type)
     else:
@@ -111,6 +120,8 @@ def get_doc_tokenizer(model_type, maxlen):
         return DocTokenizer(maxlen, 'bert-base-uncased')
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return DocTokenizerXLMR(maxlen, model_type)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        return DocTokenizerRoberta(maxlen, model_type)
     elif model_type=='custom_v6':
         return DocTokenizerCustomV6(maxlen, model_type)
     else:
