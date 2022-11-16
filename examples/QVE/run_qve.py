@@ -38,9 +38,9 @@ from transformers import (
 )
 
 from squad_processing import squad_convert_examples_to_features
-from model import BertForSequenceClassification,BertForQuestionAnswering
 from transformers.data.processors.squad import SquadV1Processor
-
+from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from model import EXTRACTIVE_HEAD, BertForSequenceClassification
 
 logger = logging.getLogger(__name__)
 
@@ -876,11 +876,12 @@ def main():
             cache_dir=args.cache_dir if args.cache_dir else None,
         )
 
-        qa_model_marginal = BertForQuestionAnswering.from_pretrained(
+        qa_model_marginal = ModelForDownstreamTasks.from_config(
+            config,
             args.marginal_model_name_or_path,
-            config=config,
-            cache_dir=args.cache_dir if args.cache_dir else None,
+            task_heads=EXTRACTIVE_HEAD,
         )
+        qa_model_marginal.set_task_head(next(iter(EXTRACTIVE_HEAD)))
 
         config = AutoConfig.from_pretrained(
             args.qa_model_name_or_path,
@@ -888,11 +889,13 @@ def main():
             cache_dir=args.cache_dir if args.cache_dir else None,
         )
 
-        qa_model = BertForQuestionAnswering.from_pretrained(
+        qa_model = ModelForDownstreamTasks.from_config(
+            config,
             args.qa_model_name_or_path,
-            config=config,
-            cache_dir=args.cache_dir if args.cache_dir else None,
+            task_heads=EXTRACTIVE_HEAD,
         )
+        qa_model.set_task_head(next(iter(EXTRACTIVE_HEAD)))
+
 
         config = AutoConfig.from_pretrained(
             args.qve_model_name_or_path,
@@ -953,7 +956,19 @@ def main():
             cache_dir=args.cache_dir if args.cache_dir else None,
         )
         qve_model = BertForSequenceClassification.from_pretrained(checkpoints,config=config)
-        qa_model = BertForQuestionAnswering.from_pretrained(args.qa_model_name_or_path)
+
+        config = AutoConfig.from_pretrained(
+            args.qa_model_name_or_path,
+            gradient_checkpointing=args.gradient_checkpointing,
+            cache_dir=args.cache_dir if args.cache_dir else None,
+        )
+
+        qa_model = ModelForDownstreamTasks.from_config(
+            config,
+            args.qa_model_name_or_path,
+            task_heads=EXTRACTIVE_HEAD,
+        )
+        qa_model.set_task_head(next(iter(EXTRACTIVE_HEAD)))
 
         qa_model.to(args.device)
         qve_model.to(args.device)

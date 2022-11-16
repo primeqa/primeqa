@@ -44,6 +44,19 @@ from transformers.models.bert.modeling_bert import (
     BertModel,
 )
 
+from copy import deepcopy
+from typing import Union, Optional
+
+import torch
+from torch.nn.functional import normalize
+from transformers import PretrainedConfig
+from transformers.file_utils import ModelOutput
+from transformers.modeling_outputs import BaseModelOutputWithPoolingAndCrossAttentions
+from transformers.models.roberta.modeling_roberta import RobertaClassificationHead
+
+from primeqa.mrc.models.heads.abstract import AbstractTaskHead
+from primeqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOutput
+from primeqa.mrc.data_models.target_type import TargetType
 
 
 class BertPoolerMarginal(nn.Module):
@@ -145,58 +158,61 @@ class BertForSequenceClassification(BertPreTrainedModel):
         )
 
 
-
-class BertForQuestionAnswering(BertPreTrainedModel):
-    def __init__(self, config):
+class ExtractiveQAHeadForQVE(AbstractTaskHead):
+    """
+    Task head for extractive Question Answering.
+    """
+    def __init__(self, config: PretrainedConfig, num_labels_override: Optional[int] = None):
+        """
+        Args:
+            config: Language model config.
+            num_labels_override: Set this to override number of answer types from default `len(TargetType)`.
+        """
         super().__init__(config)
         self.num_labels = config.num_labels
+        self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
 
-        self.bert = BertModel(config, add_pooling_layer=False)
-        self.qa_outputs = nn.Linear(config.hidden_size, config.num_labels)
+        config_for_classification_head = deepcopy(config)
+        if num_labels_override is None:
+            config_for_classification_head.num_labels = len(TargetType)
+        else:
+            config_for_classification_head.num_labels = num_labels_override
+        self.num_classification_head_labels = config_for_classification_head.num_labels
 
-        self.init_weights()
+        dropout_names = ["classifier_dropout", "hidden_dropout_prob", "classifier_dropout_prob"]
+        for name in dropout_names:
+            dropout_value = getattr(config_for_classification_head, name, None)
+            if dropout_value is not None:
+                self._logger.info(f"Loading dropout value {dropout_value} from config attribute '{name}'")
+                config_for_classification_head.classifier_dropout = dropout_value
+                break
+        else:
+            self._logger.warning("No dropout value found -- setting to 0")
+            config_for_classification_head.classifier_dropout = 0.
 
-    def forward(
-            self,
-            input_ids=None,
-            attention_mask=None,
-            token_type_ids=None,
-            position_ids=None,
-            input_values=None,
-            head_mask=None,
-            inputs_embeds=None,
-            start_positions=None,
-            end_positions=None,
-            output_attentions=None,
-            output_hidden_states=None,
-            return_dict=None,
-    ):
-        r"""
-        start_positions (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
-            Labels for position (index) of the start of the labelled span for computing the token classification loss.
-            Positions are clamped to the length of the sequence (:obj:`sequence_length`).
-            Position outside of the sequence are not taken into account for computing the loss.
-        end_positions (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
-            Labels for position (index) of the end of the labelled span for computing the token classification loss.
-            Positions are clamped to the length of the sequence (:obj:`sequence_length`).
-            Position outside of the sequence are not taken into account for computing the loss.
+        self.classifier = RobertaClassificationHead(config_for_classification_head)
+
+    def forward(self,
+                model_outputs: Union[tuple, BaseModelOutputWithPoolingAndCrossAttentions],
+                start_positions=None,
+                end_positions=None,
+                input_values=None,
+                **kwargs) -> Union[tuple, ExtractiveQAModelOutput]:
         """
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
+        Compute the task head's forward pass.
 
-        outputs = self.bert(
-            input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-            position_ids=position_ids,
-            head_mask=head_mask,
-            inputs_embeds=inputs_embeds,
-            output_attentions=output_attentions,
-            output_hidden_states=output_hidden_states,
-            return_dict=return_dict,
-        )
+        Args:
+            model_outputs: Language model outputs.
+            start_positions: (training only) Ground-truth start positions.
+            end_positions: (training only) Ground-truth end positions.
+            target_type: (training only) Ground-truth target type.
 
-        sequence_output = outputs[0]
+        Returns:
+            Extractive QA task head result in data structure corresponding to type of `model_outputs`.
+        """
+        sequence_output = model_outputs[0]
 
+        # Predict start and end logits by token
         logits = self.qa_outputs(sequence_output)
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1)
@@ -209,14 +225,14 @@ class BertForQuestionAnswering(BertPreTrainedModel):
                 start_positions = start_positions.squeeze(-1)
             if len(end_positions.size()) > 1:
                 end_positions = end_positions.squeeze(-1)
+
             # sometimes the start/end positions are outside our model inputs, we ignore these terms
             ignored_index = start_logits.size(1)
             start_positions.clamp_(0, ignored_index)
             end_positions.clamp_(0, ignored_index)
 
-            loss_fct = CrossEntropyLoss(ignore_index=ignored_index, reduction='none')
-            # loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
 
+            loss_fct = CrossEntropyLoss(ignore_index=ignored_index, reduction='none')
             # weighted training
             # Exception (When selection probability is 0)
             if input_values is None:
@@ -230,20 +246,20 @@ class BertForQuestionAnswering(BertPreTrainedModel):
             start_loss = start_loss.sum() / input_values.sum()
             end_loss = loss_fct(end_logits, end_positions) * input_values
             end_loss = end_loss.sum() / input_values.sum()
-
-            # start_loss = loss_fct(start_logits, start_positions)
-            # end_loss = loss_fct(end_logits, end_positions)
-
             total_loss = (start_loss + end_loss) / 2
 
+
+        return_dict = isinstance(model_outputs, ModelOutput)
         if not return_dict:
-            output = (start_logits, end_logits) + outputs[2:]
+            output = (start_logits, end_logits) + model_outputs[2:]
             return ((total_loss,) + output) if total_loss is not None else output
 
-        return QuestionAnsweringModelOutput(
+        return ExtractiveQAModelOutput(
             loss=total_loss,
             start_logits=start_logits,
             end_logits=end_logits,
-            hidden_states=outputs.hidden_states,
-            attentions=outputs.attentions,
+            hidden_states=model_outputs.hidden_states,
+            attentions=model_outputs.attentions,
         )
+
+EXTRACTIVE_HEAD = dict(qa_head=ExtractiveQAHeadForQVE)
