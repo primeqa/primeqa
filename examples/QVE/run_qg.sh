@@ -10,7 +10,7 @@ if ! [ -d "$SOURCE_QG_CKPT_DIR" ]; then
 
 
   echo "##########################################################################"
-  echo "Pretrain QG model on SQuAD"
+  echo "Pretrain QG model on the source (SQuAD)"
   echo "##########################################################################"
 
   python primeqa/qg/run_qg.py\
