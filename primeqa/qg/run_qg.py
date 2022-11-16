@@ -30,8 +30,7 @@ class ModelArguments:
     model_name_or_path: str = field(
         default="t5-base",
         metadata={
-            "help": "Path to pretrained model or model identifier from huggingface.co/models",
-            "choices": ["t5-base", "t5-small", "google/mt5-small", "google/mt5-base"],
+            "help": "Path to pretrained model or model identifier from huggingface.co/models such as t5-base, google/mt5-base"
         },
     )
     modality: str = field(
