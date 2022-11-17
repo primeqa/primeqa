@@ -28,6 +28,52 @@ class TestMSKD_MRCTrainer(UnitTest):
     def data_collator(self, training_args, tokenizer):
         return DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if training_args.fp16 else None)
 
+    @pytest.fixture(scope='session')
+    def train_examples(self):
+        question = ["Who walked the dog?", "What time is it?"]
+        context = [["Alice walks the cat", "Bob walks the dog"],
+                   ["The quick brown fox jumps over the lazy dog", "Glenn the otter lives at the aquarium", "Go"]]
+        example_id = ["foo-abc", "bar-123"]
+        start_positions = [[0], [-1]]
+        end_positions = [[2], [-1]]
+        passage_indices = [[1], [-1]]
+        yes_no_answer = [["NONE"], ["NONE"]]
+        examples_dict = dict(question=question, context=context, example_id=example_id,
+                             target=[dict(start_positions=s, end_positions=e, passage_indices=p, yes_no_answer=yn)
+                                     for s, e, p, yn in
+                                     zip(start_positions, end_positions, passage_indices, yes_no_answer)])
+        examples_dataset1 = Dataset.from_dict(examples_dict)
+        examples_dataset2 = Dataset.from_dict(examples_dict)
+        examples_dataset3 = Dataset.from_dict(examples_dict)
+        examples_datasets = [examples_dataset1, examples_dataset2, examples_dataset3]
+        return examples_datasets
+
+    @pytest.fixture(scope='session')
+    def eval_examples(self, train_examples):
+        ees = []
+        for te in train_examples:
+            ee = te.remove_columns('target')
+            ees.append(ee)
+        return ees
+
+    @pytest.fixture(scope='session')
+    def train_examples_and_features(self, train_examples, preprocessor):
+        tes, tfs = [], []
+        for te in train_examples:
+            tep, tf = preprocessor.process_train(te)
+            tes.append(tep)
+            tfs.append(tf)
+        return tes, tfs
+
+    @pytest.fixture(scope='session')
+    def eval_examples_and_features(self, eval_examples, preprocessor):
+        ees, efs = [], []
+        for ee in eval_examples:
+            eep, ef = preprocessor.process_eval(ee)
+            ees.append(eep)
+            efs.append(ef)
+        return ees, efs
+
     @pytest.fixture(scope='function')
     def trainer_with_mskd_extractive_model(
             self, training_args, config_and_model_with_extractive_head,
@@ -35,6 +81,10 @@ class TestMSKD_MRCTrainer(UnitTest):
         _, model = config_and_model_with_extractive_head
         _, train_features = train_examples_and_features
         eval_examples, eval_features = eval_examples_and_features
+
+        assert len(train_features) == 3
+        assert len(eval_examples) == 3
+        assert len(eval_features) == 3
 
         kd_teacher_dir = '/dccstor/arafat5/primeqa/primeqa/examples/domain-generalization-with-kd/models/CDLPV/bert-large-uncased/erm/checkpoint-108170'
         kd_teacher_model_path = os.path.join(kd_teacher_dir, 'pytorch_model.bin')
@@ -58,9 +108,8 @@ class TestMSKD_MRCTrainer(UnitTest):
             setattr(training_args, k, kd_args[k])
 
         # Simulate training on n=3 datasets and evaluating on m=4 datasets
-        train_features = ConcatDataset(3 * [train_features])
-        eval_examples = 4 * [eval_examples]
-        eval_features = ConcatDataset(4 * [eval_features])
+        train_features = ConcatDataset(train_features)
+        eval_features = ConcatDataset(eval_features)
 
         return MSKD_MRCTrainer(
             model=model,
