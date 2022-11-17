@@ -181,16 +181,16 @@ Expected Output for ReasonBERT:
 The following table shows F1 scores on subsets of the MRQA dataset in full and few-shot settings for the baseline `roberta-base` and for `osunlp/ReasonBERT-RoBERTa-base`.  The scores are average of four runs with different seeds.
 
 Under the full-data setting, ReasonBERT achieves accuracy similar to the baseline pretrained model RoBERTa.
-Under the few-shot setting, ReasonBERT outperforms a RoBERTa base model by a large margin in all cases.
+Under the few-shot setting (128 examples), ReasonBERT outperforms a RoBERTa base model by a large margin in all cases.
 
 Model | Train Size | SQuAD | TriviaQA | NQ | NewsQA | SearchQA
 -- | -- | -- | -- | -- | -- | --
 RoBERTa  | all | 90.0 | 74.4 | 79.1 | 71.7 | 79.6
 ReasonBERT  | all | 88.8 | 74.5 | 78.5 | 69.3 | 79.0
 RoBERTa | 128 | 50.9+-2.1 | 21+-2.2 | 33.9+-1.5 | 23.2+-3.5 | 28.6+-1.5
-ReasonBERT | 128 | 64.3+-0.8 | 54.1+-0.9 | 47.3+-0.3 | 36.6+-2.0 | 53.4+-2.4
-RoBERTa  | 1024 | 76.6+-0.4 | 49+-1.5 | 59.8+-0.9 | 54.4+-0.9 | 55.7+-1.7
-ReasonBERT | 1024 | 77.1+-0.4 | 60+-0.9 | 64+-0.2 | 52.4+-0.5 | 64.2+-0.7
+ReasonBERT | 128 | **64.3+-0.8** | **54.1+-0.9** | **47.3+-0.3** | **36.6+-2.0** | **53.4+-2.4**
+RoBERTa  | 1024 | 76.6+-0.4 | 49+-1.5 | 59.8+-0.9 | 53.7+-0.9 | 55.7+-1.7
+ReasonBERT | 1024 | 77.1+-0.4 | 60+-0.9 | 64+-0.2 | 54.3+-0.5 | 64.2+-0.7
 
 NOTE: the score may not exactly match the results in the paper due to some differences in the reader implementation.
 
