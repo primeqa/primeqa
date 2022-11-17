@@ -155,9 +155,9 @@ print(json.dumps(answers, indent=4))
 
 The QA pipeline is used for Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. Long Form Question Answering (LFQA) is a generative task where the retrieved passages are used to generate a complex multi-sentence answer.
 
-In this example we show a QA Pipeline using a ColBERT retriever  and a Fusion in Decoder (FID) generator.
+In this example we show a QA Pipeline using a ColBERT retriever and a Fusion in Decoder (FID) generator.
 
-Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found [here]()
+Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found [here](https://github.com/primeqa/primeqa/blob/main/examples/lfqa/README.md)
 
 - Step 1:  Initialize the retriever.
 

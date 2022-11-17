@@ -37,8 +37,7 @@ class GenerativeReader(ReaderComponent):
 class GenerativeFiDReader(ReaderComponent):
     
     model: str = field(
-        #default="PrimeQA/eli5_reader_bart_fid_colbert",
-        default="/dccstor/mabornea2/oneqa_os/primeqa_fid/exp_bart_fid_3e-5_3e_fp16_colbert",
+        default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
         metadata={"name": "Model"},
     )
     max_seq_len: int = field(

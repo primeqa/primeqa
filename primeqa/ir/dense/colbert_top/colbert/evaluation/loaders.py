@@ -19,10 +19,7 @@ def load_queries(queries_path):
 
     with open(queries_path) as f:
         for line in f:
-            if len(line.strip().split('\t')) < 2:
-                print(line)
             qid, query, *_ = line.strip().split('\t')
-            # qid = int(qid)
 
             # removing (") at query
             # query = remove_first_and_last_quote(query)

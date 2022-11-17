@@ -5,7 +5,7 @@ LFQA is a form of generative question answering. Given a question,  the retrieve
 
 ## KILT-ELI5
 
-The following shows how to build retriever and reader components to generate answers for the KIlT-ELI5 dataset.
+The following shows how to build retriever and reader components to generate answers for the KILT-ELI5 dataset.
 
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
@@ -34,8 +34,15 @@ python examples/lfqa/kilt_passage_corpus.py \
 
 ### 3. Create a Dense Index with ColBERT
 
-At this point it is assumed that a ColBERT checkpoint already exists at `$COLBERT_CHECKPOINT`.
 Instructions for training a ColBERT model can be found [here](https://github.com/primeqa/primeqa/blob/main/primeqa/ir/README.md)
+We provide a ColBERT model that has already been trained.
+
+```bash
+cd $KILT_ELI5
+git clone https://huggingface.co/PrimeQA/open-nq-colbert-xlmr-large
+COLBERT_CHECKPOINT=$KILT_ELI5/open-nq-colbert-xlmr-large
+```
+
 ```
 python primeqa/ir/run_ir.py \
     --do_index \
