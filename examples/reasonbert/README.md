@@ -25,6 +25,8 @@ Before continuing below make sure you have PrimeQA [installed](../../README.md#I
 
 ## Training and Evaluation
 
+A Sample run script for training and evaluation with ReasonBERT is [here](run_mrc_squad_with_reasonbert.sh).
+
 ### Run Command
 
 ```
