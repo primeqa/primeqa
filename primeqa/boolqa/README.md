@@ -27,7 +27,7 @@ First, as a single command line argument in `run_mrc.py` to run all steps, and s
 later sections of this README.  
 The single command line argument is:
 ```shell
-python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  primeqa/boolqa/tydi_boolqa_config.json
@@ -63,24 +63,24 @@ The configuration file contains the parameters for each of the post-MRC steps
         "id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": null,
-        "label_list": ["short_answer","boolean"],
+        "label_list": ["boolean", "other"],
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydiqa-boolean-question-classifier"
+        "model_name_or_path": "PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117"
     },
     "evc": {
         "id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": "passage_answer_text",
-        "label_list": ["no", "no_answer", "yes"],
+        "label_list": ["no", "yes"],
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
-        "drop_label": "no_answer",
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydiqa-boolean-answer-classifier"
+        "model_name_or_path": "PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117"
     },
     "sn": {
+	"do_apply": true,
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
         "qtc_is_boolean_label": "boolean",
         "evc_no_answer_class": "no_answer"
@@ -99,12 +99,12 @@ needed by the downstream components
 
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
-        --output_dir {ws}/mrc/ --fp16 --learning_rate 4e-5 \
+        --output_dir ${BASE}/mrc/ --fp16 --learning_rate 4e-5 \
         --do_eval --per_device_train_batch_size 16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
         --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
         --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no \
-        --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+        --postprocessor primeqa.text_classification.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 ```
 
 ## Question type classification
@@ -113,15 +113,16 @@ Given a question (obtained from the `eval_predictions.json` file created in the 
 whether the question is `boolean` or `short_answer`.
 
 ```shell
-python primeqa/boolqa/run_boolqa_classifier.py \
-    --overwrite_cache \
-    --id_key example_id \
+python primeqa/text_classification/run_nway_classifier.py \
+    --oprimeqa/boolqa/text_classification_classifier.py \verwrite_cache \
+    --example_id_key example_id \
+    --do_mrc_pipeline \
     --sentence1_key question \
-    --label_list short_answer boolean \
+    --label_list boolean other \
     --output_label_prefix question_type \
-    --model_name_or_path PrimeQA/qtc_bert_pretrained_model \
-    --test_file ${BASE}/eval_predictions.json \
-    --output_dir ${OUTDIR}/qtc \
+    --model_name_or_path PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117 \
+    --test_file ${BASE}/mrc/eval_predictions.json \
+    --output_dir ${BASE}/qtc \
     --use_auth_token
 ```
 ## Answer classification
@@ -131,17 +132,18 @@ a `yes` or `no` answer to question.  Both question and span are passed through t
 file output by the previous step.  The details of this process are analyzed in this jupyter [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/evc.ipynb).
 
 ```shell
-python primeqa/boolqa/run_boolqa_classifier.py \
+python primeqa/text_classification/run_nway_classifier.py \
     --overwrite_cache  \
-    --id_key example_id \
+    --example_id_key example_id \
+    --do_mrc_pipeline \
     --sentence1_key question \
     --sentence2_key passage_answer_text \
-    --label_list no no_answer yes \
+    --label_list no yes \
     --output_label_prefix boolean_answer \
     --drop_label no_answer \
-    --model_name_or_path PrimeQA/evc_xlm_roberta_large \
-    --test_file ${BASE}/qtc/eval_predictions.json \
-    --output_dir ${OUTDIR}/evc \
+    --model_name_or_path PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117 \
+    --test_file ${BASE}/qtc/predictions.json \
+    --output_dir ${BASE}/evc \
     --use_auth_token
 ```
 
@@ -152,7 +154,8 @@ and output a file suitable for the TyDiQA evaluation script.
 
 ```shell
 python primeqa/boolqa/run_score_normalizer.py \
-    --test_file ${BASE}/evc/eval_predictions.json \
+    --test_file ${BASE}/evc/predictions.json \
     --model_name_or_path tests/resources/boolqa/score_normalizer_model/sn.pickle \
-    --output_dir ${OUTDIR}/sn
+    --output_dir ${BASE}/sn \
+    --do_apply
 ```
