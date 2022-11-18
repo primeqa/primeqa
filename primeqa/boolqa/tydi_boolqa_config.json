@@ -20,7 +20,7 @@
         "model_name_or_path": "PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117"
     },
     "sn": {
-	"do_apply": true,
+	    "do_apply": true,
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
         "qtc_is_boolean_label": "boolean",
         "evc_no_answer_class": "no_answer"
