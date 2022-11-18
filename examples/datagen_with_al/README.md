@@ -20,7 +20,7 @@ E.g. for GPU 2 (the third one) on the current host:
 export CUDA_VISIBLE_DEVICES=2
 ```
 
-The scripts `run.py` and `run_mrc.py` as used below can be modified using the [TrainingArguments](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments) from the transformers libray.
+The script `run.py` as used below can be modified using the [TrainingArguments](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments) from the transformers libray.
 
 ## AL for Data Generation
 
