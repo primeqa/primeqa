@@ -38,21 +38,21 @@ Replicating the experiments that [Dr. Decr](https://huggingface.co/ibm/DrDecr_XO
 - [Machine Reading Comprehension with XLM-R](https://github.com/primeqa/primeqa/tree/main/primeqa/mrc): to replicate the experiments to get to the top of the TyDI leaderboard similar to the performance of the IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
 - [Multimedia QA over news & movies](https://arxiv.org/abs/2112.10728): coming soon! to replicate the experiments run over multi-hop QA over images, text over variety of domains. Collaboration with [UIUC Blender lab](https://blender.cs.illinois.edu/).
 
-## 🏅 Leaderboard
+## 🏅 Top of the Leaderboard
 
 PrimeQA is at the top of several leaderboards: XOR-TyDi, TyDiQA-main, OTT-QA and HybridQA.
 
 ### [XOR-TyDi](https://nlp.cs.washington.edu/xorqa/)
-<img src="https://user-images.githubusercontent.com/4257308/202567250-ef83e72a-88f0-416c-814a-80fea865e2a3.png" width="50%">
+<img src="docs/_static/img/xor-tydi.png" width="50%">
 
 ### [TyDiQA-main](https://ai.google.com/research/tydiqa)
-<img src="https://user-images.githubusercontent.com/4257308/202567359-3c411ffa-8a27-4796-8f37-04ec74588242.png" width="50%">
+<img src="docs/_static/img/tydi-main.png" width="50%">
 
 ### [OTT-QA](https://codalab.lisn.upsaclay.fr/competitions/7967)
-<img src="https://user-images.githubusercontent.com/4257308/202567404-0fa060a0-8b28-4ac6-9e3a-7b021a707666.png" width="50%">
+<img src="docs/_static/img/ott-qa.png" width="50%">
 
 ### [HybridQA](https://codalab.lisn.upsaclay.fr/competitions/7979)
-<img src="https://user-images.githubusercontent.com/4257308/202567436-076dbe61-1482-4f02-865c-9d422ed503af.png" width="50%">
+<img src="docs/_static/img/hybridqa.png" width="50%">
 
 ## ✔️ Getting Started
 
@@ -147,7 +147,7 @@ For more information, see:
 |<img width="75" alt="stanford" src="docs/_static/img/collab-stanford-circle.png">| Stanford NLP |<img width="75" alt="i" src="docs/_static/img/collab-i-circle.png">| University of Illinois |
 |<img width="75" alt="stuttgart" src="docs/_static/img/collab-stuttgart-circle.png">| University of Stuttgart | <img width="75" alt="notredame" src="docs/_static/img/collab-notredame-circle.png">| University of Notre Dame |
 |<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
-|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |<img width="75" alt="ibm" src="docs/_static/img/collab-ibm-circle.png">| IBM Research |
+|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |<img width="75" height="75" alt="ibm" src="docs/_static/img/collab-ibm-circle.png">| IBM Research |
 | | | | |
 
 
