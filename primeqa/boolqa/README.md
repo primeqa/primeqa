@@ -98,9 +98,9 @@ as follows: the postprocessor provides additional information (language, questio
 needed by the downstream components
 
 ```shell
-python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
         --output_dir ${BASE}/mrc/ --fp16 --learning_rate 4e-5 \
-        --do_eval --per_device_train_batch_size 16 \
+        --do_eval --per_device_train_batch_size 16 --fp16 \
         --per_device_eval_batch_size 128 --gradient_accumulation_steps 4 \
         --warmup_ratio 0.1 --weight_decay 0.1 --save_steps 50000 \
         --overwrite_output_dir --num_train_epochs 1 --evaluation_strategy no \
@@ -114,9 +114,10 @@ whether the question is `boolean` or `short_answer`.
 
 ```shell
 python primeqa/text_classification/run_nway_classifier.py \
-    --oprimeqa/boolqa/text_classification_classifier.py \verwrite_cache \
+    --overwrite_cache \
     --example_id_key example_id \
     --do_mrc_pipeline \
+    --fp16 \
     --sentence1_key question \
     --label_list boolean other \
     --output_label_prefix question_type \
@@ -140,7 +141,6 @@ python primeqa/text_classification/run_nway_classifier.py \
     --sentence2_key passage_answer_text \
     --label_list no yes \
     --output_label_prefix boolean_answer \
-    --drop_label no_answer \
     --model_name_or_path PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117 \
     --test_file ${BASE}/qtc/predictions.json \
     --output_dir ${BASE}/evc \
