@@ -260,7 +260,7 @@ Users can also train (fine-tune) and evaluate the MRC model on custom data by pr
 PrimeQA also supports special features for MRC systems as follows:
 
 ### Boolean Questions
-Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI. Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)) of inference, or about [training](https://primeqa.github.io/primeqa/examples/boolqa/index.html):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
