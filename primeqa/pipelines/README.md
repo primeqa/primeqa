@@ -87,8 +87,10 @@ Follow the steps below to use the extractive reader:
 ```python
 import json
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+
+reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
 reader.load()
+
 ```
 - Step 2: Execute the reader in inference mode:
 ```python

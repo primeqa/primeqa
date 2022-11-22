@@ -166,9 +166,28 @@ class RetrieverService(RetrieverServicer):
             return RetrieveResponse()
 
         # Step 6: Retrieve
+        instance_fields = [
+            k
+            for k, v in instance.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+        self._logger.info(
+            "Applying '%s' retriever with parameters = %s for queries = %s",
+            instance.__class__.__name__,
+            {
+                k: getattr(instance, k) if k in instance_fields else v
+                for k, v in retriever_kwargs.items()
+            },
+            request.queries,
+        )
         try:
-            results = instance.retrieve(
-                input_texts=request.queries,
+            results = instance.retrieve(input_texts=request.queries, **retriever_kwargs)
+            self._logger.info(
+                "Applying '%s' retriever for queries = %s returns results = %s",
+                instance.__class__.__name__,
+                request.queries,
+                results,
             )
         except TypeError:
             context.set_code(StatusCode.INTERNAL)
