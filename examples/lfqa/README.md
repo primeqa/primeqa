@@ -21,7 +21,7 @@ The train set of KILT-ELI5 can be downloaded from [eli5-train-kilt.jsonl](http:/
 
 The dev set of KILT-ELI5 can be downloaded from [eli5-dev-kilt.jsonl](http://dl.fbaipublicfiles.com/KILT/eli5-dev-kilt.jsonl) (1,507 lines, 14.1MiB) 
 
-### 2. Preprocess the KILT Knowledge Surce
+### 2. Preprocess the KILT Knowledge Source
 
 The KILT Knowledge source needs to be preprocessed into a tsv format that can be used by the retrieval component.
 
