@@ -110,86 +110,76 @@ class Validation:
                 predictions_labels += rounded_preds.detach().cpu().numpy().tolist()
         avg_epoch_loss = losses / len(self.data_loader)
         return true_labels, predictions_labels,avg_epoch_loss
+class RowRetriever():
+    def __init__(self,hqa_args,t_args):
+        self.hqa_args = hqa_args
+        self.t_args = t_args
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.model = RowClassifierSC(self.hqa_args.row_retriever_model_name_path)
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="scripts/config/small_data_test.json",
-                    help="Path to config file")
-    parser.add_argument("--test", help="Test the pre-trained model",
-                    action="store_true")
-
-    args = parser.parse_args()
-    print(args)
-    with open(args.config) as fp:
-        config = json.load(fp)
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    #model details
-   
-    model = RowClassifierSC(config['bert_model'])
-    
-
-    if args.test:
-        state_dict = torch.load(config['model_path'])
-        state_dict = clean_model_state_dict(state_dict)
-        # model = RowClassifierSC()
-        if torch.cuda.device_count() > 1:
-            print("Let's use", torch.cuda.device_count(), "GPUs!")
-            # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-            model = nn.DataParallel(model)
-        model.load_state_dict(state_dict,strict=True)
-        
-        print("Model Loaded")
-        model.to(device)
-        model.eval()
-        predictions_labels = []
-        scores_list = []
-        question_ids_list = []
-        bert_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
-        #bert_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
-        test_data = read_data(config['test_data_path'])
-        test_dataset = TableQADatasetQRSconcat(test_data,512,bert_tokenizer,use_st_out=True,ret_labels=False)
-        test_data_loader = DataLoader(test_dataset, batch_size=config['dev_batch_size'], batch_sampler=None, 
-                                        num_workers=1, shuffle=False, pin_memory=True)
-        for question_ids,q_r_input in tqdm(test_data_loader,total = len(test_data_loader),position=0, leave=True):
-            q_r_input = {k:v.type(torch.long).to(device) for k,v in q_r_input.items()}
+    def predict(self,test_data_path):
+ 
+        if self.hqa_args.test:
+            state_dict = torch.load(self.hqa_args.row_retriever_model_name_path)
+            state_dict = clean_model_state_dict(state_dict)
+            # model = RowClassifierSC()
+            if torch.cuda.device_count() > 1:
+                print("Let's use", torch.cuda.device_count(), "GPUs!")
+                # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+                model = nn.DataParallel(model)
+            self.model.load_state_dict(state_dict,strict=True)
             
-            with torch.no_grad():
-                outputs = model(q_r_input)
-                probs = outputs.logits
-                scores = probs[:,1]
-                scores = scores.detach().cpu().numpy().tolist() 
-                scores_list+=scores
-                question_ids_list+=question_ids
-        
-        q_id_scores_list = {}
-        prev_qid = ""
-        for q_id, score in zip(question_ids_list,scores_list):
-            if q_id==prev_qid:
-                q_id_scores_list[q_id].append(score)
-            else:
-                q_id_scores_list[q_id] = [score]
-                prev_qid=q_id
+            print("Model Loaded")
+            self.model.to(self.device)
+            self.model.eval()
+            predictions_labels = []
+            scores_list = []
+            question_ids_list = []
+            bert_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
+            #bert_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
+            if test_data_path is not None:
+                test_data = read_data(test_data_path)
+                test_dataset = TableQADatasetQRSconcat(test_data,512,bert_tokenizer,use_st_out=True,ret_labels=False)
+                test_data_loader = DataLoader(test_dataset, batch_size=self.t_args.per_device_eval_batch_size, batch_sampler=None, 
+                                                num_workers=1, shuffle=False, pin_memory=True)
+            for question_ids,q_r_input in tqdm(test_data_loader,total = len(test_data_loader),position=0, leave=True):
+                q_r_input = {k:v.type(torch.long).to(self.device) for k,v in q_r_input.items()}
+                
+                with torch.no_grad():
+                    outputs = model(q_r_input)
+                    probs = outputs.logits
+                    scores = probs[:,1]
+                    scores = scores.detach().cpu().numpy().tolist() 
+                    scores_list+=scores
+                    question_ids_list+=question_ids
             
-        json.dump(q_id_scores_list,open(config['predict_file'],"w"))           
+            q_id_scores_list = {}
+            prev_qid = ""
+            for q_id, score in zip(question_ids_list,scores_list):
+                if q_id==prev_qid:
+                    q_id_scores_list[q_id].append(score)
+                else:
+                    q_id_scores_list[q_id] = [score]
+                    prev_qid=q_id
+                
+            json.dump(q_id_scores_list,open(self.hqa_args.row_retriever_prediction_file_path,"w"))           
 
-    else:
-        if config['model_path'] != '':
-            state_dict = torch.load(config['model_path'])
-            model.load_state_dict(state_dict,strict=True)
+    def train(self,train_data_path,dev_data_path):
+        if self.hqa_args.row_retriever_model_name_path != '':
+            state_dict = torch.load(self.hqa_args.row_retriever_model_name_path)
+            self.model.load_state_dict(state_dict,strict=True)
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
             model = nn.DataParallel(model)
 
-        model.to(device)
-        bert_tokenizer = BertTokenizer.from_pretrained(config['bert_model'])
+        self.model.to(self.device)
+        bert_tokenizer = BertTokenizer.from_pretrained(self.hqa_args.row_retriever_model_name_path)
         print('Model Loaded')
 
         #Load train and dev data from raw files
-        train_data = read_data(config['train_data_path'])
-        dev_data = read_data(config['dev_data_path'])
+        train_data = read_data(train_data_path)
+        dev_data = read_data(dev_data_path)
 
         use_st_out = False
         if use_st_out:
@@ -198,68 +188,68 @@ def main():
         train_dataset = TableQADatasetQRSconcat(train_data, 512,bert_tokenizer, use_st_out=use_st_out,ret_labels=True)
         dev_dataset = TableQADatasetQRSconcat(dev_data, 512,bert_tokenizer, use_st_out=use_st_out,ret_labels=True)
         dev_data_loader, _ = partial_label_data_loader(dev_data,
-                                                      tokenized_data = dev_dataset,
-                                                      batch_size=config['dev_batch_size'])
+                                                    tokenized_data = dev_dataset,
+                                                    batch_size=self.t_args.per_device_eval_batch_size)
 
         print('Partial label dataset-loaders created!')
 
         #loss function
         criterion = nn.CrossEntropyLoss(reduce=False) # using reduce=False to get loss per instance
-        total_steps = len(train_data)*config['num_train_epochs']
+        total_steps = len(train_data)*self.hqa_args.num_train_epochs_rr
 
         #Optimizer to update model parameters
-        optimizer = AdamW(model.parameters(),lr = 5e-5,eps = 1e-8)
+        optimizer = AdamW(self.model.parameters(),lr = 5e-5,eps = 1e-8)
         scheduler = get_linear_schedule_with_warmup(optimizer,num_warmup_steps = 0.1*total_steps,
                                                     num_training_steps= total_steps)
 
         validator = Validation(data_loader = dev_data_loader,
                         model = model,
-                        device = device,criterion=criterion
+                        device = self.device,criterion=criterion
                         )
 
-        pos_frac_list = config['pos_frac_per_epoch']
-        group_frac_list = config['group_frac_per_epoch']
+        pos_frac_list = self.hqa_args.pos_frac_per_epoch
+        group_frac_list = self.hqa_args.group_frac_per_epoch
         
         # if pos_frac and grup_frac list aren't filled then put default values
         if pos_frac_list == []:
-            pos_frac_list = [0.0001] * config['num_train_epochs']
-        elif len(pos_frac_list) < config['num_train_epochs']:
-            pos_frac_list += [pos_frac_list[-1]]* (config['num_train_epochs'] - len(pos_frac_list))
+            pos_frac_list = [0.0001] * self.hqa_args.num_train_epochs_rr
+        elif len(pos_frac_list) < self.hqa_args.num_train_epochs_rr:
+            pos_frac_list += [pos_frac_list[-1]]* self.hqa_args.num_train_epochs_rr - len(pos_frac_list))
 
         if group_frac_list == []:
-            group_frac_list = [1.0] * config['num_train_epochs']
-        elif len(group_frac_list) < config['num_train_epochs']:
-            group_frac_list += [group_frac_list[-1]]* (config['num_train_epochs'] - len(group_frac_list))
+            group_frac_list = [1.0] * self.hqa_args.num_train_epochs_rr
+        elif len(group_frac_list) < self.hqa_args.num_train_epochs_rr:
+            group_frac_list += [group_frac_list[-1]]* (self.hqa_args.num_train_epochs_rr - len(group_frac_list))
 
 
         pos_fraction = pos_frac_list[0]
         group_fraction = group_frac_list[0] 
         train_data_loader, batch_label_matrix = partial_label_data_loader(train_data,
-                                                      tokenized_data = train_dataset,
-                                                      batch_size=config['train_batch_size'], 
-                                                      pos_fraction = pos_fraction,
-                                                      group_fraction = group_fraction)
+                                                    tokenized_data = train_dataset,
+                                                    batch_size=self.t_args.per_device_train_batch_size, 
+                                                    pos_fraction = pos_fraction,
+                                                    group_fraction = group_fraction)
         trainer = Training(data_loader = train_data_loader,
                     batch_label_matrix = batch_label_matrix,
                     model = model,
                     optimizer = optimizer,
                     validator = validator,
-                    save_every_niter = config['save_every_niter'],
-                    save_model_path = config['save_model_path'],
+                    save_every_niter = self.hqa_args.save_every_niter_rr,
+                    save_model_path = self.hqa_args.save_model_path_rr,
                     scheduler = scheduler,
-                    device = device,criterion=criterion)
+                    device = self.device,criterion=criterion)
 
         best_accuracy = 0.0
         all_loss = {'train_loss':[], 'val_loss':[]}
         all_acc = {'train_acc':[], 'val_acc':[]}
-        for epoch in tqdm(range(config['num_train_epochs']),position=0, leave=True):
+        for epoch in tqdm(range(self.hqa_args.num_train_epochs_rr),position=0, leave=True):
             # data loader updated if pos_frac and group_frac is different from last epoch
             if pos_frac_list[epoch] != pos_fraction or group_frac_list[epoch] != group_fraction:
                 pos_fraction = pos_frac_list[epoch]
                 group_fraction = group_frac_list[epoch]
                 train_data_loader, batch_label_matrix = partial_label_data_loader(train_data,
                                                         tokenized_data = train_dataset,
-                                                        batch_size=config['train_batch_size'], 
+                                                        batch_size=self.t_args.per_device_train_batch_size, 
                                                         pos_fraction = pos_fraction,
                                                         group_fraction = group_fraction)
                 trainer = Training(data_loader = train_data_loader,
@@ -267,10 +257,10 @@ def main():
                         model = model,
                         optimizer = optimizer,
                         validator = validator,
-                        save_every_niter = config['save_every_niter'],
-                        save_model_path = config['save_model_path'],
+                        save_every_niter = self.hqa_args.save_every_niter_rr,
+                        save_model_path = self.hqa_args.save_model_path_rr,
                         scheduler = scheduler,
-                        device = device,criterion=criterion)
+                        device = self.device,criterion=criterion)
 
             print('Training now ')
             train_labels,train_predictions,training_loss = trainer.train(best_accuracy)
@@ -284,7 +274,7 @@ def main():
             print(f'Validation loss for epoch {epoch+1}: {validation_loss}')
 
             if validation_accuracy > best_accuracy:
-                torch.save(model.state_dict(),config['save_model_path'])
+                torch.save(self.model.state_dict(),self.hqa_args.save_model_path_rr)
                 best_accuracy = validation_accuracy
 
             all_loss['train_loss'].append(training_loss)
