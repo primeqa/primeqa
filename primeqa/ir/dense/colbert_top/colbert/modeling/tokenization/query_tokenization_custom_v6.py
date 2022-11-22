@@ -1,6 +1,6 @@
 import torch
 
-from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom import HF_ColBERT_custom
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom_v6 import HF_ColBERT_custom_v6
 from transformers import XLMRobertaTokenizer # there's no Fast version
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
@@ -20,7 +20,7 @@ from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 class QueryTokenizerCustomV6():
     def __init__(self, query_maxlen, model_type):
         # self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
-        self.tok = HF_ColBERT_custom.raw_tokenizer_from_pretrained(model_type)
+        self.tok = HF_ColBERT_custom_v6.raw_tokenizer_from_pretrained(model_type)
         self.query_maxlen = query_maxlen
 
         self.Q_marker_token, self.Q_marker_token_id = '?', 9748  # Umbrellawith Rain Drops

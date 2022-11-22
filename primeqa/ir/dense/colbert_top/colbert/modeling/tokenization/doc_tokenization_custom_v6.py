@@ -1,14 +1,14 @@
 import torch
 
 from transformers import XLMRobertaTokenizer # there's no Fast version
-from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom import HF_ColBERT_custom
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom_v6 import HF_ColBERT_custom_v6 
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches, _sort_by_length
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 class DocTokenizerCustomV6():
     def __init__(self, doc_maxlen, model_type):
         # self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
-        self.tok = HF_ColBERT_custom.raw_tokenizer_from_pretrained(model_type)
+        self.tok = HF_ColBERT_custom_v6.raw_tokenizer_from_pretrained(model_type)
 
         self.doc_maxlen = doc_maxlen
 

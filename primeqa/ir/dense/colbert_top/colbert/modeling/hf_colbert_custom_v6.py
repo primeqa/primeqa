@@ -109,6 +109,8 @@ class HF_ColBERT_custom_v6(RobertaModel):
         '''
 
         tokenizer_dir = '/dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22'
+        tokenizer_dir='/store/nasa-wiki-weighted-tokenizer-10-3-22/'
+        print("tokenizer_dir", tokenizer_dir)
         obj = AutoTokenizer.from_pretrained(tokenizer_dir)
         obj.base = 'roberta-base'
 
