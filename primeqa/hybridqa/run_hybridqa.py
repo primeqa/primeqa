@@ -158,6 +158,32 @@ class HybridQAArguments:
     test: Optional[bool] = field(
         default=False, metadata={"help": "Remove columns not required by the model when using an nlp.Dataset."}
     )
+    test_data_path: str = field(
+       default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
+    )
+    row_retriever_model_name_path: str = field(
+       default='data/hybridqa/models/rr.bin', metadata={"help": "Row retriever configuration file"}
+    )
+    row_retriever_prediction_file_path: str = field(
+       default='data/hybridqa/predictions/test_pred.json', metadata={"help": "Row retriever configuration file"}
+    )
+    pos_frac_per_epoch: list = field(
+       default=[0.3, 0.3, 0.1, 0.0001, 0.0001], metadata={"help": "Positive fraction per epoch"}
+    )
+    group_frac_per_epoch: list = field(
+       default=[0.0, 0.0, 0.0, 0.0, 0.0], metadata={"help": "Positive fraction per epoch"}
+    )
+    num_train_epochs_rr: int = field(
+       default=2,metadata={"help": "Number of epochs to train the row retriever"}
+    )
+    save_every_niter_rr: int = field(
+       default=100,metadata={"help": "Save model after how many iterations"}
+    )
+    save_model_path_rr: str = field(
+       default='data/hybridqa/models/rr.bin',metadata={"help": "Path to save row retrieval model"}
+    )
+    
+    
     
     
     
