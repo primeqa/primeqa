@@ -16,29 +16,6 @@ from transformers import TapasTokenizer, TapasModel
 
 
 
-
-class TapasRowClassifier(nn.Module):
-    def __init__(self):
-        super(TapasRowClassifier, self).__init__()
-        self.tapas_encoder = TapasModel.from_pretrained('google/tapas-base')
-        self.hidden_dim = 768
-        self.num_labels = 2
-        self.projection = nn.Sequential(nn.Linear( self.hidden_dim, self.hidden_dim), 
-                                        nn.ReLU(),
-                                        nn.Linear(self.hidden_dim, self.num_labels))
-        
-        
-    def forward(self,q_r_input,labels=None):
-        outputs = self.model(**q_r_input,labels=labels)
-        last_hidden_states = outputs.last_hidden_state
-        print(last_hidden_states.shape)
-        logits = self.projection(last_hidden_states[:,0])
-        return logits
-
-    
-
-#==========================================================================================
-
 class RowClassifierSC(nn.Module):
     def __init__(self,bert_model,state_dict=None):
         super(RowClassifierSC, self).__init__()
@@ -85,12 +62,7 @@ class RowClassifierQRSLongformer(nn.Module):
         encoded = self.encoder(**q_r_input).pooler_output
         logits = self.projection(encoded)
         return logits
-
-
-
-
-
-
+    
 class RowClassifier(nn.Module):
     def __init__(self):
         super(RowClassifier, self).__init__()
