@@ -122,7 +122,7 @@ def preprocess_data(data_root_path,data_path,split,test):
             processed_data.append(npi)
     print("total", den, "changed", num, len(processed_data))
     json.dump(processed_data,open(processed_data_path,"w"),indent=4)
-    return processed_data_path
+    return processed_data
 
 
 if __name__ == "__main__":
