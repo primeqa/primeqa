@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+import glob
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -195,10 +196,18 @@ def main(raw_args):
 
     train_dataset = None
     valid_dataset = None
+    data_files={}
+    
+    if data_args.train_file is not None: 
+        data_files['train'] = glob.glob(data_args.train_file)
+    if data_args.eval_file is not None: 
+        data_files['validation'] = glob.glob(data_args.eval_file)
+    
+    dataset = load_dataset("json", data_files=data_files)
     
     if training_args.do_train:
         if data_args.train_file is not None:
-            dataset = load_dataset("json", data_files=data_args.train_file)
+            #dataset = load_dataset("json", data_files=data_args.train_file)
             dataset = dataset['train']
             train_dataset = qgdl.create(dataset=dataset)
         else:
@@ -208,9 +217,9 @@ def main(raw_args):
     
     if training_args.do_eval:
         if data_args.eval_file is not None:
-            dataset = load_dataset("json", data_files=data_args.eval_file)
+            # dataset = load_dataset("json", data_files=data_args.eval_file)
             # this is not a bug, by default huggingface datasets library loads any data as train split
-            dataset = dataset['train']
+            dataset = dataset['validation']
             valid_dataset = qgdl.create(dataset=dataset)
         else:
             valid_dataset = qgdl.create(
