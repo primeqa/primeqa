@@ -146,7 +146,7 @@ class HybridQAArguments:
        default='data/hybridqa/', metadata={"help": "root path to store the preprocessed dataset"}
     )
     train_data_path: str = field(
-       default='data/hybridqa/train.json', metadata={"help": "Train data path for training on user's own dataset"}
+       default='data/hybridqa/test.json', metadata={"help": "Train data path for training on user's own dataset"}
     )
     dev_data_path: str = field(
        default='data/hybridqa/train.json', metadata={"help": "Dev data path for training on user's own dataset"}
