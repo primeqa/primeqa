@@ -48,7 +48,7 @@ class Training:
         correct_predictions = 0
         predictions_labels = []
         true_labels = []
-        
+        print("length of data loader",len(self.data_loader))
         for idx, (q_r_input,labels) in enumerate(tqdm(self.data_loader,total = len(self.data_loader),position=0, leave=True)):
             true_labels += labels.numpy().flatten().tolist()
             labels = labels.to(self.device)
@@ -163,16 +163,16 @@ class RowRetriever():
         return q_id_scores_list
 
     def train(self,train_data_processed,dev_data_processed):
-        if self.t_args.row_retriever_model_name_path != '':
-            state_dict = torch.load(self.t_args.row_retriever_model_name_path)
-            self.model.load_state_dict(state_dict,strict=True)
+        # if self.t_args.row_retriever_model_name_path != '':
+        #     state_dict = torch.load(self.t_args.row_retriever_model_name_path)
+        #     self.model.load_state_dict(state_dict,strict=True)
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
             self.model = nn.DataParallel(self.model)
 
         self.model.to(self.device)
-        bert_tokenizer = BertTokenizer.from_pretrained(self.t_args.row_retriever_model_name_path)
+        bert_tokenizer = BertTokenizer.from_pretrained(self.t_args.rr_model_name)
         print('Model Loaded')
 
         #Load train and dev data from raw files
