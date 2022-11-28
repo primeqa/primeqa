@@ -27,9 +27,9 @@ primeqa.qg.run\_qg.DataTrainingArguments
    
       ~DataTrainingArguments.dataset_config
       ~DataTrainingArguments.dataset_name
+      ~DataTrainingArguments.eval_file
       ~DataTrainingArguments.max_len
       ~DataTrainingArguments.target_max_len
-      ~DataTrainingArguments.train_file_path
-      ~DataTrainingArguments.valid_file_path
+      ~DataTrainingArguments.train_file
    
    

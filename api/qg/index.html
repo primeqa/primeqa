@@ -347,6 +347,7 @@ The primary script for QG is <a class="reference external" href="https://github.
 <li><p>WikiSQL (QG for TableQA)</p></li>
 <li><p>SQuAD, SQuAD_v2 (QG for PassageQA i.e. MRC)</p></li>
 <li><p>TydiQA (Multilingual QG)</p></li>
+<li><p>Custom Data in a file in Squad/TydiQA format.</p></li>
 </ul>
 </section>
 <section id="example-usage">
@@ -378,7 +379,7 @@ eval_steps_per_second   =      1.528\</p>
 <p>Inference can be done on any table in particular dict format. Check this <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/qg/tableqg_inference.ipynb">notebook</a> for more information.</p>
 <p>An example usage for training the model on TydiQA dataset:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python primeqa/qg/run_qg.py<span class="se">\</span>
-    --model_name_or_path mt5-base <span class="se">\</span>
+    --model_name_or_path google/mt5-base <span class="se">\</span>
     --modality passage <span class="se">\</span>
     --dataset_name tydiqa <span class="se">\</span>
     --do_train <span class="se">\</span>
@@ -400,6 +401,20 @@ eval_steps_per_second   =      1.528\</p>
 </pre></div>
 </div>
 <p>Inference can be done for PassageQG over a given passage. Check this <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/qg/passageqg_inference.ipynb">notebook</a> for more information.</p>
+<p>One can also train and/or evaluate QG on custom data which is prepared in squad or tydiqa format (a sample file <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/examples/custom_mrc/custom_data/examples_train_squad.jsonl">here</a>).
+An example usage of qg training and evauation using custom data files is as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python primeqa/qg/run_qg.py<span class="se">\</span>
+    --model_name_or_path google/mt5-base <span class="se">\</span>
+    --modality passage <span class="se">\</span>
+    --train_file &lt;path to sample train file&gt; <span class="se">\</span>
+    --do_train <span class="se">\</span>
+    --do_eval <span class="se">\</span>
+    --eval_file &lt;path to sample <span class="nb">eval</span> file&gt; <span class="se">\</span>
+    --output_dir models/qg/<span class="nv">$DIR_NAME</span> <span class="se">\</span>
+    --learning_rate <span class="m">0</span>.0001 <span class="se">\</span>
+    --num_train_epochs <span class="m">4</span>
+</pre></div>
+</div>
 </section>
 </section>
 
