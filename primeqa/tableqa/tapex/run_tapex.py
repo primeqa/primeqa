@@ -48,8 +48,8 @@ from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
-from primeqa.tableqa.tapex.preprocessors.wikisql2 import preprocess_tableqa_function_wikisql
-from primeqa.tableqa.tapex.preprocessors.wikitablequestions2 import preprocess_tableqa_function_wtq
+from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_function_wikisql
+from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
