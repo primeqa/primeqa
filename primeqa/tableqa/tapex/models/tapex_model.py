@@ -1,18 +1,17 @@
 from pickle import NONE
-from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
+from transformers import AutoTokenizer,AutoModelForSeq2SeqLM
 import pandas as pd
 
-class TapasModel():
-    def __init__(self,model_name_path,config=None):
+class TapexModel():
+    def __init__(self,model_name_path):
         """TableQA model class
 
         Args:
             model_name_path (str): Path to the pre-trained model.
             config (_type_, optional): _description_. Defaults to None.
         """
-        self._model = TapasForQuestionAnswering.from_pretrained(model_name_path)
-        self.config = config
-        self._tokenizer = TapasTokenizer.from_pretrained(model_name_path)
+        self._tokenizer  = AutoTokenizer.from_pretrained(model_name_path)
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name_path)
 
 
     @property
@@ -45,21 +44,10 @@ class TapasModel():
             Dict: Returns a dictionary of query and the predicted answer.
         """
         table = pd.DataFrame.from_dict(data_dict)
-        inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
-        outputs = self._model(**inputs)
-        predicted_answer_coordinates = self._tokenizer.convert_logits_to_predictions(inputs,
-                                                                                    outputs.logits.detach(),
-                                                                                    None)
-        answers = []
-        for coordinates in predicted_answer_coordinates[0]:
-            if len(coordinates) == 1:
-            # only a single cell:
-                answers.append(table.iat[coordinates[0]])
-            else:
-                cell_values = []
-                for coordinate in coordinates:
-                    cell_values.append(table.iat[coordinate])
-                answers.append(", ".join(cell_values))
+        inputs = self._tokenizer(table, queries_list, padding='max_length', return_tensors="pt")
+        outputs = self._model.generate(**inputs)
+        answers = self._tokenizer.batch_decode(outputs, skip_special_tokens=True)
+
         query_answer_dict = {}
         for query, answer in zip(queries_list, answers):
             query_answer_dict[query] = answer
