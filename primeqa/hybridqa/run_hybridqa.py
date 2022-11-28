@@ -22,7 +22,7 @@ class RRArguments():
        default=8, metadata={"help": "train batch size"}
     )
    rr_model_name: str = field(
-       default='bert-large-uncased', metadata={"help": "Which model to use for RR training/testing"}
+       default='bert-base-uncased', metadata={"help": "Which model to use for RR training/testing"}
     )
    row_retriever_model_name_path: str = field(
        default='data/hybridqa/pretrained_models/rr.bin', metadata={"help": "Row retriever configuration file"}
@@ -134,10 +134,10 @@ class HybridQAArguments:
        default='data/hybridqa/', metadata={"help": "root path to store the preprocessed dataset"}
     )
     train_data_path: str = field(
-       default='data/hybridqa/train.json', metadata={"help": "Train data path for training on user's own dataset"}
+       default='data/hybridqa/test.json', metadata={"help": "Train data path for training on user's own dataset"}
     )
     dev_data_path: str = field(
-       default='data/hybridqa/dev.json', metadata={"help": "Dev data path for training on user's own dataset"}
+       default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
     )
     test_data_path: str = field(
        default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
@@ -178,9 +178,9 @@ def run_hybrid_qa():
       logger.info("Training Mode")
       train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.train_data_path,split="train",test=test)
       dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dev_data_path,split="dev",test=test)
-      logger.info("Initial preprocessing done")
+      logger.info("Train: Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
-      logger.info("training row retrieval model")
+      logger.info("Train: Training row retrieval model")
       rr.train(train_data_processed,dev_data_processed)
       qid_scores_dict_train = rr.predict(train_data_processed)
       qid_scores_dict_dev = rr.predict(train_data_processed)
@@ -188,7 +188,10 @@ def run_hybrid_qa():
       dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,test)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
       answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,test)
-      run_answer_extractor(ae_args)
+      output_dir = run_answer_extractor(ae_args)
+      logger.info(f"Train: Training Done model saved at: {output_dir}")
+      
+      
       
       
       

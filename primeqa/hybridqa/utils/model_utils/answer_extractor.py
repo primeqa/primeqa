@@ -1014,6 +1014,8 @@ def run_answer_extractor(args):
             json.dump(data, f, indent=2)
     if args.do_predict:
         return prediction_file,nbest_file
+    if args.do_train:
+        return args.output_dir
         
 
 
