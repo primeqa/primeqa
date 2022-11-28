@@ -48,9 +48,8 @@ from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
-from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_function_wikisql
-from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
-from primeqa.tableqa.tapex.utils.argument_utils_for_tapex import DataTrainingArguments,ModelArguments
+from primeqa.tableqa.tapex.preprocessors.wikisql2 import preprocess_tableqa_function_wikisql
+from primeqa.tableqa.tapex.preprocessors.wikitablequestions2 import preprocess_tableqa_function_wtq
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -68,6 +67,181 @@ except (LookupError, OSError):
     with FileLock(".lock") as lock:
         nltk.download("punkt", quiet=True)
 
+
+@dataclass
+class ModelArguments:
+    """
+    Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
+    """
+
+    model_name_or_path: str = field(
+        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"},
+    )
+    config_name: Optional[str] = field(
+        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+    )
+    tokenizer_name: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Pretrained tokenizer name or path if not the same as model_name. "
+                "By default we use BART-large tokenizer for TAPEX-large."
+            )
+        },
+    )
+    cache_dir: Optional[str] = field(
+        default=None,
+        metadata={"help": "Where to store the pretrained models downloaded from huggingface.co"},
+    )
+    use_fast_tokenizer: bool = field(
+        default=True,
+        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+    )
+    model_revision: str = field(
+        default="main",
+        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+    )
+    use_auth_token: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Will use the token generated when running `huggingface-cli login` (necessary to use this script "
+                "with private models)."
+            )
+        },
+    )
+
+
+@dataclass
+class DataTrainingArguments:
+    """
+    Arguments pertaining to what data we are going to input our model for training and eval.
+    """
+
+    dataset_name: Optional[str] = field(
+        default="wikitablequestions", metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
+    dataset_config_name: Optional[str] = field(
+        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+    )
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "The input training data file (a jsonlines or csv file)."}
+    )
+    validation_file: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "An optional input evaluation data file to evaluate the metrics (rouge) on (a jsonlines or csv file)."
+            )
+        },
+    )
+    test_file: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "An optional input test data file to evaluate the metrics (rouge) on (a jsonlines or csv file)."
+        },
+    )
+    overwrite_cache: bool = field(
+        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+    )
+    preprocessing_num_workers: Optional[int] = field(
+        default=None,
+        metadata={"help": "The number of processes to use for the preprocessing."},
+    )
+    max_source_length: Optional[int] = field(
+        default=1024,
+        metadata={
+            "help": (
+                "The maximum total input sequence length after tokenization. Sequences longer "
+                "than this will be truncated, sequences shorter will be padded."
+            )
+        },
+    )
+    max_target_length: Optional[int] = field(
+        default=128,
+        metadata={
+            "help": (
+                "The maximum total sequence length for target text after tokenization. Sequences longer "
+                "than this will be truncated, sequences shorter will be padded."
+            )
+        },
+    )
+    val_max_target_length: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "The maximum total sequence length for validation target text after tokenization. Sequences longer "
+                "than this will be truncated, sequences shorter will be padded. Will default to `max_target_length`."
+                "This argument is also used to override the ``max_length`` param of ``model.generate``, which is used "
+                "during ``evaluate`` and ``predict``."
+            )
+        },
+    )
+    pad_to_max_length: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Whether to pad all samples to model maximum sentence length. "
+                "If False, will pad the samples dynamically when batching to the maximum length in the batch. More "
+                "efficient on GPU but very bad for TPU."
+            )
+        },
+    )
+    max_train_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "For debugging purposes or quicker training, truncate the number of training examples to this "
+                "value if set."
+            )
+        },
+    )
+    max_eval_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                "value if set."
+            )
+        },
+    )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "For debugging purposes or quicker training, truncate the number of prediction examples to this "
+                "value if set."
+            )
+        },
+    )
+    num_beams: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Number of beams to use for evaluation. This argument will be passed to ``model.generate``, "
+                "which is used during ``evaluate`` and ``predict``."
+            )
+        },
+    )
+    ignore_pad_token_for_loss: bool = field(
+        default=True,
+        metadata={
+            "help": "Whether to ignore the tokens corresponding to padded labels in the loss computation or not."
+        },
+    )
+
+    def __post_init__(self):
+        if self.dataset_name is None and self.train_file is None and self.validation_file is None:
+            raise ValueError("Need either a dataset name or a training/validation file.")
+        else:
+            if self.train_file is not None:
+                extension = self.train_file.split(".")[-1]
+                assert extension in ["csv", "json"], "`train_file` should be a csv or a json file."
+            if self.validation_file is not None:
+                extension = self.validation_file.split(".")[-1]
+                assert extension in ["csv", "json"], "`validation_file` should be a csv or a json file."
+        if self.val_max_target_length is None:
+            self.val_max_target_length = self.max_target_length
 
 
 def main():
@@ -175,6 +349,11 @@ def main():
         add_prefix_space=True,
     )
 
+    # if data_args.dataset_name == 'wikisql':
+    #     preprocessor = WikiSQLProcessor(tokenizer,data_args)
+    # elif data_args.dataset_name == 'wikitablequestions':
+    #     preprocessor = WTQProcessor(tokenizer,data_args)
+
     # load Bart based Tapex model (default tapex-large)
     model = BartForConditionalGeneration.from_pretrained(
         model_args.model_name_or_path,
@@ -209,6 +388,70 @@ def main():
             "label_smoothing is enabled but the `prepare_decoder_input_ids_from_labels` method is not defined for"
             f"`{model.__class__.__name__}`. This will lead to loss being calculated twice and will take up more memory"
         )
+
+    # def preprocess_tableqa_function(examples, is_training=False):
+    #     """
+    #     The is_training FLAG is used to identify if we could use the supervision
+    #     to truncate the table content if it is required.
+    #     """
+
+    #     questions = [question.lower() for question in examples["question"]]
+    #     example_tables = examples["table"]
+    #     tables = [
+    #         pd.DataFrame.from_records(example_table["rows"], columns=example_table["header"])
+    #         for example_table in example_tables
+    #     ]
+
+    #     # using wikitablequestion's answer set
+    #     answers = examples["answers"]
+
+    #     # IMPORTANT: we cannot pass by answers during evaluation, answers passed during training are used to
+    #     # truncate large tables in the train set!
+    #     if is_training:
+    #         model_inputs = tokenizer(
+    #             table=tables,
+    #             query=questions,
+    #             answer=answers,
+    #             max_length=data_args.max_source_length,
+    #             padding=padding,
+    #             truncation=True,
+    #         )
+    #     else:
+    #         model_inputs = tokenizer(
+    #             table=tables, query=questions, max_length=data_args.max_source_length, padding=padding, truncation=True
+    #         )
+
+    #     labels = tokenizer(
+    #         answer=[", ".join(answer) for answer in answers],
+    #         max_length=max_target_length,
+    #         padding=padding,
+    #         truncation=True,
+    #     )
+
+    #     # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
+    #     # padding in the loss.
+    #     if padding == "max_length" and data_args.ignore_pad_token_for_loss:
+    #         labels["input_ids"] = [
+    #             [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+    #         ]
+
+    #     model_inputs["labels"] = labels["input_ids"]
+
+    #     return model_inputs
+
+    # in training, we can use the answer as extra information to truncate large tables
+    # preprocess_tableqa_function_training = partial(preprocess_tableqa_function, is_training=True)
+   
+    # if data_args.dataset_name == 'wikisql':
+    #     preprocess_tableqa_function_training = partial(preprocessor.preprocess_tableqa_function_wikisql, is_training=True)
+    # elif data_args.dataset_name == 'wikitablequestions':
+    #     preprocess_tableqa_function_training = partial(preprocessor.preprocess_tableqa_function_wtq, is_training=True)
+    # else:
+    #     raise ValueError("Only wikisql and wikitablequestions are supported")
+
+    # preprocess_tableqa_function = preprocessor.preprocess_tableqa_function_wikisql 
+
+
     if data_args.dataset_name == 'wikisql':
         preprocess_tableqa_function = partial(preprocess_tableqa_function_wikisql, model_args=model_args, data_args=data_args,is_training=False)
         
@@ -276,6 +519,7 @@ def main():
     def postprocess_text(preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [label.strip() for label in labels]
+
         return preds, labels
 
     def compute_metrics(eval_preds):
