@@ -12,8 +12,9 @@ from operator import attrgetter
 from typing import Optional, Type, List
 
 import datasets
+
 import apache_beam as beam
-from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
+from transformers import HfArgumentParser, Seq2SeqTrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
@@ -21,10 +22,14 @@ from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from primeqa.mrc.metrics.mlqa.mlqa import MLQA
 from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
+from primeqa.mrc.metrics.rouge.rouge import ROUGE
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.heads.generative import FID_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.models.fid_task_model import FiDModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
+from primeqa.mrc.processors.postprocessors.eli5_fid import ELI5FiDPostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
 from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
@@ -33,9 +38,12 @@ from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
 from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
+from primeqa.mrc.processors.preprocessors.eli5_fid import ELI5FiDPreprocessor
+from primeqa.mrc.data_models.data_collator import FiDDataCollator
 from primeqa.mrc.processors.preprocessors.tydiboolqa_bpes import TyDiBoolQAPreprocessor
 from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 
@@ -249,25 +257,43 @@ class TaskArguments:
     task_heads: object_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
-                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD]
+                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD, FID_HEAD]
+                  }
+    )
+    task_model: object_reference = field(
+        default=ModelForDownstreamTasks,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [ModelForDownstreamTasks, FiDModelForDownstreamTasks]
+                  }
+    )
+    task_data_collator: object_reference = field(
+        default=DataCollatorWithPadding,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [DataCollatorWithPadding, FiDDataCollator]
+                  }
+    )
+    task_trainer: object_reference = field(
+        default=MRCTrainer,
+        metadata={"help": "The name of the preprocessor to use.",
+                  "choices": [MRCTrainer, MRCSeq2SeqTrainer]
                   }
     )
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor,TyDiBoolQAPreprocessor]
-                  }
+                  "choices": [MRQAPreprocessor, BasePreProcessor,TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor,ELI5FiDPreprocessor,TyDiBoolQAPreprocessor]
+                }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor, NaturalQuestionsPostProcessor]
-                  }
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor, NaturalQuestionsPostProcessor, ELI5FiDPostProcessor]
+                }
     )
     eval_metrics: str = field(
         default="TyDiF1",
         metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
-                  "choices": ["TyDiF1","SQUAD","MLQA","NQF1"]
+                  "choices": ["TyDiF1","SQUAD","MLQA","NQF1","ROUGE"]
                  }
     )
     do_boolean: bool = field(
@@ -310,7 +336,7 @@ class TaskArguments:
 
 
 def main():
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments, TaskArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments, TaskArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
@@ -371,7 +397,9 @@ def main():
     config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
     config.output_dropout_rate = task_args.output_dropout_rate
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
-    model = ModelForDownstreamTasks.from_config(
+
+    model_class = task_args.task_model
+    model = model_class.from_config(
         config,
         model_args.model_name_or_path,
         task_heads=task_heads,
@@ -382,16 +410,12 @@ def main():
     # load data
     logger.info('Loading dataset')
     if data_args.train_file is not None or data_args.eval_file is not None:
-        data_files = {}
-
+        raw_datasets = {}
         if data_args.train_file is not None: 
-            data_files['train'] = glob.glob(data_args.train_file)
+            raw_datasets["train"] = datasets.load_dataset(data_args.data_file_format, data_files={"train": data_args.train_file}, split="train")
         if data_args.eval_file is not None: 
-            data_files['validation'] = glob.glob(data_args.eval_file)
-
-        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-            data_files=data_files,
-            cache_dir=model_args.cache_dir)
+            raw_datasets["validation"] = datasets.load_dataset(data_args.data_file_format, data_files={"validation": data_args.eval_file}, split="validation")
+        
     else:
         if data_args.dataset_name == "natural_questions":
             raw_datasets = datasets.load_dataset(
@@ -421,6 +445,7 @@ def main():
         max_q_char_len=data_args.max_q_char_len,
         single_context_multiple_passages=data_args.single_context_multiple_passages,
         max_contexts=data_args.max_contexts,
+        max_answer_len=data_args.max_answer_length
     )
 
     # if filtering, check that both column name and column values are provided
@@ -462,7 +487,8 @@ def main():
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
-    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+    data_collator_class = task_args.task_data_collator
+    data_collator = data_collator_class(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
 
@@ -475,6 +501,7 @@ def main():
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
+        tokenizer=tokenizer,
     )
 
     eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
@@ -485,7 +512,8 @@ def main():
             span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
             dataset_config_name = eval_dataset.config_name)
 
-    trainer = MRCTrainer(
+    trainer_class = task_args.task_trainer
+    trainer = trainer_class(
         model=model,
         args=training_args,
         train_dataset=train_dataset if training_args.do_train else None,
