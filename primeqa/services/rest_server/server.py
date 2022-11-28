@@ -2,7 +2,6 @@ import logging
 import time
 from typing import List
 
-
 import uvicorn
 from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -443,13 +442,25 @@ class RestServer:
             tags=["Retriever"],
         )
         def get_retrievers():
-            return [
+
+            # Custom behavior: Add checkpoints as options in checkpoint parameter:
+            retrievers = [
                 {
                     "retriever_id": retriever_id,
                     "parameters": generate_parameters(retriever),
                 }
                 for retriever_id, retriever in RETRIEVERS_REGISTRY.items()
             ]
+            try:
+                colbert_retriever = next(retriever for retriever in retrievers if retriever.retriever_id == 'ColBERTRetriever')
+                for parameter in colbert_retriever.parameters:
+                    if parameter.parameter_id == 'checkpoint':
+                        for checkpoint in self._store.get_checkpoints():
+                            parameter.options.append(checkpoint)
+            except StopIteration:
+                pass
+            
+            return retrievers
 
         @app.post(
             "/documents",

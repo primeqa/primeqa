@@ -63,6 +63,23 @@ class Store:
     #############################################################################################
     #                       Checkpoints
     #############################################################################################
+    def get_checkpoints(self) -> List[str]:
+        """
+        Get list of all checkpoint ids.
+
+        Returns:
+            List[str]: list of checkpoint ids
+        """
+
+        return [
+            checkpoint_dir.stem
+            for checkpoint_dir in Path(os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS)).glob(
+                "*"
+            )
+            if os.path.isdir(checkpoint_dir)
+        ]
+
+
     def get_checkpoint_path(self, checkpoint: str):
         return glob.glob(
             f"{os.path.join(self.root_dir, DIR_NAME_CHECKPOINTS, str(checkpoint))}/*"
