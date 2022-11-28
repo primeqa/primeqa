@@ -30,5 +30,6 @@ primeqa.pipelines.components.retriever.sparse.BM25Retriever
       ~BM25Retriever.max_num_documents
       ~BM25Retriever.index_root
       ~BM25Retriever.index_name
+      ~BM25Retriever.collection
    
    

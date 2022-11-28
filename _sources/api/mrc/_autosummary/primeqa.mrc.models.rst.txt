@@ -26,6 +26,7 @@ models
    :template: custom-module-template.rst
    :recursive:
 
+   primeqa.mrc.models.fid_task_model
    primeqa.mrc.models.heads
    primeqa.mrc.models.task_model
 

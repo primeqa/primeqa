@@ -1,0 +1,33 @@
+primeqa.mrc.processors.preprocessors.eli5\_fid.ELI5FiDPreprocessor
+==================================================================
+
+.. currentmodule:: primeqa.mrc.processors.preprocessors.eli5_fid
+
+.. autoclass:: ELI5FiDPreprocessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ELI5FiDPreprocessor.adapt_dataset
+      ~ELI5FiDPreprocessor.encode_passages
+      ~ELI5FiDPreprocessor.label_features_for_subsampling
+      ~ELI5FiDPreprocessor.preprocess_eli5_batch_fid
+      ~ELI5FiDPreprocessor.preprocess_eli5_function_fid
+      ~ELI5FiDPreprocessor.process_eval
+      ~ELI5FiDPreprocessor.process_train
+      ~ELI5FiDPreprocessor.subsample_features
+      ~ELI5FiDPreprocessor.validate_schema
+   
+   
+
+   
+   
+   

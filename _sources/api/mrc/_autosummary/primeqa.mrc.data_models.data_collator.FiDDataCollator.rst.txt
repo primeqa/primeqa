@@ -1,0 +1,36 @@
+primeqa.mrc.data\_models.data\_collator.FiDDataCollator
+=======================================================
+
+.. currentmodule:: primeqa.mrc.data_models.data_collator
+
+.. autoclass:: FiDDataCollator
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FiDDataCollator.label_pad_token_id
+      ~FiDDataCollator.max_length
+      ~FiDDataCollator.model
+      ~FiDDataCollator.pad_to_multiple_of
+      ~FiDDataCollator.padding
+      ~FiDDataCollator.return_tensors
+      ~FiDDataCollator.tokenizer
+   
+   

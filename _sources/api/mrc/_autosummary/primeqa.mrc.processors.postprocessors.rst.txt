@@ -27,6 +27,7 @@ postprocessors
    :recursive:
 
    primeqa.mrc.processors.postprocessors.abstract
+   primeqa.mrc.processors.postprocessors.eli5_fid
    primeqa.mrc.processors.postprocessors.extractive
    primeqa.mrc.processors.postprocessors.natural_questions
    primeqa.mrc.processors.postprocessors.scorers

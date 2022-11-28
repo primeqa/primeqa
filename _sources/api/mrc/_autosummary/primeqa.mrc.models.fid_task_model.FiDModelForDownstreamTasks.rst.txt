@@ -1,0 +1,125 @@
+primeqa.mrc.models.fid\_task\_model.FiDModelForDownstreamTasks
+==============================================================
+
+.. currentmodule:: primeqa.mrc.models.fid_task_model
+
+.. autoclass:: FiDModelForDownstreamTasks
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~FiDModelForDownstreamTasks.add_memory_hooks
+      ~FiDModelForDownstreamTasks.add_module
+      ~FiDModelForDownstreamTasks.adjust_logits_during_generation
+      ~FiDModelForDownstreamTasks.apply
+      ~FiDModelForDownstreamTasks.beam_sample
+      ~FiDModelForDownstreamTasks.beam_search
+      ~FiDModelForDownstreamTasks.bfloat16
+      ~FiDModelForDownstreamTasks.buffers
+      ~FiDModelForDownstreamTasks.children
+      ~FiDModelForDownstreamTasks.compute_transition_beam_scores
+      ~FiDModelForDownstreamTasks.constrained_beam_search
+      ~FiDModelForDownstreamTasks.cpu
+      ~FiDModelForDownstreamTasks.create_extended_attention_mask_for_decoder
+      ~FiDModelForDownstreamTasks.cuda
+      ~FiDModelForDownstreamTasks.double
+      ~FiDModelForDownstreamTasks.estimate_tokens
+      ~FiDModelForDownstreamTasks.eval
+      ~FiDModelForDownstreamTasks.extra_repr
+      ~FiDModelForDownstreamTasks.float
+      ~FiDModelForDownstreamTasks.floating_point_ops
+      ~FiDModelForDownstreamTasks.forward
+      ~FiDModelForDownstreamTasks.from_config
+      ~FiDModelForDownstreamTasks.from_pretrained
+      ~FiDModelForDownstreamTasks.generate
+      ~FiDModelForDownstreamTasks.get_buffer
+      ~FiDModelForDownstreamTasks.get_encoder
+      ~FiDModelForDownstreamTasks.get_extended_attention_mask
+      ~FiDModelForDownstreamTasks.get_extra_state
+      ~FiDModelForDownstreamTasks.get_head_mask
+      ~FiDModelForDownstreamTasks.get_input_embeddings
+      ~FiDModelForDownstreamTasks.get_output_embeddings
+      ~FiDModelForDownstreamTasks.get_parameter
+      ~FiDModelForDownstreamTasks.get_position_embeddings
+      ~FiDModelForDownstreamTasks.get_submodule
+      ~FiDModelForDownstreamTasks.gradient_checkpointing_disable
+      ~FiDModelForDownstreamTasks.gradient_checkpointing_enable
+      ~FiDModelForDownstreamTasks.greedy_search
+      ~FiDModelForDownstreamTasks.group_beam_search
+      ~FiDModelForDownstreamTasks.half
+      ~FiDModelForDownstreamTasks.init_weights
+      ~FiDModelForDownstreamTasks.invert_attention_mask
+      ~FiDModelForDownstreamTasks.load_state_dict
+      ~FiDModelForDownstreamTasks.model_class_from_config
+      ~FiDModelForDownstreamTasks.modules
+      ~FiDModelForDownstreamTasks.named_buffers
+      ~FiDModelForDownstreamTasks.named_children
+      ~FiDModelForDownstreamTasks.named_modules
+      ~FiDModelForDownstreamTasks.named_parameters
+      ~FiDModelForDownstreamTasks.num_parameters
+      ~FiDModelForDownstreamTasks.parameters
+      ~FiDModelForDownstreamTasks.post_init
+      ~FiDModelForDownstreamTasks.prepare_inputs_for_generation
+      ~FiDModelForDownstreamTasks.prune_heads
+      ~FiDModelForDownstreamTasks.push_to_hub
+      ~FiDModelForDownstreamTasks.register_backward_hook
+      ~FiDModelForDownstreamTasks.register_buffer
+      ~FiDModelForDownstreamTasks.register_for_auto_class
+      ~FiDModelForDownstreamTasks.register_forward_hook
+      ~FiDModelForDownstreamTasks.register_forward_pre_hook
+      ~FiDModelForDownstreamTasks.register_full_backward_hook
+      ~FiDModelForDownstreamTasks.register_module
+      ~FiDModelForDownstreamTasks.register_parameter
+      ~FiDModelForDownstreamTasks.requires_grad_
+      ~FiDModelForDownstreamTasks.reset_memory_hooks_state
+      ~FiDModelForDownstreamTasks.resize_position_embeddings
+      ~FiDModelForDownstreamTasks.resize_token_embeddings
+      ~FiDModelForDownstreamTasks.retrieve_modules_from_names
+      ~FiDModelForDownstreamTasks.sample
+      ~FiDModelForDownstreamTasks.save_pretrained
+      ~FiDModelForDownstreamTasks.set_encoder
+      ~FiDModelForDownstreamTasks.set_extra_state
+      ~FiDModelForDownstreamTasks.set_input_embeddings
+      ~FiDModelForDownstreamTasks.set_task_head
+      ~FiDModelForDownstreamTasks.share_memory
+      ~FiDModelForDownstreamTasks.state_dict
+      ~FiDModelForDownstreamTasks.tie_weights
+      ~FiDModelForDownstreamTasks.to
+      ~FiDModelForDownstreamTasks.to_empty
+      ~FiDModelForDownstreamTasks.train
+      ~FiDModelForDownstreamTasks.type
+      ~FiDModelForDownstreamTasks.xpu
+      ~FiDModelForDownstreamTasks.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FiDModelForDownstreamTasks.T_destination
+      ~FiDModelForDownstreamTasks.base_model
+      ~FiDModelForDownstreamTasks.base_model_prefix
+      ~FiDModelForDownstreamTasks.config_class
+      ~FiDModelForDownstreamTasks.device
+      ~FiDModelForDownstreamTasks.dtype
+      ~FiDModelForDownstreamTasks.dummy_inputs
+      ~FiDModelForDownstreamTasks.dump_patches
+      ~FiDModelForDownstreamTasks.framework
+      ~FiDModelForDownstreamTasks.is_gradient_checkpointing
+      ~FiDModelForDownstreamTasks.is_parallelizable
+      ~FiDModelForDownstreamTasks.main_input_name
+      ~FiDModelForDownstreamTasks.supports_gradient_checkpointing
+      ~FiDModelForDownstreamTasks.training
+   
+   

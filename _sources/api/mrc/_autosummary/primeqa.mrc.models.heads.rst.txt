@@ -28,4 +28,5 @@ heads
 
    primeqa.mrc.models.heads.abstract
    primeqa.mrc.models.heads.extractive
+   primeqa.mrc.models.heads.generative
 

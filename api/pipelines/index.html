@@ -317,7 +317,17 @@
      Extractive Reader
     </a>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#generative-fid-reader">
+     Generative FiD Reader
+    </a>
+   </li>
   </ul>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#qa-pipeline">
+   QA Pipeline
+  </a>
  </li>
 </ul>
 
@@ -435,7 +445,10 @@ Follow the steps below to use the extractive reader:</p>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
+
 <span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110&quot;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
 </pre></div>
 </div>
 <ul class="simple">
@@ -451,6 +464,88 @@ Follow the steps below to use the extractive reader:</p>
 </pre></div>
 </div>
 </section>
+<section id="generative-fid-reader">
+<h3>Generative FiD Reader<a class="headerlink" href="#generative-fid-reader" title="Permalink to this headline">#</a></h3>
+<p>A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.</p>
+<p>PrimeQA implements a <a class="reference external" href="https://arxiv.org/abs/2007.01282">Fusion In Decoder(FiD)</a> generative reader.</p>
+<p>Follow the steps below to use the <code class="docutils literal notranslate"><span class="pre">GenerativeFiDReader</span></code>:</p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the reader.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.generative</span> <span class="kn">import</span> <span class="n">GenerativeFiDReader</span>
+<span class="n">fid_reader</span> <span class="o">=</span> <span class="n">GenerativeFiDReader</span><span class="p">()</span>
+<span class="n">fid_reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2: Execute the reader in inference mode:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;&quot;&quot;Chemtrail conspiracy theory The chemtrail conspiracy theory is based </span>
+<span class="s2">            on the erroneous belief that long-lasting condensation trails are </span>
+<span class="s2">            </span><span class="se">\&quot;</span><span class="s2">chemtrails</span><span class="se">\&quot;</span><span class="s2"> consisting of chemical or biological agents left in the </span>
+<span class="s2">            sky by high-flying aircraft, sprayed for nefarious purposes undisclosed </span>
+<span class="s2">            to the general public. Believers in this conspiracy theory say that while </span>
+<span class="s2">            normal contrails dissipate relatively quickly, contrails that linger must </span>
+<span class="s2">            contain additional substances. Those who subscribe to the theory speculate </span>
+<span class="s2">            that the purpose of the chemical release may be solar radiation management,</span>
+<span class="s2">            weather modification, psychological manipulation, human population control, </span>
+<span class="s2">            or biological or chemical warfare, and that the trails are causing </span>
+<span class="s2">            respiratory illnesses&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="sd">&quot;&quot;&quot;Associated with jet streams is a phenomenon known as clear-air turbulence </span>
+<span class="sd">            (CAT), caused by vertical and horizontal wind shear caused by jet streams. </span>
+<span class="sd">            The CAT is strongest on the cold air side of the jet, next to and just under </span>
+<span class="sd">            the axis of the jet. Clear-air turbulence can cause aircraft to plunge and so </span>
+<span class="sd">            present a passenger safety hazard that has caused fatal accidents, such as the </span>
+<span class="sd">            death of one passenger on United Airlines Flight 826. </span>
+<span class="sd">            Section: Uses.:Possible future power generation.&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="sd">&quot;&quot;&quot;Contrails are a manmade type of cirrus cloud formed when water vapor from </span>
+<span class="sd">            the exhaust of a jet engine condenses on particles, which come from either the </span>
+<span class="sd">            surrounding air or the exhaust itself, and freezes, leaving behind a visible trail. </span>
+<span class="sd">            The exhaust can also trigger the formation of cirrus by providing ice nuclei </span>
+<span class="sd">            when there is an insufficient naturally-occurring supply in the atmosphere. </span>
+<span class="sd">            One of the environmental impacts of aviation is that persistent contrails can </span>
+<span class="sd">            form into large mats of cirrus, and increased air traffic has been implicated </span>
+<span class="sd">            as one possible cause of the increasing frequency and amount of cirrus&quot;&quot;&quot;</span><span class="p">]]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">fid_reader</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
+<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span> 
+</pre></div>
+</div>
+</section>
+</section>
+<section id="qa-pipeline">
+<h2>QA Pipeline<a class="headerlink" href="#qa-pipeline" title="Permalink to this headline">#</a></h2>
+<p>The QA pipeline is used for Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. Long Form Question Answering (LFQA) is a generative task where the retrieved passages are used to generate a complex multi-sentence answer.</p>
+<p>In this example we show a QA Pipeline using a ColBERT retriever and a Fusion in Decoder (FID) generator.</p>
+<p>Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/examples/lfqa/README.md">here</a></p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the retriever.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2:  Initialize the reader model.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">GenerativeFiDReader</span><span class="p">(</span><span class="n">model_name_or_path</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 3:  Initialize the QA pipeline.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lfqa_pipeline</span> <span class="o">=</span> <span class="n">QAPipeline</span><span class="p">(</span><span class="n">retriever</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 4:  Execute the LFQA pipeline in inference mode.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">lfqa_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 

@@ -29,5 +29,6 @@ primeqa.pipelines.components.base.RetrieverComponent
    
       ~RetrieverComponent.index_root
       ~RetrieverComponent.index_name
+      ~RetrieverComponent.collection
    
    

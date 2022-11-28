@@ -27,4 +27,5 @@ trainers
    :recursive:
 
    primeqa.mrc.trainers.mrc
+   primeqa.mrc.trainers.seq2seq_mrc
 

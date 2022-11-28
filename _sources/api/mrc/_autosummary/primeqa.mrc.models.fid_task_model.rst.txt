@@ -1,0 +1,33 @@
+fid\_task\_model
+================
+
+.. automodule:: primeqa.mrc.models.fid_task_model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      EncoderWrapper
+      FiDModelForDownstreamTasks
+   
+   
+
+   
+   
+   
+
+
+

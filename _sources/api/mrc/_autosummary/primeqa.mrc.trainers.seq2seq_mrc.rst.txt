@@ -1,0 +1,32 @@
+seq2seq\_mrc
+============
+
+.. automodule:: primeqa.mrc.trainers.seq2seq_mrc
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      MRCSeq2SeqTrainer
+   
+   
+
+   
+   
+   
+
+
+

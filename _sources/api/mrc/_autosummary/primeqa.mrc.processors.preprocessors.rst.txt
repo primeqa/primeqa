@@ -28,6 +28,7 @@ preprocessors
 
    primeqa.mrc.processors.preprocessors.abstract
    primeqa.mrc.processors.preprocessors.base
+   primeqa.mrc.processors.preprocessors.eli5_fid
    primeqa.mrc.processors.preprocessors.mrqa
    primeqa.mrc.processors.preprocessors.natural_questions
    primeqa.mrc.processors.preprocessors.squad

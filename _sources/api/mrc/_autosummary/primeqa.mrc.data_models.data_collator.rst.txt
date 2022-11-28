@@ -1,0 +1,32 @@
+data\_collator
+==============
+
+.. automodule:: primeqa.mrc.data_models.data_collator
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      FiDDataCollator
+   
+   
+
+   
+   
+   
+
+
+

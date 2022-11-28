@@ -1,0 +1,32 @@
+eli5\_fid
+=========
+
+.. automodule:: primeqa.mrc.processors.preprocessors.eli5_fid
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ELI5FiDPreprocessor
+   
+   
+
+   
+   
+   
+
+
+

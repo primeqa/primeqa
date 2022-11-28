@@ -1,0 +1,73 @@
+primeqa.mrc.models.fid\_task\_model.EncoderWrapper
+==================================================
+
+.. currentmodule:: primeqa.mrc.models.fid_task_model
+
+.. autoclass:: EncoderWrapper
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~EncoderWrapper.add_module
+      ~EncoderWrapper.apply
+      ~EncoderWrapper.bfloat16
+      ~EncoderWrapper.buffers
+      ~EncoderWrapper.children
+      ~EncoderWrapper.cpu
+      ~EncoderWrapper.cuda
+      ~EncoderWrapper.double
+      ~EncoderWrapper.eval
+      ~EncoderWrapper.extra_repr
+      ~EncoderWrapper.float
+      ~EncoderWrapper.forward
+      ~EncoderWrapper.get_buffer
+      ~EncoderWrapper.get_extra_state
+      ~EncoderWrapper.get_parameter
+      ~EncoderWrapper.get_submodule
+      ~EncoderWrapper.half
+      ~EncoderWrapper.load_state_dict
+      ~EncoderWrapper.modules
+      ~EncoderWrapper.named_buffers
+      ~EncoderWrapper.named_children
+      ~EncoderWrapper.named_modules
+      ~EncoderWrapper.named_parameters
+      ~EncoderWrapper.parameters
+      ~EncoderWrapper.register_backward_hook
+      ~EncoderWrapper.register_buffer
+      ~EncoderWrapper.register_forward_hook
+      ~EncoderWrapper.register_forward_pre_hook
+      ~EncoderWrapper.register_full_backward_hook
+      ~EncoderWrapper.register_module
+      ~EncoderWrapper.register_parameter
+      ~EncoderWrapper.requires_grad_
+      ~EncoderWrapper.set_extra_state
+      ~EncoderWrapper.share_memory
+      ~EncoderWrapper.state_dict
+      ~EncoderWrapper.to
+      ~EncoderWrapper.to_empty
+      ~EncoderWrapper.train
+      ~EncoderWrapper.type
+      ~EncoderWrapper.xpu
+      ~EncoderWrapper.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~EncoderWrapper.T_destination
+      ~EncoderWrapper.dump_patches
+      ~EncoderWrapper.training
+   
+   

@@ -20,6 +20,7 @@ generative
       :template: custom-class-template.rst
       :nosignatures:
    
+      GenerativeFiDReader
       GenerativeReader
    
    

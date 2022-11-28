@@ -1,0 +1,27 @@
+primeqa.mrc.processors.postprocessors.eli5\_fid.ELI5FiDPostProcessor
+====================================================================
+
+.. currentmodule:: primeqa.mrc.processors.postprocessors.eli5_fid
+
+.. autoclass:: ELI5FiDPostProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ELI5FiDPostProcessor.prepare_examples_as_references
+      ~ELI5FiDPostProcessor.process
+      ~ELI5FiDPostProcessor.process_references_and_predictions
+   
+   
+
+   
+   
+   

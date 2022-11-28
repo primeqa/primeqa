@@ -1,0 +1,23 @@
+generative
+==========
+
+.. automodule:: primeqa.mrc.models.heads.generative
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

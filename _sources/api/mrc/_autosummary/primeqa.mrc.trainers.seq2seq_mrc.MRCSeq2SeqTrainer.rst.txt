@@ -1,0 +1,59 @@
+primeqa.mrc.trainers.seq2seq\_mrc.MRCSeq2SeqTrainer
+===================================================
+
+.. currentmodule:: primeqa.mrc.trainers.seq2seq_mrc
+
+.. autoclass:: MRCSeq2SeqTrainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MRCSeq2SeqTrainer.add_callback
+      ~MRCSeq2SeqTrainer.autocast_smart_context_manager
+      ~MRCSeq2SeqTrainer.call_model_init
+      ~MRCSeq2SeqTrainer.compute_loss
+      ~MRCSeq2SeqTrainer.create_model_card
+      ~MRCSeq2SeqTrainer.create_optimizer
+      ~MRCSeq2SeqTrainer.create_optimizer_and_scheduler
+      ~MRCSeq2SeqTrainer.create_scheduler
+      ~MRCSeq2SeqTrainer.evaluate
+      ~MRCSeq2SeqTrainer.evaluation_loop
+      ~MRCSeq2SeqTrainer.floating_point_ops
+      ~MRCSeq2SeqTrainer.get_eval_dataloader
+      ~MRCSeq2SeqTrainer.get_optimizer_cls_and_kwargs
+      ~MRCSeq2SeqTrainer.get_test_dataloader
+      ~MRCSeq2SeqTrainer.get_train_dataloader
+      ~MRCSeq2SeqTrainer.hyperparameter_search
+      ~MRCSeq2SeqTrainer.init_git_repo
+      ~MRCSeq2SeqTrainer.is_local_process_zero
+      ~MRCSeq2SeqTrainer.is_world_process_zero
+      ~MRCSeq2SeqTrainer.log
+      ~MRCSeq2SeqTrainer.log_metrics
+      ~MRCSeq2SeqTrainer.metrics_format
+      ~MRCSeq2SeqTrainer.num_examples
+      ~MRCSeq2SeqTrainer.pop_callback
+      ~MRCSeq2SeqTrainer.predict
+      ~MRCSeq2SeqTrainer.prediction_loop
+      ~MRCSeq2SeqTrainer.prediction_step
+      ~MRCSeq2SeqTrainer.push_to_hub
+      ~MRCSeq2SeqTrainer.remove_callback
+      ~MRCSeq2SeqTrainer.save_metrics
+      ~MRCSeq2SeqTrainer.save_model
+      ~MRCSeq2SeqTrainer.save_state
+      ~MRCSeq2SeqTrainer.store_flos
+      ~MRCSeq2SeqTrainer.train
+      ~MRCSeq2SeqTrainer.training_step
+   
+   
+
+   
+   
+   
