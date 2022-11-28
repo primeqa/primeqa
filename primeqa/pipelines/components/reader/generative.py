@@ -56,7 +56,7 @@ class GenerativeReader(ReaderComponent):
         pass
     
 @dataclass
-class GenerativeFiDReader(ReaderComponent):
+class GenerativeFiDReader(GenerativeReader):
     
     model: str = field(
         default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
