@@ -79,7 +79,6 @@ class TextClassifierPreProcessor:
                 return l
         return 0
 
-    # TODO maybe this should be _process_batch, but that has more args that I don't understand
     def _preprocess_function(self, examples):
         # Tokenize the texts
         args = (

@@ -74,10 +74,7 @@ class TestExtractivePipelinePostProcessor(UnitTest):
         }
         
     
-    # TODO this is the same code as 
-    # tests.primeqa.mrc.processors.postprocessors.test_extractive_postprocessor.TestExtractivePostProcessor    
-    # but pytest doesn't seem to like using inheritance to de-duplicate code - it gives extra logging messages
-    # and appararently runs everything twice!?
+
     def _start_end_target_type_logits(self, examples, features, mock_logits_expected_predictions):
 
         all_start_logits = []

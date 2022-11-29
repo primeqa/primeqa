@@ -27,6 +27,7 @@ class Examples:
         with open(path) as f:
             for line in f:
                 example = ujson.loads(line)[:nway]
+                example[0] = str(example[0])  # force string type for query ID at position 0
                 examples.append(example)
 
         return examples
