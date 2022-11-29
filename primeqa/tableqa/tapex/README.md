@@ -30,17 +30,6 @@ python run_tapex.py \
   --max_steps 20000 
 
 ```
-The trained model yields the following results on wikitablequestions dev set:
-```
-***** eval metrics *****
-  epoch                    =      56.66
-  eval_denotation_accuracy =     0.5793
-  eval_loss                =     2.1976
-  eval_runtime             = 0:04:31.08
-  eval_samples             =       2831
-  eval_samples_per_second  =     10.443
-  eval_steps_per_second    =      2.612
-```
 
 ### Inference
 
@@ -55,7 +44,7 @@ python run_tapex.py \
 
 ```
 
-## OmniTab based TableQA models
+## OmniTab base TableQA models
 
 ### Training OmniTab Based TableQA Model
 
