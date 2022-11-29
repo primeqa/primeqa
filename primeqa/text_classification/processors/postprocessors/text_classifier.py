@@ -39,12 +39,6 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
         self.output_label_prefix = output_label_prefix
 
 
-    def process(self, examples: Dataset, features: Dataset, predictions: tuple):
-        """
-        Convert data and model predictions into MRC answers.
-        """
-        pass
-
     def prepare_examples_as_references(self, examples: Dataset) -> List[Dict[str, Any]]:
         """
         Convert examples into references for use with metrics.
@@ -115,7 +109,6 @@ class TextClassifierPostProcessor(AbstractPostProcessor):
 
 
 
-    # TODO can we wrap a call to process, much of the logic is similar
     def process_references_and_predictions(self, examples, features, predict_scores) -> EvalPrediction:
         print('in process_references_and_predictions')
         references = self.prepare_examples_as_references(examples)

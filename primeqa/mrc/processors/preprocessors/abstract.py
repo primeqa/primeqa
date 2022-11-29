@@ -22,7 +22,8 @@ class AbstractPreProcessor(metaclass=ABCMeta):
                  load_from_cache_file: bool = True,
                  max_q_char_len: int = 128,
                  single_context_multiple_passages: bool = False,
-                 max_contexts: Optional[int] = None):
+                 max_contexts: Optional[int] = None,
+                 max_answer_len: Optional[int] = None):
         """
         Args:
             tokenizer:
@@ -51,6 +52,10 @@ class AbstractPreProcessor(metaclass=ABCMeta):
                 Maximum number of contexts to search per example.
                 Remainder will be trimmed.
                 Defaults to searching all contexts.
+            max_answer_len:
+                Maximum length of the answer (in word pieces/bpes).
+                Used for generative QA.
+                Uses tokenizer default if not given.
         """
         self._logger = logging.getLogger(self.__class__.__name__)
         self._tokenizer = tokenizer
@@ -63,6 +68,7 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         self._max_q_char_len = max_q_char_len
         self._single_context_multiple_passages = single_context_multiple_passages
         self._max_contexts = max_contexts
+        self._max_answer_len = max_answer_len
 
         if not (0. <= self._negative_sampling_prob_when_has_answer <= 1.):
             raise ValueError(f"Expected 0 <= negative_sampling_prob_when_has_answer <= 1 but got: "
