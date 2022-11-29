@@ -62,6 +62,11 @@ class RetrieverComponent(Component):
             "name": "Index name",
         },
     )
+    collection: str = field(
+        metadata={
+            "name": "The corpus file split in paragraphs",
+        },
+    )
 
     @abstractmethod
     def __hash__(self) -> int:
