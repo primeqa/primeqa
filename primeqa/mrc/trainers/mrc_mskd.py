@@ -120,12 +120,20 @@ class IndividualDomainBatchSampler(torch.utils.data.sampler.Sampler):
 class MSKD_MRCTrainer(MRCTrainer):
     def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
         """
-        Multi-source MRC distillation training and evaluation.
+        Multi-source MRC distillation training and evaluation. 
+        This class inherits the base MRCTrainer to:
+        (1) handle multiple training datasets, and 
+        (2) perform knowledge distillation from a teacher model.
+        The sampler it uses upsamples smaller training datasets, 
+        puts all datasets in minibatches so that each minibatch 
+        only contains examples from one dataset, and hops from 
+        one dataset to another while feeding the minibatches
+        to training.
 
         Args:
             *args: Arguments for super-class constructor.
-            eval_examples: Eval examples `Dataset` from `BasePreprocessor.process_eval`.
-            eval_dataset: Eval features `Dataset` from `BasePreprocessor.process_eval`.
+            eval_examples: Eval examples `ConcatDataset`
+            eval_dataset: Eval features `ConcatDataset`
             post_process_function:  Function to create predictions from model outputs.
             **kwargs: Keyword arguments for super-class constructor.
         """
