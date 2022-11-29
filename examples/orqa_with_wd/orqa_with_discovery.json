@@ -14,5 +14,8 @@
         "model_name_or_path": "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
         "max_answer_length": 1000,
         "max_num_answers": 10
+    },
+    "reranking" : {
+        "ir_weight": 0.7
     }
 }

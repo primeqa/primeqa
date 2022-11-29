@@ -25,10 +25,12 @@ SUPPORTED_RETRIEVERS = {
 
 # required to get normalized reader scores
 MIN_NUM_ANSWERS_FROM_READER = 10
+IR_WEIGHT=0.7
+MAX_NUM_DOCUMENTS=5
 
 
 def handle_args():
-    usage = "Run ORQA retriever-reader pipeline"
+    usage = "Run Open Retrieval QA pipeline"
     parser = argparse.ArgumentParser(usage)
     parser.add_argument("--config_file",type=str,required=True,
         help="config json file containing retriever and reader parameters",
@@ -45,19 +47,20 @@ def handle_args():
 
 class OpenRetrievalQA:
     
-    def __init__(self, retriever, reader, corpus_tsv_file=None) -> None:
+    def __init__(self, retriever, reader, ir_weight, corpus_tsv_file=None) -> None:
         self.retriever = retriever
         self.reader = reader
+        self.ir_weight = ir_weight
         self.corpus_tsv_file = corpus_tsv_file
+        
         if retriever.__class__.__name__ not in SUPPORTED_RETRIEVERS:
             raise ValueError(f"Retriever of type {retriever.__class__.__name__} is not supported.")
-        
         
         if retriever.__class__.__name__ == ColBERTRetriever.__name__:
             if self.corpus_tsv_file is None:
                 raise ValueError(f"Corpus tsv required when using ColBERTRetriever")
             self._corpus = self._load_corpus(corpus_tsv_file)
-        
+            
         
     def _load_corpus(self, filepath):
         with open(filepath,'r') as f:
@@ -76,19 +79,20 @@ class OpenRetrievalQA:
         for idx, confidence in enumerate(self._min_max([hit[raw_field] for hit in hits])):
             hits[idx][norm_field] = confidence
             
-    def _combine_ir_mrc_scores(self, answers, ir_weight=1.0):
+    def _combine_ir_mrc_scores(self, answers):
+    
         for answer in answers:
-            answer['score'] = answer['ir_score']*ir_weight + (1-ir_weight)* answer['mrc_score']
+            answer['score'] = answer['ir_score']*self.ir_weight + (1-self.ir_weight)* answer['mrc_score']
         sorted_answers = sorted(answers,key=itemgetter('score'),reverse=True)
         return sorted_answers
 
-    def _retrieve_with_discovery_retriever(self, queries, max_num_documents=5):
-        self.retriever.max_num_documents = max_num_documents
+    def _retrieve_with_discovery_retriever(self, queries):
+        # self.retriever.max_num_documents = self.retriever.max_num_documents
         return self.retriever.retrieve(queries)
 
 
-    def _retrieve_with_colbert_retriever(self, queries, max_num_documents=5):
-        self.retriever.max_num_documents = max_num_documents
+    def _retrieve_with_colbert_retriever(self, queries):
+        # self.retriever.max_num_documents = max_num_documents
         
         queries_hits =  self.retriever.retrieve(queries)
         
@@ -106,13 +110,13 @@ class OpenRetrievalQA:
             results.append(hits)
         return results
 
-    def _rank_answers(self, answers, ir_weight=0.3):
+    def _rank_answers(self, answers):
         # normalize ir score
         self._normalize(answers, 'search_score', 'ir_score' )
         # normalize reader scores
         self._normalize(answers, 'span_answer_score', 'mrc_score' )
         # score combination
-        sorted_answers = self._combine_ir_mrc_scores(answers,ir_weight)
+        sorted_answers = self._combine_ir_mrc_scores(answers)
         return sorted_answers
 
     def _find_answers(self, query, hits):
@@ -121,17 +125,17 @@ class OpenRetrievalQA:
             # only one query
             answers = self.reader.apply([query], [[hit['text']]])[0]
             # we only consider one answer per hit
-            # MIN_NUM_ANSWERS_FROM_READER is need to get scaled span answer scores
             top_answer = answers[0]
             for key in top_answer:
                 hit[key]  = top_answer[key]
                 
-        ranked_answers = self._rank_answers( hits)
+        ranked_answers = self._rank_answers( hits )
         return ranked_answers
     
     
     @staticmethod
     def get_extractive_reader(model_name_or_path, max_answer_length, max_num_answers):
+        # MIN_NUM_ANSWERS_FROM_READER is need to get scaled span answer scores
         max_num_answers = MIN_NUM_ANSWERS_FROM_READER if max_num_answers < MIN_NUM_ANSWERS_FROM_READER else max_num_answers
         reader = ExtractiveReader(model=model_name_or_path,max_answer_length=max_answer_length,max_num_answers=max_num_answers)
         reader.load()
@@ -156,7 +160,7 @@ class OpenRetrievalQA:
             api_key: str, 
             project_id: str, 
             index_name: str,
-            max_num_documents: int = 5):
+            max_num_documents: int = MAX_NUM_DOCUMENTS):
         retriever = WatsonDiscoveryRetriever(index_root="", index_name=index_name,
                                         endpoint=endpoint,
                                         api_key=api_key,
@@ -198,19 +202,26 @@ class OpenRetrievalQA:
                                                reader_config['max_answer_length'], 
                                                reader_config['max_num_answers'])
         
-        return OpenRetrievalQA(retriever,reader,corpus_file_path)
+        ir_weight = float(config['reranking']["ir_weight"])
+        return OpenRetrievalQA(retriever, reader, ir_weight, corpus_file_path)
     
-    def ask(self, query,  max_num_documents=3, max_num_answers=1):
+    def ask(self, query):
         if self.retriever.__class__.__name__ is ColBERTRetriever.__name__:
-            hits = self._retrieve_with_colbert_retriever( [query], max_num_documents=max_num_documents
-                                                        )
+            hits = self._retrieve_with_colbert_retriever( [query] )
             
         elif self.retriever.__class__.__name__  is WatsonDiscoveryRetriever.__name__:
-            hits = self._retrieve_with_discovery_retriever( [query], 
-                                                         max_num_documents=max_num_documents
+            hits = self._retrieve_with_discovery_retriever( [query]
                                                         )
         answers =  self._find_answers(query, hits[0])
         return answers
+
+def format_text(text, start, end):
+    mark_text = text[start:end]
+    if mark_text.strip().endswith('</em>'):
+        print(mark_text)
+    formatted_text = text[0:start] + '<answer>' + text[start:end] + '</answer>' + text[end:]
+    return formatted_text
+
 
 def save_predictions(query_to_answers, output_dir):
     if not os.path.exists(output_dir):
@@ -229,12 +240,20 @@ def save_predictions(query_to_answers, output_dir):
         json.dump(predictions_processed,f,indent=2)
     logger.info(f"Wrote {output_file}")
     
-    # TODO
-    # output_file = os.path.join(output_dir,"predictions_inline.json")
-    # predictions = []
-    # for id, answers in query_to_answers.items():
-    #     for answer in answers[0:3]:
-    #         predictions_processed[id] = answers[0]['span_answer_text']
+    output_file = os.path.join(output_dir,"predictions_inline.json")
+    jsonlines = []
+    for id, answers in query_to_answers.items():
+        answerdict = {
+            'id': id,
+            'question': answers[0]['question'],
+        }
+        for i, answer in enumerate(answers[0:3]):
+            answerdict[f"rank_{i}_answer"] = answers[i]['span_answer_text']
+            answerdict[f"rank_{i}_document"] = format_text(answers[i]['text'],answers[i]['span_answer']['start_position'],answers[i]['span_answer']['end_position'])
+        jsonlines.append(answerdict)
+    with open(output_file,'w',encoding='utf-8') as f:
+        json.dump(jsonlines,f, indent=4,ensure_ascii=False)
+    print('Wrote', output_file)
             
 def load_queries(queries_file):
     id_to_query = {}
@@ -245,14 +264,13 @@ def load_queries(queries_file):
     return id_to_query
     
      
-def main(config_file="/dccstor/bsiyer6/public/primeqa/examples/orqa_with_wd/orqa_with_colbert.json", 
-             queries_file=None, output_dir="output"):    
+def main():    
     
     args = handle_args()
     queries_file = args.query_file
     config_file = args.config_file
     output_dir = args.output_dir
-    
+        
     queries = load_queries(queries_file)
     
     orqa = OpenRetrievalQA.get_instance(config_file)

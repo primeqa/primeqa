@@ -6,14 +6,14 @@ This will run a Retriever-Retriever pipeline given a set of questions.
 
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
 
-Additionally, install `ibm_watson` package via pip if using IBM® Watson Discovery for retrieval.
+Additionally, install `ibm_watson` package via pip if using IBM® Watson Discovery as the Retriever.
 
 ```
 pip install ibm_watson
 
 ```
 
-Before configuring the pipeline, you will need to have available a collection index and reader model. 
+Before configuring the pipeline, you will need to have available a collection index and a reader model. 
 
 - To use the IBM® Watson Discovery retriever, first configure a IBM® Watson Discovery Cloud instance using the instructions [here](https://cloud.ibm.com/catalog/services/watson-discovery) and create a collection index.
 
@@ -26,6 +26,9 @@ You will also need a PrimeQA reader model. You can use one from Huggingface mode
 Once you have an collection index and a reader, please continue with the configuration.
 
 ### Configuration 
+
+The configuration examples below show how to set up a Retriever and Reader. Additionally, the `reranking` section allows tuning of how the scores from the `retriever` and `reader` are combined to obtain a final score for ranking the answers. The two scores are normalized using the Frobenius and combined using a convex combination. The weight in the combination operation applied to the `retriever` score is specified in the `ir_weight` field under `reranking` and is typically obtained by tuning on a validation set.  This combined score is used to do a final ranking of the answers. 
+
 
 #### Discovery Retriever
 
@@ -44,11 +47,12 @@ Once you have an collection index and a reader, please continue with the configu
         "reader" : {
             "name": "ExtractiveReader",
             "model_name_or_path": "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
-            "max_answer_length": 1000,
+            "max_answer_length": 64,
             "max_num_answers": 10
         }
-        "score_combination": {
-            "ir_weight": 0.7
+        "reranking": {
+            "method" : "weighted_average_ir_mrc"
+            "ir_weight": <final score combination , a value between 0 and 1>
         }
     }
 
@@ -72,11 +76,12 @@ Once you have an collection index and a reader, please continue with the configu
         "reader" : {
             "name": "ExtractiveReader",
             "model_name_or_path": "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
-            "max_answer_length": 1000,
-            "max_num_answers": 3
+            "max_answer_length": 64,
+            "max_num_answers": 10
         }
-        "score_combination": {
-            "ir_weight": 0.7
+        "reranking": {
+            "method" : "weighted_average_ir_mrc"
+            "ir_weight": <score combination weight assigned to IR, a value between 0 and 1>
         }
     }
 
