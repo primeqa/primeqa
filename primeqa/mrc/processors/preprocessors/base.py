@@ -372,9 +372,9 @@ class BasePreProcessor(AbstractPreProcessor):
             items = itertools.chain(items, cls._single_context_type.items())
         for feature_name, feature_type in items:
             if feature_name not in dataset.features:
-                raise ValueError(f"Expected but did not find feature '{feature_name}' in dataset")
+                raise ValueError(f"Expected but did not find feature {feature_name} in dataset")
             elif dataset.features[feature_name] != feature_type:
-                raise ValueError(F"Feature type mismatch for feature '{feature_name}'. "
+                raise ValueError(F"Feature type mismatch for feature {feature_name}. "
                                  F"Expected {feature_type} but found {dataset.features[feature_name]}")
 
     @staticmethod
