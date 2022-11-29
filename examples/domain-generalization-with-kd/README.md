@@ -47,7 +47,7 @@ python primeqa/mrc/run_mrc.py \
        --output_dir <path-to-student-output-dir> \
        --fp16 \
        --do_train \
-       --trainer primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer \
+       --task_trainer primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer \
        --train_fof <path-to-file-containing-train-file-locations> \
        --learning_rate 3e-5 \
        --per_device_train_batch_size 16 \
