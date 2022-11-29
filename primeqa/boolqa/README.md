@@ -18,7 +18,7 @@
 
 # TyDiQA with support for Boolean questions
 
-Here we describe how PrimeQA supports both the boolean questions and the short answer questions  in the TyDiQA dataset.  This
+Here, we describe how PrimeQA supports both the boolean questions and the short answer questions in the TyDiQA dataset.  This
 description is inference-only, assuming existing models.  For a description of how such models are trained as part of the 
 11/1/2022 TyDiQA leaderboard submission, see the [README](../../examples/boolqa/README.md) 
 
