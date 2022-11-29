@@ -349,11 +349,6 @@ def main():
         add_prefix_space=True,
     )
 
-    # if data_args.dataset_name == 'wikisql':
-    #     preprocessor = WikiSQLProcessor(tokenizer,data_args)
-    # elif data_args.dataset_name == 'wikitablequestions':
-    #     preprocessor = WTQProcessor(tokenizer,data_args)
-
     # load Bart based Tapex model (default tapex-large)
     model = BartForConditionalGeneration.from_pretrained(
         model_args.model_name_or_path,
