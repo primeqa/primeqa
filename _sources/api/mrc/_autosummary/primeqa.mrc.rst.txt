@@ -31,5 +31,6 @@
    primeqa.mrc.models
    primeqa.mrc.processors
    primeqa.mrc.run_mrc
+   primeqa.mrc.run_mrc_utils
    primeqa.mrc.trainers
 

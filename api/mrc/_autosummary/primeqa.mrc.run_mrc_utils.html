@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput &#8212; PrimeQA  documentation</title>
+    <title>run_mrc_utils &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -155,16 +155,16 @@
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
     <ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active has-children">
+ <li class="toctree-l1 has-children">
   <a class="reference internal" href="primeqa.mrc.data_models.html">
    data_models
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul class="current">
+  <ul>
    <li class="toctree-l2 has-children">
     <a class="reference internal" href="primeqa.mrc.data_models.data_collator.html">
      data_collator
@@ -199,28 +199,28 @@
      </li>
     </ul>
    </li>
-   <li class="toctree-l2 current active has-children">
+   <li class="toctree-l2 has-children">
     <a class="reference internal" href="primeqa.mrc.data_models.model_outputs.html">
      model_outputs
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
+    <input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/>
     <label for="toctree-checkbox-4">
      <i class="fas fa-chevron-down">
      </i>
     </label>
-    <ul class="current">
-     <li class="toctree-l3 current active has-children">
+    <ul>
+     <li class="toctree-l3 has-children">
       <a class="reference internal" href="primeqa.mrc.data_models.model_outputs.extractive.html">
        extractive
       </a>
-      <input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
+      <input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/>
       <label for="toctree-checkbox-5">
        <i class="fas fa-chevron-down">
        </i>
       </label>
-      <ul class="current">
-       <li class="toctree-l4 current active">
-        <a class="current reference internal" href="#">
+      <ul>
+       <li class="toctree-l4">
+        <a class="reference internal" href="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.html">
          primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput
         </a>
        </li>
@@ -1177,11 +1177,11 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="primeqa.mrc.run_mrc_utils.html">
+ <li class="toctree-l1 current active has-children">
+  <a class="current reference internal" href="#">
    run_mrc_utils
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-47" name="toctree-checkbox-47" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-47" name="toctree-checkbox-47" type="checkbox"/>
   <label for="toctree-checkbox-47">
    <i class="fas fa-chevron-down">
    </i>
@@ -1282,7 +1282,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.rst.txt", '_blank');
+                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.run_mrc_utils.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -1312,170 +1312,20 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="primeqa-mrc-data-models-model-outputs-extractive-extractiveqamodeloutput">
-<h1>primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput<a class="headerlink" href="#primeqa-mrc-data-models-model-outputs-extractive-extractiveqamodeloutput" title="Permalink to this headline">#</a></h1>
-<dl class="py class">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.mrc.data_models.model_outputs.extractive.</span></span><span class="sig-name descname"><span class="pre">ExtractiveQAModelOutput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_logits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_logits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_type_logits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attentions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.FloatTensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">transformers.file_utils.ModelOutput</span></code></p>
-<p>Extractive QA model outputs comprising:
-(loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions).</p>
-<p class="rubric">Methods</p>
+  <section id="module-primeqa.mrc.run_mrc_utils">
+<span id="run-mrc-utils"></span><h1>run_mrc_utils<a class="headerlink" href="#module-primeqa.mrc.run_mrc_utils" title="Permalink to this headline">#</a></h1>
+<p class="rubric">Functions</p>
 <table class="longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.clear" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.copy" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.fromkeys" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.fromkeys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fromkeys</span></code></a></p></td>
-<td><p>Create a new ordered dictionary with keys from iterable and values set to value.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.get" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.get"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get</span></code></a></p></td>
-<td><p>Return the value for key if key is in the dictionary, else default.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.items" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.items"><code class="xref py py-obj docutils literal notranslate"><span class="pre">items</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.keys" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.keys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.move_to_end" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.move_to_end"><code class="xref py py-obj docutils literal notranslate"><span class="pre">move_to_end</span></code></a></p></td>
-<td><p>Move an existing element to the end (or beginning if last is false).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.pop" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.pop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop</span></code></a></p></td>
-<td><p>value.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.popitem" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.popitem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">popitem</span></code></a></p></td>
-<td><p>Remove and return a (key, value) pair from the dictionary.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.setdefault" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.setdefault"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setdefault</span></code></a></p></td>
-<td><p>Insert key with a value of default if key is not in the dictionary.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.to_tuple" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.to_tuple"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_tuple</span></code></a></p></td>
-<td><p>Convert self to a tuple containing all the attributes/keys that are not <cite>None</cite>.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.update" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a></p></td>
-<td><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k] If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v In either case, this is followed by: for k in F:  D[k] = F[k]</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.values" title="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">values</span></code></a></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.mrc.run_mrc_utils.object_reference.html#primeqa.mrc.run_mrc_utils.object_reference" title="primeqa.mrc.run_mrc_utils.object_reference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">object_reference</span></code></a></p></td>
+<td><p>Given a fully qualified path to a class reference, return a pointer to the reference.</p></td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Attributes</p>
-<table class="longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">attentions</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">end_logits</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hidden_states</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loss</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_logits</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">target_type_logits</span></code></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.clear">
-<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Remove</span> <span class="pre">all</span> <span class="pre">items</span> <span class="pre">from</span> <span class="pre">od.</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.clear" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">shallow</span> <span class="pre">copy</span> <span class="pre">of</span> <span class="pre">od</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.copy" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.fromkeys">
-<span class="sig-name descname"><span class="pre">fromkeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.fromkeys" title="Permalink to this definition">#</a></dt>
-<dd><p>Create a new ordered dictionary with keys from iterable and values set to value.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.get" title="Permalink to this definition">#</a></dt>
-<dd><p>Return the value for key if key is in the dictionary, else default.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.items">
-<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">items</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.items" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.keys">
-<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">keys</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.keys" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.move_to_end">
-<span class="sig-name descname"><span class="pre">move_to_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.move_to_end" title="Permalink to this definition">#</a></dt>
-<dd><p>Move an existing element to the end (or beginning if last is false).</p>
-<p>Raise KeyError if the element does not exist.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.pop">
-<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">v,</span> <span class="pre">remove</span> <span class="pre">specified</span> <span class="pre">key</span> <span class="pre">and</span> <span class="pre">return</span> <span class="pre">the</span> <span class="pre">corresponding</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.pop" title="Permalink to this definition">#</a></dt>
-<dd><p>value.  If key is not found, d is returned if given, otherwise KeyError
-is raised.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.popitem">
-<span class="sig-name descname"><span class="pre">popitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.popitem" title="Permalink to this definition">#</a></dt>
-<dd><p>Remove and return a (key, value) pair from the dictionary.</p>
-<p>Pairs are returned in LIFO order if last is true or FIFO order if false.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.setdefault">
-<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.setdefault" title="Permalink to this definition">#</a></dt>
-<dd><p>Insert key with a value of default if key is not in the dictionary.</p>
-<p>Return the value for key if key is in the dictionary, else default.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.to_tuple">
-<span class="sig-name descname"><span class="pre">to_tuple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.to_tuple" title="Permalink to this definition">#</a></dt>
-<dd><p>Convert self to a tuple containing all the attributes/keys that are not <cite>None</cite>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">dict/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.update" title="Permalink to this definition">#</a></dt>
-<dd><p>If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
-If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
-In either case, this is followed by: for k in F:  D[k] = F[k]</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.values">
-<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">an</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">values</span></span></span><a class="headerlink" href="#primeqa.mrc.data_models.model_outputs.extractive.ExtractiveQAModelOutput.values" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 </section>
 
 

@@ -20,6 +20,7 @@ primeqa.boolqa.score\_normalizer.score\_normalizer.ScoreNormalizer
       ~ScoreNormalizer.create_prediction
       ~ScoreNormalizer.load_model
       ~ScoreNormalizer.normalize_scores
+      ~ScoreNormalizer.train
    
    
 
