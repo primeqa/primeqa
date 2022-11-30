@@ -1,130 +1,143 @@
-import os
-import re
 import sys
-from itertools import chain
+import os
+import platform
 
+from itertools import chain
 from setuptools import setup, find_packages
 
-here = os.path.abspath(os.path.dirname(__file__))
+if sys.platform == "win32" and sys.maxsize.bit_length() == 31:
+    print(
+        "32-bit Windows Python runtime is not supported. Please switch to 64-bit Python."
+    )
+    sys.exit(-1)
 
-# Get the long description from the README file
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
+
+python_min_version = (3, 7, 0)
+python_max_version = (3, 10, 0)
+
+if python_min_version >= sys.version_info or python_max_version < sys.version_info:
+    print(
+        f"You are using Python {platform.python_version()}. {'.'.join(map(str, python_min_version))} >= Python < {'.'.join(map(str, python_max_version))} is required."
+    )
+    sys.exit(-1)
+
+################################################################################
+# constants
+################################################################################
+cwd = os.path.dirname(os.path.abspath(__file__))
+
+
+################################################################################
+# Version, description and package_name
+################################################################################
+package_name = os.getenv("PRIMEQA_PACKAGE_NAME", "primeqa")
+package_type = os.getenv("PACKAGE_TYPE", "wheel")
+with open(os.path.join(cwd, "VERSION"), "r", encoding="utf-8") as version_file:
+    version = version_file.read().strip()
+with open(os.path.join(cwd, "README.md"), encoding="utf-8") as readme_file:
     long_description = readme_file.read()
 
-# Get the version for the project
-with open(os.path.join(here, 'VERSION')) as version_file:
-    version = version_file.read().strip()
 
-include_package_roots = ["primeqa"]  # only include these packages and their subpackages
-include_packages = list(chain.from_iterable(map(lambda name: [name, f"{name}.*"], include_package_roots)))
+################################################################################
+# Build
+################################################################################
+print(f"Building wheel {package_name}-{version}")
 
-keywords = [
-    "NLP", "transformers", "QA", "question", "answering", "mrc", "rc", "machine", "reading", "comprehension",
-    "IR", "information", "retrieval", "deep", "learning", "pytorch", "BERT", "RoBERTa", "T5", "generation", "table"
-]
-
-authors = [
-    "TODO"
-]
+include_packages = list(
+    chain.from_iterable(map(lambda name: [name, f"{name}.*"], ["primeqa"]))
+)
 
 _deps = {
     "docutils>=0.14,<0.18": ["tests"],
-    "bitarray~=2.3.7": ["install"],
+    "bitarray~=2.3.7": ["install", "gpu"],
     "bump2version~=1.0.1": ["dev"],
-    "click~=8.0.4": ["install"],
-    "datasets~=2.0.0": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
-    "faiss-cpu~=1.7.2": ["install"],
-    "faiss-gpu~=1.7.2": ["install"],
-    "gitpython~=3.1.27": ["install"],
+    "click~=8.0.4": ["install", "gpu"],
+    "datasets[apache-beam]~=2.3.2": ["install", "gpu"],
+    "faiss-cpu~=1.7.2": ["install", "gpu"],
+    "faiss-gpu~=1.7.2": ["gpu"],
+    "gitpython~=3.1.27": ["install", "gpu"],
     "ipykernel~=6.13.0": ["notebooks"],
     "ipywidgets~=7.7.0": ["notebooks"],
-    "jsonlines~=3.0.0": ["install"],
-    "ninja~=1.10.2.3": ["install"],
-    "nltk~=3.7": ["install"],
-    "numpy~=1.21.5": ["install"],
-    "myst-parser~=0.17.2": ["docs"],
-    "packaging~=21.3": ["install"],
-    "pandas~=1.3.5": ["install"],
-    "psutil~=5.9.0": ["install"],
-    "pydata-sphinx-theme~=0.8.0": ["docs"],
-    "pyserini~=0.16.0": ["install"],
+    "jsonlines~=3.0.0": ["install", "gpu"],
+    "ninja~=1.10.2.3": ["install", "gpu"],
+    "nltk~=3.7": ["install", "gpu"],
+    "packaging~=21.3": ["install", "gpu"],
+    "pandas~=1.3.5": ["install", "gpu"],
+    "psutil~=5.9.0": ["install", "gpu"],
+    "pyarrow~=7.0.0": ["install", "gpu"],
+    "pyserini~=0.16.0": ["install", "gpu"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
     "pytest-rerunfailures~=10.2": ["tests"],
-    "scikit-learn~=1.0.2": ["install"],
-    "signals~=0.0.2": ["install"],
-    "spacy~=3.2.2": ["install"],
-    "stanza~=1.4.0":["install"],
-    "sphinx~=4.4.0": ["docs"],
-    "torch~=1.11.0": ["install"],
+    "scikit-learn~=1.0.2": ["install", "gpu"],
+    "signals~=0.0.2": ["install", "gpu"],
+    "spacy~=3.2.2": ["install", "gpu"],
+    "stanza~=1.4.0": ["install", "gpu"],
+    "torch~=1.11.0": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
-    "transformers~=4.17.0": ["install"],
-    "sentencepiece~=0.1.96": ["install"],
-    "protobuf~=3.20.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
-    "transformers~=4.17.0": ["install"],
+    "transformers~=4.17.0": ["install", "gpu"],
+    "sentencepiece~=0.1.96": ["install", "gpu"],
     "ujson~=5.1.0": ["install"],
-    "transformers~=4.17.0": ["install"],
-    "tqdm~=4.64.0": ["install"],
-    # "torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl": ["install"],
-    "frozendict": ["install"],
-    "nlp": ["install"],
-    "sentencepiece~=0.1.96": ["install"],
-    "protobuf~=3.20.0": ["install"],
-    "nltk~=3.6":["install"],
-    "tabulate~=0.8.9":["install"],
-    "rouge_score":["install"]
-
+    "tqdm~=4.64.0": ["install", "gpu"],
+    "frozendict": ["install", "gpu"],
+    "nlp": ["install", "gpu"],
+    "protobuf~=3.20.0": ["install", "gpu"],
+    "tabulate~=0.8.9": ["install", "gpu"],
+    "rouge_score": ["install", "gpu"],
+    "rouge~=1.0.1":["install"],
+    "myst-parser~=0.17.2": ["docs"],
+    "pydata-sphinx-theme~=0.9.0": ["docs"],
+    "sphinx~=4.4.0": ["docs"],
+    "sphinx_design~=0.2.0": ["docs"],
+    "recommonmark~=0.7.1": ["docs"],
+    "grpcio~=1.48.1": ["install", "gpu"],
+    "grpcio-tools~=1.48.1": ["install", "gpu"],
+    "fastapi~=0.85.0": ["install", "gpu"],
+    "uvicorn~=0.18.0": ["install", "gpu"],
+    "cachetools~=5.2.0": ["install", "gpu"],
+    "sqlitedict~=2.0.0": ["install", "gpu"],
 }
 
-extras_names = ["docs", "dev", "install", "notebooks", "tests"]
+extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]
 extras = {extra_name: [] for extra_name in extras_names}
-for package_name, package_required_by in _deps.items():
-    if not package_required_by:
-        raise ValueError(f"Package '{package_name}' has no associated extras it is required for. "
-                         f"Choose one or more of: {extras_names}")
+for dep_package_name, dep_package_required_by in _deps.items():
+    if not dep_package_required_by:
+        raise ValueError(
+            f"Package '{dep_package_name}' has no associated extras it is required for. "
+            f"Choose one or more of: {extras_names}"
+        )
 
-    for extra_name in package_required_by:
+    for extra_name in dep_package_required_by:
         try:
-            extras[extra_name].append(package_name)
+            extras[extra_name].append(dep_package_name)
         except KeyError as ex:
             raise KeyError(f"Extras name '{extra_name}' not in {extras_names}") from ex
 extras["all"] = list(_deps)
 
 install_requires = extras["install"]
 
-python_version = sys.version_info.major,sys.version_info.minor
-
-"""
-if python_version == (3,7):
-    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp37-cp37m-linux_x86_64.whl")
-elif python_version == (3,8):
-    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp38-cp38-linux_x86_64.whl")
-elif python_version == (3,9):
-    install_requires.append("torch-scatter @ https://data.pyg.org/whl/torch-1.11.0%2Bcu113/torch_scatter-2.0.9-cp39-cp39-linux_x86_64.whl")
-"""
-
 setup(
-    name="prime-qa",
+    name=package_name,
+    url="https://github.com/primeqa/primeqa",
     version=version,
-    author=", ".join(authors),
-    author_email="TODO",
+    author="PrimeQA Team",
+    author_email="primeqa@us.ibm.com",
     description="State-of-the-art Question Answering",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="TODO",
-    license="TODO",
-    keywords=" ".join(keywords),
+    license="Apache",
+    keywords="Question Answering (QA), Machine Reading Comprehension (MRC), Information Retrieval (IR)",
     packages=find_packages(".", include=include_packages),
-    python_requires=">=3.7.0",
+    include_package_data=True,
+    package_data={"": ["*.cpp", "*.cu"]},
+    python_requires=">=3.7.0, <3.10.0",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3",
-        "TODO"
     ],
 )

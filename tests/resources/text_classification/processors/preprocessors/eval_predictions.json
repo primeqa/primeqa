@@ -1,0 +1,122 @@
+{
+    "9d854612-d484-4b98-b208-4983baeeab67": [
+        {
+            "example_id": "9d854612-d484-4b98-b208-4983baeeab67",
+            "cls_score": 5.0546875,
+            "start_logit": -2.1796875,
+            "end_logit": -2.0703125,
+            "span_answer": {
+                "end_position": 1068,
+                "start_position": 1024
+            },
+            "span_answer_score": -3.0693359375,
+            "start_index": 263,
+            "end_index": 274,
+            "passage_index": 2,
+            "target_type_logits": [
+                4.96484375,
+                3.166015625,
+                -1.736328125,
+                -5.359375,
+                -5.6484375
+            ],
+            "span_answer_text": "There are two subspecies of the zebra finch:",
+            "yes_no_answer": 0,
+            "start_stdev": 0.0,
+            "end_stdev": 0.0,
+            "query_passage_similarity": 0.0,
+            "normalized_span_answer_score": 0.13476262185679042,
+            "confidence_score": 0.13476262185679042,
+            "question": "Do zebra finches have stripes?",
+            "language": "english",
+            "order": 51,
+            "rank": 0,
+            "question_type_pred": "boolean",
+            "question_type_scores": {
+                "short_answer": -4.333811283111572,
+                "boolean": 3.4156312942504883
+            },
+            "question_type_conf": "3.4156313"
+        }
+    ],
+    "b9eba742-f264-4fec-92d0-9b8de5ad0bd7": [
+        {
+            "example_id": "b9eba742-f264-4fec-92d0-9b8de5ad0bd7",
+            "cls_score": -1.58056640625,
+            "start_logit": 3.060546875,
+            "end_logit": 3.39453125,
+            "span_answer": {
+                "end_position": 1020,
+                "start_position": 986
+            },
+            "span_answer_score": 6.939697265625,
+            "start_index": 339,
+            "end_index": 345,
+            "passage_index": 2,
+            "target_type_logits": [
+                0.8310546875,
+                5.84375,
+                2.65234375,
+                -4.609375,
+                -5.4921875
+            ],
+            "span_answer_text": "\u0e21\u0e2b\u0e32\u0e27\u0e34\u0e17\u0e22\u0e32\u0e25\u0e31\u0e22\u0e08\u0e2d\u0e23\u0e4c\u0e08\u0e17\u0e32\u0e27\u0e19\u0e4c \u0e2a\u0e2b\u0e23\u0e31\u0e10\u0e2d\u0e40\u0e21\u0e23\u0e34\u0e01\u0e32",
+            "yes_no_answer": 0,
+            "start_stdev": 0.0,
+            "end_stdev": 0.0,
+            "query_passage_similarity": 0.0,
+            "normalized_span_answer_score": 0.26967892438139063,
+            "confidence_score": 0.26967892438139063,
+            "question": "\u0e2b\u0e21\u0e48\u0e2d\u0e21\u0e23\u0e32\u0e0a\u0e27\u0e07\u0e28\u0e4c\u0e2a\u0e38\u0e02\u0e38\u0e21\u0e1e\u0e31\u0e19\u0e18\u0e38\u0e4c \u0e1a\u0e23\u0e34\u0e1e\u0e31\u0e15\u0e23 \u0e40\u0e23\u0e35\u0e22\u0e19\u0e08\u0e1a\u0e08\u0e32\u0e01\u0e17\u0e35\u0e48\u0e44\u0e2b\u0e19 ?",
+            "language": "thai",
+            "order": 0,
+            "rank": 0,
+            "question_type_pred": "short_answer",
+            "question_type_scores": {
+                "short_answer": 3.7633042335510254,
+                "boolean": -2.98460054397583
+            },
+            "question_type_conf": "3.7633042"
+        }
+    ],
+    "a71fe9c2-e518-4923-bced-4fe99cc7ff44": [
+        {
+            "example_id": "a71fe9c2-e518-4923-bced-4fe99cc7ff44",
+            "cls_score": 2.9892578125,
+            "start_logit": -1.86328125,
+            "end_logit": -0.595703125,
+            "span_answer": {
+                "end_position": 388,
+                "start_position": 371
+            },
+            "span_answer_score": -0.96435546875,
+            "start_index": 128,
+            "end_index": 132,
+            "passage_index": 1,
+            "target_type_logits": [
+                4.87109375,
+                3.51953125,
+                -0.20263671875,
+                -6.1953125,
+                -6.90234375
+            ],
+            "span_answer_text": "miaka ya nuru 4.2",
+            "yes_no_answer": 0,
+            "start_stdev": 0.0,
+            "end_stdev": 0.0,
+            "query_passage_similarity": 0.0,
+            "normalized_span_answer_score": 0.20819807445256944,
+            "confidence_score": 0.20819807445256944,
+            "question": "Ukubwa wa Rijili Kantori ni kiasi gani?",
+            "language": "swahili",
+            "order": 1,
+            "rank": 0,
+            "question_type_pred": "short_answer",
+            "question_type_scores": {
+                "short_answer": 3.779224157333374,
+                "boolean": -2.994832992553711
+            },
+            "question_type_conf": "3.7792242"
+        }
+    ]
+}

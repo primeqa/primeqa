@@ -34,7 +34,7 @@ class TableQAModel():
 
         
 
-    def predict_from_dict(self,data_dict,queries_list):
+    def predict(self,data_dict,queries_list):
         """This function takes a table dictionary and a list of queries as input and returns the answer to the queries using the TableQA model.
 
         Args:

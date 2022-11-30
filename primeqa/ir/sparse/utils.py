@@ -16,7 +16,7 @@ def load_queries(queries_tsv_filepath):
     return queries
 
 def write_colbert_ranking_tsv(output_dir: str , id_to_hits: Dict):
-    output_file = os.path.join(output_dir,'ranking.tsv')
+    output_file = os.path.join(output_dir,'ranked_passages.tsv')
     search_results = []
     for id in id_to_hits:
         for i, hit in enumerate(id_to_hits[id]):
