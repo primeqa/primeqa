@@ -247,6 +247,7 @@ class ExtractiveReader(ReaderComponent):
                     "span_answer_text"
                 ]
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
+                processed_prediction["span_answer_score"] = raw_prediction["span_answer_score"]
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]
