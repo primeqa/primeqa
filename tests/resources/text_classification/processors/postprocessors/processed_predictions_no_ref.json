@@ -1,0 +1,1 @@
+[{"pred": "True", "conf": "7.7", "question": "Is Cantonese written the same as Mandarin?", "language": "default", "scores": {"True": 7.7, "NONE": -3.4, "False": -4.0}}, {"pred": "True", "conf": "7.4", "question": "Is Cargo an Australian movie?", "language": "default", "scores": {"True": 7.4, "NONE": -2.9, "False": -4.3}}]
