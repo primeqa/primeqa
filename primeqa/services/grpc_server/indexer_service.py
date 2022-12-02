@@ -6,7 +6,7 @@ from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus
+from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus, ATTR_CHECKPOINT
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -222,7 +222,11 @@ class IndexerService(IndexerServicer):
         for index_id in self._store.get_index_ids():
             index_information = IndexInformation(index_id=index_id)
             try:
-                status = self._store.get_index_information(index_id=index_id)[
+                index_info_dict = self._store.get_index_information(index_id=index_id)
+            except FileNotFoundError:
+                index_information.status = DOES_NOT_EXISTS
+            try:
+                status = index_info_dict[
                     ATTR_STATUS
                 ]
                 if status == IndexStatus.READY.value:
@@ -233,8 +237,13 @@ class IndexerService(IndexerServicer):
                     index_information.status = CORRUPT
             except KeyError:
                 index_information.status = CORRUPT
-            except FileNotFoundError:
-                index_information.status = DOES_NOT_EXISTS
+            try:
+                checkpoint = index_info_dict[
+                    ATTR_CHECKPOINT
+                ]
+                index_information.checkpoint = checkpoint
+            except KeyError:
+                index_information.checkpoint = None
 
             resp.indexes.append(index_information)
 

@@ -2,6 +2,7 @@ from enum import Enum
 
 ATTR_INDEX_ID = "index_id"
 ATTR_STATUS = "status"
+ATTR_CHECKPOINT = "checkpoint"
 
 
 class IndexStatus(str, Enum):

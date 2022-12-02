@@ -63,6 +63,7 @@ message GetIndexesRequest {
 message IndexInformation {
     string index_id = 1;
     IndexStatus status = 2;
+    string checkpoint = 3;
 }
 
 message GetIndexesResponse {
