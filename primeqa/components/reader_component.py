@@ -14,7 +14,7 @@ class ReaderComponent():
         trained_results = self._class_object.train()
         return trained_results
 
-    def evaluate(self):
+    def eval(self):
         eval_results = self._class_object.eval()
         return eval_results
 
