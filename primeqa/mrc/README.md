@@ -26,34 +26,51 @@ The following shows how to use the MRC component within PrimeQA to extract an an
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.extractive_mrc_pipeline import MRCPipeline
-reader = MRCPipeline("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+reader.load()
 ```
 - Step 2: Execute the reader in inference mode:
 ```python
-question = "Which country is Canberra located in?"
-context = """Canberra is the capital city of Australia. 
+question = ["Which country is Canberra located in?"]
+context = [["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""
-answers = reader.predict(question,context)  
+largest inland city"""]]
+answers = reader.apply(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 The above statements will generate an output in the form of a dictionary:
 ```shell
 [
-    {
-        "span_answer_text": "Australia",
-        "confidence_score": 0.7988516960240685
-    },
-    {
-        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
-        "confidence_score": 0.10721889035823319
-    },
-    {
-        "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
-        "confidence_score": 0.09392941361769835
-    }
+    [
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 41
+            },
+            "confidence_score": 0.7988516960240685
+       },
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 168
+            },
+            "confidence_score": 0.10721889035823319
+       },
+       {
+            "example_id": "0",
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 105
+            },
+            "confidence_score": 0.09392941361769835
+       }
 ]
 ```
 
@@ -70,6 +87,7 @@ Currently supported MRC datasets include:
 - MLQA
 - Natural Questions(NQ)
 - Custom Data
+- MRQA
 
 Currently supported TableQA datasets :
 - WikiSQL
@@ -213,10 +231,30 @@ R@P=0.5: 61.23% (actual p=50.01%, score threshold=3.235)
 R@P=0.75: 29.25% (actual p=75.11%, score threshold=6.031)
 R@P=0.9: 10.16% (actual p=90.00%, score threshold=7.425)
 ```
+ #### [MRQA](https://huggingface.co/datasets/mrqa)
 
+ The dataset is a collection of 18 existing QA dataset (carefully selected subset of them) and converted to the same format (SQuAD like format)
+
+ For the MRQA dataset use the following additional command line arguments:
+ ```shell
+       --dataset_name mrqa \
+       --dataset_config_name plain_text \
+       --preprocessor primeqa.mrc.processors.preprocessors.mrqa.MRQAPreprocessor \
+       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
+       --eval_metrics SQUAD 
+```
+Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `TriviaQA-web`, use the command line argments  `--dataset_filter_column_name` to specify a column name and `--dataset_filter_column_values` to specify a list of column values.  The example below selects `SQuAD` and `HotpotQA` examples using the column `subset` in the MRQA dataset.  The script `run_mrc.py` shuffles the train examples, eval examples are kept in the same order as read in from the source.
+ ```shell
+       --dataset_filter_column_values SQuAD HotpotQA
+       --dataset_filter_column_name subset
+```
+
+Cross domain experiments can be run by running train and eval as separate processes. The
+
+ 
 ### Custom Data
 
-Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](/examples/mrc/README.md).
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
 
 ## Special MRC Features:
 

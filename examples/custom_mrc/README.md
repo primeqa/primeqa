@@ -78,3 +78,14 @@ To run MRC on custom data in PrimeQA Base format, use the following parameters (
 ### Custom Data in own Custom format
 
 Alternatively, a user can create their own pre-processor to be used with their custom data format. The preprocessor must inherit from the [BasePreProcessor](https://github.com/primeqa/primeqa/blob/mrc-user-data/primeqa/mrc/processors/preprocessors/base.py). The existing pre-processors can be used as a template to get started.
+
+
+### Finetuning using feedback data
+
+To finetune an extractive reader model using feedback data collected using the [PrimeQA application](https://github.com/primeqa/primeqa-orchestrator), first download the feedback data as described and convert the feedback json file into a jsonl file using the following command:
+
+```
+python convert_jsonarray_to_jsonl.py --input_file <path-to-feedback-json-file> --output_file <path-to-jsonl-file>
+```
+
+The jsonl file can be passed in as training data as described [Custom Data in Huggingface SQUAD format](###-Custom-Data-in-Huggingface-SQUAD-format)

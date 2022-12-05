@@ -1,10 +1,9 @@
 import torch.nn as nn
 
-from transformers import BertPreTrainedModel, BertModel, AutoTokenizer
-from transformers import AutoModel
+from transformers import AutoTokenizer, XLMRobertaModel
+
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
-from transformers import PreTrainedModel
-from transformers import XLMRobertaModel
+from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
 class HF_ColBERT_XLMR(XLMRobertaModel):
 #class HF_ColBERT_XLMR(PreTrainedModel):
@@ -44,7 +43,11 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
     def from_pretrained(cls, name_or_path, colbert_config):
         if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
-            base = dnn.get('arguments', {}).get('model', 'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
+
+            base_default = 'xlm-roberta-base'
+            if (not dnn.get('arguments') or dnn.get('arguments').get('model')) and (not dnn.get('model_type')):
+                print_message(f"[WARNING] Using default model type (base) {base_default}")
+            base = dnn.get('arguments', {}).get('model', base_default) if dnn.get('arguments') else dnn.get('model_type', base_default)
 
             state_dict=dnn['model_state_dict']
             from collections import OrderedDict

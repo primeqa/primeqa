@@ -2,7 +2,10 @@
 
 This file provides instructions on how to train and test the Dr. DECR models (Dense Retrieval with Distillation-Enhanced Cross-Lingual Representation) Student/Teacher pipeline, as desribed in [Learning Cross-Lingual IR from an English Retriever](https://arxiv.org/abs/2112.08185). 
 
-Similar models based on ColBERT V1 were used to obtain the results in the Dr. DECR XOR-TyDi leaderboard whitebox (not using external APIs) submission.
+As of 11/8/2022, Dr. Decr-large is the best model on [XOR-TyDi](https://nlp.cs.washington.edu/xorqa/) leaderboard.
+
+![Alt text](./XOR-TyDi_leaderboard.png?raw=true "leaderboard")
+
 
 ## Installation
 
@@ -89,9 +92,7 @@ There are two rounds of fine tuning involved in this step.
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --lr 1.5e-6 \
     --bsize 192 \
     --accum 6 \
@@ -99,8 +100,7 @@ python primeqa/ir/run_ir.py \
     --triples ./data/ColBERT.C3_3_20_biased200_triples_text.tsv \
     --root ./results \
     --experiment NQ \
-    --similarity l2 \
-    --model_type xlm-roberta-base \
+    --model_type xlm-roberta-large \
 > ./results/NQ_out.log 
 ```
 The trained model will be stored in:
@@ -114,9 +114,7 @@ The trained model will be stored in:
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --lr 6e-6 \
     --bsize 192 \
     --accum 6 \
@@ -124,8 +122,7 @@ python primeqa/ir/run_ir.py \
     --triples ./data/XOR/data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
     --root ./results \
     --experiment XOR \
-    --similarity l2 \
-    --model_type xlm-roberta-base \
+    --model_type xlm-roberta-large \
     --checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/XOR_out.log 
 ```
@@ -143,10 +140,8 @@ In the following Knowledge Distillation (KD) steps, the model resulting from the
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 192 \
     --accum 6 \
     --maxsteps 84897 \
@@ -154,13 +149,12 @@ python primeqa/ir/run_ir.py \
     --query_weight 0.5 \
     --triples ./data/en-7lan_2ep_triple.other.clean \
     --teacher_triples ./data/en-7lan_2ep_triple.en.clean \
-	--root ./results/KD_PC \
+    --root ./results/KD_PC \
     --experiment PC \
-    --similarity l2 \
     --distill_query_passage_separately True \
     --loss_function MSE \
-    --model_type xlm-roberta-base \
-    --teacher_model_type xlm-roberta-base \
+    --model_type xlm-roberta-large \
+    --teacher_model_type xlm-roberta-large \
     --checkpoint ./results/XOR/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
     --teacher_checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/KD_PC_out.log ;
@@ -176,10 +170,8 @@ results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn
 python primeqa/ir/run_ir.py \
     --do_train \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
     --teacher_doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 192 \
     --accum 6 \
     --lr 6e-6 \
@@ -187,11 +179,10 @@ python primeqa/ir/run_ir.py \
     --student_teacher_temperature 2 \
     --triples ./data/XOR/xorqa_triples_3poss_100neg_5ep_randTrue.tsv \
     --teacher_triples ./data/xorqa_triples_3poss_100neg_en_5ep_randTrue.tsv \
-	--root ./results/KD_XOR \
+    --root ./results/KD_XOR \
     --experiment XOR \
-    --similarity l2 \
-    --model_type xlm-roberta-base \
-    --teacher_model_type xlm-roberta-base \
+    --model_type xlm-roberta-large \
+    --teacher_model_type xlm-roberta-large \
     --checkpoint ./results/KD_PC/PC/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
     --teacher_checkpoint ./results/NQ/none/<year_month/<day>/<time>/checkpoints/colbert-LAST.dnn \
 > ./results/KD_XOR_out.log ;
@@ -211,18 +202,17 @@ CHECKPOINT=colbert-LAST;
 python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type ColBERT \
-    --amp \
     --doc_maxlen 180 \
-    --mask-punctuation \
     --bsize 256 \
-    --similarity l2 \
-    --checkpoint ${CP_PATH} \
+    --model_name_or_path ${CP_PATH} \
     --collection ./data/psgs_w100.tsv \
     --index_name ${CHECKPOINT}_index \
     --root ${OUTPUT_DIR} \
     --experiment ${CHECKPOINT} \
-    --model_type xlm-roberta-base \
-    --compression_level 2 \
+    --model_type xlm-roberta-large \
+    --nbits 4 \
+    --kmeans_niters 20 \
+    --num_partitions_max 100000 \
 > ${OUTPUT_DIR}/${CHECKPOINT}_index.log ;
 ```
 
@@ -238,26 +228,23 @@ python primeqa/ir/run_ir.py \
     --do_search \
     --engine_type ColBERT \
     --doc_maxlen 180 \
-    --mask-punctuation \
-    --bsize 4 \
-    --similarity l2 \
-    --retrieve_only \
+    --bsize 1 \
     --queries ./data/xortydi_dev.tsv \
-    --checkpoint ${CP_PATH} \
+    --model_name_or_path ${CP_PATH} \
     --root ${OUTPUT_DIR} \
     --index_name ${CHECKPOINT}_index \
     --experiment ${CHECKPOINT}_retrieve \
-    --topK 100 \
+    --top_k 100 \
     --ncells 4 \
     --centroid_score_threshold 0.4 \
-    --ndocs 40000 \
-    --ranks_fn ${OUTPUT_DIR}/colbert-LAST_retrieve.tsv \
+    --ndocs 100000 \
+    --output_dir ${OUTPUT_DIR} \
 > ${OUTPUT_DIR}/${CHECKPOINT}_retrieve.log
 ```
 
 The resulting .tsv file, containing query IDs, document IDs, ranks, and scores will be stored in:
 `
-./results/post_training/colbert-LAST_retrieve.tsv
+./results/post_training/ranked_passages.tsv
 `
 
 ## Step 5: Relevance Scoring
@@ -268,15 +255,15 @@ To obtain the relevance scores on the XOR-TyDi development set, the scores have 
    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py \
     -c ./data/psgs_w100.tsv \
     -q ./data/xor_dev_retrieve_eng_span_v1.jsonl \
-    -p ./results/post_training/colbert-LAST_retrieve.tsv \
-    -o ./results/post_training/colbert-LAST_retrieve_xortydi_format.json
+    -p ./results/post_training/ranked_passages.tsv \
+    -o ./results/post_training/ranked_passages_xortydi_format.json
 ```
 
 Finally, to obtain the XOR-TyDi scores, run:
 ```
 python eval_xor_retrieve.py \
     --data_file ./data/xor_dev_retrieve_eng_span_v1.jsonl \
-    --pred_file ./results/post_training/colbert-LAST_retrieve_xortydi_format.json > ./results/post_training/xorqa.metrics
+    --pred_file ./results/post_training/ranked_passages_xortydi_format.json > ./results/post_training/xorqa.metrics
 ```
 
 The `eval_xor_retrieve.py` script can be downloaded from the XORTyDI repo here: https://github.com/AkariAsai/XORQA
@@ -285,37 +272,39 @@ The output in `./results/post_training/xorqa.metrics` will contain records such 
 
 ```
 Evaluating R@2kt
+100%|██████████| 2113/2113 [00:26<00:00, 78.31it/s]
 performance on te (238 examples)
-74.36974789915966
+82.77310924369748
 performance on bn (304 examples)
-73.35526315789474
+81.9078947368421
 performance on fi (314 examples)
-61.78343949044586
+68.15286624203821
 performance on ja (241 examples)
-50.20746887966805
+63.07053941908713
 performance on ko (285 examples)
-60.0
+69.12280701754386
 performance on ru (237 examples)
-54.43037974683544
+67.08860759493672
 performance on ar (309 examples)
-56.310679611650485
+67.96116504854369
 Final macro averaged score: 
-61.49385411223632
+71.43956990038417
 Evaluating R@5kt
+100%|██████████| 2113/2113 [01:07<00:00, 31.16it/s]
 performance on te (238 examples)
-78.99159663865547
+86.1344537815126
 performance on bn (304 examples)
-81.25
+85.19736842105263
 performance on fi (314 examples)
-67.83439490445859
+73.56687898089172
 performance on ja (241 examples)
-59.33609958506224
+69.70954356846472
 performance on ko (285 examples)
-67.36842105263158
+75.08771929824562
 performance on ru (237 examples)
-63.29113924050633
+72.15189873417721
 performance on ar (309 examples)
-64.07766990291263
+75.72815533980582
 Final macro averaged score: 
-68.87847447488954
+76.79657401773576
 ```

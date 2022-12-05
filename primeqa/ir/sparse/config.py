@@ -20,11 +20,11 @@ class IndexingArguments():
 
 @dataclass
 class SearchArguments():
-    index_path: str = field(default=None, metadata={"help":"Path to the index directory location"})
+    index_location: str = field(default=None, metadata={"help":"Path to the index directory location"})
 
-    queries_path: str = field(default=None, metadata={"help":"Path to the tsv file where each line is in format 'id\tquery'"})
+    queries: str = field(default=None, metadata={"help":"Path to the tsv file where each line is in format 'id\tquery'"})
 
-    nhits: int = field(default=10, metadata={"help":"Number of hits to return"})
+    topK: int = field(default=10, metadata={"help":"Number of hits to return"})
 
     use_bm25: bool = field(default=True, metadata={"help":"Use bm25 scoring"})
     
