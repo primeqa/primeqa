@@ -76,7 +76,7 @@ source_suffix = {
 
 html_theme_options = {
     "use_edit_page_button": True,
-    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navbar_end": ["navbar-icon-links", "theme-switcher"],
     "icon_links": [
         {
             "name": "GitHub",
@@ -115,17 +115,17 @@ html_theme_options = {
         { 
             "rel": "icon",
             "sizes": "16x16",
-            "href": "icons8-intelligence-50.png",
+            "href": "primeqa_logo.png",
         },
         {
             "rel": "icon",
             "sizes": "32x32",
-            "href": "icons8-intelligence-50.png",
+            "href": "primeqa_logo.png",
         },
         {
             "rel": "apple-touch-icon",
             "sizes": "180x180",
-            "href": "icons8-intelligence-50.png"
+            "href": "primeqa_logo.png"
         },
     ],
     # "page_sidebar_items": ["custom-right-section.html", "page-toc", "edit-this-page"],
@@ -168,6 +168,12 @@ html_sidebars = {
             "search-field.html","custom-left-section.html"
         ],
         "pull_request_template": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "orchestrator": [
+            "search-field.html","custom-left-section.html"
+        ],
+        "tooling_ui": [
             "search-field.html","custom-left-section.html"
         ],
         "README": [

@@ -15,7 +15,7 @@ class Arguments():
         self.checks = []
 
         self.add_argument('--root', dest='root', default='experiments')
-        self.add_argument('--experiment', dest='experiment', default='dirty')
+        self.add_argument('--experiment', dest='experiment', default='default_experiment_name')
         self.add_argument('--run', dest='run', default=Run.name)
 
         self.add_argument('--local_rank', dest='rank', default=-1, type=int)
@@ -23,7 +23,7 @@ class Arguments():
 
     def add_model_parameters(self):
         # Core Arguments
-        self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine', 'l2'])
+        self.add_argument('--similarity', dest='similarity', default='cosine', choices=['cosine'])
         self.add_argument('--dim', dest='dim', default=128, type=int)
         self.add_argument('--query_maxlen', dest='query_maxlen', default=32, type=int)
         self.add_argument('--doc_maxlen', dest='doc_maxlen', default=180, type=int)
@@ -49,7 +49,10 @@ class Arguments():
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
         self.add_argument('--bsize', dest='bsize', default=32, type=int)
         self.add_argument('--accumsteps', dest='accumsteps', default=1, type=int)
-        self.add_argument('--amp', dest='amp', default=False, action='store_true')
+        self.add_argument('--amp', dest='amp', default=True, action='store_true')
+        self.add_argument('--no_amp', dest='amp', default=False, action='store_false')
+        self.parser.set_defaults(amp=True)
+
         # adding shuffle option
         self.add_argument('--shuffle_every_epoch', dest='shuffle_every_epoch', default=False, action='store_true')
         # support checkpoint
@@ -76,9 +79,11 @@ class Arguments():
         self.add_argument('--use_ib_negatives', dest='use_ib_negatives', default=False, action='store_true')
 
     def add_model_inference_parameters(self):
-        self.add_argument('--checkpoint', dest='checkpoint', required=True)
+        self.add_argument('--model_name_or_path', dest='checkpoint', required=True)
         self.add_argument('--bsize', dest='bsize', default=128, type=int)
-        self.add_argument('--amp', dest='amp', default=False, action='store_true')
+        self.add_argument('--amp', dest='amp', default=True, action='store_true')
+        self.add_argument('--no_amp', dest='amp', default=False, action='store_false')
+        self.parser.set_defaults(amp=True)
 
     def add_training_input(self):
         self.add_argument('--triples', dest='triples', required=True)
@@ -98,8 +103,8 @@ class Arguments():
         self.add_argument('--queries', dest='queries', default=None)
         self.add_argument('--collection', dest='collection', default=None)
         self.add_argument('--qrels', dest='qrels', default=None)
-        self.add_argument('--ranks_fn', dest='ranks_fn', required=True)
-        self.add_argument('--topK', dest='topK', default=100, type=int)
+        self.add_argument('--output_dir', dest='output_dir', required=True)
+        self.add_argument('--top_k', dest='topK', default=100, type=int)
 
     def add_reranking_input(self):
         self.add_ranking_input()
@@ -108,7 +113,7 @@ class Arguments():
 
     def add_indexing_input(self):
         self.add_argument('--collection', dest='collection', required=True)
-        self.add_argument('--index_root', dest='index_root', required=True)
+        self.add_argument('--index_root', dest='index_root', default=None)
         self.add_argument('--index_name', dest='index_name', required=True)
 
     def add_compressed_index_input(self):
@@ -117,18 +122,17 @@ class Arguments():
         self.add_argument('--num_partitions_max', type=int, default=10000000)
 
     def add_index_use_input(self):
-        self.add_argument('--index_root', dest='index_root', required=True)
-        self.add_argument('--index_name', dest='index_name', required=True)
+        self.add_argument('--index_root', dest='index_root', default=None)
+        self.add_argument('--index_name', dest='index_name', required=False)
         self.add_argument('--partitions', dest='partitions', default=None, type=int, required=False)
         self.add_argument('--index_path', dest='index_path', default=None, type=str)
-
+        self.add_argument('--index_location', dest='index_location', default=None, type=str)
 
     def add_retrieval_input(self):
         self.add_index_use_input()
         self.add_argument('--ncells', dest='ncells', default=None, type=int)
         self.add_argument('--centroid_score_threshold', dest='centroid_score_threshold', default=None, type=float)
         self.add_argument('--ndocs', dest='ndocs', default=None, type=int)
-        self.add_argument('--retrieve_only', dest='retrieve_only', default=False, action='store_true')
 
     def add_argument(self, *args, **kw_args):
         return self.parser.add_argument(*args, **kw_args)

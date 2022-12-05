@@ -14,9 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# PrimeQA     
-
-<h3 align="center">
+<h3 align="center" style="margin-top: 0px">
+    <img width="350" alt="primeqa" src="_static/img/PrimeQA.png">
     <p>The prime repository for state-of-the-art Multilingual and Multimedia Question Answering research and development.</p>
 </h3>
 
@@ -97,6 +96,8 @@ to erroneous or unexpected input argument.
 | [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | [Pull Request](pull_request_template.md) | PrimeQA Pull Request |
 | [Generate Documentation](README.md) | How Documentation works |       
+| [Orchestrator Service REST Microservice](orchestrator.md) | Proof-of-concept code for PrimeQA Orchestrator microservice |       
+| [Tooling UI](tooling_ui.md) | Demo UI |       
 
 ## PrimeQA collaborators include       
 
