@@ -12,7 +12,7 @@ import pandas as pd
 from datasets import load_dataset
 
 from pickle import NONE
-from transformers import AutoTokenizer,AutoModelForSeq2SeqLM
+from primeqa.tableqa.tapex.utils.argument_utils_for_tapex import DataTrainingArguments,ModelArguments
 import pandas as pd
 import transformers
 from filelock import FileLock
@@ -39,32 +39,9 @@ from primeqa.tableqa.tapex.metrics.tapex_accuracy import TapexAccuracy
 logger = logging.getLogger(__name__)
 
 class TapexModel():
-   
-    # def __init__(self,model_name_path):
-    #     """TableQA model class
-
-    #     Args:
-    #         model_name_path (str): Path to the pre-trained model.
-    #         config (_type_, optional): _description_. Defaults to None.
-    #     """
-    #     self._tokenizer  = AutoTokenizer.from_pretrained(model_name_path)
-    #     self._model = AutoModelForSeq2SeqLM.from_pretrained(model_name_path)
-
     def __init__(self,path_to_config_json): 
         print("reading the config from ",path_to_config_json)
         self._config_json = path_to_config_json
-        # """TableQA model class
-
-        # Args:
-        #     model_name_path (str): Path to the pre-trained model.
-        #     config (_type_, optional): _description_. Defaults to None.
-        # """
-        # self._tokenizer  = AutoTokenizer.from_pretrained(model_args.model_name_path)
-        # self._model = AutoModelForSeq2SeqLM.from_pretrained(model_args.model_name_path)
-
-
-
-
 
     @property
     def model(self):
@@ -76,7 +53,7 @@ class TapexModel():
 
     @property
     def tokenizer(self):
-        """ Property of TableQG model.
+        """ Property of Tapex model.
         Returns:
             Tokenizer class object based on the model name/ path
         """
@@ -152,6 +129,15 @@ class TapexModel():
 
         # Set seed before initializing model.
         set_seed(training_args.seed)                                                      
+    
+        # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
+        # https://huggingface.co/docs/datasets/loading_datasets.html.
+
+        # Load pretrained model and tokenizer
+        #
+        # Distributed training:
+        # The .from_pretrained methods guarantee that only one local process can concurrently
+        # download model & vocab.
 
         config = AutoConfig.from_pretrained(
             model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -175,7 +161,6 @@ class TapexModel():
             use_auth_token=True if model_args.use_auth_token else None,
             add_prefix_space=True,
         )
-
 
         # load Bart based Tapex model (default tapex-large)
         self._model = BartForConditionalGeneration.from_pretrained(
