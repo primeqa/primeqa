@@ -130,6 +130,15 @@ class TapexModel():
 
         # Set seed before initializing model.
         set_seed(training_args.seed)                                                      
+    
+        # See more about loading any type of standard or custom dataset (from files, python dict, pandas DataFrame, etc) at
+        # https://huggingface.co/docs/datasets/loading_datasets.html.
+
+        # Load pretrained model and tokenizer
+        #
+        # Distributed training:
+        # The .from_pretrained methods guarantee that only one local process can concurrently
+        # download model & vocab.
 
         config = AutoConfig.from_pretrained(
             model_args.config_name if model_args.config_name else model_args.model_name_or_path,
@@ -153,7 +162,6 @@ class TapexModel():
             use_auth_token=True if model_args.use_auth_token else None,
             add_prefix_space=True,
         )
-
 
         # load Bart based Tapex model (default tapex-large)
         self._model = BartForConditionalGeneration.from_pretrained(
@@ -343,16 +351,22 @@ class TapexModel():
             compute_metrics=tf.compute_metrics if training_args.predict_with_generate else None,
         )
 
-        logger.info("*** Evaluate ***")
-        print("max_eval_samples is set as: ", data_args.max_eval_samples)
+        checkpoint = None
+        if training_args.resume_from_checkpoint is not None:
+            checkpoint = training_args.resume_from_checkpoint
+        elif last_checkpoint is not None:
+            checkpoint = last_checkpoint
+        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        trainer.save_model()  # Saves the tokenizer too for easy upload
 
-        metrics = trainer.evaluate(
-            max_length=data_args.val_max_target_length, num_beams=data_args.num_beams, metric_key_prefix="eval"
-        )
-        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(test_dataset)
-       
-        metrics["eval_samples"] = min(max_eval_samples, len(test_dataset))
+        metrics = train_result.metrics
 
-        trainer.log_metrics("eval", metrics)
-        trainer.save_metrics("eval", metrics)
+        metrics["test_samples"] = min(len(test_dataset))
+
+        trainer.log_metrics("test", metrics)
+        trainer.save_metrics("test", metrics)
+        trainer.save_state()
+
+
+
 
