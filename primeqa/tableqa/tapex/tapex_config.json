@@ -1,6 +1,6 @@
 {
 "model_name_or_path": "microsoft/tapex-large-finetuned-wikisql",
-"dataset_name":"wikisql",
+"dataset_name":"wikitablequestions",
 "per_device_train_batch_size":4,
 "gradient_accumulation_steps":8,
 "per_device_eval_batch_size":4,
