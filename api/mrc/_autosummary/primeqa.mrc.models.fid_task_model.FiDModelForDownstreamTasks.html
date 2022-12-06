@@ -1222,11 +1222,33 @@
     </ul>
    </li>
    <li class="toctree-l2 has-children">
-    <a class="reference internal" href="primeqa.mrc.trainers.seq2seq_mrc.html">
-     seq2seq_mrc
+    <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.html">
+     mrc_mskd
     </a>
     <input class="toctree-checkbox" id="toctree-checkbox-50" name="toctree-checkbox-50" type="checkbox"/>
     <label for="toctree-checkbox-50">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.IndividualDomainBatchSampler.html">
+       primeqa.mrc.trainers.mrc_mskd.IndividualDomainBatchSampler
+      </a>
+     </li>
+     <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.html">
+       primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.mrc.trainers.seq2seq_mrc.html">
+     seq2seq_mrc
+    </a>
+    <input class="toctree-checkbox" id="toctree-checkbox-51" name="toctree-checkbox-51" type="checkbox"/>
+    <label for="toctree-checkbox-51">
      <i class="fas fa-chevron-down">
      </i>
     </label>
@@ -2655,7 +2677,7 @@ fully-qualified string.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask">
-<span class="sig-name descname"><span class="pre">get_extended_attention_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">attention_mask:</span> <span class="pre">torch.Tensor,</span> <span class="pre">input_shape:</span> <span class="pre">typing.Tuple[int],</span> <span class="pre">device:</span> <span class="pre">&lt;property</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7fae63cb7b80&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_extended_attention_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">attention_mask:</span> <span class="pre">torch.Tensor,</span> <span class="pre">input_shape:</span> <span class="pre">typing.Tuple[int],</span> <span class="pre">device:</span> <span class="pre">&lt;property</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7fcd441baa90&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask" title="Permalink to this definition">#</a></dt>
 <dd><p>Makes broadcastable attention and causal masks so that future and masked tokens are ignored.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

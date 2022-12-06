@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>primeqa.mrc.trainers.mrc.MRCTrainer &#8212; PrimeQA  documentation</title>
+    <title>primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -1204,40 +1204,40 @@
    </i>
   </label>
   <ul class="current">
-   <li class="toctree-l2 current active has-children">
+   <li class="toctree-l2 has-children">
     <a class="reference internal" href="primeqa.mrc.trainers.mrc.html">
      mrc
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-49" name="toctree-checkbox-49" type="checkbox"/>
+    <input class="toctree-checkbox" id="toctree-checkbox-49" name="toctree-checkbox-49" type="checkbox"/>
     <label for="toctree-checkbox-49">
-     <i class="fas fa-chevron-down">
-     </i>
-    </label>
-    <ul class="current">
-     <li class="toctree-l3 current active">
-      <a class="current reference internal" href="#">
-       primeqa.mrc.trainers.mrc.MRCTrainer
-      </a>
-     </li>
-    </ul>
-   </li>
-   <li class="toctree-l2 has-children">
-    <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.html">
-     mrc_mskd
-    </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-50" name="toctree-checkbox-50" type="checkbox"/>
-    <label for="toctree-checkbox-50">
      <i class="fas fa-chevron-down">
      </i>
     </label>
     <ul>
      <li class="toctree-l3">
+      <a class="reference internal" href="primeqa.mrc.trainers.mrc.MRCTrainer.html">
+       primeqa.mrc.trainers.mrc.MRCTrainer
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toctree-l2 current active has-children">
+    <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.html">
+     mrc_mskd
+    </a>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-50" name="toctree-checkbox-50" type="checkbox"/>
+    <label for="toctree-checkbox-50">
+     <i class="fas fa-chevron-down">
+     </i>
+    </label>
+    <ul class="current">
+     <li class="toctree-l3">
       <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.IndividualDomainBatchSampler.html">
        primeqa.mrc.trainers.mrc_mskd.IndividualDomainBatchSampler
       </a>
      </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.html">
+     <li class="toctree-l3 current active">
+      <a class="current reference internal" href="#">
        primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer
       </a>
      </li>
@@ -1304,7 +1304,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.trainers.mrc.MRCTrainer.rst.txt", '_blank');
+                window.open("../../../_sources/api/mrc/_autosummary/primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -1334,12 +1334,12 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="primeqa-mrc-trainers-mrc-mrctrainer">
-<h1>primeqa.mrc.trainers.mrc.MRCTrainer<a class="headerlink" href="#primeqa-mrc-trainers-mrc-mrctrainer" title="Permalink to this headline">#</a></h1>
+  <section id="primeqa-mrc-trainers-mrc-mskd-mskd-mrctrainer">
+<h1>primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer<a class="headerlink" href="#primeqa-mrc-trainers-mrc-mskd-mskd-mrctrainer" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.mrc.trainers.mrc.</span></span><span class="sig-name descname"><span class="pre">MRCTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_process_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">transformers.trainer.Trainer</span></code></p>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.mrc.trainers.mrc_mskd.</span></span><span class="sig-name descname"><span class="pre">MSKD_MRCTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post_process_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="primeqa.mrc.trainers.mrc.MRCTrainer.html#primeqa.mrc.trainers.mrc.MRCTrainer" title="primeqa.mrc.trainers.mrc.MRCTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.mrc.trainers.mrc.MRCTrainer</span></code></a></p>
 <p class="rubric">Methods</p>
 <table class="longtable table autosummary">
 <colgroup>
@@ -1347,116 +1347,122 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.add_callback" title="primeqa.mrc.trainers.mrc.MRCTrainer.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.add_callback" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.add_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_callback</span></code></a></p></td>
 <td><p>Add a callback to the current list of [<cite>~transformer.TrainerCallback</cite>].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.autocast_smart_context_manager" title="primeqa.mrc.trainers.mrc.MRCTrainer.autocast_smart_context_manager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autocast_smart_context_manager</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.autocast_smart_context_manager" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.autocast_smart_context_manager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">autocast_smart_context_manager</span></code></a></p></td>
 <td><p>A helper wrapper that creates an appropriate context manager for <cite>autocast</cite> while feeding it the desired arguments, depending on the situation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">call_model_init</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.compute_loss" title="primeqa.mrc.trainers.mrc.MRCTrainer.compute_loss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_loss</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_distillation_loss</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_erm_loss" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_erm_loss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_erm_loss</span></code></a></p></td>
+<td><p>How the loss is computed by Trainer.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_loss" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_loss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_loss</span></code></a></p></td>
 <td><p>How the loss is computed by Trainer.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_model_card</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer" title="primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_optimizer</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_optimizer</span></code></a></p></td>
 <td><p>Setup the optimizer.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer_and_scheduler" title="primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer_and_scheduler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_optimizer_and_scheduler</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer_and_scheduler" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer_and_scheduler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_optimizer_and_scheduler</span></code></a></p></td>
 <td><p>Setup the optimizer and the learning rate scheduler.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_scheduler" title="primeqa.mrc.trainers.mrc.MRCTrainer.create_scheduler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_scheduler</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_scheduler" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_scheduler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_scheduler</span></code></a></p></td>
 <td><p>Setup the scheduler.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.evaluate" title="primeqa.mrc.trainers.mrc.MRCTrainer.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluate" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a></p></td>
 <td><p>Evaluate model using either eval data passed to method (if given).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.evaluation_loop" title="primeqa.mrc.trainers.mrc.MRCTrainer.evaluation_loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluation_loop</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluation_loop" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluation_loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluation_loop</span></code></a></p></td>
 <td><p>Prediction/evaluation loop, shared by <cite>Trainer.evaluate()</cite> and <cite>Trainer.predict()</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.floating_point_ops" title="primeqa.mrc.trainers.mrc.MRCTrainer.floating_point_ops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">floating_point_ops</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.floating_point_ops" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.floating_point_ops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">floating_point_ops</span></code></a></p></td>
 <td><p>For models that inherit from [<cite>PreTrainedModel</cite>], uses that method to compute the number of floating point operations for every backward + forward pass.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_eval_dataloader" title="primeqa.mrc.trainers.mrc.MRCTrainer.get_eval_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_eval_dataloader</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_eval_dataloader" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_eval_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_eval_dataloader</span></code></a></p></td>
 <td><p>Returns the evaluation torch <cite>DataLoader</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_optimizer_cls_and_kwargs" title="primeqa.mrc.trainers.mrc.MRCTrainer.get_optimizer_cls_and_kwargs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_optimizer_cls_and_kwargs</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_optimizer_cls_and_kwargs" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_optimizer_cls_and_kwargs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_optimizer_cls_and_kwargs</span></code></a></p></td>
 <td><p>Returns the optimizer class and optimizer parameters based on the training arguments.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_test_dataloader" title="primeqa.mrc.trainers.mrc.MRCTrainer.get_test_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_test_dataloader</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_test_dataloader" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_test_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_test_dataloader</span></code></a></p></td>
 <td><p>Returns the test [<cite>~torch.utils.data.DataLoader</cite>].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_train_dataloader" title="primeqa.mrc.trainers.mrc.MRCTrainer.get_train_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_train_dataloader</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_train_dataloader" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_train_dataloader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_train_dataloader</span></code></a></p></td>
 <td><p>Returns the training torch <cite>DataLoader</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.hyperparameter_search" title="primeqa.mrc.trainers.mrc.MRCTrainer.hyperparameter_search"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hyperparameter_search</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.hyperparameter_search" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.hyperparameter_search"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hyperparameter_search</span></code></a></p></td>
 <td><p>Launch an hyperparameter search using <cite>optuna</cite> or <cite>Ray Tune</cite> or <cite>SigOpt</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.init_git_repo" title="primeqa.mrc.trainers.mrc.MRCTrainer.init_git_repo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_git_repo</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.init_git_repo" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.init_git_repo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_git_repo</span></code></a></p></td>
 <td><p>Initializes a git repo in <cite>self.args.hub_model_id</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.is_local_process_zero" title="primeqa.mrc.trainers.mrc.MRCTrainer.is_local_process_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_local_process_zero</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_local_process_zero" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_local_process_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_local_process_zero</span></code></a></p></td>
 <td><p>Whether or not this process is the local (e.g., on one machine if training in a distributed fashion on several machines) main process.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.is_world_process_zero" title="primeqa.mrc.trainers.mrc.MRCTrainer.is_world_process_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_world_process_zero</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_world_process_zero" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_world_process_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_world_process_zero</span></code></a></p></td>
 <td><p>Whether or not this process is the global main process (when training in a distributed fashion on several machines, this is only going to be <cite>True</cite> for one process).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.log" title="primeqa.mrc.trainers.mrc.MRCTrainer.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a></p></td>
 <td><p>Log <cite>logs</cite> on the various objects watching training.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.log_metrics" title="primeqa.mrc.trainers.mrc.MRCTrainer.log_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_metrics</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log_metrics" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_metrics</span></code></a></p></td>
 <td><p>Log metrics in a specially formatted way</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.metrics_format" title="primeqa.mrc.trainers.mrc.MRCTrainer.metrics_format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics_format</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.metrics_format" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.metrics_format"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics_format</span></code></a></p></td>
 <td><p>Reformat Trainer metrics values to a human-readable format</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.num_examples" title="primeqa.mrc.trainers.mrc.MRCTrainer.num_examples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_examples</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.num_examples" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.num_examples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_examples</span></code></a></p></td>
 <td><p>Helper to get number of samples in a [<cite>~torch.utils.data.DataLoader</cite>] by accessing its dataset.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.pop_callback" title="primeqa.mrc.trainers.mrc.MRCTrainer.pop_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop_callback</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.pop_callback" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.pop_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop_callback</span></code></a></p></td>
 <td><p>Remove a callback from the current list of [<cite>~transformer.TrainerCallback</cite>] and returns it.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.predict" title="primeqa.mrc.trainers.mrc.MRCTrainer.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.predict" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a></p></td>
 <td><p>Obtain the predictions using either eval data passed to method (if given).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.prediction_loop" title="primeqa.mrc.trainers.mrc.MRCTrainer.prediction_loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prediction_loop</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_loop" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prediction_loop</span></code></a></p></td>
 <td><p>Prediction/evaluation loop, shared by <cite>Trainer.evaluate()</cite> and <cite>Trainer.predict()</cite>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.prediction_step" title="primeqa.mrc.trainers.mrc.MRCTrainer.prediction_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prediction_step</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_step" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prediction_step</span></code></a></p></td>
 <td><p>Perform an evaluation step on <cite>model</cite> using <cite>inputs</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.push_to_hub" title="primeqa.mrc.trainers.mrc.MRCTrainer.push_to_hub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">push_to_hub</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.push_to_hub" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.push_to_hub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">push_to_hub</span></code></a></p></td>
 <td><p>Upload <em>self.model</em> and <em>self.tokenizer</em> to the 🤗 model hub on the repo <em>self.args.hub_model_id</em>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.remove_callback" title="primeqa.mrc.trainers.mrc.MRCTrainer.remove_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_callback</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.remove_callback" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.remove_callback"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_callback</span></code></a></p></td>
 <td><p>Remove a callback from the current list of [<cite>~transformer.TrainerCallback</cite>].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_metrics" title="primeqa.mrc.trainers.mrc.MRCTrainer.save_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_metrics</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_metrics" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_metrics</span></code></a></p></td>
 <td><p>Save metrics into a json file for that split, e.g.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_model" title="primeqa.mrc.trainers.mrc.MRCTrainer.save_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_model</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_model" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_model</span></code></a></p></td>
 <td><p>Will save the model, so you can reload it using <cite>from_pretrained()</cite>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_state" title="primeqa.mrc.trainers.mrc.MRCTrainer.save_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_state</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_state" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_state</span></code></a></p></td>
 <td><p>Saves the Trainer state, since Trainer.save_model saves only the tokenizer with the model</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">store_flos</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.train" title="primeqa.mrc.trainers.mrc.MRCTrainer.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.train" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
 <td><p>Main training entry point.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc.MRCTrainer.training_step" title="primeqa.mrc.trainers.mrc.MRCTrainer.training_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">training_step</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.training_step" title="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.training_step"><code class="xref py py-obj docutils literal notranslate"><span class="pre">training_step</span></code></a></p></td>
 <td><p>Perform a training step on a batch of inputs.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.add_callback">
-<span class="sig-name descname"><span class="pre">add_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.add_callback" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.add_callback">
+<span class="sig-name descname"><span class="pre">add_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.add_callback" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a callback to the current list of [<cite>~transformer.TrainerCallback</cite>].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1467,30 +1473,37 @@ first case, will instantiate a member of that class.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.autocast_smart_context_manager">
-<span class="sig-name descname"><span class="pre">autocast_smart_context_manager</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.autocast_smart_context_manager" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.autocast_smart_context_manager">
+<span class="sig-name descname"><span class="pre">autocast_smart_context_manager</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.autocast_smart_context_manager" title="Permalink to this definition">#</a></dt>
 <dd><p>A helper wrapper that creates an appropriate context manager for <cite>autocast</cite> while feeding it the desired
 arguments, depending on the situation.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.compute_loss">
-<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.compute_loss" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_erm_loss">
+<span class="sig-name descname"><span class="pre">compute_erm_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_erm_loss" title="Permalink to this definition">#</a></dt>
 <dd><p>How the loss is computed by Trainer. By default, all models return the loss in the first element.</p>
 <p>Subclass and override for custom behavior.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer">
-<span class="sig-name descname"><span class="pre">create_optimizer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_loss">
+<span class="sig-name descname"><span class="pre">compute_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.compute_loss" title="Permalink to this definition">#</a></dt>
+<dd><p>How the loss is computed by Trainer. By default, all models return the loss in the first element.</p>
+<p>Subclass and override for custom behavior.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer">
+<span class="sig-name descname"><span class="pre">create_optimizer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer" title="Permalink to this definition">#</a></dt>
 <dd><p>Setup the optimizer.</p>
 <p>We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
 Trainer’s init through <cite>optimizers</cite>, or subclass and override this method in a subclass.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer_and_scheduler">
-<span class="sig-name descname"><span class="pre">create_optimizer_and_scheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_training_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_optimizer_and_scheduler" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer_and_scheduler">
+<span class="sig-name descname"><span class="pre">create_optimizer_and_scheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_training_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_optimizer_and_scheduler" title="Permalink to this definition">#</a></dt>
 <dd><p>Setup the optimizer and the learning rate scheduler.</p>
 <p>We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
 Trainer’s init through <cite>optimizers</cite>, or subclass and override this method (or <cite>create_optimizer</cite> and/or
@@ -1498,8 +1511,8 @@ Trainer’s init through <cite>optimizers</cite>, or subclass and override this 
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.create_scheduler">
-<span class="sig-name descname"><span class="pre">create_scheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_training_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.optim.optimizer.Optimizer</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.create_scheduler" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_scheduler">
+<span class="sig-name descname"><span class="pre">create_scheduler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_training_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.optim.optimizer.Optimizer</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.create_scheduler" title="Permalink to this definition">#</a></dt>
 <dd><p>Setup the scheduler. The optimizer of the trainer must have been set up either before this method is called or
 passed as an argument.</p>
 <dl class="field-list simple">
@@ -1510,15 +1523,15 @@ passed as an argument.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.evaluate">
-<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.evaluate" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluate" title="Permalink to this definition">#</a></dt>
 <dd><p>Evaluate model using either eval data passed to method (if given).
 Otherwise use data given to constructor at instantiation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>eval_examples</strong> – Eval examples <cite>Dataset</cite> from <cite>BasePreprocessor.process_eval</cite>.</p></li>
-<li><p><strong>eval_dataset</strong> – Eval features <cite>Dataset</cite> from <cite>BasePreprocessor.process_eval</cite>.</p></li>
+<li><p><strong>eval_examples</strong> – Each item is an eval examples <cite>Dataset</cite> from <cite>BasePreprocessor.process_eval</cite>.</p></li>
+<li><p><strong>eval_dataset</strong> – Each underlying dataset is an eval features <cite>Dataset</cite> from <cite>BasePreprocessor.process_eval</cite>.</p></li>
 <li><p><strong>ignore_keys</strong> – Keys to ignore in evaluation loop.</p></li>
 <li><p><strong>metric_key_prefix</strong> – Append this prefix to metric names.</p></li>
 </ul>
@@ -1531,15 +1544,15 @@ were provided to constructor at instantiation, otherwise an empty dict.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.evaluation_loop">
-<span class="sig-name descname"><span class="pre">evaluation_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.EvalLoopOutput</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.evaluation_loop" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluation_loop">
+<span class="sig-name descname"><span class="pre">evaluation_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.EvalLoopOutput</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.evaluation_loop" title="Permalink to this definition">#</a></dt>
 <dd><p>Prediction/evaluation loop, shared by <cite>Trainer.evaluate()</cite> and <cite>Trainer.predict()</cite>.</p>
 <p>Works both with or without labels.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.floating_point_ops">
-<span class="sig-name descname"><span class="pre">floating_point_ops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.floating_point_ops" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.floating_point_ops">
+<span class="sig-name descname"><span class="pre">floating_point_ops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.floating_point_ops" title="Permalink to this definition">#</a></dt>
 <dd><p>For models that inherit from [<cite>PreTrainedModel</cite>], uses that method to compute the number of floating point
 operations for every backward + forward pass. If using another model, either implement such a method in the
 model or subclass and override this method.</p>
@@ -1557,8 +1570,8 @@ model or subclass and override this method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.get_eval_dataloader">
-<span class="sig-name descname"><span class="pre">get_eval_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_eval_dataloader" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_eval_dataloader">
+<span class="sig-name descname"><span class="pre">get_eval_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">datasets.arrow_dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_eval_dataloader" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns the evaluation torch <cite>DataLoader</cite>.</p>
 <p>Subclass and override this method if you want to inject some custom behavior.</p>
 <dl class="field-list simple">
@@ -1571,8 +1584,8 @@ It must implement <cite>__len__</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.get_optimizer_cls_and_kwargs">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_optimizer_cls_and_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">transformers.training_args.TrainingArguments</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_optimizer_cls_and_kwargs" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_optimizer_cls_and_kwargs">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_optimizer_cls_and_kwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">transformers.training_args.TrainingArguments</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_optimizer_cls_and_kwargs" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns the optimizer class and optimizer parameters based on the training arguments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1582,8 +1595,8 @@ It must implement <cite>__len__</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.get_test_dataloader">
-<span class="sig-name descname"><span class="pre">get_test_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_test_dataloader" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_test_dataloader">
+<span class="sig-name descname"><span class="pre">get_test_dataloader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_test_dataloader" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns the test [<cite>~torch.utils.data.DataLoader</cite>].</p>
 <p>Subclass and override this method if you want to inject some custom behavior.</p>
 <dl class="field-list simple">
@@ -1595,8 +1608,8 @@ method are automatically removed. It must implement <cite>__len__</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.get_train_dataloader">
-<span class="sig-name descname"><span class="pre">get_train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.get_train_dataloader" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_train_dataloader">
+<span class="sig-name descname"><span class="pre">get_train_dataloader</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.get_train_dataloader" title="Permalink to this definition">#</a></dt>
 <dd><p>Returns the training torch <cite>DataLoader</cite>.</p>
 <p>Will use no sampler if <cite>self.train_dataset</cite> does not implement <cite>__len__</cite>, a random sampler (adapted
 to distributed training if necessary) otherwise.</p>
@@ -1604,8 +1617,8 @@ to distributed training if necessary) otherwise.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.hyperparameter_search">
-<span class="sig-name descname"><span class="pre">hyperparameter_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_objective</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'minimize'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">transformers.trainer_utils.HPSearchBackend</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hp_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.BestRun</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.hyperparameter_search" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.hyperparameter_search">
+<span class="sig-name descname"><span class="pre">hyperparameter_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp_space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_objective</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_trials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'minimize'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">transformers.trainer_utils.HPSearchBackend</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hp_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.BestRun</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.hyperparameter_search" title="Permalink to this definition">#</a></dt>
 <dd><p>Launch an hyperparameter search using <cite>optuna</cite> or <cite>Ray Tune</cite> or <cite>SigOpt</cite>. The optimized quantity is determined
 by <cite>compute_objective</cite>, which defaults to a function returning the evaluation loss when no metric is provided,
 the sum of all metrics otherwise.</p>
@@ -1649,8 +1662,8 @@ information see:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.init_git_repo">
-<span class="sig-name descname"><span class="pre">init_git_repo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">at_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.init_git_repo" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.init_git_repo">
+<span class="sig-name descname"><span class="pre">init_git_repo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">at_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.init_git_repo" title="Permalink to this definition">#</a></dt>
 <dd><p>Initializes a git repo in <cite>self.args.hub_model_id</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1662,22 +1675,22 @@ out.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.is_local_process_zero">
-<span class="sig-name descname"><span class="pre">is_local_process_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.is_local_process_zero" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_local_process_zero">
+<span class="sig-name descname"><span class="pre">is_local_process_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_local_process_zero" title="Permalink to this definition">#</a></dt>
 <dd><p>Whether or not this process is the local (e.g., on one machine if training in a distributed fashion on several
 machines) main process.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.is_world_process_zero">
-<span class="sig-name descname"><span class="pre">is_world_process_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.is_world_process_zero" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_world_process_zero">
+<span class="sig-name descname"><span class="pre">is_world_process_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.is_world_process_zero" title="Permalink to this definition">#</a></dt>
 <dd><p>Whether or not this process is the global main process (when training in a distributed fashion on several
 machines, this is only going to be <cite>True</cite> for one process).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.log">
-<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.log" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log" title="Permalink to this definition">#</a></dt>
 <dd><p>Log <cite>logs</cite> on the various objects watching training.</p>
 <p>Subclass and override this method to inject custom behavior.</p>
 <dl class="field-list simple">
@@ -1688,8 +1701,8 @@ machines, this is only going to be <cite>True</cite> for one process).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.log_metrics">
-<span class="sig-name descname"><span class="pre">log_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.log_metrics" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log_metrics">
+<span class="sig-name descname"><span class="pre">log_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.log_metrics" title="Permalink to this definition">#</a></dt>
 <dd><p>Log metrics in a specially formatted way</p>
 <p>Under distributed environment this is done only for a process with rank 0.</p>
 <dl class="field-list simple">
@@ -1770,8 +1783,8 @@ the normal behavior of any such tools that rely on calling <cite>torch.cuda.rese
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.metrics_format">
-<span class="sig-name descname"><span class="pre">metrics_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.metrics_format" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.metrics_format">
+<span class="sig-name descname"><span class="pre">metrics_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.metrics_format" title="Permalink to this definition">#</a></dt>
 <dd><p>Reformat Trainer metrics values to a human-readable format</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1787,15 +1800,15 @@ the normal behavior of any such tools that rely on calling <cite>torch.cuda.rese
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.num_examples">
-<span class="sig-name descname"><span class="pre">num_examples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.num_examples" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.num_examples">
+<span class="sig-name descname"><span class="pre">num_examples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.num_examples" title="Permalink to this definition">#</a></dt>
 <dd><p>Helper to get number of samples in a [<cite>~torch.utils.data.DataLoader</cite>] by accessing its dataset.</p>
 <p>Will raise an exception if the underlying dataset does not implement method <cite>__len__</cite></p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.pop_callback">
-<span class="sig-name descname"><span class="pre">pop_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.pop_callback" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.pop_callback">
+<span class="sig-name descname"><span class="pre">pop_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.pop_callback" title="Permalink to this definition">#</a></dt>
 <dd><p>Remove a callback from the current list of [<cite>~transformer.TrainerCallback</cite>] and returns it.</p>
 <p>If the callback is not found, returns <cite>None</cite> (and no error is raised).</p>
 <dl class="field-list simple">
@@ -1813,8 +1826,8 @@ first case, will pop the first member of that class found in the list of callbac
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.predict" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_examples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.predict" title="Permalink to this definition">#</a></dt>
 <dd><p>Obtain the predictions using either eval data passed to method (if given).
 Otherwise use data given to constructor at instantiation.</p>
 <dl class="field-list simple">
@@ -1833,15 +1846,15 @@ at instantiation, otherwise an empty dict.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.prediction_loop">
-<span class="sig-name descname"><span class="pre">prediction_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.PredictionOutput</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.prediction_loop" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_loop">
+<span class="sig-name descname"><span class="pre">prediction_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.utils.data.dataloader.DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric_key_prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eval'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">transformers.trainer_utils.PredictionOutput</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_loop" title="Permalink to this definition">#</a></dt>
 <dd><p>Prediction/evaluation loop, shared by <cite>Trainer.evaluate()</cite> and <cite>Trainer.predict()</cite>.</p>
 <p>Works both with or without labels.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.prediction_step">
-<span class="sig-name descname"><span class="pre">prediction_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.prediction_step" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_step">
+<span class="sig-name descname"><span class="pre">prediction_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_loss_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.prediction_step" title="Permalink to this definition">#</a></dt>
 <dd><p>Perform an evaluation step on <cite>model</cite> using <cite>inputs</cite>.</p>
 <p>Subclass and override to inject custom behavior.</p>
 <dl class="field-list simple">
@@ -1868,8 +1881,8 @@ logits and labels (each being optional).</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.push_to_hub">
-<span class="sig-name descname"><span class="pre">push_to_hub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">commit_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'End</span> <span class="pre">of</span> <span class="pre">training'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.push_to_hub" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.push_to_hub">
+<span class="sig-name descname"><span class="pre">push_to_hub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">commit_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'End</span> <span class="pre">of</span> <span class="pre">training'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.push_to_hub" title="Permalink to this definition">#</a></dt>
 <dd><p>Upload <em>self.model</em> and <em>self.tokenizer</em> to the 🤗 model hub on the repo <em>self.args.hub_model_id</em>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1887,8 +1900,8 @@ the commit and an object to track the progress of the commit if <cite>blocking=T
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.remove_callback">
-<span class="sig-name descname"><span class="pre">remove_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.remove_callback" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.remove_callback">
+<span class="sig-name descname"><span class="pre">remove_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.remove_callback" title="Permalink to this definition">#</a></dt>
 <dd><p>Remove a callback from the current list of [<cite>~transformer.TrainerCallback</cite>].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1899,8 +1912,8 @@ first case, will remove the first member of that class found in the list of call
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.save_metrics">
-<span class="sig-name descname"><span class="pre">save_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_metrics" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_metrics">
+<span class="sig-name descname"><span class="pre">save_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">split</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">combined</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_metrics" title="Permalink to this definition">#</a></dt>
 <dd><p>Save metrics into a json file for that split, e.g. <cite>train_results.json</cite>.</p>
 <p>Under distributed environment this is done only for a process with rank 0.</p>
 <dl class="field-list simple">
@@ -1917,22 +1930,22 @@ unformatted numbers are saved in the current method.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.save_model">
-<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_internal_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_model" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_internal_call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_model" title="Permalink to this definition">#</a></dt>
 <dd><p>Will save the model, so you can reload it using <cite>from_pretrained()</cite>.</p>
 <p>Will only save from the main process.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.save_state">
-<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.save_state" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_state">
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.save_state" title="Permalink to this definition">#</a></dt>
 <dd><p>Saves the Trainer state, since Trainer.save_model saves only the tokenizer with the model</p>
 <p>Under distributed environment this is done only for a process with rank 0.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.train">
-<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resume_from_checkpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys_for_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.train" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resume_from_checkpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">optuna.Trial</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_keys_for_eval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.train" title="Permalink to this definition">#</a></dt>
 <dd><p>Main training entry point.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1950,8 +1963,8 @@ gathering predictions for evaluation during the training.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc.MRCTrainer.training_step">
-<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc.MRCTrainer.training_step" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.trainers.mrc_mskd.MSKD_MRCTrainer.training_step" title="Permalink to this definition">#</a></dt>
 <dd><p>Perform a training step on a batch of inputs.</p>
 <p>Subclass and override to inject custom behavior.</p>
 <dl class="field-list simple">

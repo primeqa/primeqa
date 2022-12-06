@@ -1,0 +1,61 @@
+primeqa.mrc.trainers.mrc\_mskd.MSKD\_MRCTrainer
+===============================================
+
+.. currentmodule:: primeqa.mrc.trainers.mrc_mskd
+
+.. autoclass:: MSKD_MRCTrainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MSKD_MRCTrainer.add_callback
+      ~MSKD_MRCTrainer.autocast_smart_context_manager
+      ~MSKD_MRCTrainer.call_model_init
+      ~MSKD_MRCTrainer.compute_distillation_loss
+      ~MSKD_MRCTrainer.compute_erm_loss
+      ~MSKD_MRCTrainer.compute_loss
+      ~MSKD_MRCTrainer.create_model_card
+      ~MSKD_MRCTrainer.create_optimizer
+      ~MSKD_MRCTrainer.create_optimizer_and_scheduler
+      ~MSKD_MRCTrainer.create_scheduler
+      ~MSKD_MRCTrainer.evaluate
+      ~MSKD_MRCTrainer.evaluation_loop
+      ~MSKD_MRCTrainer.floating_point_ops
+      ~MSKD_MRCTrainer.get_eval_dataloader
+      ~MSKD_MRCTrainer.get_optimizer_cls_and_kwargs
+      ~MSKD_MRCTrainer.get_test_dataloader
+      ~MSKD_MRCTrainer.get_train_dataloader
+      ~MSKD_MRCTrainer.hyperparameter_search
+      ~MSKD_MRCTrainer.init_git_repo
+      ~MSKD_MRCTrainer.is_local_process_zero
+      ~MSKD_MRCTrainer.is_world_process_zero
+      ~MSKD_MRCTrainer.log
+      ~MSKD_MRCTrainer.log_metrics
+      ~MSKD_MRCTrainer.metrics_format
+      ~MSKD_MRCTrainer.num_examples
+      ~MSKD_MRCTrainer.pop_callback
+      ~MSKD_MRCTrainer.predict
+      ~MSKD_MRCTrainer.prediction_loop
+      ~MSKD_MRCTrainer.prediction_step
+      ~MSKD_MRCTrainer.push_to_hub
+      ~MSKD_MRCTrainer.remove_callback
+      ~MSKD_MRCTrainer.save_metrics
+      ~MSKD_MRCTrainer.save_model
+      ~MSKD_MRCTrainer.save_state
+      ~MSKD_MRCTrainer.store_flos
+      ~MSKD_MRCTrainer.train
+      ~MSKD_MRCTrainer.training_step
+   
+   
+
+   
+   
+   
