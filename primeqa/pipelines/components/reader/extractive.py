@@ -162,7 +162,7 @@ class ExtractiveReader(ReaderComponent):
             stride=self.stride,
             max_seq_len=self.max_seq_len,
             tokenizer=self._tokenizer,
-            single_context_multiple_passages=False
+            single_context_multiple_passages=False,
         )
 
         # Configure scorer
@@ -188,9 +188,14 @@ class ExtractiveReader(ReaderComponent):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    
-
-    def predict(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
+    def apply(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        example_ids: List[str] = None,
+        *args,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -215,7 +220,7 @@ class ExtractiveReader(ReaderComponent):
             k=max_num_answers,
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
-            scorer_type=self._scorer_type_as_enum
+            scorer_type=self._scorer_type_as_enum,
         )
 
         # Step 3: Load trainer
@@ -228,14 +233,16 @@ class ExtractiveReader(ReaderComponent):
 
         # Step 4: Prepare dataset from input texts and contexts
         assert len(questions) == len(contexts)
-        
+
         if example_ids is None:
-            example_ids = [ str(idx) for idx in range(len(questions)) ]
-            
+            example_ids = [str(idx) for idx in range(len(questions))]
+
         assert len(example_ids) == len(questions)
-         
-        examples_dict = dict(question=questions, context=contexts, example_id=example_ids)
-                
+
+        examples_dict = dict(
+            question=questions, context=contexts, example_id=example_ids
+        )
+
         eval_examples = Dataset.from_dict(examples_dict)
 
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
@@ -247,7 +254,10 @@ class ExtractiveReader(ReaderComponent):
         ).items():
             predictions[example_id] = []
             for raw_prediction in raw_predictions:
-                if min_score_threshold and raw_prediction["confidence_score"] < min_score_threshold:
+                if (
+                    min_score_threshold
+                    and raw_prediction["confidence_score"] < min_score_threshold
+                ):
                     continue
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
@@ -256,11 +266,13 @@ class ExtractiveReader(ReaderComponent):
                     "span_answer_text"
                 ]
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
-                processed_prediction["span_answer_score"] = raw_prediction["span_answer_score"]
+                processed_prediction["span_answer_score"] = raw_prediction[
+                    "span_answer_score"
+                ]
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]
-                
+
                 predictions[example_id].append(processed_prediction)
-                
+
         return predictions
