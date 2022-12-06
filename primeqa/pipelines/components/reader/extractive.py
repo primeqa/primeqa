@@ -188,7 +188,7 @@ class ExtractiveReader(ReaderComponent):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    def predict(
+    def apply(
         self,
         questions: List[str],
         contexts: List[List[str]],
@@ -242,6 +242,8 @@ class ExtractiveReader(ReaderComponent):
         examples_dict = dict(
             question=questions, context=contexts, example_id=example_ids
         )
+
+        eval_examples = Dataset.from_dict(examples_dict)
 
         eval_examples = Dataset.from_dict(examples_dict)
 
