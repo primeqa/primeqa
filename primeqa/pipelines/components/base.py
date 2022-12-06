@@ -26,7 +26,7 @@ class ReaderComponent(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(
+    def apply(
         self,
         questions: List[str],
         contexts: List[List[str]],
