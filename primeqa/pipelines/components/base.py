@@ -26,7 +26,11 @@ class ReaderComponent(Component):
         raise NotImplementedError
 
     @abstractmethod
+<<<<<<< HEAD
     def predict(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
+=======
+    def apply(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
+>>>>>>> ed8009f8 (apply returns a dict with example id as key)
         pass
 
 
