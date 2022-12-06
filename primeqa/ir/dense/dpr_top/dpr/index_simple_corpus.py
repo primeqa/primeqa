@@ -56,7 +56,7 @@ class DPRIndexer():
 
 
     def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:
-        documents = {"title": [doci.title for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
+        documents = {"title": [doci.title if doci.title is not None else "" for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
         """Compute the DPR embeddings of document passages"""
         input_ids = ctx_tokenizer(
             documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
@@ -85,7 +85,9 @@ class DPRIndexer():
 
         report = Reporting()
         doc_batch = []
-        for pndx, passage in enumerate(corpus_reader(self.opts.corpus)):
+        for pndx, passage in enumerate(corpus_reader(self.opts.corpus, fieldnames = ('id', 'text', 'title'))):
+            if pndx == 0 and (passage.pid == 'id' or passage.pid == 'pid') and (passage.text == 'text' or passage.text == 'contents') and passage.title == 'title':
+                continue
             if pndx % self.embed_count != (self.embed_num-1):
                 continue
             if report.is_time():

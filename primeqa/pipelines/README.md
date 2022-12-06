@@ -87,7 +87,10 @@ Follow the steps below to use the extractive reader:
 ```python
 import json
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+
+reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
+reader.load()
+
 ```
 - Step 2: Execute the reader in inference mode:
 ```python
@@ -98,4 +101,89 @@ as the seat of government for the new nation, it is Australia's
 largest inland city"""]
 answers = reader.apply(question,context)  
 print(json.dumps(answers, indent=4))  
+```
+
+
+### Generative FiD Reader
+
+A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.
+
+PrimeQA implements a [Fusion In Decoder(FiD)](https://arxiv.org/abs/2007.01282) generative reader. 
+
+Follow the steps below to use the `GenerativeFiDReader`:
+
+- Step 1:  Initialize the reader.
+```python
+import json
+from primeqa.pipelines.components.reader.generative import GenerativeFiDReader
+fid_reader = GenerativeFiDReader()
+fid_reader.load()
+```
+
+- Step 2: Execute the reader in inference mode:
+```python
+question = ["What causes the trail behind jets at high altitude?"]
+context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is based 
+            on the erroneous belief that long-lasting condensation trails are 
+            \"chemtrails\" consisting of chemical or biological agents left in the 
+            sky by high-flying aircraft, sprayed for nefarious purposes undisclosed 
+            to the general public. Believers in this conspiracy theory say that while 
+            normal contrails dissipate relatively quickly, contrails that linger must 
+            contain additional substances. Those who subscribe to the theory speculate 
+            that the purpose of the chemical release may be solar radiation management,
+            weather modification, psychological manipulation, human population control, 
+            or biological or chemical warfare, and that the trails are causing 
+            respiratory illnesses""",
+            """Associated with jet streams is a phenomenon known as clear-air turbulence 
+            (CAT), caused by vertical and horizontal wind shear caused by jet streams. 
+            The CAT is strongest on the cold air side of the jet, next to and just under 
+            the axis of the jet. Clear-air turbulence can cause aircraft to plunge and so 
+            present a passenger safety hazard that has caused fatal accidents, such as the 
+            death of one passenger on United Airlines Flight 826. 
+            Section: Uses.:Possible future power generation.""",
+            """Contrails are a manmade type of cirrus cloud formed when water vapor from 
+            the exhaust of a jet engine condenses on particles, which come from either the 
+            surrounding air or the exhaust itself, and freezes, leaving behind a visible trail. 
+            The exhaust can also trigger the formation of cirrus by providing ice nuclei 
+            when there is an insufficient naturally-occurring supply in the atmosphere. 
+            One of the environmental impacts of aviation is that persistent contrails can 
+            form into large mats of cirrus, and increased air traffic has been implicated 
+            as one possible cause of the increasing frequency and amount of cirrus"""]]
+answers = fid_reader.apply(question,context)  
+print(json.dumps(answers, indent=4)) 
+```
+
+## QA Pipeline
+
+The QA pipeline is used for Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. Long Form Question Answering (LFQA) is a generative task where the retrieved passages are used to generate a complex multi-sentence answer.
+
+In this example we show a QA Pipeline using a ColBERT retriever and a Fusion in Decoder (FID) generator.
+
+Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found [here](https://github.com/primeqa/primeqa/blob/main/examples/lfqa/README.md)
+
+- Step 1:  Initialize the retriever.
+
+```python
+retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, collection = collection, max_num_documents = 3)
+retriever.load()
+```
+
+- Step 2:  Initialize the reader model. 
+
+```python
+reader = GenerativeFiDReader(model_name_or_path = model)
+reader.load()
+```
+
+- Step 3:  Initialize the QA pipeline. 
+
+```python
+lfqa_pipeline = QAPipeline(retriever, reader)
+```
+
+- Step 4:  Execute the LFQA pipeline in inference mode. 
+
+```python
+queries=["What causes the trail behind jets at high altitude?"]
+answers = lfqa_pipeline.run(query)
 ```

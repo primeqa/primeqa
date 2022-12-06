@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass, field
+import json
 
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
@@ -18,7 +19,7 @@ class ExtractiveReader(ReaderComponent):
     """_summary_
 
     Args:
-        model (str, optional): Model. Defaults to "PrimeQA/tydiqa-primary-task-xlm-roberta-large".
+        model (str, optional): Model. Defaults to "PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110".
         use_fast (bool, optional): If set to "True", uses the fast version of the tokenizer. Defaults to True.
         stride (int, optional): Step size to move sliding window across context. Defaults to 128.
         max_seq_len (int, optional): Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.
@@ -28,14 +29,20 @@ class ExtractiveReader(ReaderComponent):
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
 
+    Important:
+        1. Each field has metadata property which can carry additional information for other downstream usages.
+        2. Two special keys (api_support and exclude_from_hash) are defined in "metadata" property.
+            a. api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.
+            b. exclude_from_hash (bool,optional): If set to True, that parameter is not considered while building the hash representation for the object. Defaults to False.
+
 
     Returns:
         _type_: _description_
     """
 
     model: str = field(
-        default="PrimeQA/tydiqa-primary-task-xlm-roberta-large",
-        metadata={"name": "Model"},
+        default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+        metadata={"name": "Model", "api_support": True},
     )
     use_fast: bool = field(
         default=True,
@@ -69,10 +76,22 @@ class ExtractiveReader(ReaderComponent):
         },
     )
     max_num_answers: int = field(
-        default=3, metadata={"name": "Maximum number of answers", "range": [1, 5, 1]}
+        default=3,
+        metadata={
+            "name": "Maximum number of answers",
+            "range": [1, 5, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
     )
     max_answer_length: int = field(
-        default=1000, metadata={"name": "Maximum answer length", "range": [2, 2000, 2]}
+        default=1000,
+        metadata={
+            "name": "Maximum answer length",
+            "range": [2, 2000, 2],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
     )
     scorer_type: str = field(
         default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
@@ -86,13 +105,35 @@ class ExtractiveReader(ReaderComponent):
         },
     )
     min_score_threshold: float = field(
-        default=None, metadata={"name": "Minimum score threshold"}
+        default=None,
+        metadata={
+            "name": "Minimum score threshold",
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
     )
 
     def __post_init__(self):
         # Placeholder variables
+        self._loaded_model = None
+        self._tokenizer = None
         self._preprocessor = None
-        self._trainer = None
+        self._scorer_type_as_enum = None
+        self._data_collector = None
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         task_heads = EXTRACTIVE_HEAD
@@ -100,62 +141,90 @@ class ExtractiveReader(ReaderComponent):
         config = AutoConfig.from_pretrained(self.model)
 
         # Initialize tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(
+        self._tokenizer = AutoTokenizer.from_pretrained(
             self.model,
             use_fast=self.use_fast,
             config=config,
         )
 
-        config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
-        model = ModelForDownstreamTasks.from_config(
+        config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
+            self._tokenizer.sep_token
+        )
+        self._loaded_model = ModelForDownstreamTasks.from_config(
             config,
             self.model,
             task_heads=task_heads,
         )
-        model.set_task_head(next(iter(task_heads)))
+        self._loaded_model.set_task_head(next(iter(task_heads)))
 
         # Initialize preprocessor
         self._preprocessor = BasePreProcessor(
             stride=self.stride,
             max_seq_len=self.max_seq_len,
-            tokenizer=tokenizer,
+            tokenizer=self._tokenizer,
         )
 
-        data_collator = DataCollatorWithPadding(tokenizer)
-
-        # Set scorer type
+        # Configure scorer
         if self.scorer_type == SupportedSpanScorers.SCORE_DIFF_BASED.value:
-            scorer_type = SupportedSpanScorers.SCORE_DIFF_BASED
+            self._scorer_type_as_enum = SupportedSpanScorers.SCORE_DIFF_BASED
         elif (
             self.scorer_type
             == SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value
         ):
-            scorer_type = SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
+            self._scorer_type_as_enum = (
+                SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
+            )
         elif (
             self.scorer_type
             == SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value
         ):
-            scorer_type = SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
+            self._scorer_type_as_enum = (
+                SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
+            )
         else:
             raise ValueError(f"Unsupported scorer type: {self.scorer_type}")
 
-        # Initialize post processor
+        # Configure data collector
+        self._data_collector = DataCollatorWithPadding(self._tokenizer)
+
+    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        # Step 1: Locally update object variable values, if provided
+        max_num_answers = (
+            kwargs["max_num_answers"]
+            if "max_num_answers" in kwargs
+            else self.max_num_answers
+        )
+
+        max_answer_length = (
+            kwargs["max_answer_length"]
+            if "max_answer_length" in kwargs
+            else self.max_answer_length
+        )
+
+        min_score_threshold = (
+            kwargs["min_score_threshold"]
+            if "min_score_threshold" in kwargs
+            else self.min_score_threshold
+        )
+
+        # Step 2: Initialize post processor
         postprocessor = ExtractivePostProcessor(
-            k=self.max_num_answers,
+            k=max_num_answers,
             n_best_size=self.n_best_size,
-            max_answer_length=self.max_answer_length,
-            scorer_type=scorer_type,
+            max_answer_length=max_answer_length,
+            scorer_type=self._scorer_type_as_enum,
             single_context_multiple_passages=self._preprocessor._single_context_multiple_passages,
         )
 
-        self._trainer = MRCTrainer(
-            model=model,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
+        # Step 3: Load trainer
+        trainer = MRCTrainer(
+            model=self._loaded_model,
+            tokenizer=self._tokenizer,
+            data_collator=self._data_collector,
             post_process_function=postprocessor.process,
         )
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        # Step 4: Prepare dataset from input texts and contexts
         eval_examples = Dataset.from_dict(
             dict(
                 question=input_texts,
@@ -166,29 +235,30 @@ class ExtractiveReader(ReaderComponent):
 
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
-        # Run predict
+        # Step 5: Run predict
         predictions = [[] for _ in range(len(input_texts))]
-        for passage_idx, raw_predictions in self._trainer.predict(
+        for passage_idx, raw_predictions in trainer.predict(
             eval_dataset=eval_dataset, eval_examples=eval_examples
         ).items():
             for raw_prediction in raw_predictions:
                 processed_prediction = {}
-                processed_prediction["example_id"] = raw_prediction['example_id']
-                processed_prediction["span_answer_text"] = raw_prediction['span_answer_text']
-                processed_prediction["span_answer"] = raw_prediction['span_answer']
-                processed_prediction["confidence_score"] = raw_prediction['confidence_score']
+                processed_prediction["example_id"] = raw_prediction["example_id"]
+                processed_prediction["span_answer_text"] = raw_prediction[
+                    "span_answer_text"
+                ]
+                processed_prediction["span_answer"] = raw_prediction["span_answer"]
+                processed_prediction["confidence_score"] = raw_prediction[
+                    "confidence_score"
+                ]
                 predictions[int(passage_idx)].append(processed_prediction)
 
-        # If min_score_threshold is provide, use it to filter out predictions
-        if "min_score_threshold" in kwargs:
+        # Step 6: If min_score_threshold is provide, use it to filter out predictions
+        if min_score_threshold:
             filtered_predictions = []
             for sorted_predictions_for_passage in predictions:
                 filtered_predictions_for_passage = []
                 for sorted_prediction in sorted_predictions_for_passage:
-                    if (
-                        sorted_prediction["confidence_score"]
-                        >= kwargs["min_score_threshold"]
-                    ):
+                    if sorted_prediction["confidence_score"] >= min_score_threshold:
                         filtered_predictions_for_passage.append(sorted_prediction)
 
                 filtered_predictions.append(filtered_predictions_for_passage)
