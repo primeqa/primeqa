@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Dict
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -26,7 +26,7 @@ class ReaderComponent(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def apply(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
         pass
 
 
