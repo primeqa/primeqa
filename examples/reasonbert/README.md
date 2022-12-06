@@ -1,8 +1,8 @@
 # Few Shot Fine-tuning with ReasonBERT Models
 
-This README provides instructions on how to fine-tune a extractive reader starting with [ReasonBERT](https://huggingface.co/osunlp/ReasonBERT-RoBERTa-base) pre-trained model in a few-shot setting.  
+This README provides instructions on how to fine-tune an extractive reader starting with [ReasonBERT](https://huggingface.co/osunlp/ReasonBERT-RoBERTa-base) pre-trained model in a few-shot setting.  
 
-The datasets used for evaluation are subsets of the [MRQA](https://github.com/mrqa/MRQA-Shared-Task-2019) dataset specifically:
+The datasets used for evaluation are subsets of the [MRQA](https://github.com/mrqa/MRQA-Shared-Task-2019) dataset Specifically:
 
     - SQuAD
     - NaturalQuestionsShort
@@ -12,13 +12,13 @@ The datasets used for evaluation are subsets of the [MRQA](https://github.com/mr
 
 ## What is ReasonBERT
 
-ReasonBERT is a pretraining method that augments language models with the ability to reason over long-range relations and multiple contexts as described in [ReasonBERT: Pre-trained to Reason with Distant Supervision](https://arxiv.org/pdf/2109.04912).  As detailed in the paper, ReasonBERT proposes a distant supervision method to create pretrainig examples that require long range reasoning.  It pairs a query sentence with multiple relevant pieces of evidence drawn from possibly different places and defines a new LM pre-training objective, span reasoning, to recover entity spans that are masked out from the query sentence by jointly reasoning over the query sentence and the relevant evidence. 
+ReasonBERT is a pretraining method that augments language models with the ability to reason over long-range relations and multiple contexts as described in [ReasonBERT: Pre-trained to Reason with Distant Supervision](https://arxiv.org/pdf/2109.04912).  As detailed in the paper, ReasonBERT proposes a distant supervision method to create pretraining examples that require long range reasoning.  It pairs a query sentence with multiple relevant pieces of evidence drawn from possibly different places and defines a new LM pre-training objective, span reasoning, to recover entity spans that are masked out from the query sentence by jointly reasoning over the query sentence and the relevant evidence. 
 
 Experiments on a variety of extractive question answering datasets show that ReasonBERT achieves strong performance compared to a variety of baselines.
 
 Under the few-shot setting, ReasonBERT substantially outperforms a RoBERTa baseline on the extractive question answering task. 
 
-Here we show how to replicate the results on the extractive question answering datasets using the [PrimeQA reader](../../primeqa/mrc/README.md). See section [Evalustion Scores](#evaluation-scores)
+Here we show how to replicate the results on the extractive question answering datasets using the [PrimeQA reader](../../primeqa/mrc/README.md). See section [Evaluation Scores](#evaluation-scores)
 
 ## Prerequisites
 Before continuing below make sure you have PrimeQA [installed](../../README.md#Installation).
