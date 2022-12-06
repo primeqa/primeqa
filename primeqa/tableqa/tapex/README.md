@@ -66,22 +66,6 @@ python run_tapex.py \
   --max_steps 20000 
 
 ```
-The trained model yields the following results on wikitablequestions dev set:
-```
-***** eval metrics *****
-  epoch                    =      49.99
-  eval_denotation_accuracy =      0.598
-  eval_loss                =     2.4315
-  eval_runtime             = 0:08:46.28
-  eval_samples             =       2831
-  eval_samples_per_second  =      5.379
-  eval_steps_per_second    =      0.336
-
-```
-
-### Inference
-
-```
 The trained model yields the following results on wikisql dev set:
 ```
 ***** eval metrics *****
