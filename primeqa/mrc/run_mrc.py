@@ -34,6 +34,8 @@ from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuesti
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
+from primeqa.mrc.processors.preprocessors.open_nq import OpenNQPreprocessor
+from primeqa.mrc.processors.postprocessors.open_nq import OpenNQPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
@@ -254,13 +256,15 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor]
+                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,
+                              TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor, OpenNQPreprocessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor, NaturalQuestionsPostProcessor]
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor,
+                              NaturalQuestionsPostProcessor, OpenNQPostProcessor]
                   }
     )
     eval_metrics: str = field(
@@ -381,16 +385,11 @@ def main():
     # load data
     logger.info('Loading dataset')
     if data_args.train_file is not None or data_args.eval_file is not None:
-        data_files = {}
-
-        if data_args.train_file is not None: 
-            data_files['train'] = glob.glob(data_args.train_file)
-        if data_args.eval_file is not None: 
-            data_files['validation'] = glob.glob(data_args.eval_file)
-
-        raw_datasets = datasets.load_dataset(data_args.data_file_format, 
-            data_files=data_files,
-            cache_dir=model_args.cache_dir)
+        raw_datasets = {}
+        if data_args.train_file is not None:
+            raw_datasets["train"] = datasets.load_dataset(data_args.data_file_format, data_files={"train": data_args.train_file}, split="train")
+        if data_args.eval_file is not None:
+            raw_datasets["validation"] = datasets.load_dataset(data_args.data_file_format, data_files={"validation": data_args.eval_file}, split="validation")
     else:
         if data_args.dataset_name == "natural_questions":
             raw_datasets = datasets.load_dataset(
