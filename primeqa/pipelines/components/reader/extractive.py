@@ -108,7 +108,7 @@ class ExtractiveReader(ReaderComponent):
         default=None,
         metadata={
             "name": "Minimum score threshold",
-            "api_support": True,
+            "api_support": False,
             "exclude_from_hash": True,
         },
     )
