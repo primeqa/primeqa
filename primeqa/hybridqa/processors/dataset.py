@@ -106,7 +106,7 @@ class TableQADatasetQRSconcat(Dataset):
         question_str = self.cls_token+" "+question_str+" "+self.sep_token+" "
         table_str = ""
         for c,r in table_row.items():
-            table_str+=str(c)+" is "+str(r)+" . " # table_str+=str(c)+" "+self.val_sep+" "+str(r)+" "+self.col_sep+" "
+            table_str+=str(c)+" is "+str(r)+" . "
         question_str = question_str+table_str+" "+self.sep_token+" "+gold_sentences
         #print("question Annotated",question_str)
         return question_str

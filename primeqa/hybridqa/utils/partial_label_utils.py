@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from primeqa.hybridqa.processors.dataset import TableQADatasetQRSconcat
+import pdb
 
 def partial_label_data_loader(data, tokenized_data, batch_size, pos_fraction=0.001, group_fraction=1.0):
 
@@ -9,16 +10,13 @@ def partial_label_data_loader(data, tokenized_data, batch_size, pos_fraction=0.0
 	# tokenized_data is the one after bert tokenization
 	batch_list, group_id_list = _create_batches_ids(data, batch_size, pos_fraction, group_fraction)
 	batch_matrix_list = _create_batch_matrix(group_id_list)
-
 	# chaning the order in train_dataset so that when shuffle=False and DataLoader is used it gives the batches as we want.
 	pl_tokenized_data = []
 	for batch in batch_list:
 		for idx in batch:
 			pl_tokenized_data.append(tokenized_data[idx])
-	
 	pl_data_loader = DataLoader(pl_tokenized_data, batch_size=batch_size,shuffle=False, 
 										batch_sampler=None, pin_memory=True)
-
 	return pl_data_loader, batch_matrix_list
 
 def _create_batches_ids(data, batch_size, positive_fraction, group_fraction):
@@ -33,7 +31,7 @@ def _create_batches_ids(data, batch_size, positive_fraction, group_fraction):
 	negatives_list = [] # ids of all negative labelled rows which need not be be in groups
 	for i,d in enumerate(data):
 		qid = d['question_id']
-		if d['label'] == 1:
+		if d['label_new'] == 1:
 			if qid not in positive_question_dict:
 				positive_question_dict[qid] = [i]
 			else:
