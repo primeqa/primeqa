@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" Finetuning the library models for question-answering on HybridQA dataset."""
+""" Finetuning the library models for question-answering on SQuAD (DistilBERT, Bert, XLM, XLNet)."""
 
 
 import argparse
@@ -34,7 +34,14 @@ from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
 from multiprocessing import Pool, cpu_count
 from functools import partial
-from torch.utils.data import TensorDataset 
+from torch.utils.data import TensorDataset
+#TODO: For longformer
+#from transformers import LongformerModel, LongformerTokenizer
+#from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+from transformers import LongformerForQuestionAnswering, LongformerTokenizerFast,LongformerTokenizer, EvalPrediction, LongformerConfig
+from torch.nn import CrossEntropyLoss, MSELoss
+
+ 
 from transformers import (WEIGHTS_NAME, AdamW, BertConfig, BertTokenizer, 
                         BertForQuestionAnswering, get_linear_schedule_with_warmup)
 
@@ -44,7 +51,7 @@ from transformers.data.metrics.squad_metrics import (
 )
 import string
 from transformers.data.processors.utils import DataProcessor
-from primeqa.hybridqa.utils.utils import readGZip
+from utils.utils import readGZip
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -69,7 +76,34 @@ MODEL_CLASSES = {"bert": (BertConfig, BertForQuestionAnswering, BertTokenizer)}
 def get_multiple_answer_spans(ans_text,context):
     return [m.start() for m in re.finditer(ans_text, context)]
 
+def calculate_loss(outputs, st_post_list, end_pos_list):
+    start_logits = outputs.start_logits.squeeze(-1)
+    end_logits = outputs.end_logits.squeeze(-1)
+    loss = None
+    if st_post_list is not [] and end_pos_list is not []:
+        # If we are on multi-GPU, split add a dimension
+        # if len(start_positions.size()) > 1:
+        #     start_positions = start_positions.squeeze(-1)
+        # if len(end_positions.size()) > 1:
+        #     end_positions = end_positions.squeeze(-1)
+        # sometimes the start/end positions are outside our model inputs, we ignore these terms
+        ignored_index = start_logits.size(1)
+        loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
+        losses =[]
+        for i,(stp,endp) in enumerate(zip(st_post_list,end_pos_list)):
+            st_logit = start_logits[i,:].unsqueeze(0)
+            end_logit = end_logits[i,:].unsqueeze(0)
+            stp = torch.clamp(stp,0,ignored_index)
+            endp = torch.clamp(endp, 0, ignored_index)
+            total_losses = []
 
+            for j in range(stp.size(0)):
+                total_losses.append((loss_fct(st_logit,stp.unsqueeze(-1)[j,:])+loss_fct(end_logit,endp.unsqueeze(-1)[j,:]))/2)
+            final_loss = min(total_losses)
+            #print("final loss",final_loss)
+            losses.append(final_loss)
+        loss = sum(losses)/len(losses)
+    return loss
 
 def squad_convert_example_to_features_init(tokenizer_for_convert):
     global tokenizer
@@ -123,8 +157,8 @@ class SquadFeatures(object):
         token_is_max_context,
         tokens,
         token_to_orig_map,
-        start_position,
-        end_position,
+        start_position,start_positions,
+        end_position,end_positions,
         is_impossible,
     ):
         self.input_ids = input_ids
@@ -141,7 +175,9 @@ class SquadFeatures(object):
         self.token_to_orig_map = token_to_orig_map
 
         self.start_position = start_position
+        self.start_positions = start_positions
         self.end_position = end_position
+        self.end_positions = end_positions
         self.is_impossible = is_impossible
 
 class SquadResult(object):
@@ -171,6 +207,7 @@ def squad_convert_example_to_features(example, max_seq_length, doc_stride, max_q
         # Get start and end position
         start_position = example.start_position
         end_position = example.end_position
+
 
         # If the answer cannot be found in the text, then skip this example.
         actual_text = " ".join(example.doc_tokens[start_position : (end_position + 1)])
@@ -327,8 +364,8 @@ def squad_convert_example_to_features(example, max_seq_length, doc_stride, max_q
                 token_is_max_context=span["token_is_max_context"],
                 tokens=span["tokens"],
                 token_to_orig_map=span["token_to_orig_map"],
-                start_position=start_position,
-                end_position=end_position,
+                start_position=start_position,start_positions=example.start_positions,
+                end_position=end_position,end_positions= example.end_positions,
                 is_impossible=span_is_impossible,
             )
         )
@@ -389,8 +426,26 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
             all_input_ids, all_attention_masks, all_token_type_ids, all_example_index, all_cls_index, all_p_mask
         )
     else:
+        #print([f.start_positions for f in features])
         all_start_positions = torch.tensor([f.start_position for f in features], dtype=torch.long)
+        st_positions = [f.start_positions for f in features]
+        st_pos_tensors_list = [torch.tensor(d,dtype= torch.long) for d in st_positions]
+        max_len = max([x.squeeze().numel() for x in st_pos_tensors_list])
+        data = [torch.nn.functional.pad(x, pad=(0, max_len - x.numel()), mode='constant', value=0) for x in st_pos_tensors_list]
+        data = torch.stack(data)
+
+        all_st_pos_list = data
+
+        #all_st_pos_list = torch.cat([torch.tensor(d,dtype=torch.long) for d in f.start_positions for f in features], dim=0)
         all_end_positions = torch.tensor([f.end_position for f in features], dtype=torch.long)
+        end_positions = [f.end_positions for f in features]
+        end_pos_tensors_list = [torch.tensor(d,dtype= torch.long) for d in end_positions]
+        max_len = max([x.squeeze().numel() for x in end_pos_tensors_list])
+        data = [torch.nn.functional.pad(x, pad=(0, max_len - x.numel()), mode='constant', value=0) for x in end_pos_tensors_list]
+        data = torch.stack(data)
+        all_end_pos_list = data
+        #all_end_pos_list = torch.tensor([f.end_positions for f in features], dtype=torch.long)
+
         dataset = TensorDataset(
             all_input_ids,
             all_attention_masks,
@@ -399,7 +454,7 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
             all_end_positions,
             all_cls_index,
             all_p_mask,
-            all_is_impossible,
+            all_is_impossible,all_st_pos_list,all_end_pos_list,
         )
 
     return features, dataset
@@ -443,12 +498,12 @@ def train(args, train_dataset, model, tokenizer):
     )
 
     # Check if saved optimizer or scheduler states exist
-    if os.path.isfile(os.path.join(args.model_name_or_path_ae, "optimizer.pt")) and os.path.isfile(
-        os.path.join(args.model_name_or_path_ae, "scheduler.pt")
+    if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
+        os.path.join(args.model_name_or_path, "scheduler.pt")
     ):
         # Load in optimizer and scheduler states
-        optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path_ae, "optimizer.pt")))
-        scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path_ae, "scheduler.pt")))
+        optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "optimizer.pt")))
+        scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "scheduler.pt")))
 
     if args.fp16:
         try:
@@ -486,10 +541,10 @@ def train(args, train_dataset, model, tokenizer):
     epochs_trained = 0
     steps_trained_in_current_epoch = 0
     # Check if continuing training from a checkpoint
-    if os.path.exists(args.model_name_or_path_ae):
+    if os.path.exists(args.model_name_or_path):
         try:
             # set global_step to gobal_step of last saved checkpoint from model path
-            checkpoint_suffix = args.model_name_or_path_ae.split("-")[-1].split("/")[0]
+            checkpoint_suffix = args.model_name_or_path.split("-")[-1].split("/")[0]
             global_step = int(checkpoint_suffix)
             epochs_trained = global_step // (len(train_dataloader) // args.gradient_accumulation_steps)
             steps_trained_in_current_epoch = global_step % (len(train_dataloader) // args.gradient_accumulation_steps)
@@ -528,10 +583,14 @@ def train(args, train_dataset, model, tokenizer):
                 "start_positions": batch[3],
                 "end_positions": batch[4],
             }
-            #print(inputs['start_positions'])
+            
+            st_pos_list= batch[8]
+            end_pos_list= batch[9]
+
             outputs = model(**inputs)
             # model outputs are always tuple in transformers (see doc)
-            loss = outputs[0]
+            #loss = outputs[0]
+            loss = calculate_loss(outputs, st_pos_list,end_pos_list)
 
             if args.n_gpu > 1:
                 loss = loss.mean()  # mean() to average on multi-gpu parallel (not distributed) training
@@ -587,7 +646,6 @@ def train(args, train_dataset, model, tokenizer):
 def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
     processor = SquadProcessor()
     examples = processor._create_examples(inputs, 'dev')
-
     #logger.info("Preprocessing {} examples".format(len(examples)))
     features, dataset = squad_convert_examples_to_features(
         examples=examples,
@@ -650,10 +708,9 @@ def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
     #logger.info("  Evaluation done in total %f secs (%f sec per example) for %d examples", evalTime, evalTime / len(dataset), len(all_results))
 
     # Compute predictions
-    #output_prediction_file = os.path.join('/tmp/', "predictions_{}.json".format(prefix))
-    #output_nbest_file = os.path.join('/tmp/', "nbest_predictions_{}.json".format(prefix))
-    output_prediction_file = args.pred_ans_file
-    output_nbest_file = args.pred_ans_file+"_nbest_predictions.json"
+    output_prediction_file = os.path.join('/tmp/', "predictions_{}.json".format(prefix))
+    output_nbest_file = os.path.join('/tmp/', "nbest_predictions_{}.json".format(prefix))
+    
     if args.version_2_with_negative:
         output_null_log_odds_file = os.path.join('/tmp/', "null_odds_{}.json".format(prefix))
     else:
@@ -675,7 +732,7 @@ def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
         tokenizer,
     )
  
-    return predictions,output_prediction_file,output_nbest_file
+    return predictions
 
 def _is_whitespace(c):
     if c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F:
@@ -689,7 +746,7 @@ class SquadExample(object):
         question_text,
         context_text,
         answer_text,
-        start_position_character,
+        start_position_character,start_position_characters,
         title,
         answers=[],
         is_impossible=False,
@@ -703,6 +760,8 @@ class SquadExample(object):
         self.answers = answers
 
         self.start_position, self.end_position = 0, 0
+        #added by vk for multi answer
+        self.start_positions,self.end_positions =[],[]
 
         doc_tokens = []
         char_to_word_offset = []
@@ -726,9 +785,15 @@ class SquadExample(object):
         # Start and end positions only has a value during evaluation.
         if start_position_character is not None and not is_impossible:
             self.start_position = char_to_word_offset[start_position_character]
+            for spc in start_position_characters:
+                self.start_positions.append(char_to_word_offset[spc])
+                self.end_positions.append(char_to_word_offset[
+                min(spc + len(answer_text) - 1, len(char_to_word_offset) - 1)])
+
             self.end_position = char_to_word_offset[
                 min(start_position_character + len(answer_text) - 1, len(char_to_word_offset) - 1)
             ]
+
 
 
 class SquadProcessor(DataProcessor):
@@ -755,6 +820,8 @@ class SquadProcessor(DataProcessor):
             qas_id = entry["question_id"]
             question_text = entry["question"]
             start_position_character = None
+            #added by vk for multi answer
+            start_position_characters = []
             answer_text = None
             answers = []
 
@@ -768,9 +835,10 @@ class SquadProcessor(DataProcessor):
                     answer = entry["answers"][0]
                     answer_text = answer["text"]
                     start_position_character = answer["answer_start"]
+                    #added by vk for multi_answer
+                    start_position_characters = [i['answer_start'] for i in entry["answers"]]
                 else:
-                    #answers = entry["answers"]
-                    answers = []
+                    answers = entry["answers"]
 
             example = SquadExample(
                 qas_id=qas_id,
@@ -778,6 +846,7 @@ class SquadProcessor(DataProcessor):
                 context_text=context_text,
                 answer_text=answer_text,
                 start_position_character=start_position_character,
+                start_position_characters = start_position_characters,
                 title=title,
                 is_impossible=is_impossible,
                 answers=answers,
@@ -829,7 +898,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
             args.output_dir,
             "cached_{}_{}_{}.dataset".format(
                 "dev" if evaluate else "train",
-                list(filter(None, args.model_name_or_path_ae.split("/"))).pop(),
+                list(filter(None, args.model_name_or_path.split("/"))).pop(),
                 str(args.max_seq_length),
             ),
         )
@@ -851,7 +920,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 
         processor = SquadProcessor()
         if evaluate:
-            examples = processor.get_dev_examples(args.eval_file)
+            examples = processor.get_dev_examples(args.predict_file)
         else:
             examples = processor.get_train_examples(args.train_file)
 
@@ -874,6 +943,170 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 
 
 def run_answer_extractor(args):
+    # parser = argparse.ArgumentParser()
+
+    # # Required parameters
+    # parser.add_argument(
+    #     "--model_type",
+    #     default='bert',
+    #     type=str,
+    #     help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()),
+    # )
+    # parser.add_argument(
+    #     "--model_name_or_path",
+    #     default="valhalla/longformer-base-4096-finetuned-squadv1",
+    #     type=str,
+       
+    # )
+    # parser.add_argument(
+    #     "--output_dir",
+    #     default='stage3_pre-trained_lf_with_special_tokens_4gpus',
+    #     type=str,
+    #     help="The output directory where the model checkpoints and predictions will be written.",
+    # )
+    # parser.add_argument(
+    #     "--train_file",
+    #     default=None,
+    #     type=str,
+    #     help="The input training file. If a data dir is specified, will look for the file there"
+    #     + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
+    # )
+    # parser.add_argument(
+    #     "--resource_dir",
+    #     type=str,
+    #     default='WikiTables-WithLinks/',
+    #     help="Number of updates steps to accumulate before performing a backward/update pass.",
+    # )   
+    # parser.add_argument(
+    #     "--predict_file",
+    #     default=None,
+    #     type=str,
+    #     help="The input evaluation file. If a data dir is specified, will look for the file there"
+    #     + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
+    # )
+    # parser.add_argument(
+    #     "--config_name", default="", type=str, help="Pretrained config name or path if not the same as model_name"
+    # )
+    # parser.add_argument(
+    #     "--tokenizer_name",
+    #     default="",
+    #     type=str,
+    #     help="Pretrained tokenizer name or path if not the same as model_name",
+    # )
+
+    # parser.add_argument("--pred_ans_file",default="predictions_lf.json",type=str)
+    # parser.add_argument(
+    #     "--cache_dir",
+    #     default="/tmp/",
+    #     type=str,
+    #     help="Where do you want to store the pre-trained models downloaded from s3",
+    # )
+    # parser.add_argument(
+    #     "--version_2_with_negative",
+    #     action="store_true",
+    #     help="If true, the SQuAD examples contain some that do not have an answer.",
+    # )
+    # parser.add_argument(
+    #     "--null_score_diff_threshold",
+    #     type=float,
+    #     default=0.0,
+    #     help="If null_score - best_non_null is greater than the threshold predict null.",
+    # )
+    # parser.add_argument(
+    #     "--max_seq_length",
+    #     default=1024,
+    #     type=int,
+    #     help="The maximum total input sequence length after WordPiece tokenization. Sequences "
+    #     "longer than this will be truncated, and sequences shorter than this will be padded.",
+    # )
+    # parser.add_argument(
+    #     "--doc_stride",
+    #     default=128,
+    #     type=int,
+    #     help="When splitting up a long document into chunks, how much stride to take between chunks.",
+    # )
+    # parser.add_argument(
+    #     "--max_query_length",
+    #     default=64,
+    #     type=int,
+    #     help="The maximum number of tokens for the question. Questions longer than this will "
+    #     "be truncated to this length.",
+    # )
+    # parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
+    # parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
+    # parser.add_argument("--do_stage3", action="store_true", help="Whether to run eval on the dev set.")    
+    # parser.add_argument(
+    #     "--do_lower_case", action="store_true", help="Set this flag if you are using an uncased model."
+    # )
+
+    # parser.add_argument("--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.")
+    # parser.add_argument(
+    #     "--per_gpu_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation."
+    # )
+    # parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
+    # parser.add_argument(
+    #     "--gradient_accumulation_steps",
+    #     type=int,
+    #     default=1,
+    #     help="Number of updates steps to accumulate before performing a backward/update pass.",
+    # )
+    # parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
+    # parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
+    # parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
+    # parser.add_argument(
+    #     "--num_train_epochs", default=3.0, type=float, help="Total number of training epochs to perform."
+    # )
+    # parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
+    # parser.add_argument(
+    #     "--n_best_size",
+    #     default=20,
+    #     type=int,
+    #     help="The total number of n-best predictions to generate in the nbest_predictions.json output file.",
+    # )
+    # parser.add_argument(
+    #     "--max_answer_length",
+    #     default=30,
+    #     type=int,
+    #     help="The maximum length of an answer that can be generated. This is needed because the start "
+    #     "and end predictions are not conditioned on one another.",
+    # )
+    # parser.add_argument(
+    #     "--verbose_logging",
+    #     action="store_true",
+    #     help="If true, all of the warnings related to data processing will be printed. "
+    #     "A number of warnings are expected for a normal SQuAD evaluation.",
+    # )
+    # parser.add_argument(
+    #     "--lang_id",
+    #     default=0,
+    #     type=int,
+    #     help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
+    # )
+
+    # parser.add_argument("--logging_steps", type=int, default=500, help="Log every X updates steps.")
+    # parser.add_argument("--save_steps", type=int, default=500, help="Save checkpoint every X updates steps.")
+    # parser.add_argument(
+    #     "--overwrite_cache", action="store_true", help="Overwrite the cached training and evaluation sets"
+    # )
+    # parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
+
+    # parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
+    # parser.add_argument(
+    #     "--fp16",
+    #     action="store_true",
+    #     help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit",
+    # )
+    # parser.add_argument(
+    #     "--fp16_opt_level",
+    #     type=str,
+    #     default="O1",
+    #     help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
+    #     "See details at https://nvidia.github.io/apex/amp.html",
+    # )
+
+    # parser.add_argument("--threads", type=int, default=1, help="multiple threads for converting example to features")
+    # args = parser.parse_args()
+
     if args.doc_stride >= args.max_seq_length - args.max_query_length:
         logger.warning(
             "WARNING - You've set a doc stride which may be superior to the document length in some "
@@ -902,20 +1135,20 @@ def run_answer_extractor(args):
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
     
     config = config_class.from_pretrained(
-        args.config_name if args.config_name else args.model_name_or_path_ae,
+        args.config_name if args.config_name else args.model_name_or_path,
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
     #print(args)
-    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path_ae)
+    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
     #print("done here")
     tokenizer = tokenizer_class.from_pretrained(
-        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path_ae,
+        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
         do_lower_case=args.do_lower_case,
         cache_dir=args.cache_dir if args.cache_dir else None,return_token_type_ids = True,
     )
     model = model_class.from_pretrained(
-        args.model_name_or_path_ae,
-        from_tf=bool(".ckpt" in args.model_name_or_path_ae),
+        args.model_name_or_path,
+        from_tf=bool(".ckpt" in args.model_name_or_path),
         config=config,
         cache_dir=args.cache_dir if args.cache_dir else None,
 
@@ -944,39 +1177,36 @@ def run_answer_extractor(args):
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory    
     if args.do_eval and args.local_rank in [-1, 0]:
         results = {}
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
+        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
         checkpoints = []
 
-        logger.info("Evaluate the following checkpoints: %s", args.model_name_or_path_ae)
+        logger.info("Evaluate the following checkpoints: %s", args.model_name_or_path)
 
-        model = model_class.from_pretrained(args.model_name_or_path_ae)
+        model = model_class.from_pretrained(args.model_name_or_path)
         model.to(args.device)
 
         # Evaluate
-        with open(args.eval_file, 'r') as f:
+        with open(args.predict_file, 'r') as f:
             full_split = json.load(f)
         
         key2idx = {}
         for step, d in enumerate(full_split):
-            key2idx[d['question_id']] = step   
+            key2idx[d['question_id']] = step            
 
-        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
+        prediction = evaluate_simplified(full_split, args, model, tokenizer)
         for k, step in key2idx.items():
             full_split[step]['pred'] = prediction.get(k, 'None')
 
-        if not os.path.exists(args.output_dir):
-            os.makedirs(args.output_dir)
-        eval_ans_file = os.path.join(args.output_dir, 'passage_only_predictions.json')
-        with open(eval_ans_file, 'w') as f:
+        with open('passage_only_predictions.json', 'w') as f:
             json.dump(full_split, f, indent=2)
 
-    if args.do_predict and args.local_rank in [-1, 0]:
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
-        model = model_class.from_pretrained(args.model_name_or_path_ae)
+    if args.do_stage3 and args.local_rank in [-1, 0]:
+        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
+        model = model_class.from_pretrained(args.model_name_or_path)
         model.to(args.device)
         
         #evaluate(args, model, tokenizer, prefix=global_step)
-        with open(args.eval_file, 'r') as f:
+        with open(args.predict_file, 'r') as f:
             data = json.load(f)
 
         full_split = []
@@ -989,14 +1219,17 @@ def run_answer_extractor(args):
             key2idx[d['question_id']] = step
 
 
-        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
+        prediction = evaluate_simplified(full_split, args, model, tokenizer)
                 
         for k, step in key2idx.items():
             data[step]['pred'] = prediction.get(k, 'None')
+      
+        #for _ in data:
+        #    assert isinstance(_['pred'], str), "there are some unprocessed stage3 examples"
+
         with open(args.pred_ans_file, 'w') as f:
             json.dump(data, f, indent=2)
-    if args.do_predict:
-        return prediction_file,nbest_file
-    if args.do_train:
-        return args.output_dir
 
+
+if __name__ == "__main__":
+    main()

@@ -30,6 +30,7 @@ def create_dataset_for_answer_extractor(data, data_path_root,test=False):
     i=1
     no_found = 0
     found_set = set([])
+    output_file = os.path.join(data_path_root,"ae_input_train.json") if test else os.path.join(data_path_root,"ae_input_test.json")
     for d in tqdm(data):
         new_data = {}
         if test or d['label'] == 1: # or d['match_score'] != '-INF':
@@ -71,7 +72,7 @@ def create_dataset_for_answer_extractor(data, data_path_root,test=False):
             label_1_data.append(new_data)
 
     print("total", len(label_1_data), "answer not found in", no_found, "found in", len(found_set))
-    json.dump(label_1_data,open(os.path.join(data_path_root,"ae_input_test.json"),"w"), indent=4)
+    json.dump(label_1_data,open(output_file,"w"), indent=4)
     return label_1_data
 
 
@@ -123,6 +124,7 @@ def preprocess_data_using_row_retrieval_scores(raw_data,qid_scores_dict,test):
     #data = json.load(open(data_path))
     #p = json.load(open(row_ret_pred_path))
     p = qid_scores_dict
+    print(p)
     processed_data = []
     num = 0
     den = 0

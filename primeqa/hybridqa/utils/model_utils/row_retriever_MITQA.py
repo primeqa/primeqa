@@ -114,52 +114,50 @@ class RowRetriever():
         self.model = RowClassifierSC(self.t_args.rr_model_name)
 
     def predict(self,processed_test_data):
- 
-        if self.hqa_args.test:
-            state_dict = torch.load(self.t_args.row_retriever_model_name_path)
-            state_dict = clean_model_state_dict(state_dict)
-            # model = RowClassifierSC()
-            if torch.cuda.device_count() > 1:
-                print("Let's use", torch.cuda.device_count(), "GPUs!")
-                # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-                self.model = nn.DataParallel(self.model)
-            self.model.load_state_dict(state_dict,strict=True)
+        state_dict = torch.load(self.t_args.row_retriever_model_name_path)
+        state_dict = clean_model_state_dict(state_dict)
+        # model = RowClassifierSC()
+        if torch.cuda.device_count() > 1:
+            print("Let's use", torch.cuda.device_count(), "GPUs!")
+            # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+            self.model = nn.DataParallel(self.model)
+        self.model.load_state_dict(state_dict,strict=True)
+        
+        print("Model Loaded")
+        self.model.to(self.device)
+        self.model.eval()
+        predictions_labels = []
+        scores_list = []
+        question_ids_list = []
+        bert_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
+        #bert_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
+        if processed_test_data is not None:
+            #test_data = read_data(test_data_path)
             
-            print("Model Loaded")
-            self.model.to(self.device)
-            self.model.eval()
-            predictions_labels = []
-            scores_list = []
-            question_ids_list = []
-            bert_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
-            #bert_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
-            if processed_test_data is not None:
-                #test_data = read_data(test_data_path)
-                
-                test_dataset = TableQADatasetQRSconcat(processed_test_data,512,bert_tokenizer,use_st_out=True,ret_labels=False)
-                test_data_loader = DataLoader(test_dataset, batch_size=self.t_args.per_device_eval_batch_size_rr, batch_sampler=None, 
-                                                num_workers=1, shuffle=False, pin_memory=True)
-            for question_ids,q_r_input in tqdm(test_data_loader,total = len(test_data_loader),position=0, leave=True):
-                q_r_input = {k:v.type(torch.long).to(self.device) for k,v in q_r_input.items()}
-                
-                with torch.no_grad():
-                    outputs = self.model(q_r_input)
-                    probs = outputs.logits
-                    scores = probs[:,1]
-                    scores = scores.detach().cpu().numpy().tolist() 
-                    scores_list+=scores
-                    question_ids_list+=question_ids
+            test_dataset = TableQADatasetQRSconcat(processed_test_data,512,bert_tokenizer,use_st_out=True,ret_labels=False)
+            test_data_loader = DataLoader(test_dataset, batch_size=self.t_args.per_device_eval_batch_size_rr, batch_sampler=None, 
+                                            num_workers=1, shuffle=False, pin_memory=True)
+        for question_ids,q_r_input in tqdm(test_data_loader,total = len(test_data_loader),position=0, leave=True):
+            q_r_input = {k:v.type(torch.long).to(self.device) for k,v in q_r_input.items()}
             
-            q_id_scores_list = {}
-            prev_qid = ""
-            for q_id, score in zip(question_ids_list,scores_list):
-                if q_id==prev_qid:
-                    q_id_scores_list[q_id].append(score)
-                else:
-                    q_id_scores_list[q_id] = [score]
-                    prev_qid=q_id
-                
-            json.dump(q_id_scores_list,open(os.path.join(self.hqa_args.data_path_root,"row_ret_scores.json"),"w"))
+            with torch.no_grad():
+                outputs = self.model(q_r_input)
+                probs = outputs.logits
+                scores = probs[:,1]
+                scores = scores.detach().cpu().numpy().tolist() 
+                scores_list+=scores
+                question_ids_list+=question_ids
+        
+        q_id_scores_list = {}
+        prev_qid = ""
+        for q_id, score in zip(question_ids_list,scores_list):
+            if q_id==prev_qid:
+                q_id_scores_list[q_id].append(score)
+            else:
+                q_id_scores_list[q_id] = [score]
+                prev_qid=q_id
+            
+        json.dump(q_id_scores_list,open(os.path.join(self.hqa_args.data_path_root,"row_ret_scores.json"),"w"))
         return q_id_scores_list
 
     def train(self,train_data_processed,dev_data_processed):

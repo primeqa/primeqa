@@ -35,7 +35,7 @@ class RRArguments():
       default_factory=lambda: [0.3, 0.3, 0.1, 0.0001, 0.0001], metadata={"help": "Positive fraction per epoch"}
    )
    group_frac_per_epoch: List[float]  = field(
-      default_factory=lambda: [0.0, 0.0, 0.0, 0.0, 0.0], metadata={"help": "Positive fraction per epoch"}
+      default_factory=lambda: [0.0, 0.5, 1.0, 1.0, 1.0], metadata={"help": "Positive fraction per epoch"}
    )
    num_train_epochs_rr: int = field(
       default=2,metadata={"help": "Number of epochs to train the row retriever"}
@@ -51,6 +51,18 @@ class RRArguments():
 class AEArguments(TrainingArguments):
    max_seq_length: int = field(
         default=512,metadata={"help": "Input Sequence Length"}
+    )
+   per_gpu_train_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
+    )
+   train_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
+    )
+   per_gpu_eval_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
+    )
+   eval_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
     )
    max_query_length: int = field(
         default=64,metadata={"help": "Maximum length of the query"}
@@ -71,19 +83,19 @@ class AEArguments(TrainingArguments):
       default=True,metadata={"help": "do lowercase the input"}
    )
    do_train: bool = field(
-      default=False,metadata={"help": "do lowercase the input"}
+      default=False,metadata={"help": "do training"}
    )
    verbose_logging: bool = field(
       default=False,metadata={"help": "Log everything"}
    )
    do_predict: bool = field(
-      default=True,metadata={"help": "do predict"}
+      default=False,metadata={"help": "do predict"}
    )
    version_2_with_negative: bool = field(
       default=False,metadata={"help": "Squad 2.0"}
    )
    do_eval: bool = field(
-      default=False,metadata={"help": "do lowercase the input"}
+      default=False,metadata={"help": "do evaluation"}
    )
    device: torch.device = field(
         default=torch.device("cpu"),metadata={"help": "Whether to use cpu or gpu"}
@@ -134,10 +146,10 @@ class HybridQAArguments:
        default='data/hybridqa/', metadata={"help": "root path to store the preprocessed dataset"}
     )
     train_data_path: str = field(
-       default='data/hybridqa/test.json', metadata={"help": "Train data path for training on user's own dataset"}
+       default='data/hybridqa/train.json', metadata={"help": "Train data path for training on user's own dataset"}
     )
     dev_data_path: str = field(
-       default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
+       default='data/hybridqa/train.json', metadata={"help": "Dev data path for training on user's own dataset"}
     )
     test_data_path: str = field(
        default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
