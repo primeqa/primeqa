@@ -189,7 +189,7 @@ class ExtractiveReader(ReaderComponent):
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
     
-    def apply(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
+    def predict(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None, *args, **kwargs) -> Dict[str,List[Dict]]:
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]

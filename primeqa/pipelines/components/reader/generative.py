@@ -144,15 +144,15 @@ class GenerativeFiDReader(GenerativeReader):
             post_process_function=postprocessor.process,
         )
         
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def predict(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None,*args, **kwargs):
         processed_context = []
-        for single_context in context:
+        for single_context in contexts:
             processed_context.append([{"text":t} for t in single_context])
         predict_examples = Dataset.from_dict(
             dict(
-                input=input_texts,
+                input=questions,
                 passages=processed_context,
-                id=[str(idx) for idx in range(len(input_texts))],
+                id=[str(idx) for idx in range(len(questions))],
             )
         )
 

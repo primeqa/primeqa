@@ -145,9 +145,9 @@ class ReaderService(ReaderServicer):
                     request.contexts[idx].texts,
                 )
                 try:
-                    predictions = instance.apply(
-                        input_texts=[query] * len(request.contexts[idx].texts),
-                        context=[[text] for text in request.contexts[idx].texts],
+                    predictions = instance.predict(
+                        questions=[query] * len(request.contexts[idx].texts),
+                        contexts=[[text] for text in request.contexts[idx].texts],
                         **reader_kwargs,
                     )
                     self._logger.info(
