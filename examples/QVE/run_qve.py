@@ -38,7 +38,7 @@ from transformers import (
 )
 
 from squad_processing import squad_convert_examples_to_features
-from transformers.data.processors.squad import SquadV1Processor
+from transformers.data.processors.squad import SquadV1Processor, SquadExample
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from model import EXTRACTIVE_HEAD, BertForSequenceClassification
 
@@ -500,6 +500,41 @@ def train(args, train_dataset, dev_dataset, qve_model, qa_model, tokenizer):
 
     return
 
+def get_train_examples(filename, train=True):
+    with open(filename) as f:
+        lines = f.readlines()
+    examples = []
+    for line in lines:
+        e = json.loads(line.strip())
+        qas_id = e['id']
+        question_text = e['question']
+        context_text = e['context']
+        answer_text = e['answers']['text'][0]
+        is_impossible = e.get("is_impossible", False)
+        start_position_character=e['answers']['answer_start'][0]
+        answers = []
+        for i, text in enumerate(e["answers"]["text"]):
+            answers.append(
+                {
+                "text": text,
+                "answer_start":  e["answers"]["answer_start"][i]
+                })
+        
+        example = SquadExample(
+                        qas_id=qas_id,
+                        question_text=question_text,
+                        context_text=context_text,
+                        answer_text=answer_text,
+                        start_position_character=start_position_character,
+                        title=" ",
+                        is_impossible=is_impossible,
+                        answers=answers)
+        examples.append(example)
+        return examples
+                   
+    
+
+
 def load_and_cache_examples(args, tokenizer, qa_model_marginal=None, output_examples=False, dev=False):
 
     # Load data features from cache or dataset file
@@ -527,8 +562,10 @@ def load_and_cache_examples(args, tokenizer, qa_model_marginal=None, output_exam
         process_file = args.dev_file if dev else args.train_file
         logger.info("Creating features from dataset file at: %s", process_file)
 
-        processor = SquadV1Processor()
-        examples = processor.get_train_examples(data_dir=None, filename=process_file)
+        # processor = SquadV1Processor()
+        # examples = processor.get_train_examples(data_dir=None, filename=process_file)
+        
+        examples = get_train_examples(process_file)
 
         features, dataset = squad_convert_examples_to_features(
             examples=examples,

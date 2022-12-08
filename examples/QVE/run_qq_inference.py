@@ -44,22 +44,29 @@ def main():
     mrc_examples = []
     bsize = args.bsize
     
+    outfile = open(args.output_file, 'w') 
+    
     for i in range(0,len(id_list),bsize):
-        print(i, "Generating questions")
-        generated_examples = passage_qg_model.generate_questions(text_list[i:bsize],
+        print(i, "Generating questions", len(mrc_examples))
+        generated_examples = passage_qg_model.generate_questions(text_list[i:bsize+i],
                     num_questions_per_instance = args.num_questions_per_instance,  
-                    answers_list = answers_list[0:bsize], id_list=id_list[0:bsize])
+                    agg_prob = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    answers_list = answers_list[0:bsize+i], id_list=id_list[0:bsize+i])
     
         print(i, "Num generated", len(generated_examples))
-        for i, example in enumerate(generated_examples):
-            print(example)
+        for g, example in enumerate(generated_examples):
             mrc_example = {
                 'id': example['context_id'],
                 'context':  example['context'],
                 'question': example['question'],
-                'answers': orig_answers_list[i]
+                'answers': orig_answers_list[i+g]
             }
             mrc_examples.append(json.dumps(mrc_example))
+        if len(mrc_examples) % 12800 == 0 :
+            print("Writing", args.output_file)
+            outfile.writelines([f'{example}\n' for example in mrc_examples])
+            outfile.flush()
+            
 
     
     with open(args.output_file, 'w') as outfile:
