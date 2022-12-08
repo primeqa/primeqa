@@ -59,7 +59,7 @@ fi
       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
       --eval_metrics SQUAD \
       --max_seq_length 384 \
-      --output_dir checkpoints/QA_"$dataset_name"_Source_TargetDev \
+      --output_dir checkpoints/QA_"$dataset_name"_Source_Synthetic \
       --learning_rate 3e-5 \
       --do_train --do_eval --per_device_train_batch_size 12 \
       --per_device_eval_batch_size 64 \
