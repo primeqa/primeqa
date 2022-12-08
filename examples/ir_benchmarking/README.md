@@ -10,7 +10,7 @@ When initiating your instance, please select an Ubuntu machine image. This will 
 
 ### 2. Installing Docker
 
-To install Docker, please use the following [installation instructions](https://docs.docker.com/engine/install/ubuntu/).
+To install Docker, please use the following [installation instructions](https://docs.docker.com/engine/install/ubuntu/). To run our experiments that use GPU, please download the [Docker Nvidia drivers](https://docs.docker.com/config/containers/resource_constraints/#access-an-nvidia-gpu).
 
 ### 3. Installing dependencies
 
