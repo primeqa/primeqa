@@ -25,5 +25,5 @@ sudo docker build -t pulkit/run_ir:1.0 .
 Afterwards, perform the following command to run the selected configuration of `run_ir.py`:
 
 ```
-sudo docker run -ti --name testing_2 pulkit/testing_2:1.0
+sudo docker run -ti --name run_ir pulkit/run_ir:1.0
 ```
