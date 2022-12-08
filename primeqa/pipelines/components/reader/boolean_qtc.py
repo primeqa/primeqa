@@ -10,18 +10,10 @@ from transformers import (
     AutoModelForSequenceClassification
 )
 from datasets import Dataset
-from primeqa.boolqa.processors.postprocessors.boolqa_classifier import BoolQAClassifierPostProcessor
-from primeqa.text_classification.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
-from primeqa.boolqa.processors.preprocessors.boolqa_classifier import BoolQAClassifierPreProcessor
-from primeqa.boolqa.trainers.adapterPrimeTrainer import InstrumentedTrainer
 
 from primeqa.pipelines.components.base import ReaderComponent
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
-from primeqa.mrc.models.task_model import ModelForDownstreamTasks
-from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
-from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.text_classification.processors.postprocessors.text_classifier import TextClassifierPostProcessor
 from primeqa.text_classification.processors.preprocessors.text_classifier import TextClassifierPreProcessor
 from primeqa.text_classification.trainers.nway import NWayTrainer
@@ -167,23 +159,6 @@ class BooleanQTCReader(ReaderComponent):
 
         self._loaded_model = AutoModelForSequenceClassification.from_pretrained(self.model)        
 
-
-        # Initialize preprocessor
-        #self._preprocessor = BasePreProcessor(
-        #    stride=self.stride,
-        #    max_seq_len=self.max_seq_len,
-        #    tokenizer=self._tokenizer,
-        #)
-        # self._preprocessor = BoolQAClassifierPreProcessor(
-        #     sentence1_key='question',#qtc_config['sentence1_key'],
-        #     sentence2_key=None,#qtc_config['sentence2_key'],
-        #     tokenizer=self._tokenizer,
-        #     load_from_cache_file=False,
-        #     max_seq_len=self._tokenizer.model_max_length,
-        #     #label_list=qtc_config['label_list'],
-        #     #id_key=qtc_config['id_key'],
-        #     padding=False
-        # )   
         self._preprocessor = TextClassifierPreProcessor(
             sentence1_key='question',#qtc_config['sentence1_key'],
             sentence2_key=None,#qtc_config['sentence2_key'],
@@ -221,7 +196,7 @@ class BooleanQTCReader(ReaderComponent):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def _predict(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -241,15 +216,6 @@ class BooleanQTCReader(ReaderComponent):
             else self.min_score_threshold
         )
 
-        # Step 2: Initialize post processor
-#        postprocessor = ExtractivePostProcessor(
-#            k=max_num_answers,
-#            n_best_size=self.n_best_size,
-#            max_answer_length=max_answer_length,
-#            scorer_type=self._scorer_type_as_enum,
-#            single_context_multiple_passages=self._preprocessor._single_context_multiple_passages,
-#        )
-
 
         postprocessor = TextClassifierPostProcessor(
             k=max_num_answers, 
@@ -262,13 +228,6 @@ class BooleanQTCReader(ReaderComponent):
             output_label_prefix='qtc',#qtc_config['output_label_prefix'],
         )        
 
-        # Step 3: Load trainer
-#        trainer = MRCTrainer(
-#            model=self._loaded_model,
-#            tokenizer=self._tokenizer,
-#            data_collator=self._data_collector,
-#            post_process_function=postprocessor.process,
-#        )
 
         trainer = NWayTrainer( 
             model=self._loaded_model,
@@ -290,10 +249,14 @@ class BooleanQTCReader(ReaderComponent):
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
-        predictions = [[] for _ in range(len(input_texts))]
         prediction_output=trainer.predict(eval_dataset, eval_examples)
+        return prediction_output
 
 
+    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        prediction_output = self._predict(input_texts, context, args, kwargs)
+
+        predictions = [[] for _ in range(len(input_texts))]
         for passage_idx, raw_predictions in prediction_output.predictions.items():
             for raw_prediction in raw_predictions:
                 processed_prediction = {}

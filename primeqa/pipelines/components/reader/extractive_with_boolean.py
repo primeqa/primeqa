@@ -150,18 +150,15 @@ class ExtractiveWithBooleanReader(ReaderComponent):
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         extractive_predictions=self._extractiveReader.apply(input_texts, context, args, kwargs)
-        qtc_predictions=self._booleanQTCReader.apply(input_texts, context, args, kwargs)
+        prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
 
-        # since qtc_predictions is generally top1 and 
-        # extractive_predictions is generally topn
-        # this only applies the question type text to the top prediction ...
-        for xps, qtcps in zip(extractive_predictions, qtc_predictions):
-            for xp, qtcp in zip(xps, qtcps):
-                xp['span_answer_text'] = (
-                    'The question type is ' +
-                    qtcp['span_answer_text'] + 
-                    ' . ' +
-                    xp['span_answer_text']
-                )
+        for passage_idx_str, raw_predictions in prediction_output.predictions.items():
+            passage_idx=int(passage_idx_str)
+            extractive_predictions[passage_idx][0]['span_answer_text'] = (
+                'The question type is ' +
+                raw_predictions[0]["qtc_pred"] + 
+                ' . ' +
+                extractive_predictions[passage_idx][0]['span_answer_text']
+            )
 
         return extractive_predictions
