@@ -14,7 +14,11 @@ To install Docker, please use the following [installation instructions](https://
 
 You can use the `Dockerfile` we include in the repository for running the experiments. Feel free to edit it as needed for testing different configurations and scripts.
 
-### 3. Running experiments
+### 3. Installing dependencies
+
+Once you have Docker set up, please go to the [PrimeQA main page](https://github.com/primeqa/primeqa/tree/ir-benchmarking) and follow the instructions for installing the relevant dependencies and Java package.
+
+### 4. Running experiments
 
 To run an experiments, first initialize a Docker container using the Dockerfile and the correspondinng command:
 
