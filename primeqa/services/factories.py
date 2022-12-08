@@ -10,13 +10,16 @@ from primeqa.pipelines.components.base import (
     IndexerComponent,
 )
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-
+from primeqa.pipelines.components.reader.extractive_with_boolean import ExtractiveWithBooleanReader
+from primeqa.pipelines.components.reader.boolean_qtc import BooleanQTCReader
 from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
 
 from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
+    BooleanQTCReader.__name__: BooleanQTCReader,
+    ExtractiveWithBooleanReader.__name__:ExtractiveWithBooleanReader,
 }
 
 RETRIEVERS_REGISTRY = {
