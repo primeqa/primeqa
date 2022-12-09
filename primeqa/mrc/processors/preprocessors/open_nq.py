@@ -9,7 +9,7 @@ from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
 from primeqa.mrc.data_models.target_type import TargetType
 
-class OpenNQPreprocessor(AbstractPreProcessor):
+class OpenNQPreProcessor(AbstractPreProcessor):
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         pass
 

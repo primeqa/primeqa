@@ -169,7 +169,7 @@ class OpenNQPostProcessor(AbstractPostProcessor):
                         'yes_no_answer': int(TargetType.NO_ANSWER),
                         'start_stdev': 0,
                         'end_stdev': 0,
-                        'query_passage_similarity': 0
+                        'query_passage_similarity': 0,
                         'ir_score': 0,
                         'normalized_ir_score': 0,
                     })

@@ -34,7 +34,7 @@ from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuesti
 from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
-from primeqa.mrc.processors.preprocessors.open_nq import OpenNQPreprocessor
+from primeqa.mrc.processors.preprocessors.open_nq import OpenNQPreProcessor
 from primeqa.mrc.processors.postprocessors.open_nq import OpenNQPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
@@ -257,7 +257,7 @@ class TaskArguments:
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
                   "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,
-                              TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor, OpenNQPreprocessor]
+                              TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor, OpenNQPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
