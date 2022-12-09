@@ -1,4 +1,4 @@
-from primeqa.tableqa.tapex.models.tapex_model import TapexModel
+from primeqa.tableqa.tapex.models.tapex_model import TapexModel    
 class ReaderComponent():
     
     def __init__(self,runnable_class_name,path_to_config_json=None):

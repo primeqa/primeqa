@@ -35,11 +35,12 @@ from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_funct
 from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
 from primeqa.tableqa.tapex.run_tapex import ModelArguments, DataTrainingArguments
 from primeqa.tableqa.tapex.metrics.tapex_accuracy import TapexAccuracy
+from primeqa.pipelines.components.base import Reader
 
-from primeqa.tableqa.tapex.run_tapex import ModelArguments, DataTrainingArguments, compute_metrics
 logger = logging.getLogger(__name__)
 
-class TapexModel():
+@dataclass
+class TapexReader(Reader):
     def __init__(self,path_to_config_json): 
         print("reading the config from ",path_to_config_json)
         self._config_json = path_to_config_json
@@ -74,7 +75,7 @@ class TapexModel():
             Dict: Returns a dictionary of query and the predicted answer.
         """
         print("in predict for TapexModel with data: ",data_dict , " ,queries:", queries_list)
-        self.load_model_from_config(self._config_json)
+        self.load(self._config_json)
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table, queries_list, padding='max_length', return_tensors="pt")
         outputs = self._model.generate(**inputs)
@@ -86,7 +87,7 @@ class TapexModel():
         return query_answer_dict
 
 
-    def load_model_from_config(self,config_json) :
+    def load(self,config_json) :
         print("loading from config at ",config_json)
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
         
@@ -179,7 +180,7 @@ class TapexModel():
     def train(self):
         
         print("loading from config")
-        self.load_model_from_config(self._config_json)
+        self.load(self._config_json)
 
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(self._config_json))  
@@ -281,13 +282,28 @@ class TapexModel():
         trainer.save_metrics("train", metrics)
         trainer.save_state()
 
-
     def eval(self):
+        
         print("loading from config")
-        self.load_model_from_config(self._config_json)
+        self.load(self._config_json)
 
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
         model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(self._config_json))  
+        
+         # Detecting last checkpoint.
+        last_checkpoint = None
+        if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+            last_checkpoint = get_last_checkpoint(training_args.output_dir)
+            if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
+                raise ValueError(
+                    f"Output directory ({training_args.output_dir}) already exists and is not empty. "
+                    "Use --overwrite_output_dir to overcome."
+                )
+            elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
+                logger.info(
+                    f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
+                    "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
+                )
 
         if data_args.dataset_name is not None:
             # Downloading and loading a dataset from the hub.
@@ -319,10 +335,9 @@ class TapexModel():
         preprocess_tableqa_function_training = partial(preprocess_tableqa_function, is_training=True)
         
         if "test" not in datasets:
-            raise ValueError("evaluate() requires a test dataset")
+            raise ValueError("eval requires a train dataset")
         test_dataset = datasets["test"]
-        if data_args.max_train_samples is not None:
-            test_dataset = test_dataset.select(range(data_args.max_train_samples))
+
         test_dataset = test_dataset.map(
             preprocess_tableqa_function_training,
             batched=True,
@@ -351,22 +366,16 @@ class TapexModel():
             compute_metrics=tf.compute_metrics if training_args.predict_with_generate else None,
         )
 
-        checkpoint = None
-        if training_args.resume_from_checkpoint is not None:
-            checkpoint = training_args.resume_from_checkpoint
-        elif last_checkpoint is not None:
-            checkpoint = last_checkpoint
-        train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
+        logger.info("*** Evaluate ***")
+        print("max_eval_samples is set as: ", data_args.max_eval_samples)
 
-        metrics = train_result.metrics
+        metrics = trainer.evaluate(
+            max_length=data_args.val_max_target_length, num_beams=data_args.num_beams, metric_key_prefix="eval"
+        )
+        max_eval_samples = data_args.max_eval_samples if data_args.max_eval_samples is not None else len(test_dataset)
+       
+        metrics["eval_samples"] = min(max_eval_samples, len(test_dataset))
 
-        metrics["test_samples"] = min(len(test_dataset))
-
-        trainer.log_metrics("test", metrics)
-        trainer.save_metrics("test", metrics)
-        trainer.save_state()
-
-
-
+        trainer.log_metrics("eval", metrics)
+        trainer.save_metrics("eval", metrics)
 

@@ -1,44 +1,41 @@
-from typing import Union, List, Dict
+from typing import Union, List,Any
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Component(ABC):
+    config: str = field(
+        metadata={
+            "name": "config path",
+            "description": "Path to config json file",
+        },
+    )
     @abstractmethod
     def load(self, *args, **kwargs):
         pass
-
-
-@dataclass(init=False, repr=False, eq=False)
-class ReaderComponent(Component):
     @abstractmethod
-    def __hash__(self) -> int:
-        """
-        Custom hashing function useful to compare instances of `ReaderComponent`.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            int: hash value
-        """
-        raise NotImplementedError
-
+    def predict(self, *args, **kwargs):
+        pass
     @abstractmethod
-    def predict(
-        self,
-        questions: List[str],
-        contexts: List[List[str]],
-        *args,
-        example_ids: List[str] = None,
-        **kwargs
-    ) -> Dict[str, List[Dict]]:
+    def train(self, *args, **kwargs):
+        pass
+    @abstractmethod
+    def eval(self, *args, **kwargs):
         pass
 
-
 @dataclass(init=False, repr=False, eq=False)
-class IndexerComponent(Component):
+class Reader(Component):
+    @abstractmethod
+    def predict(self, questions: List[str], contexts: List[List[Any]], *args, **kwargs):
+        pass
+    
+
+
+#Todo: Revisit IndexerComponent with martin and others
+@dataclass(init=False, repr=False, eq=False)
+class Indexer(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -57,7 +54,7 @@ class IndexerComponent(Component):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class RetrieverComponent(Component):
+class Retriever(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -69,24 +66,6 @@ class RetrieverComponent(Component):
             "name": "Index name",
         },
     )
-    collection: str = field(
-        metadata={
-            "name": "The corpus file split in paragraphs",
-        },
-    )
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        """
-        Custom hashing function useful to compare instances of `RetrieverComponent`.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            int: hash value
-        """
-        raise NotImplementedError
 
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):
