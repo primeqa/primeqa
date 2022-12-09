@@ -1,6 +1,7 @@
-from typing import Union, List, Dict
+from typing import Union, List,Any
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -24,34 +25,15 @@ class Component(ABC):
     def eval(self, *args, **kwargs):
         pass
 
-
 @dataclass(init=False, repr=False, eq=False)
 class Reader(Component):
     @abstractmethod
-    def __hash__(self) -> int:
-        """
-        Custom hashing function useful to compare instances of `Reader`.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            int: hash value
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def predict(
-        self,
-        questions: List[str],
-        contexts: List[List[str]],
-        *args,
-        example_ids: List[str] = None,
-        **kwargs
-    ) -> Dict[str, List[Dict]]:
+    def predict(self, questions: List[str], contexts: List[List[Any]], *args, **kwargs):
         pass
+    
 
 
+#Todo: Revisit IndexerComponent with martin and others
 @dataclass(init=False, repr=False, eq=False)
 class Indexer(Component):
     index_root: str = field(
@@ -97,24 +79,6 @@ class Retriever(Component):
             "name": "Index name",
         },
     )
-    collection: str = field(
-        metadata={
-            "name": "The corpus file split in paragraphs",
-        },
-    )
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        """
-        Custom hashing function useful to compare instances of `Retriever`.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            int: hash value
-        """
-        raise NotImplementedError
 
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):
