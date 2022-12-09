@@ -42,10 +42,14 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         _type_: _description_
     """
 
-    #model: str = field(
-    #    default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
-    #    metadata={"name": "Model", "api_support": True},
-    #)
+    boolean_config: str = field(
+        default="../primeqa-update_boolean_doc2/primeqa/boolqa/tydi_boolqa_config.json",
+        metadata={"name": "Model", "api_support": True},
+    )
+    model: str = field(
+        default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+        metadata={"name": "Model", "api_support": True},
+    )    
     use_fast: bool = field(
         default=True,
         metadata={
@@ -116,19 +120,19 @@ class ExtractiveWithBooleanReader(ReaderComponent):
     )
 
     def __post_init__(self):
+        # Placeholder variables
+        self._loaded_model = None
+        self._tokenizer = None
+        self._preprocessor = None
+        self._scorer_type_as_enum = None
+        self._data_collector = None
+
         self._extractiveReader = ExtractiveReader()
         self._booleanQTCReader = BooleanQTCReader()
         self._extractiveReader.__post_init__()
-        self._booleanQTCReader.__post_init__()
+        self._booleanQTCReader.__post_init__()        
 
-        self._extractiveReader.min_score_threshold = self.min_score_threshold
-        self._extractiveReader.scorer_type = self.scorer_type
-        self._extractiveReader.max_answer_length = self.max_answer_length
-        self._extractiveReader.max_num_answers = self.max_num_answers
-        self._extractiveReader.n_best_size = self.n_best_size
-        self._extractiveReader.max_seq_len = self.max_seq_len
-        self._extractiveReader.stride = self.stride
-        self._extractiveReader.use_fast = self.use_fast
+
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -145,6 +149,26 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         )
 
     def load(self, *args, **kwargs):
+        # TODO this is restricted to file system
+        boolean_config=json.load(open(self.boolean_config))
+        qtc_config=boolean_config['qtc']
+        
+        self._extractiveReader.min_score_threshold = self.min_score_threshold
+        self._extractiveReader.scorer_type = self.scorer_type
+        self._extractiveReader.max_answer_length = self.max_answer_length
+        self._extractiveReader.max_num_answers = self.max_num_answers
+        self._extractiveReader.n_best_size = self.n_best_size
+        self._extractiveReader.max_seq_len = self.max_seq_len
+        self._extractiveReader.stride = self.stride
+        self._extractiveReader.use_fast = self.use_fast
+
+        self._booleanQTCReader.model = qtc_config['model_name_or_path']
+        self._booleanQTCReader.id_key = qtc_config['id_key']
+        self._booleanQTCReader.output_label_prefix = qtc_config['output_label_prefix']
+        self._booleanQTCReader.sentence1_key = qtc_config['sentence1_key']
+        self._booleanQTCReader.sentence2_key = qtc_config['sentence2_key']
+        self._booleanQTCReader.label_list = qtc_config['label_list']
+
         self._extractiveReader.load(args, kwargs)
         self._booleanQTCReader.load(args, kwargs)
 
@@ -152,11 +176,12 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         extractive_predictions=self._extractiveReader.apply(input_texts, context, args, kwargs)
         prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
 
+        qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
         for passage_idx_str, raw_predictions in prediction_output.predictions.items():
             passage_idx=int(passage_idx_str)
             extractive_predictions[passage_idx][0]['span_answer_text'] = (
                 'The question type is ' +
-                raw_predictions[0]["qtc_pred"] + 
+                raw_predictions[0][qtc_pred_key] +
                 ' . ' +
                 extractive_predictions[passage_idx][0]['span_answer_text']
             )

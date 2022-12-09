@@ -56,14 +56,14 @@ class BooleanQTCReader(ReaderComponent):
             "options": [True, False],
         },
     )
-    stride: int = field(
-        default=128,
-        metadata={
-            "name": "Stride",
-            "description": "Step size to move sliding window across context",
-            "range": [8, 256, 8],
-        },
-    )
+    # stride: int = field(
+    #     default=128,
+    #     metadata={
+    #         "name": "Stride",
+    #         "description": "Step size to move sliding window across context",
+    #         "range": [8, 256, 8],
+    #     },
+    # )
     max_seq_len: int = field(
         default=512,
         metadata={
@@ -98,24 +98,45 @@ class BooleanQTCReader(ReaderComponent):
             "exclude_from_hash": True,
         },
     )
-    scorer_type: str = field(
-        default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
+    id_key: str = field(
+        default='example_id',
         metadata={
-            "name": "Scoring algorithm",
-            "options": [
-                SupportedSpanScorers.SCORE_DIFF_BASED.value,
-                SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value,
-                SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
-            ],
+            "name": "unique identifier for examples",
+            "api_support": False,
+            "exclude_from_hash": True,                
+        }
+    )
+    output_label_prefix: str = field(
+        default='qtc',
+        metadata={
+            "name": "prefix for output labels",
+            "api_support": False,
+            "exclude_from_hash": False,       
+        }
+    )    
+    sentence1_key: str = field(
+        default='question',
+        metadata={
+            "name": "sentence1 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
         },
     )
-    min_score_threshold: float = field(
+    sentence2_key: str = field(
         default=None,
         metadata={
-            "name": "Minimum score threshold",
-            "api_support": True,
-            "exclude_from_hash": True,
+            "name": "sentence2 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
         },
+    )
+    label_list: List = field(
+        default_factory = lambda: ['True','False'],
+        metadata={
+            "name": "mapping of numeric predictions to labels (for postprocessor)",
+            "api_support": False,
+            "exclude_from_hash": True,            
+        },        
     )
 
     def __post_init__(self):
@@ -123,7 +144,7 @@ class BooleanQTCReader(ReaderComponent):
         self._loaded_model = None
         self._tokenizer = None
         self._preprocessor = None
-        self._scorer_type_as_enum = None
+    #    self._scorer_type_as_enum = None
         self._data_collector = None
 
     def __hash__(self) -> int:
@@ -160,38 +181,18 @@ class BooleanQTCReader(ReaderComponent):
         self._loaded_model = AutoModelForSequenceClassification.from_pretrained(self.model)        
 
         self._preprocessor = TextClassifierPreProcessor(
-            sentence1_key='question',#qtc_config['sentence1_key'],
-            sentence2_key=None,#qtc_config['sentence2_key'],
+            sentence1_key=self.sentence1_key,
+            sentence2_key=self.sentence2_key,
             language_key=None,
             tokenizer=self._tokenizer,
             load_from_cache_file=False,
             max_seq_len=self._tokenizer.model_max_length,
-            example_id_key='example_id',
-            label_list=['boolean', 'short_answer'],
-            #label_list=qtc_config['label_list'],
-            #id_key=qtc_config['id_key'],
+            example_id_key=self.id_key,
+            label_list=self.label_list,
             padding=False
         )                   
 
-        # Configure scorer
-        if self.scorer_type == SupportedSpanScorers.SCORE_DIFF_BASED.value:
-            self._scorer_type_as_enum = SupportedSpanScorers.SCORE_DIFF_BASED
-        elif (
-            self.scorer_type
-            == SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value
-        ):
-            self._scorer_type_as_enum = (
-                SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
-            )
-        elif (
-            self.scorer_type
-            == SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value
-        ):
-            self._scorer_type_as_enum = (
-                SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
-            )
-        else:
-            raise ValueError(f"Unsupported scorer type: {self.scorer_type}")
+
 
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
@@ -210,22 +211,15 @@ class BooleanQTCReader(ReaderComponent):
             else self.max_answer_length
         )
 
-        min_score_threshold = (
-            kwargs["min_score_threshold"]
-            if "min_score_threshold" in kwargs
-            else self.min_score_threshold
-        )
-
 
         postprocessor = TextClassifierPostProcessor(
             k=max_num_answers, 
             drop_label=None,
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
-            #sentence1_key='question',#qtc_config['sentence1_key'],
-            label_list = ['boolean', 'short_answer'],#qtc_config['label_list'],
-            id_key='example_id', #qtc_config['id_key'],
-            output_label_prefix='qtc',#qtc_config['output_label_prefix'],
+            label_list = self.label_list,
+            id_key=self.id_key,
+            output_label_prefix=self.output_label_prefix,
         )        
 
 
@@ -234,7 +228,6 @@ class BooleanQTCReader(ReaderComponent):
             tokenizer=self._tokenizer,
             data_collator=self._data_collector,
             post_process_function=postprocessor.process,
-#            args=training_args
         )        
 
         # Step 4: Prepare dataset from input texts and contexts
