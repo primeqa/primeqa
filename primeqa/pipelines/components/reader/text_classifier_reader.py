@@ -21,7 +21,7 @@ from primeqa.text_classification.trainers.nway import NWayTrainer
 
 
 @dataclass
-class BooleanQTCReader(ReaderComponent):
+class TextClassifierReader(ReaderComponent):
     """_summary_
 
     Args:
@@ -47,7 +47,7 @@ class BooleanQTCReader(ReaderComponent):
     """
 
     model: str = field(
-        default="PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117",
+        default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},
     )
     use_fast: bool = field(
@@ -57,14 +57,6 @@ class BooleanQTCReader(ReaderComponent):
             "options": [True, False],
         },
     )
-    # stride: int = field(
-    #     default=128,
-    #     metadata={
-    #         "name": "Stride",
-    #         "description": "Step size to move sliding window across context",
-    #         "range": [8, 256, 8],
-    #     },
-    # )
     max_seq_len: int = field(
         default=512,
         metadata={
@@ -131,8 +123,9 @@ class BooleanQTCReader(ReaderComponent):
             "exclude_from_hash": True,            
         },
     )
-    label_list: List = field(
-        default_factory = lambda: ['True','False'],
+
+    label_list_str: str = field(
+        default='True False',
         metadata={
             "name": "mapping of numeric predictions to labels (for postprocessor)",
             "api_support": False,
@@ -145,8 +138,8 @@ class BooleanQTCReader(ReaderComponent):
         self._loaded_model = None
         self._tokenizer = None
         self._preprocessor = None
-    #    self._scorer_type_as_enum = None
         self._data_collector = None
+        self.label_list = self.label_list_str.split(' ')
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -163,7 +156,12 @@ class BooleanQTCReader(ReaderComponent):
         )
 
     def load(self, *args, **kwargs):
-        task_heads = EXTRACTIVE_HEAD
+        for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'model_name_or_path']:
+            if k in kwargs:
+                setattr(self, k, kwargs[k])
+
+
+
         # Load configuration for model
         config = AutoConfig.from_pretrained(self.model)
 
@@ -258,8 +256,8 @@ class BooleanQTCReader(ReaderComponent):
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         prediction_output = self._predict(input_texts, context, args, kwargs)
-
         predictions = [[] for _ in range(len(input_texts))]
+
         for passage_idx, raw_predictions in prediction_output.predictions.items():
             for raw_prediction in raw_predictions:
                 processed_prediction = {}
@@ -272,3 +270,120 @@ class BooleanQTCReader(ReaderComponent):
                 predictions[int(passage_idx)].append(processed_prediction)
 
         return predictions
+
+# @dataclass
+# class BooleanQTCReader(TextClassifierReader):
+#     """_summary_
+
+#     Args:
+#         TextClassifierReader (_type_): _description_
+
+#     Returns:
+#         _type_: _description_
+#     """
+
+#     model: str = field(
+#         default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117'
+#         metadata={"name": "Model", "api_support": True},
+#     )
+#     use_fast: bool = field(
+#         default=True,
+#         metadata={
+#             "name": "Use the fast version of the tokenizer",
+#             "options": [True, False],
+#         },
+#     )
+#     max_seq_len: int = field(
+#         default=512,
+#         metadata={
+#             "name": "Maximum sequence length",
+#             "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
+#             "range": [32, 512, 8],
+#         },
+#     )
+#     n_best_size: int = field(
+#         default=20,
+#         metadata={
+#             "name": "N",
+#             "description": "Maximum number of start/end logits to consider (max values)",
+#             "range": [1, 50, 1],
+#         },
+#     )
+#     max_num_answers: int = field(
+#         default=3,
+#         metadata={
+#             "name": "Maximum number of answers",
+#             "range": [1, 5, 1],
+#             "api_support": True,
+#             "exclude_from_hash": True,
+#         },
+#     )
+#     max_answer_length: int = field(
+#         default=1000,
+#         metadata={
+#             "name": "Maximum answer length",
+#             "range": [2, 2000, 2],
+#             "api_support": True,
+#             "exclude_from_hash": True,
+#         },
+#     )
+#     id_key: str = field(
+#         default='example_id',
+#         metadata={
+#             "name": "unique identifier for examples",
+#             "api_support": False,
+#             "exclude_from_hash": True,                
+#         }
+#     )
+#     output_label_prefix: str = field(
+#         default='qtc',
+#         metadata={
+#             "name": "prefix for output labels",
+#             "api_support": False,
+#             "exclude_from_hash": False,       
+#         }
+#     )    
+#     sentence1_key: str = field(
+#         default='question',
+#         metadata={
+#             "name": "sentence1 key for preprocessor",
+#             "api_support": False,
+#             "exclude_from_hash": True,            
+#         },
+#     )
+#     sentence2_key: str = field(
+#         default=None,
+#         metadata={
+#             "name": "sentence2 key for preprocessor",
+#             "api_support": False,
+#             "exclude_from_hash": True,            
+#         },
+#     )
+#     label_list: List = field(
+#         default_factory = lambda: ["boolean", "factoid"],
+#         metadata={
+#             "name": "mapping of numeric predictions to labels (for postprocessor)",
+#             "api_support": False,
+#             "exclude_from_hash": True,            
+#         },        
+#     )
+
+
+
+#     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+#         prediction_output = super._predict(input_texts, context, args, kwargs)
+
+#         predictions = [[] for _ in range(len(input_texts))]
+#         for passage_idx, raw_predictions in prediction_output.predictions.items():
+#             for raw_prediction in raw_predictions:
+#                 processed_prediction = {}
+#                 processed_prediction["example_id"] = raw_prediction["example_id"]
+#                 processed_prediction["span_answer_text"] = raw_prediction[
+#                     "qtc_pred"
+#                 ]
+#                 processed_prediction["span_answer"] = {'start_position':0, 'end_position':0}
+#                 processed_prediction["confidence_score"] = np.float64(0.0)
+#                 predictions[int(passage_idx)].append(processed_prediction)
+
+#         return predictions        
+    

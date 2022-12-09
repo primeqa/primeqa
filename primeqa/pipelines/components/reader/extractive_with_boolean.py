@@ -12,7 +12,7 @@ from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.trainers.mrc import MRCTrainer
-from primeqa.pipelines.components.reader.boolean_qtc import BooleanQTCReader
+from primeqa.pipelines.components.reader.text_classifier_reader import TextClassifierReader
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
 
 
@@ -129,8 +129,8 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         self._data_collector = None
 
         self._extractiveReader = ExtractiveReader()
-        self._booleanQTCReader = BooleanQTCReader()
-        self._booleanEVCReader = BooleanQTCReader()
+        self._booleanQTCReader = TextClassifierReader()
+        self._booleanEVCReader = TextClassifierReader()
         self._extractiveReader.__post_init__()
         self._booleanQTCReader.__post_init__()
         self._booleanEVCReader.__post_init__()
