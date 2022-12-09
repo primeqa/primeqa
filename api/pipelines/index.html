@@ -455,11 +455,11 @@ Follow the steps below to use the extractive reader:</p>
 <li><p>Step 2: Execute the reader in inference mode:</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Which country is Canberra located in?&quot;</span><span class="p">]</span>
-<span class="n">context</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
 <span class="s2">Founded following the federation of the colonies of Australia </span>
 <span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
-<span class="s2">largest inland city&quot;&quot;&quot;</span><span class="p">]</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
+<span class="s2">largest inland city&quot;&quot;&quot;</span><span class="p">]]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>  
 </pre></div>
 </div>
@@ -508,7 +508,7 @@ Follow the steps below to use the extractive reader:</p>
 <span class="sd">            One of the environmental impacts of aviation is that persistent contrails can </span>
 <span class="sd">            form into large mats of cirrus, and increased air traffic has been implicated </span>
 <span class="sd">            as one possible cause of the increasing frequency and amount of cirrus&quot;&quot;&quot;</span><span class="p">]]</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">fid_reader</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
+<span class="n">answers</span> <span class="o">=</span> <span class="n">fid_reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
 <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span> 
 </pre></div>
 </div>

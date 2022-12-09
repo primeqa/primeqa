@@ -18,6 +18,7 @@ primeqa.pipelines.components.reader.generative.GenerativeReader
    
       ~GenerativeReader.apply
       ~GenerativeReader.load
+      ~GenerativeReader.predict
    
    
 

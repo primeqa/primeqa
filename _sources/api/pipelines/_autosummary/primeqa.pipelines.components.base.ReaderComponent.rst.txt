@@ -16,8 +16,8 @@ primeqa.pipelines.components.base.ReaderComponent
    .. autosummary::
       :nosignatures:
    
-      ~ReaderComponent.apply
       ~ReaderComponent.load
+      ~ReaderComponent.predict
    
    
 

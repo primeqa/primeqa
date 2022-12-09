@@ -16,8 +16,8 @@ primeqa.pipelines.components.reader.extractive.ExtractiveReader
    .. autosummary::
       :nosignatures:
    
-      ~ExtractiveReader.apply
       ~ExtractiveReader.load
+      ~ExtractiveReader.predict
    
    
 
