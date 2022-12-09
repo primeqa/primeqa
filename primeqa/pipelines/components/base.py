@@ -30,8 +30,8 @@ class ReaderComponent(Component):
         self,
         questions: List[str],
         contexts: List[List[str]],
-        example_ids: List[str] = None,
         *args,
+        example_ids: List[str] = None,
         **kwargs
     ) -> Dict[str, List[Dict]]:
         pass

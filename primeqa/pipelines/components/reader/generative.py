@@ -14,6 +14,7 @@ from primeqa.mrc.data_models.data_collator import FiDDataCollator
 from primeqa.mrc.processors.postprocessors.eli5_fid import ELI5FiDPostProcessor
 from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 
+
 @dataclass
 class GenerativeReader(ReaderComponent):
     """_summary_
@@ -54,10 +55,11 @@ class GenerativeReader(ReaderComponent):
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
-    
+
+
 @dataclass
 class GenerativeFiDReader(GenerativeReader):
-    
+
     model: str = field(
         default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
         metadata={"name": "Model"},
@@ -77,17 +79,19 @@ class GenerativeFiDReader(GenerativeReader):
         default=256, metadata={"name": "Maximum answer length", "range": [2, 2000, 2]}
     )
     generation_num_beams: int = field(
-        default=1, metadata={"name": "The number of beams for generation", "range": [1, 5, 1]}
+        default=1,
+        metadata={"name": "The number of beams for generation", "range": [1, 5, 1]},
     )
     num_contexts: int = field(
-        default=3, metadata={"name": "The number of passages in the input", "range": [1, 10, 1]}
+        default=3,
+        metadata={"name": "The number of passages in the input", "range": [1, 10, 1]},
     )
 
     def __post_init__(self):
         # Placeholder variables
         self._preprocessor = None
         self._trainer = None
-    
+
     def load(self, *args, **kwargs):
         task_heads = FID_HEAD
         # Load configuration for model
@@ -112,13 +116,13 @@ class GenerativeFiDReader(GenerativeReader):
             stride=0,
             max_seq_len=self.max_seq_len,
             tokenizer=tokenizer,
-            max_contexts=3,# self.num_contexts,
-            max_answer_len=self.generation_max_length
+            max_contexts=3,  # self.num_contexts,
+            max_answer_len=self.generation_max_length,
         )
 
         data_collator = FiDDataCollator(tokenizer)
-        
-         # Initialize post processor
+
+        # Initialize post processor
         postprocessor = ELI5FiDPostProcessor(
             k=0,
             max_answer_length=self.max_answer_length,
@@ -133,7 +137,7 @@ class GenerativeFiDReader(GenerativeReader):
             per_device_eval_batch_size=1,
             predict_with_generate=True,
             generation_max_length=self.max_answer_length,
-            generation_num_beams=self.generation_num_beams
+            generation_num_beams=self.generation_num_beams,
         )
 
         self._trainer = MRCSeq2SeqTrainer(
@@ -143,11 +147,18 @@ class GenerativeFiDReader(GenerativeReader):
             data_collator=data_collator,
             post_process_function=postprocessor.process,
         )
-        
-    def predict(self, questions: List[str], contexts: List[List[str]], example_ids: List[str] = None,*args, **kwargs):
+
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs,
+    ):
         processed_context = []
         for single_context in contexts:
-            processed_context.append([{"text":t} for t in single_context])
+            processed_context.append([{"text": t} for t in single_context])
         predict_examples = Dataset.from_dict(
             dict(
                 input=questions,
@@ -156,7 +167,9 @@ class GenerativeFiDReader(GenerativeReader):
             )
         )
 
-        predict_examples, predict_dataset = self._preprocessor.process_eval(predict_examples)
+        predict_examples, predict_dataset = self._preprocessor.process_eval(
+            predict_examples
+        )
 
         # Run predict
         predictions = []
@@ -164,8 +177,8 @@ class GenerativeFiDReader(GenerativeReader):
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):
             processed_prediction = {}
-            processed_prediction["example_id"] = raw_prediction['id']
-            processed_prediction["text"] = raw_prediction['prediction_text']
+            processed_prediction["example_id"] = raw_prediction["id"]
+            processed_prediction["text"] = raw_prediction["prediction_text"]
             predictions.append(processed_prediction)
-        
+
         return predictions
