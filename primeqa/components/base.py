@@ -33,7 +33,7 @@ class Reader(Component):
     
 
 
-#Todo: Revisit Indexer with martin and others
+#Todo: Revisit IndexerComponent with martin and others
 @dataclass(init=False, repr=False, eq=False)
 class Indexer(Component):
     index_root: str = field(
@@ -79,20 +79,3 @@ class Retriever(Component):
             "name": "Index name",
         },
     )
-
-    @abstractmethod
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
-        pass
-    
-    @abstractmethod
-    def get_engine_type() -> str:
-        """
-        Return this retriever engine type. Must match with the indexer used to generate the index.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            str: engine type
-        """
-        raise NotImplementedError
