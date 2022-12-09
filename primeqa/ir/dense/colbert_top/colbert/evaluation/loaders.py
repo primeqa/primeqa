@@ -2,6 +2,7 @@ import os
 import ujson
 import torch
 import random
+import csv
 
 from collections import defaultdict, OrderedDict
 
@@ -18,8 +19,10 @@ def load_queries(queries_path):
     print_message("#> Loading the queries from", queries_path, "...")
 
     with open(queries_path) as f:
-        for line in f:
-            qid, query, *_ = line.strip().split('\t')
+        csv_reader = csv.reader(f, delimiter="\t")
+        for row in csv_reader:
+            qid, query = row
+            qid = int(qid)
 
             # removing (") at query
             # query = remove_first_and_last_quote(query)
@@ -160,11 +163,15 @@ def load_collection(collection_path):
     collection = []
 
     with open(collection_path) as f:
-        for line_idx, line in enumerate(f):
+        csv_reader = csv.DictReader(f, fieldnames=["id", "text", "title"], delimiter="\t")
+        for line_idx, line in enumerate(csv_reader):
             if line_idx % (1000*1000) == 0:
                 print(f'{line_idx // 1000 // 1000}M', end=' ', flush=True)
 
-            pid, passage, *rest = line.strip('\n\r ').split('\t')
+            pid = line["id"]
+            passage = line["text"]
+            rest = line["title"]
+
             # pid, passage, *rest = line.strip().split('\t')
             assert pid == 'id' or int(pid) == line_idx
 
