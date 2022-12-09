@@ -158,29 +158,6 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         evc_config=boolean_config['evc']
         # TODO this in config file?
         mrc_config_dict={ k:getattr(self,k) for k in self.__class__.__dataclass_fields__.keys() }
-        
-        # self._extractiveReader.min_score_threshold = self.min_score_threshold
-        # self._extractiveReader.scorer_type = self.scorer_type
-        # self._extractiveReader.max_answer_length = self.max_answer_length
-        # self._extractiveReader.max_num_answers = self.max_num_answers
-        # self._extractiveReader.n_best_size = self.n_best_size
-        # self._extractiveReader.max_seq_len = self.max_seq_len
-        # self._extractiveReader.stride = self.stride
-        # self._extractiveReader.use_fast = self.use_fast
-
-        # self._booleanQTCReader.model = qtc_config['model_name_or_path']
-        # self._booleanQTCReader.id_key = qtc_config['id_key']
-        # self._booleanQTCReader.output_label_prefix = qtc_config['output_label_prefix']
-        # self._booleanQTCReader.sentence1_key = qtc_config['sentence1_key']
-        # self._booleanQTCReader.sentence2_key = qtc_config['sentence2_key']
-        # self._booleanQTCReader.label_list = qtc_config['label_list']
-
-        # self._booleanEVCReader.model = evc_config['model_name_or_path']
-        # self._booleanEVCReader.id_key = evc_config['id_key']
-        # self._booleanEVCReader.output_label_prefix = evc_config['output_label_prefix']
-        # self._booleanEVCReader.sentence1_key = evc_config['sentence1_key']
-        # self._booleanEVCReader.sentence2_key = evc_config['sentence2_key']
-        # self._booleanEVCReader.label_list = evc_config['label_list']        
 
         self._extractiveReader.load(args, **mrc_config_dict)
         self._booleanQTCReader.load(args, **qtc_config)
@@ -200,7 +177,6 @@ class ExtractiveWithBooleanReader(ReaderComponent):
             qtcp = qtc_prediction_output.predictions[xp['example_id']][0][qtc_pred_key]
             evcp = evc_prediction_output.predictions[xp['example_id']][0][evc_pred_key]
             mrcp = xp['span_answer_text']
-            print(qtcp, evcp, mrcp)
             xp['span_answer_text'] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
 
 
