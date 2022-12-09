@@ -2,6 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 import numpy as np
+import pandas as pd
 
 from transformers import (
     AutoConfig, 
@@ -231,13 +232,22 @@ class BooleanQTCReader(ReaderComponent):
         )        
 
         # Step 4: Prepare dataset from input texts and contexts
-        eval_examples = Dataset.from_dict(
-            dict(
-                question=input_texts,
-                context=context,
-                example_id=[str(idx) for idx in range(len(input_texts))],
+        if self.sentence2_key is None:
+            eval_examples = Dataset.from_dict(
+                dict(
+                    question=input_texts,
+                    example_id=[str(idx) for idx in range(len(input_texts))],
+                )
             )
-        )
+        else:
+            def generate_examples():
+                for idx, input_text in enumerate(input_texts):
+                    for ctx in context[idx]:
+                        yield input_text, ctx, str(idx)
+
+            df=pd.DataFrame.from_records( generate_examples(), 
+                columns = [self.sentence1_key, self.sentence2_key, self.id_key] )
+            eval_examples = Dataset.from_pandas(df)
 
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 

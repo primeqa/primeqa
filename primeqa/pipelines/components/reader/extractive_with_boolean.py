@@ -43,7 +43,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
     """
 
     boolean_config: str = field(
-        default="../primeqa-update_boolean_doc2/primeqa/boolqa/tydi_boolqa_config.json",
+        default="tydi_boolqa_config.json",
         metadata={"name": "Model", "api_support": True},
     )
     model: str = field(
@@ -120,6 +120,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
     )
 
     def __post_init__(self):
+        print('in __post_init__')
         # Placeholder variables
         self._loaded_model = None
         self._tokenizer = None
@@ -129,8 +130,10 @@ class ExtractiveWithBooleanReader(ReaderComponent):
 
         self._extractiveReader = ExtractiveReader()
         self._booleanQTCReader = BooleanQTCReader()
+        self._booleanEVCReader = BooleanQTCReader()
         self._extractiveReader.__post_init__()
-        self._booleanQTCReader.__post_init__()        
+        self._booleanQTCReader.__post_init__()
+        self._booleanEVCReader.__post_init__()
 
 
 
@@ -152,38 +155,53 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         # TODO this is restricted to file system
         boolean_config=json.load(open(self.boolean_config))
         qtc_config=boolean_config['qtc']
+        evc_config=boolean_config['evc']
+        # TODO this in config file?
+        mrc_config_dict={ k:getattr(self,k) for k in self.__class__.__dataclass_fields__.keys() }
         
-        self._extractiveReader.min_score_threshold = self.min_score_threshold
-        self._extractiveReader.scorer_type = self.scorer_type
-        self._extractiveReader.max_answer_length = self.max_answer_length
-        self._extractiveReader.max_num_answers = self.max_num_answers
-        self._extractiveReader.n_best_size = self.n_best_size
-        self._extractiveReader.max_seq_len = self.max_seq_len
-        self._extractiveReader.stride = self.stride
-        self._extractiveReader.use_fast = self.use_fast
+        # self._extractiveReader.min_score_threshold = self.min_score_threshold
+        # self._extractiveReader.scorer_type = self.scorer_type
+        # self._extractiveReader.max_answer_length = self.max_answer_length
+        # self._extractiveReader.max_num_answers = self.max_num_answers
+        # self._extractiveReader.n_best_size = self.n_best_size
+        # self._extractiveReader.max_seq_len = self.max_seq_len
+        # self._extractiveReader.stride = self.stride
+        # self._extractiveReader.use_fast = self.use_fast
 
-        self._booleanQTCReader.model = qtc_config['model_name_or_path']
-        self._booleanQTCReader.id_key = qtc_config['id_key']
-        self._booleanQTCReader.output_label_prefix = qtc_config['output_label_prefix']
-        self._booleanQTCReader.sentence1_key = qtc_config['sentence1_key']
-        self._booleanQTCReader.sentence2_key = qtc_config['sentence2_key']
-        self._booleanQTCReader.label_list = qtc_config['label_list']
+        # self._booleanQTCReader.model = qtc_config['model_name_or_path']
+        # self._booleanQTCReader.id_key = qtc_config['id_key']
+        # self._booleanQTCReader.output_label_prefix = qtc_config['output_label_prefix']
+        # self._booleanQTCReader.sentence1_key = qtc_config['sentence1_key']
+        # self._booleanQTCReader.sentence2_key = qtc_config['sentence2_key']
+        # self._booleanQTCReader.label_list = qtc_config['label_list']
 
-        self._extractiveReader.load(args, kwargs)
-        self._booleanQTCReader.load(args, kwargs)
+        # self._booleanEVCReader.model = evc_config['model_name_or_path']
+        # self._booleanEVCReader.id_key = evc_config['id_key']
+        # self._booleanEVCReader.output_label_prefix = evc_config['output_label_prefix']
+        # self._booleanEVCReader.sentence1_key = evc_config['sentence1_key']
+        # self._booleanEVCReader.sentence2_key = evc_config['sentence2_key']
+        # self._booleanEVCReader.label_list = evc_config['label_list']        
+
+        self._extractiveReader.load(args, **mrc_config_dict)
+        self._booleanQTCReader.load(args, **qtc_config)
+        self._booleanEVCReader.load(args, **evc_config)
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         extractive_predictions=self._extractiveReader.apply(input_texts, context, args, kwargs)
-        prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
+        qtc_prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
+        evc_prediction_output=self._booleanEVCReader._predict(input_texts, context, args, kwargs)
 
         qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
-        for passage_idx_str, raw_predictions in prediction_output.predictions.items():
-            passage_idx=int(passage_idx_str)
-            extractive_predictions[passage_idx][0]['span_answer_text'] = (
-                'The question type is ' +
-                raw_predictions[0][qtc_pred_key] +
-                ' . ' +
-                extractive_predictions[passage_idx][0]['span_answer_text']
-            )
+        evc_pred_key=self._booleanEVCReader.output_label_prefix+"_pred"
+
+
+        for extractive_prediction in extractive_predictions:
+            xp=extractive_prediction[0]
+            qtcp = qtc_prediction_output.predictions[xp['example_id']][0][qtc_pred_key]
+            evcp = evc_prediction_output.predictions[xp['example_id']][0][evc_pred_key]
+            mrcp = xp['span_answer_text']
+            print(qtcp, evcp, mrcp)
+            xp['span_answer_text'] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
+
 
         return extractive_predictions
