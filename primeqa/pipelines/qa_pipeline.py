@@ -20,5 +20,5 @@ class QAPipeline:
             context = [self.corpus_passages[int(p[0])] for p in result]
             contexts.append(context)
         
-        answers = self.reader.apply(input_texts,contexts)  
+        answers = self.reader.predict(input_texts,contexts)  
         return answers
