@@ -61,6 +61,8 @@ class ConfidenceScorer(object):
                 'start_stdev',
                 'end_stdev',
                 'query_passage_similarity'
+                'ir_score',
+                'normalized_ir_score'
 
         Returns:
             List of features used for confidence scoring.
@@ -127,8 +129,12 @@ class ConfidenceScorer(object):
                 pred["normalized_span_answer_score"] - average_norm_span_answer_score,
                 pred["start_stdev"],
                 pred["end_stdev"],
-                pred["query_passage_similarity"]
+                pred["query_passage_similarity"],
             ]
+            if "ir_score" in pred:
+                feat.append(pred["ir_score"])
+            if "normalized_ir_score" in pred:
+                feat.append(pred["normalized_ir_score"])
             features.append(feat)
         return features
 

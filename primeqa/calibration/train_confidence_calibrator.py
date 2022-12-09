@@ -2,10 +2,14 @@ import logging
 import os
 import sys
 import traceback
+import json
+import torch
+import gc
+import glob
 from dataclasses import dataclass, field
 from importlib import import_module
 from operator import attrgetter
-from typing import Optional, Type
+from typing import Optional, Type, List
 import json
 import joblib
 from joblib import dump, load
@@ -13,19 +17,36 @@ from sklearn.neural_network import MLPClassifier
 from primeqa.calibration.confidence_scorer import ConfidenceScorer
 
 import datasets
+import apache_beam as beam
 from datasets import DatasetDict, load_from_disk
 from transformers import HfArgumentParser, TrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
+from primeqa.mrc.metrics.mlqa.mlqa import MLQA
+from primeqa.mrc.metrics.squad.squad import SQUAD
+from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
+from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.processors.preprocessors.tydiqa import TyDiQAPreprocessor
+from primeqa.mrc.processors.preprocessors.squad import SQUADPreprocessor
+from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
+from primeqa.mrc.processors.postprocessors.squad import SQUADPostProcessor
+from primeqa.mrc.processors.preprocessors.natural_questions import NaturalQuestionsPreProcessor
+from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuestionsPostProcessor
+from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
+from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
+from primeqa.mrc.processors.preprocessors.open_nq import OpenNQPreProcessor
+from primeqa.mrc.processors.postprocessors.open_nq import OpenNQPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.boolqa.run_boolqa_classifier import main as cls_main
+from primeqa.boolqa.run_score_normalizer import main as sn_main
 
+from primeqa.tableqa.run_tableqa import run_table_qa
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -92,12 +113,34 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
+    tableqa_config_file: Optional[str] = field(
+        default=None, metadata={"help": "TableQA additional arguments"}
+    )
     dataset_name: str = field(
         default="tydiqa", metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    )
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to train on."}
+    )
+    eval_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to test on."}
+    )
+    data_file_format: str = field(
+        default="json", metadata={"help": "the format of the local dataset files (json, jsonl, csv, text, pandas)"}
     )
     dataset_config_name: str = field(
         default="primary_task", metadata={
             "help": "The configuration name of the dataset to use (via the datasets library)."
+        }
+    )
+    dataset_filter_column_name: str = field(
+        default=None, metadata={
+            "help": "Dataset column name to filter on, e.g. 'subset'"
+        }
+    )
+    dataset_filter_column_values: List[str] = field(
+        default=None, metadata={
+            "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
     overwrite_cache: bool = field(
@@ -188,6 +231,12 @@ class DataTrainingArguments:
                     "Otherwise it will be discarded."
         },
     )
+    beam_runner: str = field(
+        default=None,
+        metadata={"help": "The beam runner for loading large dataset.",
+                  "choices": ['DirectRunner'],
+                  }
+    )
 
 
 @dataclass
@@ -198,6 +247,13 @@ class TaskArguments:
     confidence_model_dir: str = field(
         metadata={"help": "The directory to save confidence model."}
     )
+    modality: str = field(
+        default='text',
+        metadata={"help": "whether modality is table or text",
+        "choices": ["text", "table"]
+                  }
+    )
+
     scorer_type: str = field(
         default='weighted_sum_target_type_and_score_diff',
         metadata={"help": "The name of the scorer to compute answer score.",
@@ -213,20 +269,43 @@ class TaskArguments:
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
-                  "choices": [TyDiQAPreprocessor]
+                  "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,TyDiQAGooglePreprocessor,
+                              NaturalQuestionsPreProcessor, OpenNQPreProcessor]
                   }
     )
     postprocessor: object_reference = field(
         default=ExtractivePostProcessor,
         metadata={"help": "The name of the postprocessor to use.",
-                  "choices": [ExtractivePostProcessor]
+                  "choices": [ExtractivePostProcessor,ExtractivePipelinePostProcessor,SQUADPostProcessor,
+                              NaturalQuestionsPostProcessor, OpenNQPostProcessor]
                   }
     )
-    eval_metrics: object_reference = field(
-        default=TyDiF1,
-        metadata={"help": "The name of the evaluation metric function.",
-                  "choices": [TyDiF1]
+    eval_metrics: str = field(
+        default="TyDiF1",
+        metadata={"help": "The name of the evaluation metric function implemented in primeqa (e.g. TyDiF1).",
+                  "choices": ["TyDiF1","SQUAD","MLQA","NQF1"]
                  }
+    )
+    do_boolean: bool = field(
+        default=False, metadata={"help": "Enable processing of boolean questions.  If activated,"
+                                        "--do_eval will be forced also, and --postprocessor will be "
+                                        "defaulted to ExtractivePipelinePostProcessor unless overridden"
+                                        "by a postprocessor that subclasses ExtractivePipelinePostProcessor"}
+    )
+    boolean_config: str = field(
+        default=None, metadata={"help": "The configuration name file for the boolean task in json format"}
+    )
+    passage_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The passage level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    span_non_null_threshold: int = field(
+        default=2,
+        metadata={"help": "The span level non-null threshold (number of annotators to indicate no answer). This should be set to 1 if there is only one annotation"}
+    )
+    verbose: bool = field(
+        default=False,
+        metadata={"help": "Prints logging info if true (including evaluation output)"}
     )
     output_dropout_rate: float = field(
         default=0.25,
@@ -268,7 +347,20 @@ def main():
     else:
         model_args, data_args, training_args, task_args = parser.parse_args_into_dataclasses()
 
+    # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
+    # dataset) might have changed
+    # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
+    # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
+    # do_eval is in TrainingArguments
+    if task_args.do_boolean:
+        training_args.do_eval = True
+        if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
+            task_args.postprocessor = ExtractivePipelinePostProcessor
+
+
     logger = logging.getLogger(__name__)
+    if task_args.verbose:
+        logging.basicConfig(level = logging.INFO)
     scorer_type = task_args.scorer_type
     set_seed(training_args.seed)
 
@@ -286,6 +378,11 @@ def main():
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
+
+    # Run Table Question Answering
+    if task_args.modality=="table":
+        run_table_qa(data_args,model_args,training_args)
+        sys.exit(0)
 
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(
@@ -321,11 +418,28 @@ def main():
         logger.info('Creating confidence datasets from raw datasets')
         # load raw dataset
         logger.info('Loading raw datasets')
-        raw_datasets = datasets.load_dataset(
-            data_args.dataset_name,
-            data_args.dataset_config_name,
-            cache_dir=model_args.cache_dir,
-        )
+        if data_args.train_file is not None or data_args.eval_file is not None:
+            raw_datasets = {}
+            if data_args.train_file is not None:
+                raw_datasets["train"] = datasets.load_dataset(data_args.data_file_format, data_files={"train": data_args.train_file}, split="train")
+            if data_args.eval_file is not None:
+                raw_datasets["validation"] = datasets.load_dataset(data_args.data_file_format, data_files={"validation": data_args.eval_file}, split="validation")
+
+        else:
+            if data_args.dataset_name == "natural_questions":
+                raw_datasets = datasets.load_dataset(
+                    data_args.dataset_name,
+                    data_args.dataset_config_name,
+                    cache_dir=model_args.cache_dir,
+                    beam_runner=data_args.beam_runner,
+                    revision="main"
+                )
+            else:
+                raw_datasets = datasets.load_dataset(
+                    data_args.dataset_name,
+                    data_args.dataset_config_name,
+                    cache_dir=model_args.cache_dir
+                )
 
         original_train_set = raw_datasets["train"]
         split_train_set = original_train_set.train_test_split(test_size=data_args.relative_confidence_train_size)
@@ -357,9 +471,20 @@ def main():
         max_contexts=data_args.max_contexts,
     )
 
+    # if filtering, check that both column name and column values are provided
+    if data_args.dataset_filter_column_values is not None:
+        if data_args.dataset_filter_column_name is None:
+            raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
+                      "requires --dataset_filter_column_name to be provided.")
+
     # process train data
     if training_args.do_train:
         train_dataset = confidence_datasets["mrc_train"]
+        if data_args.dataset_filter_column_values is not None:
+            logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+            train_dataset = train_dataset.shuffle(seed=training_args.seed)
+            logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
         max_train_samples = data_args.max_train_samples
         if max_train_samples is not None:
             # We will select sample from whole data if argument is specified
@@ -371,6 +496,10 @@ def main():
     # process val and confidence data
     if training_args.do_eval:
         eval_examples = confidence_datasets["validation"]
+        if data_args.dataset_filter_column_values is not None:
+            logger.info(f"Filter EVAL dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            eval_examples = eval_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+            logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:
             # We will select sample from whole data if argument is specified
@@ -380,6 +509,10 @@ def main():
             eval_examples, eval_dataset = preprocessor.process_eval(eval_examples)
 
         conf_examples = confidence_datasets["confidence_train"]
+        if data_args.dataset_filter_column_values is not None:
+            logger.info(f"Filter confidence model train dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
+            conf_examples = conf_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+            logger.info(f"Filtered confidence model train dataset size {conf_examples.num_rows}")
         max_eval_samples = data_args.max_eval_samples
         if max_eval_samples is not None:  # data_args.max_eval_samples is not None:
             # We will select sample from whole data
@@ -408,10 +541,13 @@ def main():
         output_confidence_feature = output_confidence_feature,
     )
 
-    eval_metrics = task_args.eval_metrics()
+    eval_metrics = getattr(sys.modules[__name__], task_args.eval_metrics)()
 
     def compute_metrics(p: EvalPredictionWithProcessing):
-        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids)
+        return eval_metrics.compute(predictions=p.processed_predictions, references=p.label_ids,
+            passage_non_null_threshold=task_args.passage_non_null_threshold,
+            span_non_null_threshold=task_args.span_non_null_threshold,verbose=task_args.verbose,
+            dataset_config_name = eval_dataset.config_name)
 
     trainer = MRCTrainer(
         model=model,
