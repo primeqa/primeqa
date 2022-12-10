@@ -47,7 +47,8 @@ class TextClassifierReader(ReaderComponent):
     """
 
     model: str = field(
-        default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
+        #default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
+        default='foo',
         metadata={"name": "Model", "api_support": True},
     )
     use_fast: bool = field(
@@ -128,8 +129,8 @@ class TextClassifierReader(ReaderComponent):
         default='True False',
         metadata={
             "name": "mapping of numeric predictions to labels (for postprocessor)",
-            "api_support": False,
-            "exclude_from_hash": True,            
+            "api_support": True,
+            "exclude_from_hash": False,
         },        
     )
 
@@ -156,10 +157,10 @@ class TextClassifierReader(ReaderComponent):
         )
 
     def load(self, *args, **kwargs):
-        for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'model_name_or_path']:
+        # TODO should the keys in this file match the other one? model vs model_name_or_path
+        for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'model']:
             if k in kwargs:
                 setattr(self, k, kwargs[k])
-
 
 
         # Load configuration for model
@@ -271,119 +272,89 @@ class TextClassifierReader(ReaderComponent):
 
         return predictions
 
-# @dataclass
-# class BooleanQTCReader(TextClassifierReader):
-#     """_summary_
+@dataclass
+class BooleanQTCReader(TextClassifierReader):
+    model: str = field(
+        default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
+        metadata={"name": "Model", "api_support": True},
+    )
+    output_label_prefix: str = field(
+        default='qtc',
+        metadata={
+            "name": "prefix for output labels",
+            "api_support": False,
+            "exclude_from_hash": False,       
+        }
+    )    
+    sentence1_key: str = field(
+        default='question',
+        metadata={
+            "name": "sentence1 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
+        },
+    )
+    sentence2_key: str = field(
+        default=None,
+        metadata={
+            "name": "sentence2 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
+        },
+    )
+    label_list_str: str = field(
+        default='factoid boolean',
+        metadata={
+            "name": "mapping of numeric predictions to labels (for postprocessor)",
+            "api_support": True,
+            "exclude_from_hash": False,            
+        },        
+    )    
 
-#     Args:
-#         TextClassifierReader (_type_): _description_
-
-#     Returns:
-#         _type_: _description_
-#     """
-
-#     model: str = field(
-#         default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117'
-#         metadata={"name": "Model", "api_support": True},
-#     )
-#     use_fast: bool = field(
-#         default=True,
-#         metadata={
-#             "name": "Use the fast version of the tokenizer",
-#             "options": [True, False],
-#         },
-#     )
-#     max_seq_len: int = field(
-#         default=512,
-#         metadata={
-#             "name": "Maximum sequence length",
-#             "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
-#             "range": [32, 512, 8],
-#         },
-#     )
-#     n_best_size: int = field(
-#         default=20,
-#         metadata={
-#             "name": "N",
-#             "description": "Maximum number of start/end logits to consider (max values)",
-#             "range": [1, 50, 1],
-#         },
-#     )
-#     max_num_answers: int = field(
-#         default=3,
-#         metadata={
-#             "name": "Maximum number of answers",
-#             "range": [1, 5, 1],
-#             "api_support": True,
-#             "exclude_from_hash": True,
-#         },
-#     )
-#     max_answer_length: int = field(
-#         default=1000,
-#         metadata={
-#             "name": "Maximum answer length",
-#             "range": [2, 2000, 2],
-#             "api_support": True,
-#             "exclude_from_hash": True,
-#         },
-#     )
-#     id_key: str = field(
-#         default='example_id',
-#         metadata={
-#             "name": "unique identifier for examples",
-#             "api_support": False,
-#             "exclude_from_hash": True,                
-#         }
-#     )
-#     output_label_prefix: str = field(
-#         default='qtc',
-#         metadata={
-#             "name": "prefix for output labels",
-#             "api_support": False,
-#             "exclude_from_hash": False,       
-#         }
-#     )    
-#     sentence1_key: str = field(
-#         default='question',
-#         metadata={
-#             "name": "sentence1 key for preprocessor",
-#             "api_support": False,
-#             "exclude_from_hash": True,            
-#         },
-#     )
-#     sentence2_key: str = field(
-#         default=None,
-#         metadata={
-#             "name": "sentence2 key for preprocessor",
-#             "api_support": False,
-#             "exclude_from_hash": True,            
-#         },
-#     )
-#     label_list: List = field(
-#         default_factory = lambda: ["boolean", "factoid"],
-#         metadata={
-#             "name": "mapping of numeric predictions to labels (for postprocessor)",
-#             "api_support": False,
-#             "exclude_from_hash": True,            
-#         },        
-#     )
+    def __hash__(self) -> int:
+        return super().__hash__()
 
 
 
-#     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
-#         prediction_output = super._predict(input_texts, context, args, kwargs)
+@dataclass
+class BooleanEVCReader(TextClassifierReader):
+    model: str = field(
+        default='PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117',
+        metadata={"name": "Model", "api_support": True},
+    )
+    output_label_prefix: str = field(
+        default='qtc',
+        metadata={
+            "name": "prefix for output labels",
+            "api_support": False,
+            "exclude_from_hash": False,       
+        }
+    )    
+    sentence1_key: str = field(
+        default='question',
+        metadata={
+            "name": "sentence1 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
+        },
+    )
+    sentence2_key: str = field(
+        default='context',
+        metadata={
+            "name": "sentence2 key for preprocessor",
+            "api_support": False,
+            "exclude_from_hash": True,            
+        },
+    )
+    label_list_str: str = field(
+        default='no yes',
+        metadata={
+            "name": "mapping of numeric predictions to labels (for postprocessor)",
+            "api_support": True,
+            "exclude_from_hash": False,            
+        },        
+    )    
 
-#         predictions = [[] for _ in range(len(input_texts))]
-#         for passage_idx, raw_predictions in prediction_output.predictions.items():
-#             for raw_prediction in raw_predictions:
-#                 processed_prediction = {}
-#                 processed_prediction["example_id"] = raw_prediction["example_id"]
-#                 processed_prediction["span_answer_text"] = raw_prediction[
-#                     "qtc_pred"
-#                 ]
-#                 processed_prediction["span_answer"] = {'start_position':0, 'end_position':0}
-#                 processed_prediction["confidence_score"] = np.float64(0.0)
-#                 predictions[int(passage_idx)].append(processed_prediction)
+    def __hash__(self) -> int:
+        return super().__hash__()
 
-#         return predictions        
-    
