@@ -4,7 +4,7 @@ Before continuing below make sure you have PrimeQA [installed](https://primeqa.g
 
 
 ## TAPEX based TableQA models
-### Training Tapex based Table Question Answering model using PrimeQA on wikitablequestions dataset
+### Training TAPEX based Table Question Answering model using PrimeQA on wikitablequestions dataset
 
 ```
 python run_tapex.py \
