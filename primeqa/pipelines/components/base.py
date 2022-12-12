@@ -54,6 +54,19 @@ class IndexerComponent(Component):
     @abstractmethod
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
+    
+    @abstractmethod    
+    def get_engine_type() -> str:
+        """
+        Return this retriever engine type. Must match with the retriever tha will be used to query the index.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            str: engine type
+        """
+        raise NotImplementedError
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -91,3 +104,16 @@ class RetrieverComponent(Component):
     @abstractmethod
     def retrieve(self, queries: List[str], *args, **kwargs):
         pass
+    
+    @abstractmethod
+    def get_engine_type() -> str:
+        """
+        Return this retriever engine type. Must match with the indexer used to generate the index.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            str: engine type
+        """
+        raise NotImplementedError

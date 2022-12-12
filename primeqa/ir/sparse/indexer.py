@@ -90,5 +90,6 @@ class PyseriniIndexer:
         logger.info(f"Index {index_path} contains {searcher.num_docs} documents")
         assert(searcher.num_docs == num_docs)
         logging.info(f"Index available at {index_path}")
+        searcher.close()
         return rc
 

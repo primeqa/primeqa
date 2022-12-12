@@ -53,6 +53,7 @@ class BM25Retriever(RetrieverComponent):
 
     def __post_init__(self):
         # Placeholder variables
+        self._index_path=f"{self.index_root}/{self.index_name}"
         self._searcher = None
         
     def __hash__(self) -> int:
@@ -70,7 +71,7 @@ class BM25Retriever(RetrieverComponent):
         )
 
     def load(self, *args, **kwargs):
-        self._searcher = PyseriniRetriever(self.index_root)
+        self._searcher = PyseriniRetriever(self._index_path)
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
         qids = [str(idx) for  idx, query in enumerate(input_texts) ]
@@ -79,3 +80,6 @@ class BM25Retriever(RetrieverComponent):
             [(result['doc_id'], result['score']) for result in results_per_query]
             for results_per_query in hits.values()
         ]
+    
+    def get_engine_type(self):
+        return "BM25"
