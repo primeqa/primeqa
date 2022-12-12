@@ -247,11 +247,8 @@ class ExtractiveReader(ReaderComponent):
 
         eval_examples = Dataset.from_dict(examples_dict)
 
-<<<<<<< HEAD
         eval_examples = Dataset.from_dict(examples_dict)
 
-=======
->>>>>>> 8cfd0f9c (apply returns a dict with example id as key)
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
