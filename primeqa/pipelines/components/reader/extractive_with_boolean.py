@@ -1,6 +1,7 @@
 from typing import List
 from dataclasses import dataclass, field
 import json
+import numpy as np
 
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
@@ -14,6 +15,7 @@ from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.pipelines.components.reader.text_classifier_reader import TextClassifierReader
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+from primeqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
 
 
 @dataclass
@@ -127,6 +129,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         self._preprocessor = None
         self._scorer_type_as_enum = None
         self._data_collector = None
+        self._scoreNormalizer = None
 
         self._extractiveReader = ExtractiveReader()
         self._booleanQTCReader = TextClassifierReader()
@@ -156,6 +159,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         boolean_config=json.load(open(self.boolean_config))
         qtc_config=boolean_config['qtc']
         evc_config=boolean_config['evc']
+        sn_config=boolean_config['sn']
         # TODO this in config file?
         mrc_config_dict={ k:getattr(self,k) for k in self.__class__.__dataclass_fields__.keys() }
 
@@ -163,21 +167,76 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         self._booleanQTCReader.load(args, **qtc_config)
         self._booleanEVCReader.load(args, **evc_config)
 
+        self._scoreNormalizer = ScoreNormalizer(sn_config['model_name_or_path'])
+        self._scoreNormalizer.load_model()        
+
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
-        extractive_predictions=self._extractiveReader.apply(input_texts, context, args, kwargs)
+        min_score_threshold = (
+            kwargs["min_score_threshold"]
+            if "min_score_threshold" in kwargs
+            else self.min_score_threshold
+        )
+
+
+        predict_output=self._extractiveReader._predict(input_texts, context, args, kwargs)
+
         qtc_prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
         evc_prediction_output=self._booleanEVCReader._predict(input_texts, context, args, kwargs)
 
         qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
         evc_pred_key=self._booleanEVCReader.output_label_prefix+"_pred"
 
+        predictions = [[] for _ in range(len(input_texts))]
 
-        for extractive_prediction in extractive_predictions:
-            xp=extractive_prediction[0]
-            qtcp = qtc_prediction_output.predictions[xp['example_id']][0][qtc_pred_key]
-            evcp = evc_prediction_output.predictions[xp['example_id']][0][evc_pred_key]
-            mrcp = xp['span_answer_text']
-            xp['span_answer_text'] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
+        for passage_idx, raw_predictions in predict_output.items():
+            qtcp = qtc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][qtc_pred_key]
+            evcp = evc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][evc_pred_key]            
+            for idx, raw_prediction in enumerate(raw_predictions):
+                processed_prediction = {}
+                processed_prediction["example_id"] = raw_prediction["example_id"]
+                mrcp = raw_prediction['span_answer_text']
+                print(idx)
+                if idx==0:
+                    processed_prediction["span_answer_text"] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
+                else:
+                    processed_prediction["span_answer_text"] = mrcp
+                processed_prediction["span_answer"] = raw_prediction["span_answer"]
+                # processed_prediction["confidence_score"] = raw_prediction[
+                #    "confidence_score"
+                # ]
+                # handle score normalizer here
+                processed_prediction["confidence_score"] = self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")
 
 
-        return extractive_predictions
+                predictions[int(passage_idx)].append(processed_prediction)
+
+
+        # Step 6: If min_score_threshold is provide, use it to filter out predictions
+        if min_score_threshold:
+            filtered_predictions = []
+            for sorted_predictions_for_passage in predictions:
+                filtered_predictions_for_passage = []
+                for sorted_prediction in sorted_predictions_for_passage:
+                    if sorted_prediction["confidence_score"] >= min_score_threshold:
+                        filtered_predictions_for_passage.append(sorted_prediction)
+
+                filtered_predictions.append(filtered_predictions_for_passage)
+            return filtered_predictions
+        else:
+            return predictions
+
+
+        return predictions
+
+    def _handle_boolean_score_normalizer(self, qa_pred: dict, question_label : int ) -> float :
+        b_score = qa_pred['start_logit']
+        e_score = qa_pred['end_logit']
+        na_score = qa_pred['target_type_logits'][0] if 'target_type_logits' in  qa_pred else 0.0
+        #question_label = 1 if qa_pred['question_type_pred'] == qtc_is_boolean_label else 0
+        feature_list = [question_label,b_score,e_score,na_score]
+        features = np.array(feature_list).reshape(1, -1)
+        new_score = self._scoreNormalizer._model.predict_proba(features)[0][1]
+        return new_score
+
+
+
