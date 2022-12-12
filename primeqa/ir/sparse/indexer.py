@@ -29,8 +29,8 @@ class PyseriniIndexer:
         rc = process.wait()
         return rc
 
-    def _preprocess_corpus(self, corpus_path, tmpdirname, fieldnames=None):
-        reader = corpus_reader(corpus_path, fieldnames=fieldnames)
+    def _preprocess_corpus(self, collection, tmpdirname, fieldnames=None):
+        reader = corpus_reader(collection, fieldnames=fieldnames)
         outf = open( os.path.join(tmpdirname,"corpus_pyserini_fmt.jsonl"), 'w' )
         num_docs = 0
         for passage in tqdm(reader):
@@ -53,7 +53,7 @@ class PyseriniIndexer:
 
 
         Args:
-            corpus_path (str) : path to file or directory of documents in tsv or jsonl format.
+            collection (str) : path to file or directory of documents in tsv or jsonl format.
             index_path (str) : output directory path where the index is written
             fieldnames ( List, Optional): column headers to be assigned to tsv without headers
             overwrite (bool, Optional): overwrite an existing directory, defaults to false
@@ -64,7 +64,7 @@ class PyseriniIndexer:
 
 
         """
-    def index_collection(self, corpus_path: str, index_path: str, fieldnames=None, overwrite=False, 
+    def index_collection(self, collection: str, index_path: str, fieldnames=None, overwrite=False, 
             threads=1, additional_index_cmd_args='--storePositions --storeDocvectors --storeRaw' ):
         if not overwrite and os.path.exists(index_path) and os.listdir(index_path) :
             raise ValueError(f"Index path not empty '{index_path}' and overwrite not specified")
@@ -73,7 +73,7 @@ class PyseriniIndexer:
         # create temporary subdirectory for the corpus
         with tempfile.TemporaryDirectory(prefix='tmp',dir=index_path) as tmpdirname:
             # convert corpus documents to pyserini jsonl
-            num_docs = self._preprocess_corpus(corpus_path, tmpdirname, fieldnames=fieldnames)
+            num_docs = self._preprocess_corpus(collection, tmpdirname, fieldnames=fieldnames)
             # build index command
             cmd1 = f'python -m pyserini.index.lucene -collection JsonCollection ' + \
                 f'-generator DefaultLuceneDocumentGenerator ' + \

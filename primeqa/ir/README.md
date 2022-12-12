@@ -169,7 +169,7 @@ The following command builds an index for BM25 retrieval.
 python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type BM25 \
-    --corpus_path <document_collection> \
+    --collection <document_collection> \
     --index_path <index_dir>
     --threads <num_threads>
 ```
