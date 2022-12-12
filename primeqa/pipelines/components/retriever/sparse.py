@@ -1,7 +1,9 @@
 from typing import List
 from dataclasses import dataclass, field
+import json
 
 from primeqa.pipelines.components.base import RetrieverComponent
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 
 @dataclass
@@ -29,22 +31,51 @@ class BM25Retriever(RetrieverComponent):
             "description": "Path to root directory where index is stored",
         },
     )
-    index_name: str = field(
-        metadata={
-            "name": "Index name",
-        },
-    )
+
     max_num_documents: int = field(
         default=5,
-        metadata={"name": "Maximum number of documents", "range": [1, 100, 1]},
+        metadata={
+            "name": "Maximum number of retrieved documents",
+            "range": [1, 100, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
+    )
+    
+    num_workers: int = field(
+        default=1,
+        metadata={
+            "name": "Num worker threads",
+            "range": [1, 100, 1],
+            "exclude_from_hash": True,
+        },
     )
 
     def __post_init__(self):
         # Placeholder variables
         self._searcher = None
+        
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields}, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
-        pass
+        self._searcher = PyseriniRetriever(self.index_root)
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
-        pass
+        qids = [str(idx) for  idx, query in enumerate(input_texts) ]
+        hits = self._searcher.batch_retrieve(input_texts, qids, topK=self.max_num_documents, threads=self.num_workers)
+        return [
+            [(result['doc_id'], result['score']) for result in results_per_query]
+            for results_per_query in hits.values()
+        ]

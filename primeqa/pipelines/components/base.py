@@ -89,5 +89,5 @@ class RetrieverComponent(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
+    def retrieve(self, queries: List[str], *args, **kwargs):
         pass
