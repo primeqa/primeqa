@@ -187,7 +187,7 @@ class ExtractiveReader(ReaderComponent):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def _predict(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -199,12 +199,6 @@ class ExtractiveReader(ReaderComponent):
             kwargs["max_answer_length"]
             if "max_answer_length" in kwargs
             else self.max_answer_length
-        )
-
-        min_score_threshold = (
-            kwargs["min_score_threshold"]
-            if "min_score_threshold" in kwargs
-            else self.min_score_threshold
         )
 
         # Step 2: Initialize post processor
@@ -236,10 +230,21 @@ class ExtractiveReader(ReaderComponent):
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
+        predict_output=trainer.predict(eval_dataset=eval_dataset, eval_examples=eval_examples)
+        return predict_output
+
+
+
+    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        min_score_threshold = (
+            kwargs["min_score_threshold"]
+            if "min_score_threshold" in kwargs
+            else self.min_score_threshold
+        )
+
         predictions = [[] for _ in range(len(input_texts))]
-        for passage_idx, raw_predictions in trainer.predict(
-            eval_dataset=eval_dataset, eval_examples=eval_examples
-        ).items():
+        predict_output=self._predict(input_texts, context, args, kwargs)
+        for passage_idx, raw_predictions in predict_output.items():
             for raw_prediction in raw_predictions:
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
