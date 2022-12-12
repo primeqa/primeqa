@@ -15,6 +15,7 @@ from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
 from primeqa.pipelines.components.retriever.sparse import BM25Retriever
 
 from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
+from primeqa.pipelines.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
@@ -27,6 +28,7 @@ RETRIEVERS_REGISTRY = {
 
 INDEXERS_REGISTRY = {
     ColBERTIndexer.__name__: ColBERTIndexer,
+    BM25Indexer.__name__: BM25Indexer,
 }
 
 
