@@ -6,7 +6,7 @@ from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus
+from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus, ATTR_ENGINE_TYPE
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -153,6 +153,7 @@ class IndexerService(IndexerServicer):
             )
 
         # Step 3: Save index information
+        index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
         self._store.save_index_information(
             index_id=index_information[ATTR_INDEX_ID],
             information=index_information,
@@ -180,6 +181,7 @@ class IndexerService(IndexerServicer):
                 index_information[ATTR_INDEX_ID],
             )
             logging.exception(err.args[0])
+
 
         self._store.save_index_information(
             index_information[ATTR_INDEX_ID], information=index_information
