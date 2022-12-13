@@ -11,6 +11,7 @@ from primeqa.pipelines.components.base import (
 )
 from primeqa.pipelines.components.reader.extractive import ExtractiveReader
 from primeqa.pipelines.components.reader.extractive_with_boolean import ExtractiveWithBooleanReader
+from primeqa.pipelines.components.reader.adapter_extractive_with_boolean import AdapterExtractiveWithBooleanReader
 from primeqa.pipelines.components.reader.text_classifier_reader import TextClassifierReader, BooleanQTCReader, BooleanEVCReader
 from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
 
@@ -22,6 +23,7 @@ READERS_REGISTRY = {
     BooleanQTCReader.__name__: BooleanQTCReader,
     BooleanEVCReader.__name__: BooleanEVCReader,
     ExtractiveWithBooleanReader.__name__:ExtractiveWithBooleanReader,
+    AdapterExtractiveWithBooleanReader.__name__:AdapterExtractiveWithBooleanReader
 }
 
 RETRIEVERS_REGISTRY = {

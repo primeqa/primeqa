@@ -15,7 +15,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 @dataclass
-class ExtractiveReader(ReaderComponent):
+class AdapterExtractiveReader(ReaderComponent):
     """_summary_
 
     Args:
@@ -135,6 +135,7 @@ class ExtractiveReader(ReaderComponent):
             f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
         )
 
+
     def init_from_dict(self, dict):
         for k in ['model', 'use_fast', 'stride', 'max_seq_len', 'n_best_size', 'max_num_answers', 'max_answer_length',
             'scorer_type', 'min_score_threshold']:
@@ -143,7 +144,10 @@ class ExtractiveReader(ReaderComponent):
 
 
     def load(self, *args, **kwargs):
-        task_heads = EXTRACTIVE_HEAD
+        if 'task_heads' in kwargs:
+            task_heads=kwargs['task_heads']
+        else:
+            task_heads = EXTRACTIVE_HEAD
         # Load configuration for model
         config = AutoConfig.from_pretrained(self.model)
 
@@ -157,7 +161,7 @@ class ExtractiveReader(ReaderComponent):
         config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
             self._tokenizer.sep_token
         )
-        print('extractive: ', self.model)
+        print('adapter extractive: ', self.model)
         self._loaded_model = ModelForDownstreamTasks.from_config(
             config,
             self.model,
@@ -238,6 +242,8 @@ class ExtractiveReader(ReaderComponent):
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
+        self._loaded_model.set_task_head('qa_head')
+        self._loaded_model.set_active_adapters([])       
         predict_output=trainer.predict(eval_dataset=eval_dataset, eval_examples=eval_examples)
         return predict_output
 

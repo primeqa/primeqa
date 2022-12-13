@@ -49,7 +49,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         metadata={"name": "Model", "api_support": True},
     )
     model: str = field(
-        default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+        default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
         metadata={"name": "Model", "api_support": True},
     )    
     use_fast: bool = field(
@@ -161,9 +161,11 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         evc_config=boolean_config['evc']
         sn_config=boolean_config['sn']
         # TODO this in config file?
+        # dispatch parameters to the underlying extractiveReader        
         mrc_config_dict={ k:getattr(self,k) for k in self.__class__.__dataclass_fields__.keys() }
 
-        self._extractiveReader.load(args, **mrc_config_dict)
+        self._extractiveReader.init_from_dict(mrc_config_dict)
+        self._extractiveReader.load(args, kwargs)
         self._booleanQTCReader.load(args, **qtc_config)
         self._booleanEVCReader.load(args, **evc_config)
 
@@ -189,6 +191,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         predictions = [[] for _ in range(len(input_texts))]
 
         for passage_idx, raw_predictions in predict_output.items():
+            print(json.dumps(raw_predictions, indent=4))
             qtcp = qtc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][qtc_pred_key]
             evcp = evc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][evc_pred_key]            
             for idx, raw_prediction in enumerate(raw_predictions):

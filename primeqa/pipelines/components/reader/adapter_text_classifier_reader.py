@@ -3,9 +3,11 @@ from dataclasses import dataclass, field
 import json
 import numpy as np
 import pandas as pd
+import torch
 
 from transformers import (
     AutoConfig, 
+    AdapterConfig,
     AutoTokenizer, 
     DataCollatorWithPadding, 
     AutoModelForSequenceClassification
@@ -21,7 +23,7 @@ from primeqa.text_classification.trainers.nway import NWayTrainer
 
 
 @dataclass
-class TextClassifierReader(ReaderComponent):
+class AdapterTextClassifierReader(ReaderComponent):
     # TODO update summary
     """_summary_
 
@@ -47,7 +49,7 @@ class TextClassifierReader(ReaderComponent):
         _type_: _description_
     """
 
-    model: str = field(
+    adapter_model: str = field(
         #default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
         default='foo',
         metadata={"name": "Model", "api_support": True},
@@ -159,27 +161,63 @@ class TextClassifierReader(ReaderComponent):
 
     def load(self, *args, **kwargs):
         # TODO should the keys in this file match the other one? model vs model_name_or_path
-        for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'model']:
+        for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'adapter_model', '_tokenizer', '_loaded_model']:
             if k in kwargs:
                 setattr(self, k, kwargs[k])
 
+        # TODO this is ugly
+        if self.output_label_prefix=='question_type':
+            self._head_key='qtc_head'
+            self._adapter_key='qtc'
+        elif self.output_label_prefix=='boolean_answer':
+            self._head_key='evc_head'
+            self._adapter_key='evc'
 
         # Load configuration for model
-        config = AutoConfig.from_pretrained(self.model)
+        # config = AutoConfig.from_pretrained(self.model)
 
         # Initialize tokenizer
-        self._tokenizer = AutoTokenizer.from_pretrained(
-            self.model,
-            use_fast=self.use_fast,
-            config=config,
-        )
+        # self._tokenizer = kwargs['tokenizer']
+        # self._tokenizer = AutoTokenizer.from_pretrained(
+        #     self.model,
+        #     use_fast=self.use_fast,
+        #     config=config,
+        # )
     
 
-        config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
-            self._tokenizer.sep_token
+        #config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
+        #    self._tokenizer.sep_token
+        #)
+
+
+        adapter_config = AdapterConfig.load(
+            kwargs['adapter_model'] + '/adapter_config.json',
+            non_linearity=None,  # non_linearity=adapter_args.adapter_non_linearity,
+            reduction_factor=None  # reduction_factor=adapter_args.adapter_reduction_factor,
         )
 
-        self._loaded_model = AutoModelForSequenceClassification.from_pretrained(self.model)        
+        self._loaded_model.roberta.load_adapter(
+            kwargs['adapter_model'],            
+            config=adapter_config,
+            load_as=self._adapter_key,
+        )
+
+        head_wts=torch.load(kwargs['adapter_model'] + '/pytorch_model_head.bin', map_location=torch.device('cpu'))
+
+        # TODO this is ugly
+        mapped_head_wts={
+            'classifier.dense.weight': head_wts['task_heads.qa_head.classifier.dense.weight'],
+            'classifier.dense.bias': head_wts['task_heads.qa_head.classifier.dense.bias'],
+            'classifier.out_proj.weight': head_wts['task_heads.qa_head.classifier.out_proj.weight'],
+            'classifier.out_proj.bias': head_wts['task_heads.qa_head.classifier.out_proj.bias']
+        }
+        if self._head_key=='qtc_head':
+            self._loaded_model.task_heads.qtc_head.load_state_dict(mapped_head_wts)
+        elif self._head_key=='evc_head':
+            self._loaded_model.task_heads.evc_head.load_state_dict(mapped_head_wts)
+         #  self._loaded_model = AutoModelForSequenceClassification.from_pretrained(self.model)        
+
+
 
         self._preprocessor = TextClassifierPreProcessor(
             sentence1_key=self.sentence1_key,
@@ -215,7 +253,7 @@ class TextClassifierReader(ReaderComponent):
 
         postprocessor = TextClassifierPostProcessor(
             k=max_num_answers, 
-            drop_label=None,  # TODO pass arg
+            drop_label=None,
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
             label_list = self.label_list,
@@ -252,6 +290,8 @@ class TextClassifierReader(ReaderComponent):
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
+        self._loaded_model.set_task_head(self._head_key)
+        self._loaded_model.set_active_adapters([self._adapter_key])
         prediction_output=trainer.predict(eval_dataset, eval_examples)
         return prediction_output
 
@@ -264,7 +304,6 @@ class TextClassifierReader(ReaderComponent):
             for raw_prediction in raw_predictions:
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
-                # TODO qtc?
                 processed_prediction["span_answer_text"] = raw_prediction[
                     "qtc_pred"
                 ]
@@ -275,7 +314,7 @@ class TextClassifierReader(ReaderComponent):
         return predictions
 
 @dataclass
-class BooleanQTCReader(TextClassifierReader):
+class BooleanQTCReader(AdapterTextClassifierReader):
     model: str = field(
         default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},
@@ -319,7 +358,7 @@ class BooleanQTCReader(TextClassifierReader):
 
 
 @dataclass
-class BooleanEVCReader(TextClassifierReader):
+class BooleanEVCReader(AdapterTextClassifierReader):
     model: str = field(
         default='PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},

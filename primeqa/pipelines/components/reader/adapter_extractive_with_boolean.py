@@ -1,21 +1,26 @@
 from typing import List
 from dataclasses import dataclass, field
 import json
+import numpy as np
 
-from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
+from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding, PretrainedConfig
 from datasets import Dataset
 
 from primeqa.pipelines.components.base import ReaderComponent
-from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, ExtractiveQAHead
+from primeqa.mrc.models.heads.classification import CLASSIFICATION_HEAD, ClassificationHead
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.trainers.mrc import MRCTrainer
+from primeqa.pipelines.components.reader.adapter_text_classifier_reader import AdapterTextClassifierReader
+from primeqa.pipelines.components.reader.adapter_extractive import AdapterExtractiveReader
+from primeqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
 
 
 @dataclass
-class ExtractiveReader(ReaderComponent):
+class AdapterExtractiveWithBooleanReader(ReaderComponent):
     """_summary_
 
     Args:
@@ -40,10 +45,15 @@ class ExtractiveReader(ReaderComponent):
         _type_: _description_
     """
 
-    model: str = field(
-        default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+    boolean_config: str = field(
+        default="tydi_boolqa_config_adapters1.json",
         metadata={"name": "Model", "api_support": True},
     )
+    # model: str = field(
+    #     #default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
+    #     default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
+    #     metadata={"name": "Model", "api_support": True},
+    # )    
     use_fast: bool = field(
         default=True,
         metadata={
@@ -114,12 +124,23 @@ class ExtractiveReader(ReaderComponent):
     )
 
     def __post_init__(self):
+        print('in __post_init__')
         # Placeholder variables
         self._loaded_model = None
         self._tokenizer = None
         self._preprocessor = None
         self._scorer_type_as_enum = None
         self._data_collector = None
+        self._scoreNormalizer = None
+
+        self._extractiveReader = AdapterExtractiveReader()
+        self._booleanQTCReader = AdapterTextClassifierReader()
+        self._booleanEVCReader = AdapterTextClassifierReader()
+        self._extractiveReader.__post_init__()
+        self._booleanQTCReader.__post_init__()
+        self._booleanEVCReader.__post_init__()
+
+
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -135,113 +156,44 @@ class ExtractiveReader(ReaderComponent):
             f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
         )
 
-    def init_from_dict(self, dict):
-        for k in ['model', 'use_fast', 'stride', 'max_seq_len', 'n_best_size', 'max_num_answers', 'max_answer_length',
-            'scorer_type', 'min_score_threshold']:
-            if k in dict:
-                setattr(self, k, dict[k])
-
-
     def load(self, *args, **kwargs):
-        task_heads = EXTRACTIVE_HEAD
-        # Load configuration for model
-        config = AutoConfig.from_pretrained(self.model)
-
-        # Initialize tokenizer
-        self._tokenizer = AutoTokenizer.from_pretrained(
-            self.model,
-            use_fast=self.use_fast,
-            config=config,
-        )
-
-        config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
-            self._tokenizer.sep_token
-        )
-        print('extractive: ', self.model)
-        self._loaded_model = ModelForDownstreamTasks.from_config(
-            config,
-            self.model,
-            task_heads=task_heads,
-        )
-        self._loaded_model.set_task_head(next(iter(task_heads)))
-
-        # Initialize preprocessor
-        self._preprocessor = BasePreProcessor(
-            stride=self.stride,
-            max_seq_len=self.max_seq_len,
-            tokenizer=self._tokenizer,
-        )
-
-        # Configure scorer
-        if self.scorer_type == SupportedSpanScorers.SCORE_DIFF_BASED.value:
-            self._scorer_type_as_enum = SupportedSpanScorers.SCORE_DIFF_BASED
-        elif (
-            self.scorer_type
-            == SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF.value
-        ):
-            self._scorer_type_as_enum = (
-                SupportedSpanScorers.TARGET_TYPE_WEIGHTED_SCORE_DIFF
-            )
-        elif (
-            self.scorer_type
-            == SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value
-        ):
-            self._scorer_type_as_enum = (
-                SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF
-            )
-        else:
-            raise ValueError(f"Unsupported scorer type: {self.scorer_type}")
-
-        # Configure data collector
-        self._data_collector = DataCollatorWithPadding(self._tokenizer)
-
-    def _predict(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
-        # Step 1: Locally update object variable values, if provided
-        max_num_answers = (
-            kwargs["max_num_answers"]
-            if "max_num_answers" in kwargs
-            else self.max_num_answers
-        )
-
-        max_answer_length = (
-            kwargs["max_answer_length"]
-            if "max_answer_length" in kwargs
-            else self.max_answer_length
-        )
-
-        # Step 2: Initialize post processor
-        postprocessor = ExtractivePostProcessor(
-            k=max_num_answers,
-            n_best_size=self.n_best_size,
-            max_answer_length=max_answer_length,
-            scorer_type=self._scorer_type_as_enum,
-            single_context_multiple_passages=self._preprocessor._single_context_multiple_passages,
-        )
-
-        # Step 3: Load trainer
-        trainer = MRCTrainer(
-            model=self._loaded_model,
-            tokenizer=self._tokenizer,
-            data_collator=self._data_collector,
-            post_process_function=postprocessor.process,
-        )
-
-        # Step 4: Prepare dataset from input texts and contexts
-        eval_examples = Dataset.from_dict(
-            dict(
-                question=input_texts,
-                context=context,
-                example_id=[str(idx) for idx in range(len(input_texts))],
-            )
-        )
-
-        eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
-
-        # Step 5: Run predict
-        predict_output=trainer.predict(eval_dataset=eval_dataset, eval_examples=eval_examples)
-        return predict_output
+        # TODO this is restricted to file system
+        boolean_config=json.load(open(self.boolean_config))
+        mrc_config=boolean_config['mrc']
+        qtc_config=boolean_config['qtc']
+        evc_config=boolean_config['evc']
+        sn_config=boolean_config['sn']
 
 
+        # dispatch parameters to the underlying extractiveReader
+        mrc_config_dict={ k:getattr(self,k) for k in self.__class__.__dataclass_fields__.keys() }
+        # overrides from the configuration file
+        for k,v in mrc_config.items():
+            mrc_config_dict[k]=v
+
+        # NOTE: override the number of labels - we can't do this through config argument because its different for the different heads
+        # so we dynamically create inner classes to override one parameter
+        class ClassificationHead_qtc(ClassificationHead):
+            def __init__(self, config: PretrainedConfig):
+                super().__init__(config, num_labels_override=len(qtc_config['label_list']))
+
+        class ClassificationHead_evc(ClassificationHead):
+            def __init__(self, config: PretrainedConfig):
+                super().__init__(config, num_labels_override=len(evc_config['label_list']))
+        task_heads = dict(qa_head=ExtractiveQAHead, qtc_head=ClassificationHead_qtc, evc_head=ClassificationHead_evc)                    
+        mrc_config_dict['task_heads']=task_heads
+
+        self._extractiveReader.init_from_dict(mrc_config_dict)
+        self._extractiveReader.load(args, **mrc_config_dict)
+        qtc_config['_tokenizer']=self._extractiveReader._tokenizer
+        qtc_config['_loaded_model']=self._extractiveReader._loaded_model        
+        self._booleanQTCReader.load(args, **qtc_config)
+        evc_config['_tokenizer']=self._extractiveReader._tokenizer
+        evc_config['_loaded_model']=self._extractiveReader._loaded_model                
+        self._booleanEVCReader.load(args, **evc_config)
+
+        self._scoreNormalizer = ScoreNormalizer(sn_config['model_name_or_path'])
+        self._scoreNormalizer.load_model()        
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         min_score_threshold = (
@@ -250,20 +202,40 @@ class ExtractiveReader(ReaderComponent):
             else self.min_score_threshold
         )
 
+
+        predict_output=self._extractiveReader._predict(input_texts, context, args, kwargs)
+        qtc_prediction_output=self._booleanQTCReader._predict(input_texts, 
+                        context, args, kwargs)
+        evc_prediction_output=self._booleanEVCReader._predict(input_texts, context, args, kwargs)
+
+        qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
+        evc_pred_key=self._booleanEVCReader.output_label_prefix+"_pred"
+
         predictions = [[] for _ in range(len(input_texts))]
-        predict_output=self._predict(input_texts, context, args, kwargs)
+
         for passage_idx, raw_predictions in predict_output.items():
-            for raw_prediction in raw_predictions:
+            print(json.dumps(raw_predictions, indent=4))
+            qtcp = qtc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][qtc_pred_key]
+            evcp = evc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][evc_pred_key]            
+            for idx, raw_prediction in enumerate(raw_predictions):
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
-                processed_prediction["span_answer_text"] = raw_prediction[
-                    "span_answer_text"
-                ]
+                mrcp = raw_prediction['span_answer_text']
+                print(idx)
+                if idx==0:
+                    processed_prediction["span_answer_text"] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
+                else:
+                    processed_prediction["span_answer_text"] = mrcp
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
-                processed_prediction["confidence_score"] = raw_prediction[
-                    "confidence_score"
-                ]
+                # processed_prediction["confidence_score"] = raw_prediction[
+                #    "confidence_score"
+                # ]
+                # handle score normalizer here
+                processed_prediction["confidence_score"] = self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")
+
+
                 predictions[int(passage_idx)].append(processed_prediction)
+
 
         # Step 6: If min_score_threshold is provide, use it to filter out predictions
         if min_score_threshold:
@@ -278,3 +250,19 @@ class ExtractiveReader(ReaderComponent):
             return filtered_predictions
         else:
             return predictions
+
+
+        return predictions
+
+    def _handle_boolean_score_normalizer(self, qa_pred: dict, question_label : int ) -> float :
+        b_score = qa_pred['start_logit']
+        e_score = qa_pred['end_logit']
+        na_score = qa_pred['target_type_logits'][0] if 'target_type_logits' in  qa_pred else 0.0
+        #question_label = 1 if qa_pred['question_type_pred'] == qtc_is_boolean_label else 0
+        feature_list = [question_label,b_score,e_score,na_score]
+        features = np.array(feature_list).reshape(1, -1)
+        new_score = self._scoreNormalizer._model.predict_proba(features)[0][1]
+        return new_score
+
+
+
