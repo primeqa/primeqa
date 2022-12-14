@@ -2,6 +2,9 @@ from primeqa.qg.models.passage_qg.answer_sampler import AnswerSampler
 from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
 from primeqa.qg.utils.constants import QGSpecialTokens
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from torch import cuda
+import torch
+
 
 
 class QGModel():
@@ -12,8 +15,9 @@ class QGModel():
         Args:
             model_path (str): Either Name of the model or the path to the pre-trained model
             modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'.
-        """        
-        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        """
+        self._device = torch.device('cuda') if cuda.is_available() else torch.device('cpu')
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to(self._device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
         
         special_tokens_list = []
@@ -63,7 +67,7 @@ class QGModel():
                 num_where_prob=[], 
                 ineq_prob=0.0,
                 answers_list=[],
-                id_list=[]):
+                id_list=[],num_beams=10):
                 
         if type(data_list) == dict:
             data_list = [data_list]
@@ -77,11 +81,11 @@ class QGModel():
         input_ids = self._tokenizer(input_str_list, 
             return_tensors='pt', 
             padding=True,
-            truncation=True).input_ids
-
+            truncation=True).to(self._device).input_ids
+        
         generated_ids = self._model.generate(input_ids,
             max_length=60, 
-            num_beams=10,
+            num_beams=num_beams,
             repetition_penalty=2.5,
             length_penalty=1.0,
             early_stopping=True)

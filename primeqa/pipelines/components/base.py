@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Dict
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -26,7 +26,14 @@ class ReaderComponent(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs
+    ) -> Dict[str, List[Dict]]:
         pass
 
 
@@ -60,6 +67,11 @@ class RetrieverComponent(Component):
     index_name: str = field(
         metadata={
             "name": "Index name",
+        },
+    )
+    collection: str = field(
+        metadata={
+            "name": "The corpus file split in paragraphs",
         },
     )
 
