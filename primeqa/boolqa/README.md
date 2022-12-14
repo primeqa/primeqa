@@ -153,7 +153,8 @@ Span scores may have different dynamic ranges according as whether the question 
 and output a file suitable for the TyDiQA evaluation script.
 Warning: The score normalizer was developed for a leaderboard submission with a hidden test set.
 
-the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evalutation of the submission is on the leaderboard itself.
+Therefore, the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evaluation of the submission is on the leaderboard itself.
+
 Another fair evalutation is on the other half of the dev set - for details, see [training](../../examples/boolqa/README.md) 
 
 
