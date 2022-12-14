@@ -151,6 +151,10 @@ python primeqa/text_classification/run_nway_classifier.py \
 
 Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to `[0,1]`.
 and output a file suitable for the TyDiQA evaluation script.
+Warning: Because the score normalizer was developed for a leaderboard submission with hidden test set,
+the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evalutation of the submission is on the leaderboard itself.
+Another fair evalutation is on the other half of the dev set - for details, see [training](../../examples/boolqa/README.md) 
+
 
 ```shell
 python primeqa/boolqa/run_score_normalizer.py \
