@@ -1,6 +1,6 @@
 # Training a full TyDiQA model
 
-Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDiQA leaderboard on 11/1/2022.
+Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDiQA [leaderboard](https://ai.google.com/research/tydiqa) on 11/1/2022.
 This model has full support for boolean questions.  For simplified inference-only TyDiQA with suppport for boolean questions using earlier models,
 please see [here](../../primeqa/boolqa/README.md).
 Training this model is a multistage process:
