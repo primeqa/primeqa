@@ -7,7 +7,7 @@
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117"
+        "model_name_or_path": "PrimeQA/tydi-boolean_question_classifier-xlmr_large-20221117"
     },
     "evc": {
         "id_key": "example_id",
@@ -17,7 +17,7 @@
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117"
+        "model_name_or_path": "PrimeQA/tydi-boolean_answer_classifier-xlmr_large-20221117"
     },
     "sn": {
 	    "do_apply": true,

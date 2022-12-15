@@ -25,7 +25,7 @@ that maps the passage answer begin and ends as the reference for training exampl
 epochs=1
 seed=42
 lr=1e-5
-BASE_MODEL=
+BASE_MODEL=PrimeQA/nq_tydi-reader-xlmr_large-20221210
 python primeqa/mrc/run_mrc.py \
   --model_name_or_path  ${BASE_MODEL} \
   --output_dir ${OUTPUT_DIR} --fp16 --learning_rate ${lr} \
