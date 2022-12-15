@@ -16,6 +16,7 @@ primeqa.pipelines.components.indexer.sparse.BM25Indexer
    .. autosummary::
       :nosignatures:
    
+      ~BM25Indexer.get_engine_type
       ~BM25Indexer.index
       ~BM25Indexer.load
    
@@ -27,6 +28,8 @@ primeqa.pipelines.components.indexer.sparse.BM25Indexer
 
    .. autosummary::
    
+      ~BM25Indexer.additional_index_args
+      ~BM25Indexer.num_workers
       ~BM25Indexer.index_root
       ~BM25Indexer.index_name
    

@@ -16,6 +16,7 @@ primeqa.pipelines.components.retriever.sparse.BM25Retriever
    .. autosummary::
       :nosignatures:
    
+      ~BM25Retriever.get_engine_type
       ~BM25Retriever.load
       ~BM25Retriever.retrieve
    
@@ -28,6 +29,7 @@ primeqa.pipelines.components.retriever.sparse.BM25Retriever
    .. autosummary::
    
       ~BM25Retriever.max_num_documents
+      ~BM25Retriever.num_workers
       ~BM25Retriever.index_root
       ~BM25Retriever.index_name
       ~BM25Retriever.collection

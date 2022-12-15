@@ -435,10 +435,17 @@
 <h1>primeqa.pipelines.components.indexer.sparse.BM25Indexer<a class="headerlink" href="#primeqa-pipelines-components-indexer-sparse-bm25indexer" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="primeqa.pipelines.components.indexer.sparse.BM25Indexer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.pipelines.components.indexer.sparse.</span></span><span class="sig-name descname"><span class="pre">BM25Indexer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.pipelines.components.indexer.sparse.BM25Indexer" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.pipelines.components.indexer.sparse.</span></span><span class="sig-name descname"><span class="pre">BM25Indexer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additional_index_args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'--storePositions</span> <span class="pre">--storeDocvectors</span> <span class="pre">--storeRaw'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.pipelines.components.indexer.sparse.BM25Indexer" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="primeqa.pipelines.components.base.IndexerComponent.html#primeqa.pipelines.components.base.IndexerComponent" title="primeqa.pipelines.components.base.IndexerComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">primeqa.pipelines.components.base.IndexerComponent</span></code></a></p>
 <p>_summary_</p>
-<p>Args:</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index_root</strong> (<em>str</em>) – Path to root directory where index to be stored.</p></li>
+<li><p><strong>index_name</strong> (<em>str</em>) – Index name.</p></li>
+</ul>
+</dd>
+</dl>
 <p>Important:
 1. Each field has metadata property which can carry additional information for other downstream usages.
 2. Two special keys (api_support and exclude_from_hash) are defined in “metadata” property.</p>
@@ -455,10 +462,13 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.pipelines.components.indexer.sparse.BM25Indexer.get_engine_type" title="primeqa.pipelines.components.indexer.sparse.BM25Indexer.get_engine_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_engine_type</span></code></a></p></td>
+<td><p>Return this retriever engine type.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -470,8 +480,31 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">additional_index_args</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_workers</span></code></p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.pipelines.components.indexer.sparse.BM25Indexer.get_engine_type">
+<span class="sig-name descname"><span class="pre">get_engine_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#primeqa.pipelines.components.indexer.sparse.BM25Indexer.get_engine_type" title="Permalink to this definition">#</a></dt>
+<dd><p>Return this retriever engine type. Must match with the retriever tha will be used to query the index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>NotImplementedError</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>engine type</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>

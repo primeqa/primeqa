@@ -16,6 +16,7 @@ primeqa.pipelines.components.indexer.dense.ColBERTIndexer
    .. autosummary::
       :nosignatures:
    
+      ~ColBERTIndexer.get_engine_type
       ~ColBERTIndexer.index
       ~ColBERTIndexer.load
    

@@ -16,6 +16,7 @@ primeqa.pipelines.components.retriever.dense.ColBERTRetriever
    .. autosummary::
       :nosignatures:
    
+      ~ColBERTRetriever.get_engine_type
       ~ColBERTRetriever.load
       ~ColBERTRetriever.retrieve
    

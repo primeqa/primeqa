@@ -20,7 +20,6 @@ retriever
       :template: custom-class-template.rst
       :nosignatures:
    
-      BaseRetriever
       PyseriniRetriever
    
    

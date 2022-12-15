@@ -16,6 +16,7 @@ primeqa.pipelines.components.base.IndexerComponent
    .. autosummary::
       :nosignatures:
    
+      ~IndexerComponent.get_engine_type
       ~IndexerComponent.index
       ~IndexerComponent.load
    

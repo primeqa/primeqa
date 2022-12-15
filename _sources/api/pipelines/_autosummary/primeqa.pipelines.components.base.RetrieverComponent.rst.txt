@@ -16,6 +16,7 @@ primeqa.pipelines.components.base.RetrieverComponent
    .. autosummary::
       :nosignatures:
    
+      ~RetrieverComponent.get_engine_type
       ~RetrieverComponent.load
       ~RetrieverComponent.retrieve
    
