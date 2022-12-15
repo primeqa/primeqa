@@ -354,7 +354,7 @@ description is inference-only, assuming existing models. For a description of ho
 First, as a single command line argument in <code class="docutils literal notranslate"><span class="pre">run_mrc.py</span></code> to run all steps, and secondly, as a step-by-step process detailed in the
 later sections of this README.<br />
 The single command line argument is:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large <span class="se">\</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 <span class="se">\</span>
        --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --overwrite_cache <span class="se">\</span>
        --per_device_eval_batch_size <span class="m">128</span> --overwrite_output_dir <span class="se">\</span>
        --do_boolean --boolean_config  primeqa/boolqa/tydi_boolqa_config.json
@@ -385,24 +385,24 @@ and <a class="reference external" href="https://arxiv.org/abs/2206.08441">GAAMA 
         <span class="s2">&quot;id_key&quot;</span><span class="p">:</span> <span class="s2">&quot;example_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;sentence1_key&quot;</span><span class="p">:</span> <span class="s2">&quot;question&quot;</span><span class="p">,</span>
         <span class="s2">&quot;sentence2_key&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
-        <span class="s2">&quot;label_list&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;short_answer&quot;</span><span class="p">,</span><span class="s2">&quot;boolean&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;label_list&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;boolean&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">],</span>
         <span class="s2">&quot;output_label_prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;question_type&quot;</span><span class="p">,</span>
         <span class="s2">&quot;overwrite_cache&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
         <span class="s2">&quot;use_auth_token&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-        <span class="s2">&quot;model_name_or_path&quot;</span><span class="p">:</span> <span class="s2">&quot;PrimeQA/tydiqa-boolean-question-classifier&quot;</span>
+        <span class="s2">&quot;model_name_or_path&quot;</span><span class="p">:</span> <span class="s2">&quot;PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;evc&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;id_key&quot;</span><span class="p">:</span> <span class="s2">&quot;example_id&quot;</span><span class="p">,</span>
         <span class="s2">&quot;sentence1_key&quot;</span><span class="p">:</span> <span class="s2">&quot;question&quot;</span><span class="p">,</span>
         <span class="s2">&quot;sentence2_key&quot;</span><span class="p">:</span> <span class="s2">&quot;passage_answer_text&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;label_list&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;no_answer&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;label_list&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">],</span>
         <span class="s2">&quot;output_label_prefix&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean_answer&quot;</span><span class="p">,</span>
         <span class="s2">&quot;overwrite_cache&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-        <span class="s2">&quot;drop_label&quot;</span><span class="p">:</span> <span class="s2">&quot;no_answer&quot;</span><span class="p">,</span>
         <span class="s2">&quot;use_auth_token&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
-        <span class="s2">&quot;model_name_or_path&quot;</span><span class="p">:</span> <span class="s2">&quot;PrimeQA/tydiqa-boolean-answer-classifier&quot;</span>
+        <span class="s2">&quot;model_name_or_path&quot;</span><span class="p">:</span> <span class="s2">&quot;PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117&quot;</span>
     <span class="p">},</span>
     <span class="s2">&quot;sn&quot;</span><span class="p">:</span> <span class="p">{</span>
+	<span class="s2">&quot;do_apply&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
         <span class="s2">&quot;model_name_or_path&quot;</span><span class="p">:</span> <span class="s2">&quot;tests/resources/boolqa/score_normalizer_model/sn.pickle&quot;</span><span class="p">,</span>
         <span class="s2">&quot;qtc_is_boolean_label&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
         <span class="s2">&quot;evc_no_answer_class&quot;</span><span class="p">:</span> <span class="s2">&quot;no_answer&quot;</span>
@@ -417,13 +417,13 @@ and <a class="reference external" href="https://arxiv.org/abs/2206.08441">GAAMA 
 <p>The machine reading comprehension differs from the default invocation of <code class="docutils literal notranslate"><span class="pre">run_mrc.py</span></code> (see <a class="reference internal" href="../mrc/index.html"><span class="doc std std-doc">readme</span></a>)
 as follows: the postprocessor provides additional information (language, question)
 needed by the downstream components</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large <span class="se">\</span>
-        --output_dir <span class="o">{</span>ws<span class="o">}</span>/mrc/ --fp16 --learning_rate 4e-5 <span class="se">\</span>
-        --do_eval --per_device_train_batch_size <span class="m">16</span> <span class="se">\</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 <span class="se">\</span>
+        --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/ --fp16 --learning_rate 4e-5 <span class="se">\</span>
+        --do_eval --per_device_train_batch_size <span class="m">16</span> --fp16 <span class="se">\</span>
         --per_device_eval_batch_size <span class="m">128</span> --gradient_accumulation_steps <span class="m">4</span> <span class="se">\</span>
         --warmup_ratio <span class="m">0</span>.1 --weight_decay <span class="m">0</span>.1 --save_steps <span class="m">50000</span> <span class="se">\</span>
         --overwrite_output_dir --num_train_epochs <span class="m">1</span> --evaluation_strategy no <span class="se">\</span>
-        --postprocessor primeqa.boolqa.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+        --postprocessor primeqa.text_classification.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 </pre></div>
 </div>
 </section>
@@ -431,15 +431,17 @@ needed by the downstream components</p>
 <h2>Question type classification<a class="headerlink" href="#question-type-classification" title="Permalink to this headline">#</a></h2>
 <p>Given a question (obtained from the <code class="docutils literal notranslate"><span class="pre">eval_predictions.json</span></code> file created in the previous step, predict
 whether the question is <code class="docutils literal notranslate"><span class="pre">boolean</span></code> or <code class="docutils literal notranslate"><span class="pre">short_answer</span></code>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/boolqa/run_boolqa_classifier.py <span class="se">\</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/text_classification/run_nway_classifier.py <span class="se">\</span>
     --overwrite_cache <span class="se">\</span>
-    --id_key example_id <span class="se">\</span>
+    --example_id_key example_id <span class="se">\</span>
+    --do_mrc_pipeline <span class="se">\</span>
+    --fp16 <span class="se">\</span>
     --sentence1_key question <span class="se">\</span>
-    --label_list short_answer boolean <span class="se">\</span>
+    --label_list boolean other <span class="se">\</span>
     --output_label_prefix question_type <span class="se">\</span>
-    --model_name_or_path PrimeQA/qtc_bert_pretrained_model <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/eval_predictions.json <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">OUTDIR</span><span class="si">}</span>/qtc <span class="se">\</span>
+    --model_name_or_path PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117 <span class="se">\</span>
+    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/eval_predictions.json <span class="se">\</span>
+    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc <span class="se">\</span>
     --use_auth_token
 </pre></div>
 </div>
@@ -449,17 +451,17 @@ whether the question is <code class="docutils literal notranslate"><span class="
 <p>Given a question and the passage predicted by the first step, predict whether the span supports
 a <code class="docutils literal notranslate"><span class="pre">yes</span></code> or <code class="docutils literal notranslate"><span class="pre">no</span></code> answer to question.  Both question and span are passed through the <code class="docutils literal notranslate"><span class="pre">eval_predictions.json</span></code>
 file output by the previous step.  The details of this process are analyzed in this jupyter <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/evc.ipynb">notebook</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/boolqa/run_boolqa_classifier.py <span class="se">\</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/text_classification/run_nway_classifier.py <span class="se">\</span>
     --overwrite_cache  <span class="se">\</span>
-    --id_key example_id <span class="se">\</span>
+    --example_id_key example_id <span class="se">\</span>
+    --do_mrc_pipeline <span class="se">\</span>
     --sentence1_key question <span class="se">\</span>
     --sentence2_key passage_answer_text <span class="se">\</span>
-    --label_list no no_answer yes <span class="se">\</span>
+    --label_list no yes <span class="se">\</span>
     --output_label_prefix boolean_answer <span class="se">\</span>
-    --drop_label no_answer <span class="se">\</span>
-    --model_name_or_path PrimeQA/evc_xlm_roberta_large <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc/eval_predictions.json <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">OUTDIR</span><span class="si">}</span>/evc <span class="se">\</span>
+    --model_name_or_path PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117 <span class="se">\</span>
+    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc/predictions.json <span class="se">\</span>
+    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc <span class="se">\</span>
     --use_auth_token
 </pre></div>
 </div>
@@ -467,11 +469,15 @@ file output by the previous step.  The details of this process are analyzed in t
 <section id="score-normalization">
 <h2>Score normalization<a class="headerlink" href="#score-normalization" title="Permalink to this headline">#</a></h2>
 <p>Span scores may have different dynamic ranges according as whether the question is boolean or short_anwer. Normalize them uniformally to <code class="docutils literal notranslate"><span class="pre">[0,1]</span></code>.
-and output a file suitable for the TyDiQA evaluation script.</p>
+and output a file suitable for the TyDiQA evaluation script.
+Warning: The score normalizer was developed for a leaderboard submission with a hidden test set.</p>
+<p>Therefore, the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evaluation of the submission is on the TyDiQA <a class="reference external" href="https://ai.google.com/research/tydiqa">leaderboard</a> itself.</p>
+<p>Another fair evalutation is on the other half of the dev set - for details, see <span class="xref myst">training</span></p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/boolqa/run_score_normalizer.py <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc/eval_predictions.json <span class="se">\</span>
+    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc/predictions.json <span class="se">\</span>
     --model_name_or_path tests/resources/boolqa/score_normalizer_model/sn.pickle <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">OUTDIR</span><span class="si">}</span>/sn
+    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/sn <span class="se">\</span>
+    --do_apply
 </pre></div>
 </div>
 </section>

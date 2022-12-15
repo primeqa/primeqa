@@ -27,6 +27,4 @@ processors
    :recursive:
 
    primeqa.boolqa.processors.dataset
-   primeqa.boolqa.processors.postprocessors
-   primeqa.boolqa.processors.preprocessors
 

@@ -715,8 +715,8 @@ For the MLQA configuration with context language EN and question language DE use
 <p>PrimeQA also supports special features for MRC systems as follows:</p>
 <section id="boolean-questions">
 <h3>Boolean Questions<a class="headerlink" href="#boolean-questions" title="Permalink to this headline">#</a></h3>
-<p>Answering <a class="reference external" href="https://arxiv.org/abs/1905.10044">Boolean Questions</a> for TyDI (currently in an inference-only setup). Please read the <a class="reference external" href="https://primeqa.github.io/primeqa/api/boolqa/index.html">details</a>):</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large <span class="se">\</span>
+<p>Answering <a class="reference external" href="https://arxiv.org/abs/1905.10044">Boolean Questions</a> for TyDI. Please read the details of <a class="reference external" href="https://primeqa.github.io/primeqa/api/boolqa/index.html">inference</a> or <a class="reference external" href="https://primeqa.github.io/primeqa/examples/boolqa/index.html">training</a>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 <span class="se">\</span>
        --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --overwrite_cache <span class="se">\</span>
        --per_device_eval_batch_size <span class="m">128</span> --overwrite_output_dir <span class="se">\</span>
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json

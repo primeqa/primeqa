@@ -27,7 +27,6 @@
    :recursive:
 
    primeqa.boolqa.processors
-   primeqa.boolqa.run_boolqa_classifier
    primeqa.boolqa.run_score_normalizer
    primeqa.boolqa.score_normalizer
 
