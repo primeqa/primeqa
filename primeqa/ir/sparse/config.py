@@ -4,11 +4,11 @@ import dataclasses
 @dataclass
 class IndexingArguments():
 
-    index_path: str = field(default=None, metadata={"help":"Path to the index directory location"})
+    index_location: str = field(default=None, metadata={"help":"Path to the index directory location"})
 
     overwrite: bool = field(default=False, metadata={"help": "Overwrite existing directory"})
 
-    corpus_path: str = field(default=None, metadata={"help":"Path to a corpus tsv or json file or directory"})
+    collection: str = field(default=None, metadata={"help":"Path to a corpus tsv or json file or directory"})
 
     fieldnames: list = field(default=None, metadata={"help":"fields names to use to identify document_id, title, text if corpus tsv has no headings"})
 
