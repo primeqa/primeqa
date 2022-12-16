@@ -14,12 +14,12 @@ for dataset_name in "${arr[@]}"; do
 
   ##convert mrqa dataset to primeqa data format file
   python convert_mrqa_to_custom_data_format.py \
-  -input "$dataset_name".train.jsonl.gz \
-  -output "$dataset_name".train.jsonl
+  --input_file "$dataset_name".train.jsonl.gz \
+  --output_file "$dataset_name".train.jsonl
 
   python convert_mrqa_to_custom_data_format.py \
-  -input "$dataset_name".test.jsonl.gz \
-  -output "$dataset_name".test.jsonl
+  --input_file "$dataset_name".test.jsonl.gz \
+  --output_file "$dataset_name".test.jsonl
 
   rm "$dataset_name".train.jsonl.gz
   rm "$dataset_name".test.jsonl.gz

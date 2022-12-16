@@ -44,7 +44,7 @@ def main():
     mrc_examples = []
     bsize = args.bsize
     
-    outfile = open(args.output_file, 'w') 
+    # outfile = open(args.output_file, 'w') 
     
     for i in range(0,len(id_list),bsize):
         print(i, "Generating questions", len(mrc_examples))
@@ -62,10 +62,10 @@ def main():
                 'answers': orig_answers_list[i+g]
             }
             mrc_examples.append(json.dumps(mrc_example))
-        if len(mrc_examples) % 12800 == 0 :
-            print("Writing", args.output_file)
-            outfile.writelines([f'{example}\n' for example in mrc_examples])
-            outfile.flush()
+        # if len(mrc_examples) % 12800 == 0 :
+        #     print("Writing", args.output_file)
+        #     outfile.writelines([f'{example}\n' for example in mrc_examples])
+        #     outfile.flush()
             
 
     
