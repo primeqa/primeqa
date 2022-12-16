@@ -139,6 +139,7 @@ class ColBERTIndexer(IndexerComponent):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
-    
-    def get_engine_type(self):
+
+    @classmethod
+    def get_engine_type(cls):
         return "ColBERT"

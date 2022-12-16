@@ -41,7 +41,7 @@ class BM25Retriever(RetrieverComponent):
             "exclude_from_hash": True,
         },
     )
-    
+
     num_workers: int = field(
         default=1,
         metadata={
@@ -53,9 +53,9 @@ class BM25Retriever(RetrieverComponent):
 
     def __post_init__(self):
         # Placeholder variables
-        self._index_path=f"{self.index_root}/{self.index_name}"
+        self._index_path = f"{self.index_root}/{self.index_name}"
         self._searcher = None
-        
+
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
         hashable_fields = [
@@ -74,12 +74,21 @@ class BM25Retriever(RetrieverComponent):
         self._searcher = PyseriniRetriever(self._index_path)
 
     def retrieve(self, input_texts: List[str], *args, **kwargs):
-        qids = [str(idx) for  idx, query in enumerate(input_texts) ]
-        hits = self._searcher.batch_retrieve(input_texts, qids, topK=self.max_num_documents, threads=self.num_workers)
+        qids = [str(idx) for idx, query in enumerate(input_texts)]
+        hits = self._searcher.batch_retrieve(
+            input_texts,
+            qids,
+            topK=self.max_num_documents,
+            threads=self.num_workers,
+        )
         return [
-            [(result['doc_id'], result['score']) for result in results_per_query]
+            [
+                (result["doc_id"], result["score"])
+                for result in results_per_query
+            ]
             for results_per_query in hits.values()
         ]
-    
-    def get_engine_type(self):
+
+    @classmethod
+    def get_engine_type(cls):
         return "BM25"

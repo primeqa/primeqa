@@ -8,7 +8,13 @@ from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_STATUS, ATTR_INDEX_ID, IndexStatus, ATTR_ENGINE_TYPE
+from primeqa.services.constants import (
+    ATTR_STATUS,
+    ATTR_INDEX_ID,
+    ATTR_METADATA,
+    IndexStatus,
+    ATTR_ENGINE_TYPE,
+)
 from primeqa.services.factories import (
     READERS_REGISTRY,
     INDEXERS_REGISTRY,
@@ -18,7 +24,11 @@ from primeqa.services.factories import (
     RetrieverFactory,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
-from primeqa.services.exceptions import PATTERN_ERROR_MESSAGE, Error, ErrorMessages
+from primeqa.services.exceptions import (
+    PATTERN_ERROR_MESSAGE,
+    Error,
+    ErrorMessages,
+)
 from primeqa.services.rest_server.data_models import (
     Indexer,
     Reader,
@@ -74,7 +84,9 @@ class RestServer:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["*"],
-            allow_credentials=True if self._config.require_client_auth else False,
+            allow_credentials=True
+            if self._config.require_client_auth
+            else False,
             allow_methods=["*"],
             allow_headers=["*"],
         )
@@ -91,7 +103,10 @@ class RestServer:
         def get_readers():
             try:
                 return [
-                    {"reader_id": reader_id, "parameters": generate_parameters(reader)}
+                    {
+                        "reader_id": reader_id,
+                        "parameters": generate_parameters(reader),
+                    }
                     for reader_id, reader in READERS_REGISTRY.items()
                 ]
             except Error as err:
@@ -119,7 +134,9 @@ class RestServer:
         def get_answers(request: GetAnswersRequest):
             try:
                 # Step 1: If contexts are provided, number of contexts need to match number of queries
-                if request.contexts and len(request.queries) != len(request.contexts):
+                if request.contexts and len(request.queries) != len(
+                    request.contexts
+                ):
                     raise Error(
                         ErrorMessages.MISSING_CONTEXT.value.format(
                             len(request.contexts), len(request.queries)
@@ -132,13 +149,15 @@ class RestServer:
                 except KeyError as err:
                     raise Error(
                         ErrorMessages.INVALID_READER.value.format(
-                            request.reader.reader_id, ", ".join(READERS_REGISTRY.keys())
+                            request.reader.reader_id,
+                            ", ".join(READERS_REGISTRY.keys()),
                         )
                     ) from err
 
                 # Step 3: Load default reader keyword arguments
                 reader_kwargs = {
-                    k: v.default for k, v in reader.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in reader.__dataclass_fields__.items()
                 }
 
                 # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
@@ -173,7 +192,9 @@ class RestServer:
                             "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
                             instance.__class__.__name__,
                             {
-                                k: getattr(instance, k) if k in instance_fields else v
+                                k: getattr(instance, k)
+                                if k in instance_fields
+                                else v
                                 for k, v in reader_kwargs.items()
                             },
                             query,
@@ -181,8 +202,11 @@ class RestServer:
                         )
                         try:
                             predictions = instance.apply(
-                                input_texts=[query] * len(request.contexts[idx]),
-                                context=[[text] for text in request.contexts[idx]],
+                                input_texts=[query]
+                                * len(request.contexts[idx]),
+                                context=[
+                                    [text] for text in request.contexts[idx]
+                                ],
                                 **reader_kwargs,
                             )
                             self._logger.info(
@@ -197,7 +221,9 @@ class RestServer:
                                 [
                                     [
                                         {
-                                            "text": prediction["span_answer_text"],
+                                            "text": prediction[
+                                                "span_answer_text"
+                                            ],
                                             "start_char_offset": prediction[
                                                 "span_answer"
                                             ]["start_position"],
@@ -276,7 +302,10 @@ class RestServer:
         )
         def get_indexers():
             return [
-                {"indexer_id": indexer_id, "parameters": generate_parameters(indexer)}
+                {
+                    "indexer_id": indexer_id,
+                    "parameters": generate_parameters(indexer),
+                }
                 for indexer_id, indexer in INDEXERS_REGISTRY.items()
             ]
 
@@ -308,14 +337,19 @@ class RestServer:
                 # Step 3: Remove existing index if index_id is provide in the request
                 if request.index_id:
                     self._store.delete_index(request.index_id)
-                    index_information["index_id"] = request.index_id
+                    index_information[ATTR_INDEX_ID] = request.index_id
 
-                # Step 4: Load default retriever keyword arguments
+                # Step 4: If additional metadata is provided, copy it over
+                if request.metadata:
+                    index_information[ATTR_METADATA] = request.metadata
+
+                # Step 5: Load default retriever keyword arguments
                 indexer_kwargs = {
-                    k: v.default for k, v in indexer.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in indexer.__dataclass_fields__.items()
                 }
 
-                # Step 5: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
+                # Step 6: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
                 if request.indexer.parameters:
                     for parameter in request.indexer.parameters:
                         if parameter.parameter_id not in indexer_kwargs:
@@ -325,7 +359,9 @@ class RestServer:
                                 )
                             )
 
-                        indexer_kwargs[parameter.parameter_id] = parameter.value
+                        indexer_kwargs[
+                            parameter.parameter_id
+                        ] = parameter.value
 
                         # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
                         if parameter.parameter_id == "checkpoint":
@@ -335,32 +371,34 @@ class RestServer:
                                 indexer_kwargs["checkpoint"]
                             )
 
-                # Step 6: Update index specific arguments
-                indexer_kwargs["index_root"] = self._store.get_index_directory_path(
+                # Step 7: Update index specific arguments
+                indexer_kwargs[
+                    "index_root"
+                ] = self._store.get_index_directory_path(
                     index_information[ATTR_INDEX_ID]
                 )
                 indexer_kwargs["index_name"] = DIR_NAME_INDEX
 
-                # Step 7: Create indexer instance
+                # Step 8: Create indexer instance
                 try:
                     instance = IndexerFactory.get(indexer, indexer_kwargs)
                 except (ValueError, TypeError) as err:
                     raise Error(err.args[0]) from err
 
-                # Step 8: Save index information
-                index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
+                # Step 9: Save index information
+                index_information[ATTR_ENGINE_TYPE] = indexer.get_engine_type()
                 self._store.save_index_information(
                     index_id=index_information[ATTR_INDEX_ID],
                     information=index_information,
                 )
 
-                # Step 9: Save documents used in index
+                # Step 10: Save documents used in index
                 self._store.save_index_documents(
                     index_id=index_information[ATTR_INDEX_ID],
                     documents=request.documents,
                 )
 
-                # Step 10: Kick-off async index generation
+                # Step 11: Kick-off async index generation
                 try:
                     instance.index(
                         self._store.get_index_documents_file_path(
@@ -368,7 +406,7 @@ class RestServer:
                         ),
                     )
 
-                    # Step 10.b: Set index status to "READY" once indexing is complete
+                    # Step 11.b: Set index status to "READY" once indexing is complete
                     index_information[ATTR_STATUS] = IndexStatus.READY.value
                 except (TypeError, RuntimeError) as err:
                     index_information[ATTR_STATUS] = IndexStatus.CORRUPT.value
@@ -379,10 +417,11 @@ class RestServer:
                     logging.exception(err.args[0])
 
                 self._store.save_index_information(
-                    index_information[ATTR_INDEX_ID], information=index_information
+                    index_information[ATTR_INDEX_ID],
+                    information=index_information,
                 )
 
-                # Step 11: Return
+                # Step 12: Return
                 return index_information
 
             except Error as err:
@@ -410,9 +449,9 @@ class RestServer:
         def get_index_status(index_id: str):
             try:
                 return {
-                    ATTR_STATUS: self._store.get_index_information(index_id=index_id)[
-                        ATTR_STATUS
-                    ]
+                    ATTR_STATUS: self._store.get_index_information(
+                        index_id=index_id
+                    )[ATTR_STATUS]
                 }
             except KeyError:
                 return {ATTR_STATUS: IndexStatus.CORRUPT}
@@ -433,6 +472,65 @@ class RestServer:
                     status_code=500,
                     detail={"code": error_code, "message": error_message},
                 ) from None
+
+        @app.get(
+            "/indexes",
+            status_code=status.HTTP_200_OK,
+            response_model=List[IndexInformation],
+            tags=["Indexer"],
+        )
+        def get_indexes(engine_type: str = None):
+            # Step 2: Iterate over each index individual to return matching indexes
+            resp = []
+            for index_id in self._store.get_index_ids():
+                try:
+                    # Step 2.a: Load index information from store
+                    index_information_dict = self._store.get_index_information(
+                        index_id=index_id
+                    )
+
+                    # Step 2.b: Skip index if engine type is provided in request and doesn't match with the one in current index's information
+                    if engine_type and (
+                        ATTR_ENGINE_TYPE in index_information_dict
+                        and index_information_dict[ATTR_ENGINE_TYPE]
+                        != engine_type
+                    ):
+                        continue
+
+                    # Step 2.c: Place index information response payload object
+                    index_information_rest_response_object = {
+                        ATTR_INDEX_ID: index_id
+                    }
+
+                    # Step 2.d: Add "metadata" information if exists
+                    if (
+                        ATTR_METADATA in index_information_dict
+                        and index_information_dict[ATTR_METADATA]
+                    ):
+                        index_information_rest_response_object[
+                            ATTR_METADATA
+                        ] = index_information_dict[ATTR_METADATA]
+
+                    # Step 2.e: Add "status" information
+                    try:
+                        index_information_rest_response_object[
+                            ATTR_STATUS
+                        ] = index_information_dict[ATTR_STATUS]
+
+                    except KeyError:
+                        index_information_rest_response_object[
+                            ATTR_STATUS
+                        ] = IndexStatus.CORRUPT
+                except FileNotFoundError:
+                    self._logger.warning(
+                        ErrorMessages.FAILED_TO_LOCATE_INDEX_INFORMATION.value.format(
+                            index_id
+                        ).strip()
+                    )
+
+                resp.append(index_information_rest_response_object)
+
+            return resp
 
         ############################################################################################
         #                           Retriever API
@@ -462,7 +560,9 @@ class RestServer:
             try:
                 # Step 1: Verify requested retriever
                 try:
-                    retriever = RETRIEVERS_REGISTRY[request.retriever.retriever_id]
+                    retriever = RETRIEVERS_REGISTRY[
+                        request.retriever.retriever_id
+                    ]
                 except KeyError as err:
                     raise Error(
                         ErrorMessages.INVALID_RETRIEVER.value.format(
@@ -473,7 +573,8 @@ class RestServer:
 
                 # Step 2: Load default retriever keyword arguments
                 retriever_kwargs = {
-                    k: v.default for k, v in retriever.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in retriever.__dataclass_fields__.items()
                 }
 
                 # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
@@ -486,11 +587,15 @@ class RestServer:
                                 )
                             )
 
-                        retriever_kwargs[parameter.parameter_id] = parameter.value
+                        retriever_kwargs[
+                            parameter.parameter_id
+                        ] = parameter.value
 
                 # Step 4: Load index information
                 if request.index_id:
-                    index_root = self._store.get_index_directory_path(request.index_id)
+                    index_root = self._store.get_index_directory_path(
+                        request.index_id
+                    )
                     # Step 4.a: Check if `index_root` exists
                     if not self._store.exists(index_root):
                         raise Error(
@@ -503,7 +608,10 @@ class RestServer:
                     index_information = self._store.get_index_information(
                         index_id=request.index_id
                     )
-                    if index_information[ATTR_STATUS] != IndexStatus.READY.value:
+                    if (
+                        index_information[ATTR_STATUS]
+                        != IndexStatus.READY.value
+                    ):
                         raise Error(
                             ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
                                 index_information[ATTR_STATUS]
@@ -516,11 +624,15 @@ class RestServer:
                     ] = self._store.get_index_directory_path(request.index_id)
                     retriever_kwargs["index_name"] = DIR_NAME_INDEX
                 else:
-                    raise Error(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
+                    raise Error(
+                        ErrorMessages.INVALID_REQUEST.value.format("index_id")
+                    )
 
                 # Step 5: Create retriever instance
                 try:
-                    instance = RetrieverFactory.get(retriever, retriever_kwargs)
+                    instance = RetrieverFactory.get(
+                        retriever, retriever_kwargs
+                    )
                 except (ValueError, TypeError) as err:
                     raise Error(err.args[0]) from err
 

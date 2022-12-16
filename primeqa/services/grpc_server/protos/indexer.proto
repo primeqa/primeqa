@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "parameter.proto";
+import "google/protobuf/struct.proto";
 
 package index;
 
@@ -35,6 +36,7 @@ message GenerateIndexRequest {
     IndexerComponent indexer = 1;
     repeated Document documents = 2;
     string index_id = 3;
+    google.protobuf.Struct metadata = 4;
 }
 
 enum IndexStatus {
@@ -58,11 +60,13 @@ message IndexStatusResponse {
 }
 
 message GetIndexesRequest {
+    string engine_type = 1;
 }
 
 message IndexInformation {
     string index_id = 1;
     IndexStatus status = 2;
+    google.protobuf.Struct metadata = 3;
 }
 
 message GetIndexesResponse {
