@@ -2,11 +2,18 @@ import logging
 from typing import Union
 
 from grpc import ServicerContext, StatusCode
+from google.protobuf.struct_pb2 import Struct
 from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus, ATTR_ENGINE_TYPE
+from primeqa.services.constants import (
+    ATTR_INDEX_ID,
+    ATTR_STATUS,
+    ATTR_ENGINE_TYPE,
+    ATTR_METADATA,
+    IndexStatus,
+)
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -38,14 +45,18 @@ from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
 
 
 class IndexerService(IndexerServicer):
-    def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
+    def __init__(
+        self, config: Settings, logger: Union[logging.Logger, None] = None
+    ):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
         else:
             self._logger = logger
         self._config = config
         self._store = StoreFactory.get_store()
-        self._logger.info("%s is successfully initialized.", self.__class__.__name__)
+        self._logger.info(
+            "%s is successfully initialized.", self.__class__.__name__
+        )
 
     def GetIndexers(
         self, request: GetIndexersRequest, context: ServicerContext
@@ -101,9 +112,16 @@ class IndexerService(IndexerServicer):
                     self._store.delete_index(request.index_id)
                     index_information[ATTR_INDEX_ID] = request.index_id
 
+                # Step 2.c: If additional metadata is provided, copy it over
+                if request.metadata:
+                    index_information[ATTR_METADATA] = MessageToDict(
+                        request.metadata
+                    )
+
                 # Step 2.c: Load default retriever keyword arguments
                 indexer_kwargs = {
-                    k: v.default for k, v in indexer.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in indexer.__dataclass_fields__.items()
                 }
 
                 # Step 2.d: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
@@ -118,7 +136,9 @@ class IndexerService(IndexerServicer):
                             )
                             return GenerateIndexResponse()
 
-                        indexer_kwargs[parameter.parameter_id] = parse_parameter_value(
+                        indexer_kwargs[
+                            parameter.parameter_id
+                        ] = parse_parameter_value(
                             parameter,
                             get_parameter_type(
                                 component=indexer,
@@ -134,7 +154,9 @@ class IndexerService(IndexerServicer):
                             )
 
                 # Step 2.e: Update index specific arguments
-                indexer_kwargs["index_root"] = self._store.get_index_directory_path(
+                indexer_kwargs[
+                    "index_root"
+                ] = self._store.get_index_directory_path(
                     index_information[ATTR_INDEX_ID]
                 )
                 indexer_kwargs["index_name"] = DIR_NAME_INDEX
@@ -149,11 +171,13 @@ class IndexerService(IndexerServicer):
 
             # Append documents from each index request
             documents_to_index.extend(
-                MessageToDict(request, preserving_proto_field_name=True)["documents"]
+                MessageToDict(request, preserving_proto_field_name=True)[
+                    "documents"
+                ]
             )
 
         # Step 3: Save index information
-        index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
+        index_information[ATTR_ENGINE_TYPE] = indexer.get_engine_type()
         self._store.save_index_information(
             index_id=index_information[ATTR_INDEX_ID],
             information=index_information,
@@ -161,7 +185,8 @@ class IndexerService(IndexerServicer):
 
         # Step 4: Save documents used in index
         self._store.save_index_documents(
-            index_id=index_information[ATTR_INDEX_ID], documents=documents_to_index
+            index_id=index_information[ATTR_INDEX_ID],
+            documents=documents_to_index,
         )
 
         # Step 5: Kick-off async index generation
@@ -181,7 +206,6 @@ class IndexerService(IndexerServicer):
                 index_information[ATTR_INDEX_ID],
             )
             logging.exception(err.args[0])
-
 
         self._store.save_index_information(
             index_information[ATTR_INDEX_ID], information=index_information
@@ -221,23 +245,60 @@ class IndexerService(IndexerServicer):
         self, request: GetIndexesRequest, context: ServicerContext
     ) -> GetIndexesResponse:
         resp = GetIndexesResponse()
-        for index_id in self._store.get_index_ids():
-            index_information = IndexInformation(index_id=index_id)
-            try:
-                status = self._store.get_index_information(index_id=index_id)[
-                    ATTR_STATUS
-                ]
-                if status == IndexStatus.READY.value:
-                    index_information.status = READY
-                elif status == IndexStatus.INDEXING.value:
-                    index_information.status = INDEXING
-                else:
-                    index_information.status = CORRUPT
-            except KeyError:
-                index_information.status = CORRUPT
-            except FileNotFoundError:
-                index_information.status = DOES_NOT_EXISTS
+        # Step 1: Check if "engine_type" is provided
+        engine_type = None
+        if request.engine_type:
+            engine_type = request.engine_type
 
-            resp.indexes.append(index_information)
+        # Step 2: Iterate over each index individual to return matching indexes
+        for index_id in self._store.get_index_ids():
+            try:
+                # Step 2.a: Load index information from store
+                index_information_dict = self._store.get_index_information(
+                    index_id=index_id
+                )
+
+                # Step 2.b: Skip index if engine type is provided in request and doesn't match with the one in current index's information
+                if engine_type and (
+                    ATTR_ENGINE_TYPE in index_information_dict
+                    and index_information_dict[ATTR_ENGINE_TYPE] != engine_type
+                ):
+                    continue
+
+                # Step 2.c: Place index information response payload object
+                index_information_grpc_response_object = IndexInformation(
+                    index_id=index_id
+                )
+
+                # Step 2.d: Add "metadata" information if exists
+                if (
+                    ATTR_METADATA in index_information_dict
+                    and index_information_dict[ATTR_METADATA]
+                ):
+                    index_information_grpc_response_object.metadata.update(
+                        index_information_dict[ATTR_METADATA]
+                    )
+
+                # Step 2.e: Add "status" information
+                try:
+                    status = index_information_dict[ATTR_STATUS]
+                    if status == IndexStatus.READY.value:
+                        index_information_grpc_response_object.status = READY
+                    elif status == IndexStatus.INDEXING.value:
+                        index_information_grpc_response_object.status = (
+                            INDEXING
+                        )
+                    else:
+                        index_information_grpc_response_object.status = CORRUPT
+                except KeyError:
+                    index_information_grpc_response_object.status = CORRUPT
+            except FileNotFoundError:
+                self._logger.warning(
+                    ErrorMessages.FAILED_TO_LOCATE_INDEX_INFORMATION.value.format(
+                        index_id
+                    ).strip()
+                )
+
+            resp.indexes.append(index_information_grpc_response_object)
 
         return resp

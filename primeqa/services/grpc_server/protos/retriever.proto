@@ -15,6 +15,7 @@ service Retriever {
 message RetrieverComponent {
     string retriever_id = 1;
     repeated parameter.Parameter parameters = 2;
+    string engine_type = 3;
 }
 
 message GetRetrieversRequest {

@@ -32,7 +32,7 @@ class ReaderComponent(Component):
         contexts: List[List[str]],
         *args,
         example_ids: List[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, List[Dict]]:
         pass
 
@@ -54,9 +54,9 @@ class IndexerComponent(Component):
     @abstractmethod
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
-    
-    @abstractmethod    
-    def get_engine_type() -> str:
+
+    @classmethod
+    def get_engine_type(cls) -> str:
         """
         Return this retriever engine type. Must match with the retriever tha will be used to query the index.
 
@@ -104,9 +104,9 @@ class RetrieverComponent(Component):
     @abstractmethod
     def retrieve(self, input_texts: List[str], *args, **kwargs):
         pass
-    
-    @abstractmethod
-    def get_engine_type() -> str:
+
+    @classmethod
+    def get_engine_type(cls) -> str:
         """
         Return this retriever engine type. Must match with the indexer used to generate the index.
 

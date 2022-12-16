@@ -50,6 +50,7 @@ class Answer(BaseModel):
 class Retriever(BaseModel):
     retriever_id: str
     parameters: Union[List[Parameter], None] = None
+    engine_type: Union[str, None] = None
 
 
 #############################################################################################
@@ -93,6 +94,7 @@ class GenerateIndexRequest(BaseModel):
     indexer: Indexer
     documents: List[Document]
     index_id: Union[str, None] = None
+    metadata: Union[dict, None] = None
 
 
 #############################################################################################
@@ -106,3 +108,4 @@ class IndexInformation(BaseModel):
         IndexStatus.DOES_NOT_EXISTS,
         IndexStatus.CORRUPT,
     ]
+    metadata: Union[dict, None] = None

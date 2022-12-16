@@ -32,6 +32,7 @@ class ErrorMessages(str, Enum):
     # INDEXER
     INVALID_INDEXER = "E6001: Invalid indexer: {}. Please select one of the following pre-defined indexers: {}"
     FAILED_TO_LOCATE_INDEX = "E6002: Index with id {} doesn't exist."
+    FAILED_TO_LOCATE_INDEX_INFORMATION = "E6003: Index information for index with id {} doesn't exist."
 
     # INITIALIZATION
     FAILED_TO_INITIALIZE = "E9001: Failed to initalize {}. Please contact us."

@@ -120,13 +120,17 @@ class ColBERTRetriever(RetrieverComponent):
 
         # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
         ranking_results = self._searcher.search_all(
-            {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
+            {
+                idx: str(input_text)
+                for idx, input_text in enumerate(input_texts)
+            },
             k=max_num_documents,
         )
         return [
             [(result[0], result[-1]) for result in results_per_query]
             for results_per_query in ranking_results.data.values()
         ]
-        
-    def get_engine_type(self):
+
+    @classmethod
+    def get_engine_type(cls):
         return "ColBERT"
