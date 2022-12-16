@@ -12,15 +12,17 @@ When initiating your instance, please select an Ubuntu machine image. This will 
 
 To install Docker, please use the following [installation instructions](https://docs.docker.com/engine/install/ubuntu/). To run our experiments that use GPU, please download the [Docker Nvidia drivers](https://docs.docker.com/config/containers/resource_constraints/#access-an-nvidia-gpu).
 
-You can use the `Dockerfile` we include in the repository for running the experiments. Feel free to edit it as needed for testing different configurations and scripts.
+You can use the `Dockerfile` we include in the repository (found in `primeqa/examples/ir_benchmarking`) for running the experiments. Feel free to edit it as needed for testing different configurations and scripts.
 
 ### 3. Installing dependencies
 
 Once you have Docker set up, please go to the [PrimeQA main page](https://github.com/primeqa/primeqa/tree/ir-benchmarking) and follow the instructions for installing the relevant dependencies and Java package.
 
+After that, go to the folder `primeqa/examples/ir_benchmarking` and download the following three files from this downloads folder [TODO]: `psgs_w100.tsv`, `xorqa_dev_gmt.tsv`, and `msmarco.psg.kldR2.nway64.ib__colbert-400000`. These files are the document collection, queries, and zero-shot PLAID model checkpoint for XOR-TyDi, respectively.
+
 ### 4. Running experiments
 
-To run an experiments, first initialize a Docker container using the Dockerfile and the correspondinng command:
+To run an experiments, first initialize a Docker container using the Dockerfile and the corresponding command:
 
 ```
 sudo docker build -t pulkit/run_ir:1.0 .
