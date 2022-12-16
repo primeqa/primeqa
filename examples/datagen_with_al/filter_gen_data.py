@@ -19,6 +19,7 @@ logger = logging.getLogger()
 
 
 class Strategy(Enum):
+    """The filtering strategy, language model score filtering (lm) or round-trip filtering (rt)"""
     LM = "lm"
     RT = "rt"
 
@@ -34,6 +35,16 @@ def filter_samples(
     rt_model_path: str = None,
     num_workers: int = None,
 ):
+    """Filters samples using a filtering strategy.
+
+    Args:
+        dataset_paths (List[str]): The paths to datasets on disk
+        output_path (str): The path where filtered samples will be written to
+        strategy (Strategy): The strategy used for filtering
+        cache_dir (str, optional): The directory for caching models. Defaults to None.
+        rt_model_path (str, optional): The model name or path (as used in transformers) for use in rt filtering. Defaults to None.
+        num_workers (int, optional): The number of processes, 1 means no multiprocessing. Defaults to None.
+    """
     # load dataset from disk
     dataset = concatenate_datasets([load_from_disk(dataset_path) for dataset_path in dataset_paths])
 
@@ -91,51 +102,50 @@ def filter_samples(
             num_workers=num_workers,
         )
 
+    # apply filter function
     dataset = filter_fn(dataset)
 
     # save dataset to disk
     dataset.save_to_disk(output_path)
 
 
-if __name__ == "__main__":
+def main():
+    import argparse
 
-    def main():
-        import argparse
+    parser = argparse.ArgumentParser(description="This program allows to filter synthetic data.")
+    parser.add_argument("dataset_path", type=str, nargs="+", help="The dataset(s) for filtering")
+    parser.add_argument(
+        "output_dir",
+        type=str,
+        help="The directory where the filtered dataset will be saved",
+    )
+    parser.add_argument(
+        "--filter",
+        type=Strategy,
+        default=Strategy.LM,
+        choices=[Strategy.LM, Strategy.RT],
+        help="Specifies the model architecture to use for generation",
+    )
+    parser.add_argument(
+        "--rt_model_name_or_path",
+        help="Set the transformer model for answer prediction for RT filtering",
+    )
+    parser.add_argument(
+        "--disable_filtering",
+        action="store_true",
+        help="Don't filter samples and unpack them",
+    )
+    parser.add_argument("--cache", help="The directory used as cache")
+    parser.add_argument("--num_workers", type=int, help="The number of workers for processing tasks")
+    args = parser.parse_args()
 
-        parser = argparse.ArgumentParser(description="This program allows to filter synthetic data.")
-        parser.add_argument("dataset_path", type=str, nargs="+", help="The dataset(s) for filtering")
-        parser.add_argument(
-            "output_dir",
-            type=str,
-            help="The directory where the filtered dataset will be saved",
-        )
-        parser.add_argument(
-            "--filter",
-            type=Strategy,
-            default=Strategy.LM,
-            choices=[Strategy.LM, Strategy.RT],
-            help="Specifies the model architecture to use for generation",
-        )
-        parser.add_argument(
-            "--rt_model_name_or_path",
-            help="Set the transformer model for answer prediction for RT filtering",
-        )
-        parser.add_argument(
-            "--disable_filtering",
-            action="store_true",
-            help="Don't filter samples and unpack them",
-        )
-        parser.add_argument("--cache", help="The directory used as cache")
-        parser.add_argument("--num_workers", type=int, help="The number of workers for processing tasks")
-        args = parser.parse_args()
+    filter_samples(
+        args.dataset_path,
+        args.output_dir,
+        None if args.disable_filtering else args.filter,
+        cache_dir=args.cache,
+        rt_model_path=args.rt_model_name_or_path,
+        num_workers=args.num_workers,
+    )
 
-        filter_samples(
-            args.dataset_path,
-            args.output_dir,
-            None if args.disable_filtering else args.filter,
-            cache_dir=args.cache,
-            rt_model_path=args.rt_model_name_or_path,
-            num_workers=args.num_workers,
-        )
-
-    main()
+main()

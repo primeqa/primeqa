@@ -9,13 +9,14 @@ from transformers import BartForConditionalGeneration, BartTokenizer, BartTokeni
 
 @pytest.mark.parametrize("model_name", ["facebook/bart-base"])
 def test_qa2s_model(model_name):
-    model = QGModel(model_name, modality="passage_qa2s")
+    model = QGModel(model_name, modality="passage", gen_config="qa2s")
     assert isinstance(model.model, BartForConditionalGeneration)
     assert isinstance(model.tokenizer, (BartTokenizer, BartTokenizerFast))
 
     qgdl = QGDataLoader(
         tokenizer=model.tokenizer,
-        modality="passage_qa2s",
+        modality="passage",
+        gen_config="qa2s",
         input_max_len=None,
         target_max_len=None,
     )

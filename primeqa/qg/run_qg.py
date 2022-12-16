@@ -39,7 +39,14 @@ class ModelArguments:
         default="table",
         metadata={
             "help": "Whether to generate questions from tables or passages",
-            "choices": ["table", "passage_qg", "passage_qa2s"],
+            "choices": ["table", "passage"],
+        },
+    )
+    gen_config: str = field(
+        default="qg",
+        metadata={
+            "help": "Which method to use for generating question-answer pairs",
+            "choices": ["qg", "qa2s"],
         },
     )
     tokenizer_name: Optional[str] = field(
@@ -183,7 +190,7 @@ def main(raw_args):
     # These arguments has to be hardcoded in order for Trainer to work
     training_args.predict_with_generate = True
     training_args.remove_unused_columns = (
-        True if model_args.modality == "passage_qa2s" else False
+        True if model_args.modality == "passage" and model_args.gen_config == "qa2s" else False
     )
     training_args.prediction_loss_only = False
 
@@ -224,6 +231,7 @@ def main(raw_args):
         tokenizer=qg_model.tokenizer,
         dataset_name=data_args.dataset_name,
         modality=model_args.modality,
+        gen_config=model_args.gen_config,
         input_max_len=data_args.max_len,
         target_max_len=data_args.target_max_len,
     )
@@ -270,7 +278,7 @@ def main(raw_args):
             train_dataset=train_dataset,
             eval_dataset=valid_dataset,
             data_collator=DataCollatorForSeq2SeqWithDecoderInputs(qg_model.tokenizer)
-            if model_args.modality == "passage_qa2s"
+            if model_args.modality == "passage" and model_args.gen_config == "qa2s"
             else T2TDataCollator(),
             compute_metrics=compute_metrics,
         )
@@ -291,8 +299,8 @@ def main(raw_args):
 
     # Inference
     if inference_args.do_generate:
-        if model_args.modality == "passage_qa2s":
-            # this modality uses a custom trainer for prediction
+        if model_args.modality == "passage" and model_args.gen_config == "qa2s":
+            # this configuration uses a custom trainer for prediction
 
             # get dataset
             dataset = load_dataset(

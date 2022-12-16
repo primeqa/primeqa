@@ -8,13 +8,14 @@ import torch
 
 
 class QGModel():
-    def __init__(self,model_path, modality='table'):
+    def __init__(self,model_path, modality='table', gen_config='qg'):
         """ Table Question Generation Model gets initialized based on either pre-trained model path or
         the model name. One example could be 't5-base'.
 
         Args:
             model_path (str): Either Name of the model or the path to the pre-trained model
-            modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'.
+            modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'. Default is 'table'.
+            gen_config (str, optional): The method specifying how data is generated. Possible options include 'qg' and 'qa2s'. Default is 'qg'.
         """
         self._device = torch.device('cuda') if cuda.is_available() else torch.device('cpu')
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to(self._device)
@@ -23,13 +24,15 @@ class QGModel():
         special_tokens_list = []
 
         self.modality = modality 
-        if self.modality == 'passage_qg':
-            special_tokens_list.append(QGSpecialTokens.sep)
-            self.answer_sampler = AnswerSampler()
-        elif self.modality == 'passage_qa2s':
-            special_tokens_list.extend(['<s>', '<q>', '</q>', '<a>', '</a>'])
-            self._tokenizer.pad_token = self._tokenizer.eos_token
-            self._tokenizer._pad_token_type_id = 2 # pad with question type embedding
+        self.gen_config = gen_config 
+        if self.modality == 'passage':
+            if self.gen_config == 'qg':
+                special_tokens_list.append(QGSpecialTokens.sep)
+                self.answer_sampler = AnswerSampler()
+            elif self.gen_config == 'qa2s':
+                special_tokens_list.extend(['<s>', '<q>', '</q>', '<a>', '</a>'])
+                self._tokenizer.pad_token = self._tokenizer.eos_token
+                self._tokenizer._pad_token_type_id = 2 # pad with question type embedding
         elif self.modality == 'table':
             special_tokens_list.extend([QGSpecialTokens.sep, QGSpecialTokens.cond, QGSpecialTokens.ans,
                             QGSpecialTokens.header, QGSpecialTokens.hsep])
@@ -75,7 +78,7 @@ class QGModel():
         if self.modality == 'table':
             input_str_list, sql_list, id_question_list = self.sql_sampler.controlled_sample_sql(data_list, num_questions_per_instance, agg_prob, num_where_prob, ineq_prob, id_list)
             answer_list = [s['answer'] for s in sql_list]
-        elif self.modality == 'passage_qg':
+        elif self.modality == 'passage' and self.gen_config == 'qg':
             input_str_list, answer_list, id_question_list , id_context_map = self.answer_sampler.create_qg_input(data_list, num_questions_per_instance, answers_list, id_list)
 
         input_ids = self._tokenizer(input_str_list, 
@@ -95,7 +98,7 @@ class QGModel():
         
         if id_question_list == [] :
             questions_dict = [{'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
-        elif self.modality == 'passage_qg' :
+        elif self.modality == 'passage' and self.gen_config == 'qg':
             questions_dict = [{'context_id':id_question_list[i], 'context':id_context_map.get(id_question_list[i]),'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]
         else:
             questions_dict = [{'context_id':id_question_list[i], 'question': questions[i], 'answer': answer_list[i]} for i in range(len(questions))]

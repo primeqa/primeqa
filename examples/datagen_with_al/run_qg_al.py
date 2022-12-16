@@ -208,11 +208,14 @@ class ALArguments:
         default=50,
         metadata={"help": "The amount of samples per iteration for Active Learning"},
     )
-    output_dir: Optional[str] = field(default=None, metadata={"help": "The output directory for Active Learning"})
+    al_output_dir: Optional[str] = field(default=None, metadata={"help": "The output directory for Active Learning"})
 
 
 @dataclass
 class InferenceArguments:
+    """
+    Arguments for inference.
+    """
     do_generate: Optional[bool] = field(default=False, metadata={"help": "Whether to generate questions"})
     gen_output_path: Optional[str] = field(
         default="generated_data",
@@ -297,7 +300,7 @@ class TaskArguments:
     )
 
 
-class TrainingArgumentsMetaClass(type):
+class PrefixArgumentsMetaClass(type):
     def __call__(cls, *args: Any, **kwds: Any) -> Any:
         if not hasattr(cls, "prefix"):
             raise AttributeError(
@@ -323,15 +326,13 @@ class TrainingArgumentsMetaClass(type):
         return super().__getattribute__(__name)
 
 
-RCSeq2SeqTrainingArguments = TrainingArgumentsMetaClass(
-    "RCSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="rc_")
+RCTrainingArguments = PrefixArgumentsMetaClass(
+    "RCTrainingArguments", (TrainingArguments,), dict(prefix="rc_")
 )
-RCModelArguments = TrainingArgumentsMetaClass("RCModelArguments", (ModelArguments,), dict(prefix="rc_"))
-QGSeq2SeqTrainingArguments = TrainingArgumentsMetaClass(
-    "QGSeq2SeqTrainingArguments", (Seq2SeqTrainingArguments,), dict(prefix="qg_")
-)
-QGModelArguments = TrainingArgumentsMetaClass("QGModelArguments", (ModelArguments,), dict(prefix="qg_"))
-RCTaskArguments = TrainingArgumentsMetaClass("RCTaskArguments", (TaskArguments,), dict(prefix="rc_"))
+RCModelArguments = PrefixArgumentsMetaClass("RCModelArguments", (ModelArguments,), dict(prefix="rc_"))
+QGTrainingArguments = Seq2SeqTrainingArguments
+QGModelArguments = ModelArguments
+RCTaskArguments = PrefixArgumentsMetaClass("RCTaskArguments", (TaskArguments,), dict(prefix="rc_"))
 
 
 def main(raw_args):
@@ -339,8 +340,8 @@ def main(raw_args):
         (
             RCModelArguments,
             QGModelArguments,
-            RCSeq2SeqTrainingArguments,
-            QGSeq2SeqTrainingArguments,
+            RCTrainingArguments,
+            QGTrainingArguments,
             RCTaskArguments,
             DataTrainingArguments,
             ALArguments,
@@ -369,7 +370,7 @@ def main(raw_args):
             al_args,
             inference_args,
         ) = parser.parse_json_file(json_file=raw_args[1])
-    elif len(raw_args) == 1:
+    elif len(raw_args) == 1 and isinstance(raw_args[0], dict):
         (
             rc_model_args,
             qg_model_args,
@@ -429,14 +430,7 @@ def main(raw_args):
         )
         else logging.WARN,
     )
-    # logger.warning(
-    #     "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
-    #     training_args.local_rank,
-    #     training_args.device,
-    #     training_args.n_gpu,
-    #     bool(training_args.local_rank != -1),
-    #     training_args.fp16,
-    # )
+
     logger.info("RC Training parameters: %s", rc_training_args.to_dict())
     logger.info("QG Training parameters: %s", qg_training_args.to_dict())
 
@@ -457,6 +451,16 @@ def main(raw_args):
         process_fn: Callable,
         add_examples_to_output: bool = False,
     ) -> Callable[[Dataset], Tuple[Dataset, Dataset]]:
+        """A wrapper for the preprocessing function having acces to training_args
+
+        Args:
+            training_args (TrainingArguments): The training arguments
+            process_fn (Callable): The function which is called for preprocessing samples
+            add_examples_to_output (bool, optional): Return examples at first position of a tuple if True. Defaults to False.
+
+        Returns:
+            Callable[[Dataset], Tuple[Dataset, Dataset]]: Returns the wrapped preprocessing function
+        """    
         # wrapper to have access to training_args
         def wrapped_process_fn(examples) -> Tuple[Dataset, Dataset]:
             with training_args.main_process_first(desc="Dataset pre-processing"):
@@ -491,6 +495,7 @@ def main(raw_args):
                     "the `--rc_output_dir` or add `--rc_overwrite_output_dir` to train from scratch."
                 )
 
+        # load model
         task_heads = EXTRACTIVE_HEAD
         rc_config = AutoConfig.from_pretrained(
             rc_model_args.config_name if rc_model_args.config_name else rc_model_args.model_name_or_path,
@@ -552,6 +557,14 @@ def main(raw_args):
         eval_metrics = getattr(sys.modules[__name__], rc_task_args.eval_metrics)()
 
         def rc_compute_metrics(p: EvalPredictionWithProcessing):
+            """Run RC evaluation
+
+            Args:
+                p (EvalPredictionWithProcessing): The predictions from the RC model
+
+            Returns:
+                dict: The computed metrics
+            """            
             return eval_metrics.compute(
                 predictions=p.processed_predictions,
                 references=p.label_ids,
@@ -595,11 +608,14 @@ def main(raw_args):
                     "the `--qg_output_dir` or add `--qg_overwrite_output_dir` to train from scratch."
                 )
 
-        qg_model = QGModel(qg_model_args.model_name_or_path, modality="passage_qa2s")
+        # load model
+        qg_model = QGModel(qg_model_args.model_name_or_path, modality="passage", gen_config="qa2s")
 
+        # load preprocessor
         qgdl = QGDataLoader(
             tokenizer=qg_model.tokenizer,
-            modality="passage_qa2s",
+            modality="passage",
+            gen_config="qa2s",
             input_max_len=None,
             target_max_len=data_args.target_max_len,
         )
@@ -674,6 +690,7 @@ def main(raw_args):
             # dir exists
             pass
 
+        # create trainer configs
         gen_trainer_config = (
             TrainerConfig(
                 GEN_TRAINER_ID,

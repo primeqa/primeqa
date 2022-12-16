@@ -1,4 +1,6 @@
-# Training with Active Learning
+# Training with Active Learning (AL)
+
+The following instructions allow to reproduce results from the paper [Improving Low-Resource Question Answering using Active Learning in Multiple Stages](https://arxiv.org/abs/2211.14880).
 
 ## Installation
 
@@ -17,7 +19,7 @@ export HF_MODULES_CACHE=$CACHE_DIR
 If you use CUDA, make sure to also set `CUDA_VISIBLE_DEVICES` to the appropriate device.
 E.g. for GPU 2 (the third one) on the current host:
 ```bash
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=<gpu_device_id>
 ```
 
 The script `run.py` as used below can be modified using the [TrainingArguments](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments) from the transformers libray.
@@ -36,20 +38,20 @@ python run.py \
     --eval_dataset st-squad:validation \
     --num_workers 5 \
     --rc_output_dir tmp \
-    --qg_do_train \
-    --qg_model_name facebook/bart-large \
-    --qg_output_dir models/qg/bart-large_squad \
-    --qg_per_device_train_batch_size 1 \
-    --qg_gradient_accumulation_steps 24 \
-    --qg_save_total_limit 1 \
-    --qg_metric_for_best_model loss \
-    --qg_num_train_epochs 5 \
-    --qg_per_device_eval_batch_size 5 \
-    --qg_learning_rate 3e-5 \
-    --qg_evaluation_strategy steps \
-    --qg_eval_steps 1000 \
-    --qg_logging_steps 1000 \
-    --qg_save_steps 1000
+    --do_train \
+    --model_name facebook/bart-large \
+    --output_dir models/qg/bart-large_squad \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 24 \
+    --save_total_limit 1 \
+    --metric_for_best_model loss \
+    --num_train_epochs 5 \
+    --per_device_eval_batch_size 5 \
+    --learning_rate 3e-5 \
+    --evaluation_strategy steps \
+    --eval_steps 1000 \
+    --logging_steps 1000 \
+    --save_steps 1000
 ```
 
 ### Apply AL
@@ -62,23 +64,23 @@ python run.py \
     --train_dataset st-bioasq:train \
     --eval_dataset st-bioasq:validation \
     --num_workers 5 \
-    --output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
+    --al_output_dir models/qg/bart-large-squad_al-bioasq-dsp-4x50 \
     --rc_output_dir tmp \
-    --qg_output_dir tmp \
-    --qg_model_name models/qg/bart-large_squad/checkpoint-12000 \
-    --qg_per_device_train_batch_size 1 \
-    --qg_gradient_accumulation_steps 24 \
-    --qg_save_total_limit 1 \
-    --qg_metric_for_best_model loss \
-    --qg_max_steps 500 \
-    --qg_per_device_eval_batch_size 5 \
-    --qg_learning_rate 3e-5 \
-    --qg_eval_steps 10 \
-    --qg_logging_steps 10 \
-    --qg_save_steps 10
+    --output_dir tmp \
+    --model_name models/qg/bart-large_squad/checkpoint-12000 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 24 \
+    --save_total_limit 1 \
+    --metric_for_best_model loss \
+    --max_steps 500 \
+    --per_device_eval_batch_size 5 \
+    --learning_rate 3e-5 \
+    --eval_steps 10 \
+    --logging_steps 10 \
+    --save_steps 10
 ```
-> Make sure to pick the best checkpoint from previous training for `--qg_model_name`, i.e. the one with the lowest number of steps.
-> Also we're setting `--qg_max_steps` since dataset size is small and `--num_train_epochs` would result in too few training steps (if not set to a huge value)
+> Make sure to pick the best checkpoint from previous training for `--model_name`, i.e. the one with the lowest number of steps.
+> Also, we're setting `--max_steps` since dataset size is small and `--num_train_epochs` would result in too few training steps (if not set to a huge value)
 
 ### Generate data
 
@@ -92,11 +94,11 @@ python run.py \
     --rc_output_dir tmp \
     --max_gen_length 300 \
     --gen_output_path generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50 \
-    --qg_model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-4-of-4/checkpoint-500 \
-    --qg_output_dir tmp \
-    --qg_per_device_eval_batch_size 5
+    --model_name models/qg/bart-large-squad_al-bioasq-dsp-4x50_round-4-of-4/checkpoint-500 \
+    --output_dir tmp \
+    --per_device_eval_batch_size 5
 ```
-> Make sure to pick the best checkpoint from last iteration of AL for `--qg_model_name`, i.e. the one with the lowest number of steps.
+> Make sure to pick the best checkpoint from last iteration of AL for `--model_name`, i.e. the one with the lowest number of steps.
 > 
 
 By default, the generated data is stored as a `datasets:Dataset` to `./generated_data`. This can be changed using `--gen_output_path`.
@@ -129,7 +131,7 @@ We suggest fine-tuning a model on SQuAD first followed by fine-tuning on the sel
 python run.py \
     --train_dataset st-squad:train \
     --eval_dataset st-bioasq:validation \
-    --qg_output_dir tmp \
+    --output_dir tmp \
     --rc_model bert-base-uncased \
     --rc_output_dir models/rc/squad_eval-bioasq \
     --rc_fp16 \
@@ -158,7 +160,7 @@ python run.py \
 python run.py \
     --train_dataset models/qg/bart-large-squad_al-bioasq-dsp-4x50/al_samples_round_3 \
     --eval_dataset st-bioasq:validation \
-    --qg_output_dir tmp \
+    --output_dir tmp \
     --rc_model models/rc/squad_eval-bioasq/checkpoint-8000 \
     --rc_output_dir models/rc/squad_ft-bioasq-al-dsp-4x50 \
     --rc_fp16 \
@@ -196,7 +198,7 @@ Train an RC model using the generated & filtered data as well as annotated data:
 python run.py \
     --train_dataset generated_data/bioasq_bart-large-squad-al-bioasq-dsp-4x50_lm models/qg/bart-large-squad_al-bioasq-dsp-4x50/al_samples_round_3 \
     --eval_dataset st-bioasq:validation \
-    --qg_output_dir tmp \
+    --output_dir tmp \
     --rc_model bert-base-uncased \
     --rc_output_dir models/rc/bioasq-bart-large-squad-al-bioasq-dsp-4x50_bioasq-al-dsp-4x50_bioasq-al-dsp-4x50 \
     --rc_fp16 \
