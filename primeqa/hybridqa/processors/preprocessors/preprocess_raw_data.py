@@ -54,13 +54,13 @@ def preprocess_instance(d,test=False):
 
 
 """ Preprocess the full data """
-def preprocess_data(data_root_path,data_path,split,test):
-    data = json.load(open(data_path))
+def preprocess_data(data_root_path,raw_data,split,test):
+    #data = json.load(open(data_path))
     processed_data_path = os.path.join(data_root_path,str(split)+"_processed.json")
     processed_data = []
     num = 0
     den = 0
-    for d in tqdm(data):
+    for d in tqdm(raw_data):
         # if d['label'] != 1:
         #     continue
         pi = preprocess_instance(d,test=test)

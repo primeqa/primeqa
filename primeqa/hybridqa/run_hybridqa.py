@@ -6,12 +6,15 @@ from transformers import (
 from dataclasses import dataclass, field
 from utils.model_utils.row_retriever_MITQA import RowRetriever
 from utils.model_utils.reranker import re_rank_ae_output
+from utils.link_predictor import predict_link_for_tables
+from utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
 from utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
-from utils.model_utils.answer_extractor import run_answer_extractor
+from utils.model_utils.answer_extractor_multi_Answer import run_answer_extractor
 from processors.preprocessors.preprocess_raw_data import preprocess_data
 import logging
 from typing import Any, Dict, List, Optional, Union
 import torch
+import os
 
 @dataclass
 class RRArguments():
@@ -135,6 +138,60 @@ class AEArguments(TrainingArguments):
    )
    
    
+@dataclass
+class LinkPredictorArguments:
+   """
+    Arguments pertaining to the link prediction module
+   """
+   model_link_predictor_type: str = field(
+       default='gpt2', metadata={"help": "Pre-trained link prediction model"}
+    )
+   top_k: int = field(
+       default=0, metadata={"help": "top k links to predict"}
+    )
+   top_p: float = field(
+       default=0.9, metadata={"help": "top p value"}
+    )
+   seed: int = field(
+       default=42, metadata={"help": "random seed"}
+    )
+   top_k: int = field(
+       default=0, metadata={"help": "top k links to predict"}
+    )
+   dataset: str = field(
+       default=None, metadata={"help": "which dataset to use"}
+    )
+   batch_size: int = field(
+       default=256, metadata={"help": "Batch size"}
+    )
+   load_from: str = field(
+       default=None, metadata={"help": "load from the checkpoint"}
+    )
+   every: int = field(
+       default=50, metadata={"help": "Batch size"}
+    )
+   max_source_len: int = field(
+       default=32, metadata={"help": "Maximum source length"}
+    )
+   max_target_len: int = field(
+       default=16, metadata={"help": "Maximum target length"}
+    )
+   do_train: bool = field(
+        default=False, metadata={"help": "do_training"}
+    )
+   do_val: bool = field(
+        default=False, metadata={"help": "do validation"}
+    )
+   do_all: bool = field(
+        default=False, metadata={"help": "generate links for all the tables"}
+    )
+   learning_rate: float = field(
+       default=5e-6, metadata={"help": "learning rate for training"})
+   shard: str = field(
+       default=None, metadata={"help": "which shard"}
+    )
+   
+    
    
 
 @dataclass
@@ -143,7 +200,10 @@ class HybridQAArguments:
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
     data_path_root: str = field(
-       default='data/hybridqa/', metadata={"help": "root path to store the preprocessed dataset"}
+       default='data/ottqa/', metadata={"help": "root path to store the preprocessed dataset"}
+    )
+    dataset_name: str = field(
+       default='hybridqa', metadata={"help": "root path to store the preprocessed dataset"}
     )
     train_data_path: str = field(
        default='data/hybridqa/test.json', metadata={"help": "Train data path for training on user's own dataset"}
@@ -153,6 +213,9 @@ class HybridQAArguments:
     )
     test_data_path: str = field(
        default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
+    )
+    collections_file: str = field(
+       default='linearized_tables.tsv', metadata={"help": "Dev data path for training on user's own dataset"}
     )
     
     test: Optional[bool] = field(
@@ -173,8 +236,8 @@ class HybridQAArguments:
 def run_hybrid_qa():
    logger = logging.getLogger(__name__)
    logger.info("running hybridqa")
-   hqa_parser = HfArgumentParser((HybridQAArguments,RRArguments,AEArguments))
-   hqa_args,rr_args,ae_args, = hqa_parser.parse_args_into_dataclasses()
+   hqa_parser = HfArgumentParser((HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments))
+   hqa_args,lp_args,rr_args,ae_args, = hqa_parser.parse_args_into_dataclasses()
    raw_train_data = json.load(open(hqa_args.train_data_path))
    raw_dev_data = json.load(open(hqa_args.dev_data_path))
    raw_test_data = json.load(open(hqa_args.test_data_path))
@@ -182,7 +245,11 @@ def run_hybrid_qa():
    if hqa_args.test_data_path is not None and hqa_args.test:
       logger.info("Test Mode")
       test=True
-      test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.test_data_path,split="test",test=test)
+      if hqa_args.dataset_name=="ottqa":
+         retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
+         json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
+         predict_link_for_table(lp_args)
+      test_data_processed = preprocess_data(hqa_args.data_path_root,retrieved_data,split="test",test=test)
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
@@ -197,6 +264,9 @@ def run_hybrid_qa():
       re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_output_path) 
    else:
       logger.info("Training Mode")
+      if hqa_args.dataset_name == "ottqa":
+         train_table_retriever(hqa_args.data_path_root,"triples_train.tsv")
+
       train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.train_data_path,split="train",test=test)
       dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dev_data_path,split="dev",test=test)
       logger.info("Train: Initial preprocessing done")
