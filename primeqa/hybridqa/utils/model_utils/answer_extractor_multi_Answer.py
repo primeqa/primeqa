@@ -498,12 +498,12 @@ def train(args, train_dataset, model, tokenizer):
     )
 
     # Check if saved optimizer or scheduler states exist
-    if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
-        os.path.join(args.model_name_or_path, "scheduler.pt")
+    if os.path.isfile(os.path.join(args.model_name_or_path_ae, "optimizer.pt")) and os.path.isfile(
+        os.path.join(args.model_name_or_path_ae, "scheduler.pt")
     ):
         # Load in optimizer and scheduler states
-        optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "optimizer.pt")))
-        scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path, "scheduler.pt")))
+        optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path_ae, "optimizer.pt")))
+        scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path_ae, "scheduler.pt")))
 
     if args.fp16:
         try:
@@ -541,10 +541,10 @@ def train(args, train_dataset, model, tokenizer):
     epochs_trained = 0
     steps_trained_in_current_epoch = 0
     # Check if continuing training from a checkpoint
-    if os.path.exists(args.model_name_or_path):
+    if os.path.exists(args.model_name_or_path_ae):
         try:
             # set global_step to gobal_step of last saved checkpoint from model path
-            checkpoint_suffix = args.model_name_or_path.split("-")[-1].split("/")[0]
+            checkpoint_suffix = args.model_name_or_path_ae.split("-")[-1].split("/")[0]
             global_step = int(checkpoint_suffix)
             epochs_trained = global_step // (len(train_dataloader) // args.gradient_accumulation_steps)
             steps_trained_in_current_epoch = global_step % (len(train_dataloader) // args.gradient_accumulation_steps)
@@ -898,7 +898,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
             args.output_dir,
             "cached_{}_{}_{}.dataset".format(
                 "dev" if evaluate else "train",
-                list(filter(None, args.model_name_or_path.split("/"))).pop(),
+                list(filter(None, args.model_name_or_path_ae.split("/"))).pop(),
                 str(args.max_seq_length),
             ),
         )
@@ -943,170 +943,6 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 
 
 def run_answer_extractor(args):
-    # parser = argparse.ArgumentParser()
-
-    # # Required parameters
-    # parser.add_argument(
-    #     "--model_type",
-    #     default='bert',
-    #     type=str,
-    #     help="Model type selected in the list: " + ", ".join(MODEL_CLASSES.keys()),
-    # )
-    # parser.add_argument(
-    #     "--model_name_or_path",
-    #     default="valhalla/longformer-base-4096-finetuned-squadv1",
-    #     type=str,
-       
-    # )
-    # parser.add_argument(
-    #     "--output_dir",
-    #     default='stage3_pre-trained_lf_with_special_tokens_4gpus',
-    #     type=str,
-    #     help="The output directory where the model checkpoints and predictions will be written.",
-    # )
-    # parser.add_argument(
-    #     "--train_file",
-    #     default=None,
-    #     type=str,
-    #     help="The input training file. If a data dir is specified, will look for the file there"
-    #     + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
-    # )
-    # parser.add_argument(
-    #     "--resource_dir",
-    #     type=str,
-    #     default='WikiTables-WithLinks/',
-    #     help="Number of updates steps to accumulate before performing a backward/update pass.",
-    # )   
-    # parser.add_argument(
-    #     "--predict_file",
-    #     default=None,
-    #     type=str,
-    #     help="The input evaluation file. If a data dir is specified, will look for the file there"
-    #     + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
-    # )
-    # parser.add_argument(
-    #     "--config_name", default="", type=str, help="Pretrained config name or path if not the same as model_name"
-    # )
-    # parser.add_argument(
-    #     "--tokenizer_name",
-    #     default="",
-    #     type=str,
-    #     help="Pretrained tokenizer name or path if not the same as model_name",
-    # )
-
-    # parser.add_argument("--pred_ans_file",default="predictions_lf.json",type=str)
-    # parser.add_argument(
-    #     "--cache_dir",
-    #     default="/tmp/",
-    #     type=str,
-    #     help="Where do you want to store the pre-trained models downloaded from s3",
-    # )
-    # parser.add_argument(
-    #     "--version_2_with_negative",
-    #     action="store_true",
-    #     help="If true, the SQuAD examples contain some that do not have an answer.",
-    # )
-    # parser.add_argument(
-    #     "--null_score_diff_threshold",
-    #     type=float,
-    #     default=0.0,
-    #     help="If null_score - best_non_null is greater than the threshold predict null.",
-    # )
-    # parser.add_argument(
-    #     "--max_seq_length",
-    #     default=1024,
-    #     type=int,
-    #     help="The maximum total input sequence length after WordPiece tokenization. Sequences "
-    #     "longer than this will be truncated, and sequences shorter than this will be padded.",
-    # )
-    # parser.add_argument(
-    #     "--doc_stride",
-    #     default=128,
-    #     type=int,
-    #     help="When splitting up a long document into chunks, how much stride to take between chunks.",
-    # )
-    # parser.add_argument(
-    #     "--max_query_length",
-    #     default=64,
-    #     type=int,
-    #     help="The maximum number of tokens for the question. Questions longer than this will "
-    #     "be truncated to this length.",
-    # )
-    # parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
-    # parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
-    # parser.add_argument("--do_stage3", action="store_true", help="Whether to run eval on the dev set.")    
-    # parser.add_argument(
-    #     "--do_lower_case", action="store_true", help="Set this flag if you are using an uncased model."
-    # )
-
-    # parser.add_argument("--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.")
-    # parser.add_argument(
-    #     "--per_gpu_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation."
-    # )
-    # parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
-    # parser.add_argument(
-    #     "--gradient_accumulation_steps",
-    #     type=int,
-    #     default=1,
-    #     help="Number of updates steps to accumulate before performing a backward/update pass.",
-    # )
-    # parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
-    # parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
-    # parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    # parser.add_argument(
-    #     "--num_train_epochs", default=3.0, type=float, help="Total number of training epochs to perform."
-    # )
-    # parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
-    # parser.add_argument(
-    #     "--n_best_size",
-    #     default=20,
-    #     type=int,
-    #     help="The total number of n-best predictions to generate in the nbest_predictions.json output file.",
-    # )
-    # parser.add_argument(
-    #     "--max_answer_length",
-    #     default=30,
-    #     type=int,
-    #     help="The maximum length of an answer that can be generated. This is needed because the start "
-    #     "and end predictions are not conditioned on one another.",
-    # )
-    # parser.add_argument(
-    #     "--verbose_logging",
-    #     action="store_true",
-    #     help="If true, all of the warnings related to data processing will be printed. "
-    #     "A number of warnings are expected for a normal SQuAD evaluation.",
-    # )
-    # parser.add_argument(
-    #     "--lang_id",
-    #     default=0,
-    #     type=int,
-    #     help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
-    # )
-
-    # parser.add_argument("--logging_steps", type=int, default=500, help="Log every X updates steps.")
-    # parser.add_argument("--save_steps", type=int, default=500, help="Save checkpoint every X updates steps.")
-    # parser.add_argument(
-    #     "--overwrite_cache", action="store_true", help="Overwrite the cached training and evaluation sets"
-    # )
-    # parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
-
-    # parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
-    # parser.add_argument(
-    #     "--fp16",
-    #     action="store_true",
-    #     help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit",
-    # )
-    # parser.add_argument(
-    #     "--fp16_opt_level",
-    #     type=str,
-    #     default="O1",
-    #     help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
-    #     "See details at https://nvidia.github.io/apex/amp.html",
-    # )
-
-    # parser.add_argument("--threads", type=int, default=1, help="multiple threads for converting example to features")
-    # args = parser.parse_args()
-
     if args.doc_stride >= args.max_seq_length - args.max_query_length:
         logger.warning(
             "WARNING - You've set a doc stride which may be superior to the document length in some "
@@ -1135,20 +971,20 @@ def run_answer_extractor(args):
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
     
     config = config_class.from_pretrained(
-        args.config_name if args.config_name else args.model_name_or_path,
+        args.config_name if args.config_name else args.model_name_or_path_ae,
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
     #print(args)
-    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
+    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path_ae)
     #print("done here")
     tokenizer = tokenizer_class.from_pretrained(
-        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
+        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path_ae,
         do_lower_case=args.do_lower_case,
         cache_dir=args.cache_dir if args.cache_dir else None,return_token_type_ids = True,
     )
     model = model_class.from_pretrained(
-        args.model_name_or_path,
-        from_tf=bool(".ckpt" in args.model_name_or_path),
+        args.model_name_or_path_ae,
+        from_tf=bool(".ckpt" in args.model_name_or_path_ae),
         config=config,
         cache_dir=args.cache_dir if args.cache_dir else None,
 
@@ -1177,12 +1013,12 @@ def run_answer_extractor(args):
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory    
     if args.do_eval and args.local_rank in [-1, 0]:
         results = {}
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
+        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
         checkpoints = []
 
-        logger.info("Evaluate the following checkpoints: %s", args.model_name_or_path)
+        logger.info("Evaluate the following checkpoints: %s", args.model_name_or_path_ae)
 
-        model = model_class.from_pretrained(args.model_name_or_path)
+        model = model_class.from_pretrained(args.model_name_or_path_ae)
         model.to(args.device)
 
         # Evaluate
@@ -1200,9 +1036,9 @@ def run_answer_extractor(args):
         with open('passage_only_predictions.json', 'w') as f:
             json.dump(full_split, f, indent=2)
 
-    if args.do_stage3 and args.local_rank in [-1, 0]:
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path)
-        model = model_class.from_pretrained(args.model_name_or_path)
+    if args.do_predict and args.local_rank in [-1, 0]:
+        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
+        model = model_class.from_pretrained(args.model_name_or_path_ae)
         model.to(args.device)
         
         #evaluate(args, model, tokenizer, prefix=global_step)
