@@ -1,5 +1,5 @@
 import json
-
+import os
 
 resource_path = "data/hybridqa/WikiTables-WithLinks"
 
@@ -10,6 +10,22 @@ def load_data(table_id):
         table = json.load(f)
     return table,requested_documents
 
+
+def load_passages(data_path_root):
+    passages_dict = json.load(open(os.path.join(data_path_root, 'all_passages.json')))
+    print(passages_dict["/wiki/What_to_Expect_When_Bart's_Expecting"])
+    input()
+    return passages_dict
+
+def fetch_ottqa_passages(d,passages_dict):
+    table = d['table']
+    row_passage_links = d['row_passage_links']
+    passages_rows = []
+    for row_links in row_passage_links:
+        row_passage = [passages_dict[i] for i in row_links if i in passages_dict.keys()]
+        passages_rows.append(row_passage)
+    return table, passages_rows
+    
 
     
 

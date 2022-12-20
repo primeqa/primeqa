@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 import json
-from utils.table_utils import fetch_table
+from utils.table_utils import fetch_table,fetch_ottqa_passages,load_passages
 import sys
 
 if not torch.cuda.is_available():
@@ -40,13 +40,16 @@ def get_top_k_passages(passages,query,top_k, row=None):
 
 
 """ Preprocess a single instance """
-def preprocess_instance(d,test=False):
+def preprocess_instance(d,dataset_name,passages_dict,test=False):
     p_d = {}
     p_d['question'] = d['question']
     p_d['question_id'] = d['question_id']
     if not test:
         p_d['answer-text'] = d['answer-text']
-    p_d['table'] = fetch_table(d['table_id'])
+    if dataset_name == 'ottqa':
+        p_d['table'],p_d['table_row_passages'] = fetch_ottqa_passages(d,passages_dict)
+    else:
+        p_d['table'] = fetch_table(d['table_id'])
     p_d['table_id'] = d['table_id']
     return p_d
 
@@ -54,8 +57,9 @@ def preprocess_instance(d,test=False):
 
 
 """ Preprocess the full data """
-def preprocess_data(data_root_path,raw_data,split,test):
+def preprocess_data(data_root_path,dataset_name,raw_data,split,test):
     #data = json.load(open(data_path))
+    passages_dict = load_passages(data_root_path)
     processed_data_path = os.path.join(data_root_path,str(split)+"_processed.json")
     processed_data = []
     num = 0
@@ -63,7 +67,7 @@ def preprocess_data(data_root_path,raw_data,split,test):
     for d in tqdm(raw_data):
         # if d['label'] != 1:
         #     continue
-        pi = preprocess_instance(d,test=test)
+        pi = preprocess_instance(d,dataset_name,passages_dict,test=test)
         question_str = pi['question']
         if not test:
             answer_text = pi['answer-text']
@@ -80,12 +84,20 @@ def preprocess_data(data_root_path,raw_data,split,test):
             passage = ""
             passages = []
             for r_v,h in zip(r,header):
-                one_row[h] = r_v["cell_value"]
-                passage+= " ".join(r_v['passages'])
-                passages += r_v['passages']
+                
+                if dataset_name=="hybridqa":
+                    one_row[h] = r_v["cell_value"]
+                    passage+= " ".join(r_v['passages'])
+                    passages += r_v['passages']
+                else:
+                    one_row[h] = r_v
             table_rows.append(one_row)
-            table_row_passages.append(passage)
-            table_row_passages_new.append(passages)
+            if dataset_name=="hybridqa":
+                table_row_passages.append(passage)
+                table_row_passages_new.append(passages)
+        if dataset_name=="ottqa":
+            table_row_passages = pi['table_row_passages']
+            table_row_passages_new = pi['table_row_passages']
 
         for r,pr,npr in zip(table_rows,table_row_passages,table_row_passages_new):
             npi={}
