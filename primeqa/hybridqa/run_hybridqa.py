@@ -143,7 +143,7 @@ class LinkPredictorArguments:
    """
     Arguments pertaining to the link prediction module
    """
-   model_link_predictor_type: str = field(
+   model: str = field(
        default='gpt2', metadata={"help": "Pre-trained link prediction model"}
     )
    top_k: int = field(
@@ -152,7 +152,7 @@ class LinkPredictorArguments:
    top_p: float = field(
        default=0.9, metadata={"help": "top p value"}
     )
-   seed: int = field(
+   seed_lg: int = field(
        default=42, metadata={"help": "random seed"}
     )
    top_k: int = field(
@@ -161,8 +161,8 @@ class LinkPredictorArguments:
    dataset: str = field(
        default=None, metadata={"help": "which dataset to use"}
     )
-   batch_size: int = field(
-       default=256, metadata={"help": "Batch size"}
+   batch_size_lg: int = field(
+       default=2, metadata={"help": "Batch size"}
     )
    load_from: str = field(
        default=None, metadata={"help": "load from the checkpoint"}
@@ -176,19 +176,22 @@ class LinkPredictorArguments:
    max_target_len: int = field(
        default=16, metadata={"help": "Maximum target length"}
     )
-   do_train: bool = field(
+   do_train_lg: bool = field(
         default=False, metadata={"help": "do_training"}
     )
-   do_val: bool = field(
+   do_val_lg: bool = field(
         default=False, metadata={"help": "do validation"}
     )
-   do_all: bool = field(
+   do_all_lg: bool = field(
         default=False, metadata={"help": "generate links for all the tables"}
     )
-   learning_rate: float = field(
+   learning_rate_lg: float = field(
        default=5e-6, metadata={"help": "learning rate for training"})
    shard: str = field(
        default=None, metadata={"help": "which shard"}
+    )
+   device_lg: torch.device = field(
+        default=torch.device("cuda"),metadata={"help": "Whether to use cpu or gpu"}
     )
    
     
@@ -248,8 +251,11 @@ def run_hybrid_qa():
       if hqa_args.dataset_name=="ottqa":
          retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
          json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
-         predict_link_for_table(lp_args)
-      test_data_processed = preprocess_data(hqa_args.data_path_root,retrieved_data,split="test",test=test)
+         linked_data = predict_link_for_tables(lp_args,retrieved_data)
+         
+      test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,retrieved_data,split="test",test=test)
+      print(test_data_processed[0])
+      input()
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)

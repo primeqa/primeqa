@@ -16,17 +16,28 @@ import torch.optim as optim
 from tqdm import trange, tqdm
 import math
 from datetime import datetime
-from hybridqa_utils import whitelist, is_year
+from utils.hybridqa_utils import whitelist, is_year
 import sys
 import copy
+import pdb
+
+
 
 
 def set_seed(args):
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    np.random.seed(args.seed_lg)
+    torch.manual_seed(args.seed_lg)
     if args.n_gpu > 0:
-        torch.cuda.manual_seed_all(args.seed)
+        torch.cuda.manual_seed_all(args.seed_lg)
 
+
+def get_links(mapping,row_id):
+    links =[]
+    for k,v in mapping.items():
+        if k.lower() == row_id.lower():
+            links = [i.replace(" ","_")for i in v]
+            links = ["/wiki/"+i for i in links]
+    return links
 
 def sample_sequence(model, length, context, args, num_samples=1, temperature=1, stop_token=None, \
                     top_k=0, top_p=0.0, device='cuda'):
@@ -59,28 +70,36 @@ def sample_sequence(model, length, context, args, num_samples=1, temperature=1, 
 
     return generated
 
+def load_all_tables():
+    data = json.load(open("data/ottqa/all_plain_tables.json"))
+    return data 
+    
 
-def predict_link_for_tables(args):
+def predict_link_for_tables(args,retrieved_data):
  
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)
     tokenizer.add_tokens(['[SEP]', '[EOS]', '[START]', '[ENT]'])
     model = GPT2LMHeadModel.from_pretrained(args.model)
     model.resize_token_embeddings(len(tokenizer))
-
-    dataset = LinkGenearationDataset(args.dataset, 'custom', tokenizer, args.max_source_len, args.max_target_len, args.shard)
+    table_dict = {}
+    all_tables = load_all_tables()
+    for d in retrieved_data:
+        table_dict[d['table_id']]= all_tables[d['table_id']]    
+        
+    dataset = LinkGenearationDataset(table_dict, 'custom', tokenizer, args.max_source_len, args.max_target_len, args.shard)
     sampler = SequentialSampler(dataset)
-    dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, num_workers=8, pin_memory=True, drop_last=True)        
+    dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)        
     print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
     
     model.load_state_dict(torch.load(args.load_from))
     model = nn.DataParallel(model)
-    model.to(args.device)
+    model.to(args.device_lg)
     model.eval()
     print("Loaded model from {}".format(args.load_from))
 
     mapping = {}
     for indexed_batch in tqdm(dev_dataloader, desc="Decoding"):
-        batch = tuple(t.to(args.device) for t in indexed_batch[2:])
+        batch = tuple(t.to(args.device_lg) for t in indexed_batch[2:])
         row_ids = indexed_batch[0]
         links = indexed_batch[1]
 
@@ -106,13 +125,25 @@ def predict_link_for_tables(args):
             mapping[k] = v
         else:
             mapping[k].extend(v)
-
+    
     #index, shard = [int(_) for _ in args.shard.split('@')]
-    f = open('data/ottqa/models/link_generator/linked_tables.jsonl', 'w')
-    for k, v in mapping.items():
-        json_str = json.dumps((k, v))
-        f.write(json_str + '\n')
-    f.close()
+    new_data = []
+    for d in retrieved_data:
+        table_id = d['table_id']
+        table_data = all_tables[d['table_id']]
+        table_links =[]
+        for i,r in enumerate(table_data['data']):
+            row_id = table_id+"_"+str(i)
+            # print(row_id)
+            row_links = get_links(mapping,row_id)
+            table_links.append(row_links)
+        d['row_passage_links'] = table_links
+        d["table"] = table_data
+        new_data.append(d)
+    
+    return new_data
+    #     f.write(json_str + '\n')
+    # f.close()
     
 
 
@@ -125,12 +156,15 @@ class LinkGenearationDataset(Dataset):
         self.option = option
         self.mapping = {}
         assert option in ['train', 'dev', 'all','custom']
-        if option != 'all':
+        if option != 'all' and option != 'custom':
             with open('data/ottqa/released_data/train_dev_test_table_ids.json', 'r') as f:
                 table_ids = set(json.load(f)[option])
 
-        with open(datapath) as f:
-            tables = json.load(f)
+        if isinstance(datapath,dict):
+            tables = datapath
+        else:
+            with open(datapath) as f:
+                tables = json.load(f)
 
         if self.option == 'all':
             assert shards is not None
@@ -143,8 +177,8 @@ class LinkGenearationDataset(Dataset):
 
         self.data = []
         for k, table in tables.items():
-            if k not in table_ids:
-                continue
+            # if k not in table_ids:
+            #     continue
 
             title = table['title']
             sec_title = table['section_title']
@@ -212,15 +246,15 @@ if __name__ == '__main__':
     parser.add_argument('--every', default=50, type=int, help="Whether to use dataset")
     parser.add_argument('--max_source_len', default=32, type=int, help="Whether to use dataset")
     parser.add_argument('--max_target_len', default=16, type=int, help="Whether to use dataset")
-    parser.add_argument('--do_train', default=False, action="store_true", help="whether to train or test the model")
-    parser.add_argument('--do_all', default=False, action="store_true", help="whether to train or test the model")
-    parser.add_argument('--do_val', default=False, action="store_true", help="whether to train or test the model")
-    parser.add_argument('--learning_rate', default=5e-6, type=float, help="whether to train or test the model")
+    parser.add_argument('--do_train_lg', default=False, action="store_true", help="whether to train or test the model")
+    parser.add_argument('--do_all_lg', default=False, action="store_true", help="whether to train or test the model")
+    parser.add_argument('--do_val_lg', default=False, action="store_true", help="whether to train or test the model")
+    parser.add_argument('--learning_rate_lg', default=5e-6, type=float, help="whether to train or test the model")
     parser.add_argument('--shard', default=None, type=str, help="whether to train or test the model")
 
     args = parser.parse_args()
 
-    args.device = torch.device("cuda")
+    args.device_lg = torch.device("cuda")
     args.n_gpu = torch.cuda.device_count()
 
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)
@@ -230,17 +264,17 @@ if __name__ == '__main__':
 
     criterion = nn.CrossEntropyLoss(reduction='none', ignore_index=-1)
 
-    if args.do_train:
+    if args.do_train_lg:
         print("Start Training.")
         model = nn.DataParallel(model)
-        model.to(args.device)
+        model.to(args.device_lg)
         recording_time = datetime.now().strftime('%m_%d_%H_%M')
         tb_writer = SummaryWriter(log_dir='link_generator/{}'.format(recording_time))
         dataset = LinkGenearationDataset(args.dataset, 'train', tokenizer, args.max_source_len, args.max_target_len)
-        optimizer = optim.Adam(model.parameters(), args.learning_rate)
+        optimizer = optim.Adam(model.parameters(), args.learning_rate_lg)
         
         train_sampler = RandomSampler(dataset)
-        train_dataloader = DataLoader(dataset, sampler=train_sampler, batch_size=args.batch_size, num_workers=8, pin_memory=True, drop_last=True)
+        train_dataloader = DataLoader(dataset, sampler=train_sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)
         print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(train_dataloader)))
         
         avg_loss = 0
@@ -250,7 +284,7 @@ if __name__ == '__main__':
             for step, indexed_batch in enumerate(epoch_iterator):
                 model.train()
 
-                batch = tuple(t.to(args.device) for t in indexed_batch[2:])
+                batch = tuple(t.to(args.device_lg) for t in indexed_batch[2:])
 
                 prefix, trg_inp, trg_out, mask = batch
 
@@ -301,22 +335,22 @@ if __name__ == '__main__':
 
             torch.save(model.module.state_dict(), 'link_generator/model-ep{}.pt'.format(epoch))
 
-    if args.do_val:
+    if args.do_val_lg:
         dataset = LinkGenearationDataset(args.dataset, 'all', tokenizer, args.max_source_len, args.max_target_len)
         sampler = SequentialSampler(dataset)
-        dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, num_workers=0, pin_memory=True, drop_last=True)        
+        dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=0, pin_memory=True, drop_last=True)        
         print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
         
         model.load_state_dict(torch.load(args.load_from))
         model = nn.DataParallel(model)
-        model.to(args.device)
+        model.to(args.device_lg)
         model.eval()
         print("Loaded model from {}".format(args.load_from))
 
         succ, prec_total, recall_total = 0, 0, 0
         mapping = {}
         for step, indexed_batch in enumerate(dev_dataloader):
-            batch = tuple(t.to(args.device) for t in indexed_batch[2:])
+            batch = tuple(t.to(args.device_lg) for t in indexed_batch[2:])
             row_ids = indexed_batch[0]
             links = indexed_batch[1]
 
@@ -351,22 +385,22 @@ if __name__ == '__main__':
         with open('link_generator/row_passage_query.json', 'w') as f:
             json.dump(mapping, f, indent=2)
 
-    if args.do_all:
+    if args.do_all_lg:
         assert '@' in args.shard
         dataset = LinkGenearationDataset(args.dataset, 'all', tokenizer, args.max_source_len, args.max_target_len, args.shard)
         sampler = SequentialSampler(dataset)
-        dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size, num_workers=8, pin_memory=True, drop_last=True)        
+        dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)        
         print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
         
         model.load_state_dict(torch.load(args.load_from))
         model = nn.DataParallel(model)
-        model.to(args.device)
+        model.to(args.device_lg)
         model.eval()
         print("Loaded model from {}".format(args.load_from))
 
         mapping = {}
         for indexed_batch in tqdm(dev_dataloader, desc="Decoding"):
-            batch = tuple(t.to(args.device) for t in indexed_batch[2:])
+            batch = tuple(t.to(args.device_lg) for t in indexed_batch[2:])
             row_ids = indexed_batch[0]
             links = indexed_batch[1]
 
