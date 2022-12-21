@@ -91,7 +91,7 @@ class AEArguments(TrainingArguments):
    verbose_logging: bool = field(
       default=False,metadata={"help": "Log everything"}
    )
-   do_predict: bool = field(
+   do_predict_ae: bool = field(
       default=False,metadata={"help": "do predict"}
    )
    version_2_with_negative: bool = field(
@@ -164,7 +164,7 @@ class LinkPredictorArguments:
    batch_size_lg: int = field(
        default=2, metadata={"help": "Batch size"}
     )
-   load_from: str = field(
+   linker_model: str = field(
        default=None, metadata={"help": "load from the checkpoint"}
     )
    every: int = field(
@@ -212,7 +212,7 @@ class HybridQAArguments:
        default='data/hybridqa/test.json', metadata={"help": "Train data path for training on user's own dataset"}
     )
     dev_data_path: str = field(
-       default='data/hybridqa/train.json', metadata={"help": "Dev data path for training on user's own dataset"}
+       default='data/hybridqa/toy.json', metadata={"help": "Dev data path for training on user's own dataset"}
     )
     test_data_path: str = field(
        default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
@@ -248,23 +248,22 @@ def run_hybrid_qa():
    if hqa_args.test_data_path is not None and hqa_args.test:
       logger.info("Test Mode")
       test=True
+      ae_args.do_predict_ae = True
       if hqa_args.dataset_name=="ottqa":
          retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
          json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
          linked_data = predict_link_for_tables(lp_args,retrieved_data)
          
-      test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,retrieved_data,split="test",test=test)
-      print(test_data_processed[0])
-      input()
+      test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
       logger.info("Row retrieval predictions Done")
-      test_processed_data = preprocess_data_using_row_retrieval_scores(raw_test_data,qid_scores_dict,test)
+      test_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict,test)
       logger.info("Row retrieval output processed")
       answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
       logger.info("Answer extraction data generated")
-      ae_output_path,ae_output_path_nbest =  run_answer_extractor(ae_args)
+      ae_output_path,ae_output_path_nbest = run_answer_extractor(ae_args,answer_extraction_data)
       logger.info(ae_output_path)
       logger.info(ae_output_path_nbest)
       re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_output_path) 

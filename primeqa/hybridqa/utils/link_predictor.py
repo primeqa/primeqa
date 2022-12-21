@@ -91,11 +91,11 @@ def predict_link_for_tables(args,retrieved_data):
     dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)        
     print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
     
-    model.load_state_dict(torch.load(args.load_from))
+    model.load_state_dict(torch.load(args.linker_model))
     model = nn.DataParallel(model)
     model.to(args.device_lg)
     model.eval()
-    print("Loaded model from {}".format(args.load_from))
+    print("Loaded model from {}".format(args.linker_model))
 
     mapping = {}
     for indexed_batch in tqdm(dev_dataloader, desc="Decoding"):
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument('--seed', type=int, default=42, help="random seed for initialization")
     parser.add_argument('--dataset', default=None, type=str, help="Whether to use dataset")
-    parser.add_argument('--load_from', default=None, type=str, help="Whether to use dataset")
+    parser.add_argument('--linker_model', default=None, type=str, help="Whether to use dataset")
     parser.add_argument('--batch_size', default=128, type=int, help="Whether to use dataset")
     parser.add_argument('--every', default=50, type=int, help="Whether to use dataset")
     parser.add_argument('--max_source_len', default=32, type=int, help="Whether to use dataset")
@@ -341,11 +341,11 @@ if __name__ == '__main__':
         dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=0, pin_memory=True, drop_last=True)        
         print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
         
-        model.load_state_dict(torch.load(args.load_from))
+        model.load_state_dict(torch.load(args.linker_model))
         model = nn.DataParallel(model)
         model.to(args.device_lg)
         model.eval()
-        print("Loaded model from {}".format(args.load_from))
+        print("Loaded model from {}".format(args.linker_model))
 
         succ, prec_total, recall_total = 0, 0, 0
         mapping = {}
@@ -392,11 +392,11 @@ if __name__ == '__main__':
         dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)        
         print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
         
-        model.load_state_dict(torch.load(args.load_from))
+        model.load_state_dict(torch.load(args.linker_model))
         model = nn.DataParallel(model)
         model.to(args.device_lg)
         model.eval()
-        print("Loaded model from {}".format(args.load_from))
+        print("Loaded model from {}".format(args.linker_model))
 
         mapping = {}
         for indexed_batch in tqdm(dev_dataloader, desc="Decoding"):

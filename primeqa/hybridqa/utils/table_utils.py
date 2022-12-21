@@ -13,8 +13,6 @@ def load_data(table_id):
 
 def load_passages(data_path_root):
     passages_dict = json.load(open(os.path.join(data_path_root, 'all_passages.json')))
-    print(passages_dict["/wiki/What_to_Expect_When_Bart's_Expecting"])
-    input()
     return passages_dict
 
 def fetch_ottqa_passages(d,passages_dict):

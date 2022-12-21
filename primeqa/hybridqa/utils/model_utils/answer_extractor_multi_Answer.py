@@ -708,9 +708,9 @@ def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
     #logger.info("  Evaluation done in total %f secs (%f sec per example) for %d examples", evalTime, evalTime / len(dataset), len(all_results))
 
     # Compute predictions
-    output_prediction_file = os.path.join('/tmp/', "predictions_{}.json".format(prefix))
-    output_nbest_file = os.path.join('/tmp/', "nbest_predictions_{}.json".format(prefix))
     
+    output_prediction_file = args.pred_ans_file
+    output_nbest_file = args.pred_ans_file+"_nbest_predictions.json"
     if args.version_2_with_negative:
         output_null_log_odds_file = os.path.join('/tmp/', "null_odds_{}.json".format(prefix))
     else:
@@ -732,7 +732,7 @@ def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
         tokenizer,
     )
  
-    return predictions
+    return predictions,output_prediction_file,output_nbest_file
 
 def _is_whitespace(c):
     if c == " " or c == "\t" or c == "\r" or c == "\n" or ord(c) == 0x202F:
@@ -892,7 +892,7 @@ def get_raw_scores(examples, preds):
     )
 
 
-def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=False, cache=True):
+def load_and_cache_examples(args,ae_data, tokenizer, evaluate=False, output_examples=False, cache=True):
     # Load data features from cache or dataset file
     cached_features_file = os.path.join(
             args.output_dir,
@@ -904,37 +904,40 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
         )
 
         # Init features and dataset from cache if it exists
-    if os.path.exists(cached_features_file) and not args.overwrite_cache:
-        logger.info("Loading features from cached file %s", cached_features_file)
-        features_and_dataset = torch.load(cached_features_file)
-        features, dataset, examples = (
-            features_and_dataset["features"],
-            features_and_dataset["dataset"],
-            features_and_dataset["examples"],
-        )
+    # if os.path.exists(cached_features_file) and not args.overwrite_cache:
+    #     logger.info("Loading features from cached file %s", cached_features_file)
+    #     features_and_dataset = torch.load(cached_features_file)
+    #     features, dataset, examples = (
+    #         features_and_dataset["features"],
+    #         features_and_dataset["dataset"],
+    #         features_and_dataset["examples"],
+    #     )
+    # else:
+
+    logger.info("Creating features from dataset file at %s", args.output_dir)
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+
+    processor = SquadProcessor()
+    if evaluate:
+        #examples = processor.get_dev_examples(args.predict_file)
+        examples = processor._create_examples(ae_data)
+
     else:
+        #examples = processor.get_train_examples(args.train_file)
+        examples = processor._create_examples(ae_data)
 
-        logger.info("Creating features from dataset file at %s", args.output_dir)
-        if not os.path.exists(args.output_dir):
-            os.makedirs(args.output_dir)
-
-        processor = SquadProcessor()
-        if evaluate:
-            examples = processor.get_dev_examples(args.predict_file)
-        else:
-            examples = processor.get_train_examples(args.train_file)
-
-        features, dataset = squad_convert_examples_to_features(
-            examples=examples,
-            tokenizer=tokenizer,
-            max_seq_length=args.max_seq_length,
-            doc_stride=args.doc_stride,
-            max_query_length=args.max_query_length,
-            is_training=not evaluate,
-            threads=args.threads,
-        )
-        logger.info("Saving features into cached file %s", cached_features_file)
-        torch.save({"features": features, "dataset": dataset, "examples": examples}, cached_features_file)
+    features, dataset = squad_convert_examples_to_features(
+        examples=examples,
+        tokenizer=tokenizer,
+        max_seq_length=args.max_seq_length,
+        doc_stride=args.doc_stride,
+        max_query_length=args.max_query_length,
+        is_training=not evaluate,
+        threads=args.threads,
+    )
+    logger.info("Saving features into cached file %s", cached_features_file)
+    torch.save({"features": features, "dataset": dataset, "examples": examples}, cached_features_file)
 
     if output_examples:
         return dataset, examples, features
@@ -942,7 +945,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
     return dataset
 
 
-def run_answer_extractor(args):
+def run_answer_extractor(args,ae_data):
     if args.doc_stride >= args.max_seq_length - args.max_query_length:
         logger.warning(
             "WARNING - You've set a doc stride which may be superior to the document length in some "
@@ -974,9 +977,7 @@ def run_answer_extractor(args):
         args.config_name if args.config_name else args.model_name_or_path_ae,
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
-    #print(args)
-    #tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path_ae)
-    #print("done here")
+
     tokenizer = tokenizer_class.from_pretrained(
         args.tokenizer_name if args.tokenizer_name else args.model_name_or_path_ae,
         do_lower_case=args.do_lower_case,
@@ -1006,7 +1007,7 @@ def run_answer_extractor(args):
 
     # Training
     if args.do_train:
-        train_dataset = load_and_cache_examples(args, tokenizer, evaluate=False)
+        train_dataset = load_and_cache_examples(args,ae_data, tokenizer, evaluate=False)
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
@@ -1029,22 +1030,22 @@ def run_answer_extractor(args):
         for step, d in enumerate(full_split):
             key2idx[d['question_id']] = step            
 
-        prediction = evaluate_simplified(full_split, args, model, tokenizer)
+        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
         for k, step in key2idx.items():
             full_split[step]['pred'] = prediction.get(k, 'None')
 
         with open('passage_only_predictions.json', 'w') as f:
             json.dump(full_split, f, indent=2)
 
-    if args.do_predict and args.local_rank in [-1, 0]:
+    if args.do_predict_ae and args.local_rank in [-1, 0]:
         logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
         model = model_class.from_pretrained(args.model_name_or_path_ae)
         model.to(args.device)
         
         #evaluate(args, model, tokenizer, prefix=global_step)
-        with open(args.predict_file, 'r') as f:
-            data = json.load(f)
-
+        # with open(args.predict_file, 'r') as f:
+        #     data = json.load(f)
+        data=ae_data
         full_split = []
         key2idx = {}
         for step, d in enumerate(data):
@@ -1055,7 +1056,7 @@ def run_answer_extractor(args):
             key2idx[d['question_id']] = step
 
 
-        prediction = evaluate_simplified(full_split, args, model, tokenizer)
+        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
                 
         for k, step in key2idx.items():
             data[step]['pred'] = prediction.get(k, 'None')
@@ -1065,6 +1066,10 @@ def run_answer_extractor(args):
 
         with open(args.pred_ans_file, 'w') as f:
             json.dump(data, f, indent=2)
+    if args.do_predict_ae:
+        return prediction_file,nbest_file
+    if args.do_train:
+        return args.output_dir
 
 
 if __name__ == "__main__":
