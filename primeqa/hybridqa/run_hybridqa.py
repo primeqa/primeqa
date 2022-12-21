@@ -253,7 +253,6 @@ def run_hybrid_qa():
          retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
          json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
          linked_data = predict_link_for_tables(lp_args,retrieved_data)
-         
       test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
@@ -271,9 +270,15 @@ def run_hybrid_qa():
       logger.info("Training Mode")
       if hqa_args.dataset_name == "ottqa":
          train_table_retriever(hqa_args.data_path_root,"triples_train.tsv")
+         retrieved_data_train = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_train_data)
+         json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_train.json"),"w"))
+         linked_data_train = predict_link_for_tables(lp_args,retrieved_data_train)
+         retrieved_data_dev = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
+         json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_dev.json"),"w"))
+         linked_data_dev = predict_link_for_tables(lp_args,retrieved_data_dev)
 
-      train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.train_data_path,split="train",test=test)
-      dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dev_data_path,split="dev",test=test)
+      train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_train,split="train",test=test)
+      dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_dev,split="dev",test=test)
       logger.info("Train: Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       logger.info("Train: Training row retrieval model")
@@ -284,7 +289,9 @@ def run_hybrid_qa():
       dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,test)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
       answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,test)
-      output_dir = run_answer_extractor(ae_args)
+      output_dir = run_answer_extractor(ae_args,answer_extraction_train_data)
+      ae_output_path,ae_output_path_nbest = run_answer_extractor(ae_args,answer_extraction_dev_data)
+      re_rank_ae_output(qid_scores_dict_dev,ae_output_path_nbest,ae_output_path) 
       logger.info(f"Train: Training Done model saved at: {output_dir}")
       
       
