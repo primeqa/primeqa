@@ -1006,13 +1006,13 @@ def run_answer_extractor(args,ae_data):
             raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
 
     # Training
-    if args.do_train:
+    if args.do_train_ae:
         train_dataset = load_and_cache_examples(args,ae_data, tokenizer, evaluate=False)
         global_step, tr_loss = train(args, train_dataset, model, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory    
-    if args.do_eval and args.local_rank in [-1, 0]:
+    if args.do_eval_ae and args.local_rank in [-1, 0]:
         results = {}
         logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
         checkpoints = []
@@ -1068,7 +1068,7 @@ def run_answer_extractor(args,ae_data):
             json.dump(data, f, indent=2)
     if args.do_predict_ae:
         return prediction_file,nbest_file
-    if args.do_train:
+    if args.do_train_ae:
         return args.output_dir
 
 
