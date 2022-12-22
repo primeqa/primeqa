@@ -21,12 +21,12 @@ import os
 
 
 # Used during test if you want to test the model trained on multiple gpus on a single gpu.
-def clean_model_state_dict(state_dict):
-    new_state_dict = OrderedDict()
-    for k, v in state_dict.items():
-        name = k[7:] # remove `module.`
-        new_state_dict[name] = v
-    return new_state_dict
+# def clean_model_state_dict(state_dict):
+#     new_state_dict = OrderedDict()
+#     for k, v in state_dict.items():
+#         name = k[7:] # remove `module.`
+#         new_state_dict[name] = v
+#     return new_state_dict
 
 class Training:
     def __init__(self,model,data_loader,batch_label_matrix,validator,save_every_niter,
@@ -115,7 +115,7 @@ class RowRetriever():
 
     def predict(self,processed_test_data):
         state_dict = torch.load(self.t_args.row_retriever_model_name_path)
-        state_dict = clean_model_state_dict(state_dict)
+        #state_dict = clean_model_state_dict(state_dict)
         # model = RowClassifierSC()
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")

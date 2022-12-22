@@ -921,11 +921,11 @@ def load_and_cache_examples(args,ae_data, tokenizer, evaluate=False, output_exam
     processor = SquadProcessor()
     if evaluate:
         #examples = processor.get_dev_examples(args.predict_file)
-        examples = processor._create_examples(ae_data)
+        examples = processor._create_examples(ae_data,"dev")
 
     else:
         #examples = processor.get_train_examples(args.train_file)
-        examples = processor._create_examples(ae_data)
+        examples = processor._create_examples(ae_data,"train")
 
     features, dataset = squad_convert_examples_to_features(
         examples=examples,
@@ -1023,9 +1023,9 @@ def run_answer_extractor(args,ae_data):
         model.to(args.device)
 
         # Evaluate
-        with open(args.predict_file, 'r') as f:
-            full_split = json.load(f)
-        
+        # with open(args.predict_file, 'r') as f:
+        #     full_split = json.load(f)
+        full_split=ae_data
         key2idx = {}
         for step, d in enumerate(full_split):
             key2idx[d['question_id']] = step            
@@ -1034,8 +1034,9 @@ def run_answer_extractor(args,ae_data):
         for k, step in key2idx.items():
             full_split[step]['pred'] = prediction.get(k, 'None')
 
-        with open('passage_only_predictions.json', 'w') as f:
+        with open(args.pred_ans_file, 'w') as f:
             json.dump(full_split, f, indent=2)
+        return prediction_file,nbest_file
 
     if args.do_predict_ae and args.local_rank in [-1, 0]:
         logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
