@@ -30,10 +30,6 @@ class RRArguments():
    row_retriever_model_name_path: str = field(
        default='data/hybridqa/pretrained_models/rr.bin', metadata={"help": "Row retriever configuration file"}
     )
-   
-   rr_model_name: str = field(
-       default='bert-large-uncased', metadata={"help": "Which model to use for RR training/testing"}
-    )
    pos_frac_per_epoch: List[float] = field(
       default_factory=lambda: [0.3, 0.3, 0.1, 0.0001, 0.0001], metadata={"help": "Positive fraction per epoch"}
    )
@@ -64,9 +60,6 @@ class AEArguments(TrainingArguments):
    per_gpu_eval_batch_size: int = field(
         default=8,metadata={"help": "Per GPU train batch size"}
     )
-   eval_batch_size: int = field(
-        default=8,metadata={"help": "Per GPU train batch size"}
-    )
    max_query_length: int = field(
         default=64,metadata={"help": "Maximum length of the query"}
     )
@@ -85,7 +78,7 @@ class AEArguments(TrainingArguments):
    do_lower_case: bool = field(
       default=True,metadata={"help": "do lowercase the input"}
    )
-   do_train: bool = field(
+   do_train_ae: bool = field(
       default=False,metadata={"help": "do training"}
    )
    verbose_logging: bool = field(
@@ -97,7 +90,7 @@ class AEArguments(TrainingArguments):
    version_2_with_negative: bool = field(
       default=False,metadata={"help": "Squad 2.0"}
    )
-   do_eval: bool = field(
+   do_eval_ae: bool = field(
       default=False,metadata={"help": "do evaluation"}
    )
    device: torch.device = field(
@@ -154,9 +147,6 @@ class LinkPredictorArguments:
     )
    seed_lg: int = field(
        default=42, metadata={"help": "random seed"}
-    )
-   top_k: int = field(
-       default=0, metadata={"help": "top k links to predict"}
     )
    dataset: str = field(
        default=None, metadata={"help": "which dataset to use"}
