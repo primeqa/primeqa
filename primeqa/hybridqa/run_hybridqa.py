@@ -15,6 +15,7 @@ import logging
 from typing import Any, Dict, List, Optional, Union
 import torch
 import os
+import sys
 
 @dataclass
 class RRArguments():
@@ -230,7 +231,11 @@ def run_hybrid_qa():
    logger = logging.getLogger(__name__)
    logger.info("running hybridqa")
    hqa_parser = HfArgumentParser((HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments))
-   hqa_args,lp_args,rr_args,ae_args, = hqa_parser.parse_args_into_dataclasses()
+
+   if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+      hqa_args,lp_args,rr_args,ae_args,= hqa_parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+   else:
+      hqa_args,lp_args,rr_args,ae_args, = hqa_parser.parse_args_into_dataclasses()
    raw_train_data = json.load(open(hqa_args.train_data_path))
    raw_dev_data = json.load(open(hqa_args.dev_data_path))
    raw_test_data = json.load(open(hqa_args.test_data_path))
