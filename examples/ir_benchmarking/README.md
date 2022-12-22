@@ -25,18 +25,18 @@ After that, go to the folder `primeqa/examples/ir_benchmarking` and download the
 To run experiments, first initialize a Docker container using the Dockerfile and the corresponding command:
 
 ```
-sudo docker build -t pulkit/run_ir:1.0 .
+sudo docker build -t ir_benchmark/run_ir:1.0 .
 ```
 
 Afterwards, perform the following command to run the selected configuration of `run_ir.py`:
 
 ```
-sudo docker run --rm --gpus 1 pulkit/run_ir:1.0
+sudo docker run --rm --gpus 1 ir_benchmark/run_ir:1.0
 ```
 
 To restrict memory, please see the following [Docker instructions on resource constraints](https://docs.docker.com/config/containers/resource_constraints/#access-an-nvidia-gpu). For example, to restrict the previous command to 32 GB, you can run:
 
 
 ```
-sudo docker run --rm --gpus 1 pulkit/run_ir:1.0 --memory=32000m
+sudo docker run --rm --gpus 1 ir_benchmark/run_ir:1.0 --memory=32000m
 ```
