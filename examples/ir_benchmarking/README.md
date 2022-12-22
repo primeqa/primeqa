@@ -34,4 +34,9 @@ Afterwards, perform the following command to run the selected configuration of `
 sudo docker run --rm --gpus 1 pulkit/run_ir:1.0
 ```
 
-To restrict memory, please see the following [Docker instructions on resource constraints](https://docs.docker.com/config/containers/resource_constraints/#access-an-nvidia-gpu).
+To restrict memory, please see the following [Docker instructions on resource constraints](https://docs.docker.com/config/containers/resource_constraints/#access-an-nvidia-gpu). For example, to restrict the previous command to 32 GB, you can run:
+
+
+```
+sudo docker run --rm --gpus 1 pulkit/run_ir:1.0 --memory=32000m
+```
