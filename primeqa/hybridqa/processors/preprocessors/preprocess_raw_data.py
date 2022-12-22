@@ -40,7 +40,7 @@ def get_top_k_passages(passages,query,top_k, row=None):
 
 
 """ Preprocess a single instance """
-def preprocess_instance(d,dataset_name,passages_dict,test=False):
+def preprocess_instance(d,dataset_name,passages_dict=None,test=False):
     p_d = {}
     p_d['question'] = d['question']
     p_d['question_id'] = d['question_id']
@@ -59,7 +59,9 @@ def preprocess_instance(d,dataset_name,passages_dict,test=False):
 """ Preprocess the full data """
 def preprocess_data(data_root_path,dataset_name,raw_data,split,test):
     #data = json.load(open(data_path))
-    passages_dict = load_passages(data_root_path)
+    passages_dict = None
+    if dataset_name=="ottqa":
+        passages_dict = load_passages(data_root_path)
     processed_data_path = os.path.join(data_root_path,str(split)+"_processed.json")
     processed_data = []
     num = 0

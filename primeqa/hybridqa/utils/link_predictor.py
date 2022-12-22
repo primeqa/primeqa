@@ -73,7 +73,87 @@ def sample_sequence(model, length, context, args, num_samples=1, temperature=1, 
 def load_all_tables():
     data = json.load(open("data/ottqa/all_plain_tables.json"))
     return data 
+
+def train_link_generator(args):
+    args.device_lg = torch.device("cuda")
+    args.n_gpu = torch.cuda.device_count()
+
+    tokenizer = GPT2Tokenizer.from_pretrained(args.model)
+    tokenizer.add_tokens(['[SEP]', '[EOS]', '[START]', '[ENT]'])
+    model = GPT2LMHeadModel.from_pretrained(args.model)
+    model.resize_token_embeddings(len(tokenizer))
+
+    criterion = nn.CrossEntropyLoss(reduction='none', ignore_index=-1)
+    print("Start Training.")
+    model = nn.DataParallel(model)
+    model.to(args.device_lg)
+    recording_time = datetime.now().strftime('%m_%d_%H_%M')
+    tb_writer = SummaryWriter(log_dir='link_generator/{}'.format(recording_time))
+    dataset = LinkGenearationDataset(args.dataset, 'train', tokenizer, args.max_source_len, args.max_target_len)
+    optimizer = optim.Adam(model.parameters(), args.learning_rate_lg)
     
+    train_sampler = RandomSampler(dataset)
+    train_dataloader = DataLoader(dataset, sampler=train_sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)
+    print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(train_dataloader)))
+    
+    avg_loss = 0
+    global_step = 0
+    for epoch in trange(10):
+        epoch_iterator = tqdm(train_dataloader, desc="Iteration")
+        for step, indexed_batch in enumerate(epoch_iterator):
+            model.train()
+
+            batch = tuple(t.to(args.device_lg) for t in indexed_batch[2:])
+
+            prefix, trg_inp, trg_out, mask = batch
+
+            inputs = torch.cat([prefix, trg_inp], 1)
+
+            model.zero_grad()
+            optimizer.zero_grad()
+
+            logits = model(inputs)[0]
+            logits = logits[:, -trg_out.shape[1]:, :].contiguous()
+
+            loss = criterion(logits.view(-1, logits.shape[-1]), trg_out.view(-1))
+
+            loss = loss * mask.view(-1)
+            loss = loss.sum() / mask.sum()
+
+            avg_loss += loss.item()
+
+            loss.backward()
+            optimizer.step()
+            global_step += 1
+
+            if step % args.every == 0 and step > 0:
+                model.eval()
+                tb_writer.add_scalar("loss", math.exp(avg_loss / args.every), global_step)
+                prefix = torch.cat([prefix, trg_inp[:, :1]], -1)
+                prefix = prefix[:2]
+
+                gt_inputs = trg_out.cpu().data.numpy()[:2]
+
+                samples = sample_sequence(model, 16, prefix, [], 1, temperature=0)
+                samples = samples[:, prefix.shape[1]:]
+                samples = samples.cpu().data.numpy()
+                prefix = prefix.cpu().data.numpy()
+
+                for p, s, gt in zip(prefix, samples, gt_inputs):
+                    text = tokenizer.decode(s, clean_up_tokenization_spaces=True)
+                    text = text[: text.find('[EOS]')]
+                    pre_text = tokenizer.decode(p, clean_up_tokenization_spaces=True)
+                    print("Input |||||| ", pre_text)
+                    print("PREDICTION |||||| ", text)
+                    text = tokenizer.decode(gt, clean_up_tokenization_spaces=True)
+                    text = text[: text.find('[EOS]')]
+                    print("GROUNDTRUH |||||| ",text)
+                    break
+
+                avg_loss = 0
+
+        torch.save(model.module.state_dict(), 'link_generator/model-ep{}.pt'.format(epoch))
+     
 
 def predict_link_for_tables(args,retrieved_data):
  

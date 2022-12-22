@@ -28,20 +28,21 @@ def train_table_retriever(root_dir,triples_file_name):
         trainer.train()
         
 def predict_table_retriever(data_path_root,collection_file,raw_data):
-    # collection_fn = os.path.join(data_path_root, collection_file)
     output_dir=os.path.join(data_path_root, 'output_dir')
-    # indexing_args = [
-    #         "prog",
-    #         "--dpr_ctx_encoder_path", os.path.join(output_dir, "ctx_encoder"),
-    #         "--embed", "1of1",
-    #         "--sharded_index",
-    #         "--batch_size", "1",
-    #         "--corpus", collection_fn,
-    #         "--output_dir", output_dir]    
-    # with patch.object(sys, 'argv', indexing_args):
-    #     indexer = DPRIndexer()
-    #     indexer.index()
-        
+    if not os.path.exists(output_dir):
+        collection_fn = os.path.join(data_path_root, collection_file)
+        indexing_args = [
+                "prog",
+                "--dpr_ctx_encoder_path", os.path.join(output_dir, "ctx_encoder"),
+                "--embed", "1of1",
+                "--sharded_index",
+                "--batch_size", "1",
+                "--corpus", collection_fn,
+                "--output_dir", output_dir]    
+        with patch.object(sys, 'argv', indexing_args):
+            indexer = DPRIndexer()
+            indexer.index()
+    
     search_args = [
     "prog",
     "--model_name_or_path", os.path.join(output_dir, "qry_encoder"),

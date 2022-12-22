@@ -19,7 +19,7 @@ def re_rank_ae_output(row_retrieval_scores,n_best_prediction_file_path,ae_output
     data_rr = []
     data_new = []
     mxs = {}
-    for example in tqdm.tqdm(data):
+    for example in tqdm.tqdm(data): 
         qas_id = example["question_id"].split("_")[0]
         qas_rank = int(example["question_id"].split("_")[1])
         rcs = get_rc_score(ae_scores,qas_id, qas_rank)

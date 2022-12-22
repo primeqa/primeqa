@@ -134,6 +134,7 @@ def _create_batch_matrix(group_id_list):
 def pl_min_group_loss(logits, targets, label_matrix, criterion):
 	# label_matrix has 1s for group member and inf(or high value) for non member
 	loss_vec = criterion(logits,targets)
+	print(loss_vec.shape)
 	loss_mat = vec_mat_multiplication(loss_vec, label_matrix)
 	return loss_mat.min(axis=0).values.mean()
 
