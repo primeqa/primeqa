@@ -1,8 +1,9 @@
 
-FROM ubuntu:18.04
+FROM nvidia/cuda:12.0.0-base-ubuntu22.04
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 RUN apt-get update
+ENV CUDA_VISIBLE_DEVICES="0"
 
 RUN apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 
@@ -13,39 +14,24 @@ RUN wget \
     && rm -f Miniconda3-latest-Linux-x86_64.sh 
 RUN conda --version
 
-#RUN apt-get install nvidia-cuda-toolkit
-
-# create env with python 3.9
-RUN conda create -y -n primeqa python=3.9
-#RUN conda activate primeqa
-#ENV PATH=/opt/conda/envs/primeqa/bin:$PATH
-
 WORKDIR /home/ubuntu/primeqa
-#COPY requirements.txt ./
 COPY README.md ./
 COPY VERSION ./
 COPY experiment.sh ./
-#COPY primeqa/ir/run_ir.py ./
-#COPY primeqa ./
 COPY jdk-11.0.1 ./
 COPY setup.py ./
-#ADD primeqa ./
 ADD . ./
 
+RUN conda env create -f conda_env.yml
+#RUN conda activate colbert
+ENV PATH=/opt/conda/envs/colbert/bin:$PATH
+SHELL ["conda", "run", "-n", "colbert", "/bin/bash", "-c"]
+
 RUN apt-get update && apt-get install -y \
-    python-pip
+    python3-pip
 RUN apt-get install git -y
 
-RUN pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 torchaudio==0.9.0 -f https://download.pytorch.org/whl/torch_stable.html
-#RUN cd /root/home
-#RUN ls ./
-RUN pip install -e .[all]
-
-#RUN sh experiment.sh
-#COPY testing_2.py ./
-
-#CMD ["python", "testing_2.py"]
-CMD ["sh", "experiment.sh"]
+CMD ["conda", "run", "--no-capture-output", "-n", "colbert", "sh", "experiment.sh"]
 
 
 

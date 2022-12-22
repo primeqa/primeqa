@@ -9,10 +9,9 @@ from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.data import Queries
 from colbert import Indexer, Searcher
 
-#from examples.ir_benchmarking.colbert.infra import Run, RunConfig, ColBERTConfig
-#from examples.ir_benchmarking.colbert.data import Queries
-#from examples.ir_benchmarking.colbert import Indexer, Searcher
-
+print("GPU Availability")
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
 
 #################################
 
@@ -36,7 +35,7 @@ def evaluate(index=True):
     if not os.path.exists(collection):
         print(f"No data found for {dataset} at {collection}, skipping...")
         return
-    with Run().context(RunConfig(nranks=4)):
+    with Run().context(RunConfig(nranks=1)):
         INDEX_NAME = f"msmarco.nbits={nbits}.latest_" + chosen_dataset
 
         if index:

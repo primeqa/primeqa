@@ -61,8 +61,9 @@ class StridedTensor(StridedTensorCore):
 
         assert pids.dim() == 1
 
-        if self.use_gpu:
-            pids = pids.cuda()
+        #if self.use_gpu:
+        #    pids = pids.cuda()
+        pids = pids.cpu()
         pids = pids.long()
         lengths = self.lengths[pids]
         if self.use_gpu:
