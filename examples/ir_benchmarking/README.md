@@ -22,7 +22,7 @@ After that, go to the folder `primeqa/examples/ir_benchmarking` and download the
 
 ### 4. Running experiments
 
-To run an experiments, first initialize a Docker container using the Dockerfile and the corresponding command:
+To run experiments, first initialize a Docker container using the Dockerfile and the corresponding command:
 
 ```
 sudo docker build -t pulkit/run_ir:1.0 .
