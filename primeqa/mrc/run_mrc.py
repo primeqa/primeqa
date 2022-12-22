@@ -115,6 +115,9 @@ class DataTrainingArguments:
         default=None, metadata={"help": "local file(s) to train on."}
     )
     eval_file: Optional[str] = field(
+        default=None, metadata={"help": "local file(s) to validate on."}
+    )
+    test_file: Optional[str] = field(
         default=None, metadata={"help": "local file(s) to test on."}
     )
     train_fof: Optional[str] = field(
@@ -181,6 +184,13 @@ class DataTrainingArguments:
         default=None,
         metadata={
             "help": "For debugging purposes or quicker training, truncate the number of evaluation examples to this "
+                    "value if set."
+        },
+    )
+    max_predict_samples: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "For debugging purposes or quicker training, truncate the number of predict examples to this "
                     "value if set."
         },
     )
@@ -344,13 +354,14 @@ def main():
         for k in kd_args.__dict__:
             setattr(training_args, k, getattr(kd_args, k))
             
-    # if we are doing the boolean post-processing, require do_eval, because the id's (not included in HF
+    # if we are doing the boolean post-processing, require do_eval or do_predict, because the id's (not included in HF
     # dataset) might have changed
     # we require ExtractivePipelinePostProcessor to populate certain fields for the boolqa classifiers,
     # so force it here - this can't be done in a __post_init__ postprocess is in TaskArguments and
     # do_eval is in TrainingArguments
     if task_args.do_boolean:
-        training_args.do_eval = True
+        if training_args.do_predict == False:
+            training_args.do_eval = True
         if not isinstance(task_args.postprocessor, ExtractivePipelinePostProcessor):
             task_args.postprocessor = ExtractivePipelinePostProcessor
             
@@ -426,7 +437,7 @@ def main():
             raw_datasets['validation'] = raw_validation_datasets
     else:
         logger.info('Loading dataset')        
-        if data_args.train_file is not None or data_args.eval_file is not None:
+        if data_args.train_file is not None or data_args.eval_file is not None or data_args.test_file is not None:
             data_files = {}
             raw_datasets = {}
             # Load train and validation datasets separately because they might have different columns
@@ -440,12 +451,12 @@ def main():
                  )
             if data_args.eval_file is not None: 
                 data_files['validation'] = glob.glob(data_args.eval_file)
-                raw_datasets["validation"] = datasets.load_dataset(
-                    data_args.data_file_format, 
-                    data_files={"validation": data_files["validation"]}, 
-                    split="validation",
-                    cache_dir=model_args.cache_dir
-                 )        
+            if data_args.test_file is not None: 
+                data_files['test'] = glob.glob(data_args.test_file)
+
+            raw_datasets = datasets.load_dataset(data_args.data_file_format, 
+                data_files=data_files,
+                cache_dir=model_args.cache_dir)
         else:
             if data_args.dataset_name == "natural_questions":
                 raw_datasets = datasets.load_dataset(
@@ -527,6 +538,16 @@ def main():
             setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
         else:
             eval_examples, eval_dataset = eval_examples[0], eval_datasets[0]        
+    # process predict data (no labels)
+    if training_args.do_predict or data_args.test_file is not None:
+        if "test" not in raw_datasets and "test_matched" not in raw_datasets:
+            raise ValueError("--do_predict requires a test dataset")
+        predict_examples = raw_datasets["test"]
+        max_predict_samples = data_args.max_predict_samples
+        if max_predict_samples is not None:
+            # We will select sample from whole data if argument is specified
+            predict_examples = predict_examples.select(range(max_predict_samples))
+        predict_examples, predict_dataset = preprocessor.process_predict(predict_examples)
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
@@ -544,6 +565,7 @@ def main():
         single_context_multiple_passages=preprocessor._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
+        do_predict=training_args.do_predict,
         tokenizer=tokenizer,
     )
     
@@ -602,42 +624,60 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
+    # Predict on unlabeled data
+    if training_args.do_predict:
+        logger.info("*** Predict ***")
+        # if using a validation dataset to do predictions remove the label
+        if 'label' in predict_dataset.column_names:
+            predict_dataset=predict_dataset.remove_columns('label')
+        predictions = trainer.predict(predict_dataset, predict_examples)
+        
+        with open(os.path.join(training_args.output_dir, 'eval_predictions.json'), 'w') as f:
+            json.dump(predictions.predictions, f, indent=4)
+        with open(os.path.join(training_args.output_dir, 'eval_predictions_processed.json'), 'w') as f:
+            json.dump(predictions.processed_predictions, f, indent=4)
+
     if task_args.do_boolean:
         logger.info("Processing of boolean questions")
+
         if not os.path.exists(os.path.join(training_args.output_dir,"eval_predictions.json")):
             raise Exception(f"No MRC predictions were found at {training_args.output_dir}")
         with open(task_args.boolean_config, 'r') as f:
             boolean_config = json.load(f)
 
-        boolean_config['qtc']['output_dir'] = training_args.output_dir+"/qtc"
-        boolean_config['qtc']['test_file'] = training_args.output_dir + "/eval_predictions.json"
-        boolean_config['qtc']['do_mrc_pipeline']='True'
-        boolean_config['evc']['output_dir'] = training_args.output_dir+"/evc"
-        boolean_config['evc']['test_file'] = training_args.output_dir + "/qtc/predictions.json"
-        boolean_config['evc']['do_mrc_pipeline']='True'
-        boolean_config['sn']['output_dir'] = training_args.output_dir+"/sn"
-        boolean_config['sn']['test_file'] = training_args.output_dir + "/evc/predictions.json"
+
+        def run_bool_component(name, test_file="predictions.json", do_mrc=False):
+            boolean_config[name]['output_dir'] = training_args.output_dir + "/" + name
+            boolean_config[name]['test_file'] = training_args.output_dir + "/" + test_file
+            if do_mrc:
+                boolean_config[name]['do_mrc_pipeline']='True'
+
+            gc.collect()
+            torch.cuda.empty_cache()
+            logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
+                max memory {torch.cuda.max_memory_allocated()}")
+            logger.info("Running " + name)
+            if name == 'sn':
+                sn_main([boolean_config[name]])
+            else:
+                cls_main([boolean_config[name]])
 
         if model: del model
-        gc.collect()
-        torch.cuda.empty_cache()
-        logger.info(f"torch memory allocated {torch.cuda.memory_allocated()} \
-            max memory {torch.cuda.max_memory_allocated()}")
-
-        cls_main([boolean_config['qtc']])
-        cls_main([boolean_config['evc']])
-        sn_main([boolean_config['sn']])
+        run_bool_component('qtc', test_file="eval_predictions.json", do_mrc=True)
+        run_bool_component('evc', test_file="/qtc/predictions.json", do_mrc=True)
+        run_bool_component('sn',  test_file="/evc/predictions.json")
 
         with open(os.path.join(boolean_config['sn']['output_dir'], 'eval_predictions_processed.json'), 'r') as f:
             processed_predictions = json.load(f)
             
-        references = postprocessor.prepare_examples_as_references(eval_examples)
-        boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
-        boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
-        trainer.log_metrics("eval", boolean_eval_metric)
-        path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
-        with open(path, "w") as f:
-            json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
+        if training_args.do_eval:
+            references = postprocessor.prepare_examples_as_references(eval_examples)
+            boolean_eval_metric = eval_metrics.compute(predictions=processed_predictions, references=references)
+            boolean_eval_metric["eval_samples"] = min(max_eval_samples, len(eval_examples))
+            trainer.log_metrics("eval", boolean_eval_metric)
+            path = os.path.join(boolean_config['sn']['output_dir'], f"all_results.json")
+            with open(path, "w") as f:
+                json.dump(boolean_eval_metric, f, indent=4, sort_keys=True)        
 
 
 if __name__ == '__main__':

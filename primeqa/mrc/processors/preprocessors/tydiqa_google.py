@@ -33,6 +33,7 @@ class TyDiQAGooglePreprocessor(BasePreProcessor):
     _single_context_type = {'passage_answer_candidates': Sequence(
         feature={'plaintext_start_byte': Value(dtype='int32', id=None),
                  'plaintext_end_byte': Value(dtype='int32', id=None)})}
+    _is_predict = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,8 +41,13 @@ class TyDiQAGooglePreprocessor(BasePreProcessor):
             self._logger.info(f"{self.__class__.__name__} only supports single context multiple passages -- enabling")
             self._single_context_multiple_passages = True
 
-    def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
-        dataset = dataset.rename_columns(self._rename_fields)
+    def adapt_dataset(self, dataset: Dataset, is_train: bool, is_predict: bool) -> Dataset:
+        self._is_predict = is_predict
+        if self._is_predict:
+            dataset = dataset.rename_columns({'question_text': 'question',
+                      'passage_answer_candidates': 'passage_candidates'})
+        else:
+            dataset = dataset.rename_columns(self._rename_fields)
         dataset = dataset.map(self._rename_examples,
                               load_from_cache_file=self._load_from_cache_file,
                               num_proc=self._num_workers
@@ -61,15 +67,16 @@ class TyDiQAGooglePreprocessor(BasePreProcessor):
         context = example['document_plaintext']
         context_bytes = context.encode('utf-8')
 
-        for i in range(len(example['target']['passage_indices'])):
-            pidx = example['target']['passage_indices'][i]
-            if pidx == -1 or example['target']['start_positions'][i] == -1:
-                continue
+        if not self._is_predict:
+            for i in range(len(example['target']['passage_indices'])):
+                pidx = example['target']['passage_indices'][i]
+                if pidx == -1 or example['target']['start_positions'][i] == -1:
+                    continue
 
-            example['target']['start_positions'][i] = len(
-                context_bytes[:example['target']['start_positions'][i]].decode('utf-8', errors='replace'))
-            example['target']['end_positions'][i] = len(
-                context_bytes[:example['target']['end_positions'][i]].decode('utf-8', errors='replace'))
+                example['target']['start_positions'][i] = len(
+                    context_bytes[:example['target']['start_positions'][i]].decode('utf-8', errors='replace'))
+                example['target']['end_positions'][i] = len(
+                    context_bytes[:example['target']['end_positions'][i]].decode('utf-8', errors='replace'))
 
         num_passages = len(example['passage_candidates']['start_positions'])
         for i in range(num_passages):
@@ -87,19 +94,20 @@ class TyDiQAGooglePreprocessor(BasePreProcessor):
         """
         Rename examples from TyDi schema to `BasePreProcessor` schema.
         """
-        target = example['target']
-        
-        new_target = {}
-        new_target['yes_no_answer'] = []
-        for old_key, new_key in self._rename_target.items():
-            new_target[new_key] = []
-        
-        for annotation in target:
-            new_target['passage_indices'].append(annotation['passage_answer']['candidate_index'])
-            new_target['start_positions'].append(annotation['minimal_answer']['plaintext_start_byte'])
-            new_target['end_positions'].append(annotation['minimal_answer']['plaintext_end_byte'])
-            new_target['yes_no_answer'].append(annotation['yes_no_answer'])
-        example['target'] = new_target
+        if not self._is_predict:
+            target = example['target']
+            
+            new_target = {}
+            new_target['yes_no_answer'] = []
+            for old_key, new_key in self._rename_target.items():
+                new_target[new_key] = []
+            
+            for annotation in target:
+                new_target['passage_indices'].append(annotation['passage_answer']['candidate_index'])
+                new_target['start_positions'].append(annotation['minimal_answer']['plaintext_start_byte'])
+                new_target['end_positions'].append(annotation['minimal_answer']['plaintext_end_byte'])
+                new_target['yes_no_answer'].append(annotation['yes_no_answer'])
+            example['target'] = new_target
 
         passage_candidates = example['passage_candidates']
         new_passage_candidates = {}
