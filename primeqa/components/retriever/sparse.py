@@ -1,11 +1,11 @@
 from typing import List
 from dataclasses import dataclass, field
 
-from primeqa.pipelines.components.base import RetrieverComponent
+from primeqa.pipelines.components.base import Retriever
 
 
 @dataclass
-class BM25Retriever(RetrieverComponent):
+class BM25Retriever(Retriever):
     """_summary_
 
     Args:

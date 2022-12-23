@@ -5,7 +5,7 @@ import json
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
 
-from primeqa.pipelines.components.base import ReaderComponent
+from primeqa.pipelines.components.base import Reader
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
@@ -15,7 +15,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 @dataclass
-class ExtractiveReader(ReaderComponent):
+class ExtractiveReader(Reader):
     """_summary_
 
     Args:
