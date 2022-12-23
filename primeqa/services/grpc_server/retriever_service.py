@@ -19,7 +19,7 @@ from primeqa.services.grpc_server.grpc_generated.retriever_pb2_grpc import (
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import Document
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
     GetRetrieversRequest,
-    RetrieverComponent,
+    Retriever,
     GetRetrieversResponse,
     RetrieveRequest,
     Hit,
@@ -52,7 +52,7 @@ class RetrieverService(RetrieverServicer):
         """
         return GetRetrieversResponse(
             retrievers=[
-                RetrieverComponent(
+                Retriever(
                     retriever_id=retriever_id,
                     parameters=generate_parameters(
                         retriever, skip=["index_root", "index_name"]

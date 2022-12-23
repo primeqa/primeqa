@@ -1,11 +1,11 @@
 from typing import Union, List
 from dataclasses import dataclass
 
-from primeqa.components.base import IndexerComponent
+from primeqa.components.base import Indexer
 
 
 @dataclass
-class BM25Indexer(IndexerComponent):
+class BM25Indexer(Indexer):
     """_summary_
 
     Args:

@@ -23,7 +23,7 @@ from primeqa.services.grpc_server.grpc_generated.indexer_pb2_grpc import (
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
     GetIndexersRequest,
     GetIndexersResponse,
-    IndexerComponent,
+    Indexer,
     GenerateIndexResponse,
     GetIndexStatusRequest,
     IndexStatusResponse,
@@ -61,7 +61,7 @@ class IndexerService(IndexerServicer):
         """
         return GetIndexersResponse(
             indexers=[
-                IndexerComponent(
+                Indexer(
                     indexer_id=indexer_id,
                     parameters=generate_parameters(
                         indexer, skip=["index_root", "index_name"]

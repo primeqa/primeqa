@@ -2,13 +2,13 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import IndexerComponent
+from primeqa.components.base import Indexer
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
 
 @dataclass
-class ColBERTIndexer(IndexerComponent):
+class ColBERTIndexer(Indexer):
     """_summary_
 
     Args:
