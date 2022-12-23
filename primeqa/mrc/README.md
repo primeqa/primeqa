@@ -249,12 +249,60 @@ Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `T
        --dataset_filter_column_name subset
 ```
 
-Cross domain experiments can be run by running train and eval as separate processes. The
+Cross domain experiments can be run by running train and eval as separate processes.
 
  
 ### Custom Data
 
 Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
+
+
+### Training with Multiple Datasets
+
+PrimeQA supports the training of MRC model with combination of multiple datasets, which are specified in "--train_fof" argument. Three formats, csv, jsonl and json, can be used to define "--train_file".
+
+In csv format, the columns of each line, separated by space, are for:
+ - HuggingFace dataset name, or path of local data file, or path of dataset processing script (in python);
+ - Dataset config name or data file format;
+ - Sampling rate within range 0.0 to 1.0, e.g. 0.5 means 50% of the examples are randomly selected and used in MRC training;
+ - Preprocessor name.
+
+If column 2 to 4 are not given, default values from input arguments will be used, i.e.:
+ - Value of "--dataset_config_name" for HuggingFace dataset and processing script, or "--data_file_format" for local data file;
+ - 1.0 for sampling rate;
+ - Value of "--preprocessor" for preprocessor name.
+
+If in jsonl format, each line is a dictionary consisting of
+```
+{'dataset': dataset_name_or_path_of_data_file_or_processing_script,
+ 'config': dataset_config_or_data_file_format,
+ 'sampling_rate': sampling_rate,
+ 'preprocessor': preprocessor_name}
+```
+
+Fields 'config', 'sampling_rate', and 'preprocessor' are optional.
+
+If in json format, a list of dictionaries same to that in jsonl is expected.
+
+The following is an example of "--train_fof" in csv format which includes two HuggingFace datatsets: TyDiQA and SQuAD.
+```
+tydiqa primary_task 0.1 primeqa.mrc.processors.preprocessors.tydiqa.TyDiQAPreprocessor
+squad  plain_text   0.1 primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor
+```
+
+To evaluate the checkpoint models during training, the validation dataset needs be specified in "--eval_fof" which format is same to "--train_fof". Multiple datatsets can be included into "--eval_fof", but only the first one is used for evaluation.
+
+Please note that, if "--train_fof" and "--eval_fof" are given in input arguments, other dataset related parameters, i.e. "--dataset_name", "--train_file", and "--eval_file" are ignored.
+
+The following additional command lines show how to train MRC model with TyDiQA+SQuAD, and evaluate on TyDiQA.
+```shell
+python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
+--train_fof ${train_fof_including_tydi_squad} \
+--eval_fof ${eval_fof_including_tydi} \
+--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor \
+--eval_metrics TyDiF1 \
+```
+
 
 ## Special MRC Features:
 
