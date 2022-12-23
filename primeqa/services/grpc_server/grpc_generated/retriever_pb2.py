@@ -16,23 +16,23 @@ from . import parameter_pb2 as parameter__pb2
 from . import indexer_pb2 as indexer__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x0fparameter.proto\x1a\rindexer.proto\"T\n\x12RetrieverComponent\x12\x14\n\x0cretriever_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x16\n\x14GetRetrieversRequest\"I\n\x15GetRetrieversResponse\x12\x30\n\nretrievers\x18\x01 \x03(\x0b\x32\x1c.retrieve.RetrieverComponent\"e\n\x0fRetrieveRequest\x12/\n\tretriever\x18\x01 \x01(\x0b\x32\x1c.retrieve.RetrieverComponent\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\x0f\n\x07queries\x18\x03 \x03(\t\"7\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\"*\n\x0bHitPerQuery\x12\x1b\n\x04hits\x18\x01 \x03(\x0b\x32\r.retrieve.Hit\"7\n\x10RetrieveResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2\xa0\x01\n\tRetriever\x12P\n\rGetRetrievers\x12\x1e.retrieve.GetRetrieversRequest\x1a\x1f.retrieve.GetRetrieversResponse\x12\x41\n\x08Retrieve\x12\x19.retrieve.RetrieveRequest\x1a\x1a.retrieve.RetrieveResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fretriever.proto\x12\x08retrieve\x1a\x0fparameter.proto\x1a\rindexer.proto\"T\n\x12Retriever\x12\x14\n\x0cretriever_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x16\n\x14GetRetrieversRequest\"I\n\x15GetRetrieversResponse\x12\x30\n\nretrievers\x18\x01 \x03(\x0b\x32\x1c.retrieve.Retriever\"e\n\x0fRetrieveRequest\x12/\n\tretriever\x18\x01 \x01(\x0b\x32\x1c.retrieve.Retriever\x12\x10\n\x08index_id\x18\x02 \x01(\t\x12\x0f\n\x07queries\x18\x03 \x03(\t\"7\n\x03Hit\x12!\n\x08\x64ocument\x18\x01 \x01(\x0b\x32\x0f.index.Document\x12\r\n\x05score\x18\x02 \x01(\x01\"*\n\x0bHitPerQuery\x12\x1b\n\x04hits\x18\x01 \x03(\x0b\x32\r.retrieve.Hit\"7\n\x10RetrieveResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2\xa0\x01\n\tRetriever\x12P\n\rGetRetrievers\x12\x1e.retrieve.GetRetrieversRequest\x1a\x1f.retrieve.GetRetrieversResponse\x12\x41\n\x08Retrieve\x12\x19.retrieve.RetrieveRequest\x1a\x1a.retrieve.RetrieveResponseb\x06proto3')
 
 
 
-_RETRIEVERCOMPONENT = DESCRIPTOR.message_types_by_name['RetrieverComponent']
+_Retriever = DESCRIPTOR.message_types_by_name['Retriever']
 _GETRETRIEVERSREQUEST = DESCRIPTOR.message_types_by_name['GetRetrieversRequest']
 _GETRETRIEVERSRESPONSE = DESCRIPTOR.message_types_by_name['GetRetrieversResponse']
 _RETRIEVEREQUEST = DESCRIPTOR.message_types_by_name['RetrieveRequest']
 _HIT = DESCRIPTOR.message_types_by_name['Hit']
 _HITPERQUERY = DESCRIPTOR.message_types_by_name['HitPerQuery']
 _RETRIEVERESPONSE = DESCRIPTOR.message_types_by_name['RetrieveResponse']
-RetrieverComponent = _reflection.GeneratedProtocolMessageType('RetrieverComponent', (_message.Message,), {
-  'DESCRIPTOR' : _RETRIEVERCOMPONENT,
+Retriever = _reflection.GeneratedProtocolMessageType('Retriever', (_message.Message,), {
+  'DESCRIPTOR' : _Retriever,
   '__module__' : 'retriever_pb2'
-  # @@protoc_insertion_point(class_scope:retrieve.RetrieverComponent)
+  # @@protoc_insertion_point(class_scope:retrieve.Retriever)
   })
-_sym_db.RegisterMessage(RetrieverComponent)
+_sym_db.RegisterMessage(Retriever)
 
 GetRetrieversRequest = _reflection.GeneratedProtocolMessageType('GetRetrieversRequest', (_message.Message,), {
   'DESCRIPTOR' : _GETRETRIEVERSREQUEST,
@@ -80,8 +80,8 @@ _RETRIEVER = DESCRIPTOR.services_by_name['Retriever']
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _RETRIEVERCOMPONENT._serialized_start=61
-  _RETRIEVERCOMPONENT._serialized_end=145
+  _Retriever._serialized_start=61
+  _Retriever._serialized_end=145
   _GETRETRIEVERSREQUEST._serialized_start=147
   _GETRETRIEVERSREQUEST._serialized_end=169
   _GETRETRIEVERSRESPONSE._serialized_start=171

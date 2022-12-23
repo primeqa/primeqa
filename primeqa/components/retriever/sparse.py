@@ -7,7 +7,7 @@ from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 
 @dataclass
-class BM25Retriever(RetrieverComponent):
+class BM25Retriever(Retriever):
     """_summary_
 
     Args:

@@ -8,7 +8,7 @@ from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 
 @dataclass
-class BM25Indexer(IndexerComponent):
+class BM25Indexer(Indexer):
     """_summary_
 
     Args:

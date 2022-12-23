@@ -17,11 +17,11 @@ class Component(ABC):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class ReaderComponent(Component):
+class Reader(Component):
     @abstractmethod
     def __hash__(self) -> int:
         """
-        Custom hashing function useful to compare instances of `ReaderComponent`.
+        Custom hashing function useful to compare instances of `Reader`.
 
         Raises:
             NotImplementedError:
@@ -44,7 +44,7 @@ class ReaderComponent(Component):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class IndexerComponent(Component):
+class Indexer(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -76,7 +76,7 @@ class IndexerComponent(Component):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class RetrieverComponent(Component):
+class Retriever(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -97,7 +97,7 @@ class RetrieverComponent(Component):
     @abstractmethod
     def __hash__(self) -> int:
         """
-        Custom hashing function useful to compare instances of `RetrieverComponent`.
+        Custom hashing function useful to compare instances of `Retriever`.
 
         Raises:
             NotImplementedError:
