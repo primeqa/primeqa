@@ -15,7 +15,7 @@ import torch
 import os
 import sys
 from utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
-
+   
 
 def run_hybrid_qa():
    logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def run_hybrid_qa():
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
       logger.info("Row retrieval predictions Done")
-      test_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict,test)
+      test_processed_data = preprocess_data_using_row_retrieval_scores(raw_test_data,qid_scores_dict,test)
       logger.info("Row retrieval output processed")
       answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
       logger.info("Answer extraction data generated")

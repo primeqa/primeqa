@@ -1,9 +1,10 @@
 from typing import List
 from tqdm import tqdm
 
-from primeqa.pipelines.components.base import Reader, Retriever
+from primeqa.Components.base import Reader, Retriever
 
 class QAPipeline:
+    def __init__(self, retriever: Retriever, reader: Reader) -> None:
     def __init__(self, retriever: Retriever, reader: Reader) -> None:
         self.retriever = retriever
         self.reader = reader
