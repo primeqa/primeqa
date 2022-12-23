@@ -288,7 +288,7 @@ def run_hybrid_qa():
       logger.info("Train: Training row retrieval model")
       rr.train(train_data_processed,dev_data_processed)
       qid_scores_dict_train = rr.predict(train_data_processed)
-      qid_scores_dict_dev = rr.predict(train_data_processed)
+      qid_scores_dict_dev = rr.predict(dev_data_processed)
       train_processed_data = preprocess_data_using_row_retrieval_scores(raw_train_data,qid_scores_dict_train,test)
       dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,test)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
