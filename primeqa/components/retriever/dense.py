@@ -2,7 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import Retriever
+from primeqa.pipelines.components.base import Retriever
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 

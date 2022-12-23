@@ -1,5 +1,5 @@
 from primeqa.tableqa.tapex.models.tapex_model import TapexModel    
-class ReaderComponent():
+class Reader():
     
     def __init__(self,runnable_class_name,path_to_config_json=None):
         # if path_to_config_json is None:

@@ -4,7 +4,7 @@ import json
 
 from dataclasses import MISSING
 
-from primeqa.components.base import (
+from primeqa.pipelines.components.base import (
     Reader,
     Retriever,
     Indexer,
