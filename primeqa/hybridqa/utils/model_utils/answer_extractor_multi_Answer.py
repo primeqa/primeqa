@@ -51,7 +51,7 @@ from transformers.data.metrics.squad_metrics import (
 )
 import string
 from transformers.data.processors.utils import DataProcessor
-from utils.utils import readGZip
+from primeqa.hybridqa.utils.utils import readGZip
 
 try:
     from torch.utils.tensorboard import SummaryWriter

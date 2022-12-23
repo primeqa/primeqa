@@ -15,7 +15,7 @@ import torch
 from transformers import TapasTokenizer, TapasModel
 
 
-
+# Row Retriever model
 class RowClassifierSC(nn.Module):
     def __init__(self,bert_model,state_dict=None):
         super(RowClassifierSC, self).__init__()

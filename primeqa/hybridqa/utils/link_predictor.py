@@ -16,7 +16,7 @@ import torch.optim as optim
 from tqdm import trange, tqdm
 import math
 from datetime import datetime
-from utils.hybridqa_utils import whitelist, is_year
+from primeqa.hybridqa.utils.hybridqa_utils import whitelist, is_year
 import sys
 import copy
 import pdb

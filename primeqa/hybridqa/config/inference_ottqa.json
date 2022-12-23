@@ -14,7 +14,7 @@
     "threads":1,
     "null_score_diff_threshold":0.0,
     "n_best_size":20,
-    "do_predict_ae":True,
+    "do_predict_ae":true,
     "n_gpu":1,
     "max_answer_length":30,
     "model_name_or_path_ae":"bert-base-uncased",
@@ -31,10 +31,10 @@
     "linker_model":"data/ottqa/models/link_generator/model-ep9.pt",
     "max_source_len":32,
     "max_target_len":16,
-    "do_all_lg":True,
+    "do_all_lg":true,
     "data_path_root":"data/ottqa/",
     "dataset_name":"ottqa",
     "test_data_path":"data/ottqa/released_data/toy.json",
     "collections_file":"linearized_tables.tsv",
-    "test":True
+    "test":true
 }
