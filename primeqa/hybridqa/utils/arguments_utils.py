@@ -1,162 +1,213 @@
-def get_ae_arguments(parser):
-    parser.add_argument(
-        "--model_type",
-        default='bert',
-        type=str,
-        help="Model type selected",
+from dataclasses import dataclass, field
+import torch
+from typing import Any, Dict, List, Optional, Union
+import os
+import sys
+from transformers import (
+    HfArgumentParser,
+    TrainingArguments,
+)
+@dataclass
+class RRArguments():
+   per_device_train_batch_size_rr: int = field(
+       default=8, metadata={"help": "train batch size"}
     )
-    parser.add_argument(
-        "--model_name_or_path",
-        default="bert-large-uncased",
-        type=str,
-       
+   per_device_eval_batch_size_rr: int = field(
+       default=8, metadata={"help": "train batch size"}
     )
-    parser.add_argument(
-        "--output_dir",
-        default='stage3_pre-trained_lf_with_special_tokens_4gpus',
-        type=str,
-        help="The output directory where the model checkpoints and predictions will be written.",
+   rr_model_name: str = field(
+       default='bert-base-uncased', metadata={"help": "Which model to use for RR training/testing"}
     )
-    parser.add_argument(
-        "--train_file",
-        default=None,
-        type=str,
-        help="The input training file. If a data dir is specified, will look for the file there"
-        + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
+   row_retriever_model_name_path: str = field(
+       default='data/hybridqa/pretrained_models/rr.bin', metadata={"help": "Row retriever configuration file"}
     )
-    parser.add_argument(
-        "--resource_dir",
-        type=str,
-        default='WikiTables-WithLinks/',
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
-    )   
-    parser.add_argument(
-        "--eval_file",
-        default=None,
-        type=str,
-        help="The input evaluation file. If a data dir is specified, will look for the file there"
-        + "If no data dir or train/predict files are specified, will run with tensorflow_datasets.",
-    )
-    parser.add_argument(
-        "--config_name", default="", type=str, help="Pretrained config name or path if not the same as model_name"
-    )
-    parser.add_argument(
-        "--tokenizer_name",
-        default="",
-        type=str,
-        help="Pretrained tokenizer name or path if not the same as model_name",
-    )
+   pos_frac_per_epoch: List[float] = field(
+      default_factory=lambda: [0.3, 0.3, 0.1, 0.0001, 0.0001], metadata={"help": "Positive fraction per epoch"}
+   )
+   group_frac_per_epoch: List[float]  = field(
+      default_factory=lambda: [0.0, 0.5, 1.0, 1.0, 1.0], metadata={"help": "Positive fraction per epoch"}
+   )
+   num_train_epochs_rr: int = field(
+      default=2,metadata={"help": "Number of epochs to train the row retriever"}
+   )
+   save_every_niter_rr: int = field(
+      default=100,metadata={"help": "Save model after how many iterations"}
+   )
+   save_model_path_rr: str = field(
+      default='data/hybridqa/models/rr.bin',metadata={"help": "Path to save row retrieval model"}
+   )
 
-    parser.add_argument("--pred_ans_file",default="data/hybridqa/predictions/test_pred.json",type=str)
-    parser.add_argument(
-        "--cache_dir",
-        default="/tmp/",
-        type=str,
-        help="Where do you want to store the pre-trained models downloaded from s3",
+@dataclass
+class AEArguments(TrainingArguments):
+   max_seq_length: int = field(
+        default=512,metadata={"help": "Input Sequence Length"}
     )
-    parser.add_argument(
-        "--version_2_with_negative",
-        action="store_true",
-        help="If true, the SQuAD examples contain some that do not have an answer.",
+   per_gpu_train_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
     )
-    parser.add_argument(
-        "--null_score_diff_threshold",
-        type=float,
-        default=0.0,
-        help="If null_score - best_non_null is greater than the threshold predict null.",
+   train_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
     )
-    parser.add_argument(
-        "--max_seq_length",
-        default=512,
-        type=int,
-        help="The maximum total input sequence length after WordPiece tokenization. Sequences "
-        "longer than this will be truncated, and sequences shorter than this will be padded.",
+   per_gpu_eval_batch_size: int = field(
+        default=8,metadata={"help": "Per GPU train batch size"}
     )
-    parser.add_argument(
-        "--doc_stride",
-        default=128,
-        type=int,
-        help="When splitting up a long document into chunks, how much stride to take between chunks.",
+   max_query_length: int = field(
+        default=64,metadata={"help": "Maximum length of the query"}
     )
-    parser.add_argument(
-        "--max_query_length",
-        default=64,
-        type=int,
-        help="The maximum number of tokens for the question. Questions longer than this will "
-        "be truncated to this length.",
+   threads: int = field(
+        default=1,metadata={"help": "Number of preprocessing threads"}
     )
-    parser.add_argument("--do_train", action="store_true", help="Whether to run training.")
-    parser.add_argument("--do_eval", action="store_true", help="Whether to run eval on the dev set.")
-    parser.add_argument("--do_predict", action="store_true", help="Whether to run eval on the dev set.")    
-    parser.add_argument(
-        "--do_lower_case", action="store_true", help="Set this flag if you are using an uncased model."
+   null_score_diff_threshold: float = field(
+        default=0.0,metadata={"help": "If null_score - best_non_null is greater than the threshold predict null"}
     )
+   eval_batch_size: int = field(
+        default=8,metadata={"help": "evaluation batch size"}
+    )
+   n_best_size: int = field(
+        default=20,metadata={"help": "The total number of n-best predictions to generate in the nbest_predictions.json output file."}
+    )
+   do_lower_case: bool = field(
+      default=True,metadata={"help": "do lowercase the input"}
+   )
+   do_train_ae: bool = field(
+      default=False,metadata={"help": "do training"}
+   )
+   verbose_logging: bool = field(
+      default=False,metadata={"help": "Log everything"}
+   )
+   do_predict_ae: bool = field(
+      default=False,metadata={"help": "do predict"}
+   )
+   version_2_with_negative: bool = field(
+      default=False,metadata={"help": "Squad 2.0"}
+   )
+   do_eval_ae: bool = field(
+      default=False,metadata={"help": "do evaluation"}
+   )
+   device: torch.device = field(
+        default=torch.device("cpu"),metadata={"help": "Whether to use cpu or gpu"}
+    )
+   n_gpu: int = field(
+        default=1,metadata={"help": "Number of GPUs"}
+    )
+   max_answer_length: int = field(
+        default=30,metadata={"help": "Maximum length of the query"}
+    )
+   model_name_or_path_ae: str = field(
+      default="bert-base-uncased",metadata={"help":"model name or path"}
+   )
+   model_type: str = field(
+       default='bert', metadata={"help": "Type of model to be train"}
+    )
+   config_name: str = field(
+       default='', metadata={"help": "config name"}
+    )
+   tokenizer_name: str = field(
+       default='', metadata={"help": "Tokenizer name"}
+    )
+   cache_dir: str = field(
+       default='/tmp/', metadata={"help": "temp directory for caching"}
+    )
+   doc_stride: int = field(
+       default=128, metadata={"help": "Doc Stride"}
+    )
+   train_file: str = field(
+       default='data/hybridqa/ae_input_test.json', metadata={"help": "Type of model to be train"}
+    )
+   eval_file: str = field(
+       default='data/hybridqa/ae_input_test.json', metadata={"help": "Type of model to be train"}
+    )
+   pred_ans_file: str = field(
+      default='data/hybridqa/predictions/answer_extractor_output_test.json', metadata={"help": "Row retriever configuration file"}
+   )
+   
+   
+@dataclass
+class LinkPredictorArguments:
+   """
+    Arguments pertaining to the link prediction module
+   """
+   model: str = field(
+       default='gpt2', metadata={"help": "Pre-trained link prediction model"}
+    )
+   top_k: int = field(
+       default=0, metadata={"help": "top k links to predict"}
+    )
+   top_p: float = field(
+       default=0.9, metadata={"help": "top p value"}
+    )
+   seed_lg: int = field(
+       default=42, metadata={"help": "random seed"}
+    )
+   dataset: str = field(
+       default=None, metadata={"help": "which dataset to use"}
+    )
+   batch_size_lg: int = field(
+       default=2, metadata={"help": "Batch size"}
+    )
+   linker_model: str = field(
+       default=None, metadata={"help": "load from the checkpoint"}
+    )
+   every: int = field(
+       default=50, metadata={"help": "Batch size"}
+    )
+   max_source_len: int = field(
+       default=32, metadata={"help": "Maximum source length"}
+    )
+   max_target_len: int = field(
+       default=16, metadata={"help": "Maximum target length"}
+    )
+   do_train_lg: bool = field(
+        default=False, metadata={"help": "do_training"}
+    )
+   do_val_lg: bool = field(
+        default=False, metadata={"help": "do validation"}
+    )
+   do_all_lg: bool = field(
+        default=False, metadata={"help": "generate links for all the tables"}
+    )
+   learning_rate_lg: float = field(
+       default=5e-6, metadata={"help": "learning rate for training"})
+   shard: str = field(
+       default=None, metadata={"help": "which shard"}
+    )
+   device_lg: torch.device = field(
+        default=torch.device("cuda"),metadata={"help": "Whether to use cpu or gpu"}
+    )
+   
+    
+   
 
-    parser.add_argument("--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.")
-    parser.add_argument(
-        "--per_gpu_eval_batch_size", default=32, type=int, help="Batch size per GPU/CPU for evaluation."
+@dataclass
+class HybridQAArguments:
+    """
+    Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
+    """
+    data_path_root: str = field(
+       default='data/ottqa/', metadata={"help": "root path to store the preprocessed dataset"}
     )
-    parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
-    parser.add_argument(
-        "--gradient_accumulation_steps",
-        type=int,
-        default=1,
-        help="Number of updates steps to accumulate before performing a backward/update pass.",
+    dataset_name: str = field(
+       default='hybridqa', metadata={"help": "root path to store the preprocessed dataset"}
     )
-    parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
-    parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
-    parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
-    parser.add_argument(
-        "--num_train_epochs", default=3.0, type=float, help="Total number of training epochs to perform."
+    train_data_path: str = field(
+       default='data/hybridqa/train.json', metadata={"help": "Train data path for training on user's own dataset"}
     )
-    parser.add_argument("--warmup_steps", default=0, type=int, help="Linear warmup over warmup_steps.")
-    parser.add_argument(
-        "--n_best_size",
-        default=20,
-        type=int,
-        help="The total number of n-best predictions to generate in the nbest_predictions.json output file.",
+    dev_data_path: str = field(
+       default='data/hybridqa/toy.json', metadata={"help": "Dev data path for training on user's own dataset"}
     )
-    parser.add_argument(
-        "--max_answer_length",
-        default=30,
-        type=int,
-        help="The maximum length of an answer that can be generated. This is needed because the start "
-        "and end predictions are not conditioned on one another.",
+    test_data_path: str = field(
+       default='data/hybridqa/test.json', metadata={"help": "Dev data path for training on user's own dataset"}
     )
-    parser.add_argument(
-        "--verbose_logging",
-        action="store_true",
-        help="If true, all of the warnings related to data processing will be printed. "
-        "A number of warnings are expected for a normal SQuAD evaluation.",
+    collections_file: str = field(
+       default='linearized_tables.tsv', metadata={"help": "Dev data path for training on user's own dataset"}
     )
-    parser.add_argument(
-        "--lang_id",
-        default=0,
-        type=int,
-        help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
+    
+    test: Optional[bool] = field(
+        default=False, metadata={"help": "Remove columns not required by the model when using an nlp.Dataset."}
     )
-
-    parser.add_argument("--logging_steps", type=int, default=500, help="Log every X updates steps.")
-    parser.add_argument("--save_steps", type=int, default=500, help="Save checkpoint every X updates steps.")
-    parser.add_argument(
-        "--overwrite_cache", action="store_true", help="Overwrite the cached training and evaluation sets"
+    train_tr: Optional[bool] = field(
+        default=False, metadata={"help": "whether to train the table retriever or not"}
     )
-    parser.add_argument("--seed", type=int, default=42, help="random seed for initialization")
-
-    parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
-    parser.add_argument(
-        "--fp16",
-        action="store_true",
-        help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit",
+    train_lp: Optional[bool] = field(
+        default=False, metadata={"help": "whether to train the link generator or not"}
     )
-    parser.add_argument(
-        "--fp16_opt_level",
-        type=str,
-        default="O1",
-        help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
-        "See details at https://nvidia.github.io/apex/amp.html",
-    )
-
-    parser.add_argument("--threads", type=int, default=1, help="multiple threads for converting example to features")
-    args = parser.parse_args()
-    return args

@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 import json
-from utils.table_utils import fetch_table,fetch_ottqa_passages,load_passages
+from primeqa.hybridqa.utils.table_utils import fetch_table,fetch_ottqa_passages,load_passages
 import sys
 
 if not torch.cuda.is_available():

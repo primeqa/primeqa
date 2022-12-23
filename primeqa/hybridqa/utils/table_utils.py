@@ -1,7 +1,7 @@
 import json
 import os
 
-resource_path = "data/hybridqa/WikiTables-WithLinks"
+resource_path = "/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/hybridqa/WikiTables-WithLinks"
 
 def load_data(table_id):
     with open('{}/request_tok/{}.json'.format(resource_path, table_id)) as f:

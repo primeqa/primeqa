@@ -39,5 +39,6 @@ def re_rank_ae_output(row_retrieval_scores,n_best_prediction_file_path,ae_output
     output_file = ae_output_file_path.split(".json")[0]+"_re_ranked.json"
     with open(output_file, "w") as f:
         json.dump(data_rr, f, indent=2)
+    return output_file
     # with open(sys.argv[1], "w") as f:
     #     json.dump(data_new, f, indent=2)
