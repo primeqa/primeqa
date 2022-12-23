@@ -1,4 +1,4 @@
-from primeqa.components.base import Component
+from primeqa.Components.base import Component
 from primeqa.services.exceptions import Error, ErrorMessages
 
 
