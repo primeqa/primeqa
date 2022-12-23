@@ -33,7 +33,7 @@ class Reader(Component):
     
 
 
-#Todo: Revisit IndexerComponent with martin and others
+#Todo: Revisit Indexer with martin and others
 @dataclass(init=False, repr=False, eq=False)
 class Indexer(Component):
     index_root: str = field(
