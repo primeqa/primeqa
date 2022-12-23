@@ -6,7 +6,7 @@ from datasets import Dataset
 from dataclasses import dataclass
 import json
 
-from primeqa.pipelines.components.base import ReaderComponent
+from primeqa.components.base import ReaderComponent
 from primeqa.mrc.models.heads.generative import FID_HEAD
 from primeqa.mrc.models.fid_task_model import FiDModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.eli5_fid import ELI5FiDPreprocessor
