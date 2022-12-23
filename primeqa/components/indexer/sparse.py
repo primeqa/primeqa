@@ -1,7 +1,7 @@
 from typing import Union, List
 from dataclasses import dataclass
 
-from primeqa.pipelines.components.base import IndexerComponent
+from primeqa.components.base import IndexerComponent
 
 
 @dataclass

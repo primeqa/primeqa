@@ -8,6 +8,12 @@ class Component(ABC):
     @abstractmethod
     def load(self, *args, **kwargs):
         pass
+    def train(self, *args, **kwargs):
+        pass
+    def predict(self, *args, **kwargs):
+        pass
+    def eval(self, *args, **kwargs):
+        pass
 
 
 @dataclass(init=False, repr=False, eq=False)

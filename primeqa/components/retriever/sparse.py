@@ -1,7 +1,7 @@
 from typing import List
 from dataclasses import dataclass, field
 
-from primeqa.pipelines.components.base import RetrieverComponent
+from primeqa.components.base import RetrieverComponent
 
 
 @dataclass
