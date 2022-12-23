@@ -4,9 +4,11 @@ import json
 
 from primeqa.pipelines.components.base import RetrieverComponent
 from primeqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.components.base import Retriever
 
 
 @dataclass
+class BM25Retriever(Retriever):
 class BM25Retriever(Retriever):
     """_summary_
 
