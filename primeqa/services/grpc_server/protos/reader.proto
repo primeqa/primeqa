@@ -11,7 +11,7 @@ service Reader {
     rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
 }
 
-message ReaderComponent {
+message Reader {
     string reader_id = 1;
     repeated parameter.Parameter parameters = 2;
 }
@@ -20,7 +20,7 @@ message GetReadersRequest {
 }
 
 message GetReadersResponse {
-    repeated ReaderComponent readers = 1;
+    repeated Reader readers = 1;
 }
 
 /**
@@ -28,7 +28,7 @@ message GetReadersResponse {
     for each context text.
 */
 message GetAnswersRequest {
-    ReaderComponent reader = 1;
+    Reader reader = 1;
     repeated string queries = 2;
     repeated Contexts contexts = 3;
 }

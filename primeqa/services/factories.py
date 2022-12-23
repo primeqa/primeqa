@@ -5,9 +5,9 @@ import json
 from dataclasses import MISSING
 
 from primeqa.components.base import (
-    ReaderComponent,
-    RetrieverComponent,
-    IndexerComponent,
+    Reader,
+    Retriever,
+    Indexer,
 )
 from primeqa.components.reader.extractive import ExtractiveReader
 
@@ -47,7 +47,7 @@ class ReaderFactory:
 
     @classmethod
     def get(
-        cls, reader: ReaderComponent, reader_kwargs: dict, *load_args, **load_kwargs
+        cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs
     ):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
@@ -127,7 +127,7 @@ class RetrieverFactory:
     @classmethod
     def get(
         cls,
-        retriever: RetrieverComponent,
+        retriever: Retriever,
         retriever_kwargs: dict,
         *load_args,
         **load_kwargs,
@@ -210,7 +210,7 @@ class IndexerFactory:
     @classmethod
     def get(
         cls,
-        indexer: IndexerComponent,
+        indexer: Indexer,
         indexer_kwargs: dict,
         *load_args,
         **load_kwargs,

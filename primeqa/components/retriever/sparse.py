@@ -6,7 +6,7 @@ from primeqa.components.base import RetrieverComponent
 
 
 @dataclass
-class BM25Retriever(RetrieverComponent):
+class BM25Retriever(Retriever):
     """_summary_
 
     Args:
