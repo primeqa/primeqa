@@ -18,7 +18,7 @@ You can use the `Dockerfile` we include in the repository (found in `primeqa/exa
 
 Once you have Docker set up, please go to the [PrimeQA main page](https://github.com/primeqa/primeqa/tree/ir-benchmarking) and follow the instructions for installing the relevant dependencies and Java package.
 
-After that, go to the folder `primeqa/examples/ir_benchmarking` and download the following three files from this downloads folder [TODO]: `psgs_w100.tsv`, `xorqa_dev_gmt.tsv`, and `msmarco.psg.kldR2.nway64.ib__colbert-400000`. These files are the document collection, queries, and zero-shot PLAID model checkpoint for XOR-TyDi, respectively.
+After that, go to the folder `primeqa/examples/ir_benchmarking` and download the following three files from [this downloads folder](https://zenodo.org/record/7477643#.Y6nNGezMKdY): `psgs_w100.tsv`, `xorqa_dev_gmt.tsv`, and `msmarco.psg.kldR2.nway64.ib__colbert-400000`. These files are the document collection, queries, and zero-shot PLAID model checkpoint for XOR-TyDi, respectively.
 
 ### 4. Running experiments
 
