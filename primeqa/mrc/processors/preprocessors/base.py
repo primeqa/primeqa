@@ -306,7 +306,8 @@ class BasePreProcessor(AbstractPreProcessor):
 
         dataset = dataset.select(keep_indices)
 
-#        dataset = dataset.remove_columns('subsample_type')
+        dataset = dataset.remove_columns('subsample_type')
+        dataset.set_format()
         return dataset
 
     def _keep_feature(self, st: SubsampleType) -> bool:
