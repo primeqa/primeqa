@@ -23,6 +23,7 @@ from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
+from primeqa.mrc.models.orqa_model import ModelForORQATasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
@@ -39,6 +40,7 @@ from primeqa.mrc.processors.postprocessors.open_nq import OpenNQPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
 from primeqa.boolqa.run_score_normalizer import main as sn_main
+from primeqa.mrc.data_models.orqa_collator import ORQADataCollator
 
 from primeqa.tableqa.run_tableqa import run_table_qa
 
@@ -374,13 +376,14 @@ def main():
     config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
     config.output_dropout_rate = task_args.output_dropout_rate
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
-    model = ModelForDownstreamTasks.from_config(
+    model = ModelForORQATasks.from_config( #ModelForDownstreamTasks.from_config(
         config,
         model_args.model_name_or_path,
         task_heads=task_heads,
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
+    print("hahhahahahah", flush=True)
 
     # load data
     logger.info('Loading dataset')
@@ -460,7 +463,8 @@ def main():
 
     # If using mixed precision we pad for efficient hardware acceleration
     using_mixed_precision = any(attrgetter('fp16', 'bf16')(training_args))
-    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+#    data_collator = DataCollatorWithPadding(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
+    data_collator = ORQADataCollator(tokenizer, pad_to_multiple_of=64 if using_mixed_precision else None)
 
     postprocessor_class = task_args.postprocessor
 

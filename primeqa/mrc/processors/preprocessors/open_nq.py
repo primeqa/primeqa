@@ -4,6 +4,7 @@ from datasets import Dataset
 from typing import Tuple, List
 import torch
 import random
+import itertools
 
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 from primeqa.mrc.data_models.subsample_type import SubsampleType
@@ -107,7 +108,34 @@ class OpenNQPreProcessor(AbstractPreProcessor):
                     (o if sequence_ids[k] == context_index else None)
                     for k, o in enumerate(features["offset_mapping"][i])
                 ]
-        return features
+
+#        if is_train:
+#            pruned_features = {}
+#            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
+
+
+#        print(features, flush=True)
+        single_feature_for_example = {}
+        single_feature_for_example['example_idx'] = [idx]
+        single_feature_for_example['example_id'] = id
+#        print("id", id, flush=True)
+#        sys.exit(1)
+        single_feature_for_example['input_ids'] = [features['input_ids']]
+        single_feature_for_example['offset_mapping'] = [features['offset_mapping']]
+        single_feature_for_example['attention_mask'] = [features['attention_mask']]
+        if is_train:
+            single_feature_for_example['start_positions'] = [features['start_positions']]
+            single_feature_for_example['end_positions'] = [features['end_positions']]
+            single_feature_for_example['target_type'] = [features['target_type']]
+#            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
+#            single_feature_for_example['subsample_type'] = [subsample_type]
+
+            if any([t == SubsampleType.POSITIVE for t in features['subsample_type']]):
+                single_feature_for_example['subsample_type'] = [SubsampleType.POSITIVE]
+            else:
+                single_feature_for_example['subsample_type'] = [SubsampleType.NEGATIVE_NO_ANSWER]
+#        print(features['input_ids'], flush=True)
+        return single_feature_for_example
 
 
     def _create_train_targets(self, features, starts, ends) -> BatchEncoding:

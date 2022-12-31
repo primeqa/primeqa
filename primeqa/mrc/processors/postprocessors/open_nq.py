@@ -60,6 +60,8 @@ class OpenNQPostProcessor(AbstractPostProcessor):
             raise ValueError(f"Size mismatch withing {len(features)} features and predictions "
                              f"of first dim {[p.shape[0] for p in predictions]}")
 
+#        print("lalalallalala", flush=True)
+#        print(len(features), predictions[0].shape[0], flush=True)
         if self._output_confidence_feature:
             all_start_logits, all_end_logits, all_targettype_logits, \
             all_start_stdev, all_end_stdev, all_query_passage_similarity = predictions
@@ -68,15 +70,19 @@ class OpenNQPostProcessor(AbstractPostProcessor):
             all_start_stdev = None
             all_end_stdev = None
             all_query_passage_similarity = None
+#        print(all_start_logits, all_end_logits, all_targettype_logits)
+#        print(all_targettype_logits)
+#        print(all_start_logits.shape, all_end_logits.shape, all_targettype_logits.shape, flush=True)
 
         # The dictionaries we have to fill.
         all_predictions = {}
         for i, feature in enumerate(features):
             idx = feature['example_idx']
             example_id = feature['example_id'].split('_')[0]
-            passage_rank = int(feature['example_id'].split('_')[1]) - 1   # passage rank starts with 1
+#            passage_rank = int(feature['example_id'].split('_')[1]) - 1   # passage rank starts with 1
             example = examples[idx]
-            if example_id != example['id']:
+            if example_id != example['id'][0]:
+    #            print(feature['example_id'], example['id'], flush=True)   #0 ['0']
                 raise ValueError(f"Example id mismatch between example ({example['id']}) "
                                  f"and feature ({example_id})")
 
@@ -84,114 +90,122 @@ class OpenNQPostProcessor(AbstractPostProcessor):
             end_logits = all_end_logits[i].tolist()
             target_type_logits = all_targettype_logits[i].tolist()
 
+#            print("kkkkkkkkkk", flush=True)
+#            print(len(start_logits), len(start_logits), len(target_type_logits), flush=True)
+
             if all_start_stdev is not None and all_end_stdev is not None \
                 and all_query_passage_similarity is not None:
                 start_stdev = all_start_stdev[i].tolist()
                 end_stdev = all_end_stdev[i].tolist()
-                query_passage_similarity = float(all_query_passage_similarity[i])
+                query_passage_similarity = all_query_passage_similarity[i].tolist()
+#                query_passage_similarity = float(all_query_passage_similarity[i])
             else:
-                start_stdev = [0.0] * len(start_logits)
-                end_stdev = [0.0] * len(end_logits)
-                query_passage_similarity = 0.0
-            offset_mapping = feature["offset_mapping"]
+                start_stdev = [[0.0] * len(start_logits[0])] * len(start_logits)
+                end_stdev = [[0.0] * len(end_logits[0])] * len(end_logits)
+                query_passage_similarity = [0.0] * len(start_logits)
 
-            start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
-            end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
-            prelim_predictions = []
-            for start_index in start_indexes:
-                for end_index in end_indexes:
-                # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
-                # to part of the input_ids that are not in the context.
-                    if (
-                        start_index >= len(offset_mapping)
-                        or end_index >= len(offset_mapping)
-                        or offset_mapping[start_index] is None
-                        or len(offset_mapping[start_index]) < 2
-                        or offset_mapping[end_index] is None
-                        or len(offset_mapping[end_index]) < 2
-                    ):
-                        continue
-                    # Don't consider answers with a length that is either < 0 or > max_answer_length.
-                    if end_index < start_index or end_index - start_index + 1 > self._max_answer_length:
-                        continue
+            for k in range(len(start_logits)):
+                offset_mapping = feature["offset_mapping"][k]
 
-                    start_position = offset_mapping[start_index][0]
-                    end_position = offset_mapping[end_index][1]
-                    context = example['passages'][passage_rank]['text']
-                    ir_score = example['passages'][passage_rank]['score']
-                    normalized_ir_score = example['passages'][passage_rank]['normalized_score']
-                    span_answer_text = context[offset_mapping[start_index][0]:offset_mapping[end_index][1]]
-                    feature_null_score = start_logits[0] + end_logits[0]
-                    span_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
-                                                               feature_null_score, target_type_logits)
-                    prelim_predictions.append({
-                        'example_id': feature['example_id'],
-                        'cls_score': feature_null_score,
-                        'start_logit': start_logits[start_index],
-                        'end_logit': end_logits[end_index],
-                        'span_answer': {
-                            "start_position": start_position,
-                            "end_position": end_position,
-                        },
-                        'span_answer_score' : span_answer_score,
-                        'start_index': start_index,
-                        'end_index':   end_index,
-                        'passage_index' : 0,
-                        'target_type_logits': target_type_logits,
-                        'span_answer_text': span_answer_text,
-                        'yes_no_answer': 0,
-                        'start_stdev': start_stdev[start_index],
-                        'end_stdev': end_stdev[end_index],
-                        'query_passage_similarity': query_passage_similarity,
-                        'ir_score': ir_score,
-                        'normalized_ir_score': normalized_ir_score,
-                    })
-            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
-            all_predictions[feature['example_id']] = example_predictions
+                start_indexes = np.argsort(start_logits[k][:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
+                end_indexes = np.argsort(end_logits[k][:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
+                prelim_predictions = []
+                for start_index in start_indexes:
+                    for end_index in end_indexes:
+                        # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
+                        # to part of the input_ids that are not in the context.
+                        if (
+                            start_index >= len(offset_mapping)
+                            or end_index >= len(offset_mapping)
+                            or offset_mapping[start_index] is None
+                            or len(offset_mapping[start_index]) < 2
+                            or offset_mapping[end_index] is None
+                            or len(offset_mapping[end_index]) < 2
+                        ):
+                            continue
+                        # Don't consider answers with a length that is either < 0 or > max_answer_length.
+                        if end_index < start_index or end_index - start_index + 1 > self._max_answer_length:
+                            continue
 
-            # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
-            # failure.
-            if len(example_predictions) == 0: 
-                logger.info(f'We do not have any non-null predictions for example {example_id}')
-                example_predictions.append( 
-                    {
-                        'example_id': feature['example_id'],
-                        'cls_score': 0.0,
-                        'start_logit': 0.0, 
-                        'end_logit': 0.0, 
-                        'span_answer': {'start_position': -1, 'end_position': -1,},
-                        'span_answer_score': 0.0, 
-                        'span_answer_text': "empty", 
-                        'start_index': -1,
-                        'end_index':   -1,
-                        'passage_index' : -1,
-                        'target_type_logits' : [0, 0, 0, 0, 0],
-                        'yes_no_answer': int(TargetType.NO_ANSWER),
-                        'start_stdev': 0,
-                        'end_stdev': 0,
-                        'query_passage_similarity': 0,
-                        'ir_score': 0,
-                        'normalized_ir_score': 0,
-                    })
+                        start_position = offset_mapping[start_index][0]
+                        end_position = offset_mapping[end_index][1]
+#                        print(example, flush=True)
+                        context = example['passages'][0][k]['text']
+                        ir_score = example['passages'][0][k]['score']
+                        normalized_ir_score = example['passages'][0][k]['normalized_score']
+                        span_answer_text = context[offset_mapping[start_index][0]:offset_mapping[end_index][1]]
+                        feature_null_score = start_logits[k][0] + end_logits[k][0]
+                        span_answer_score = self._score_calculator(start_logits[k][start_index] + end_logits[k][end_index],
+                                                               feature_null_score, target_type_logits[k])
+                        prelim_predictions.append({
+                            'example_id': str(feature['example_id']) + "_" + str(k + 1),
+                            'cls_score': feature_null_score,
+                            'start_logit': start_logits[k][start_index],
+                            'end_logit': end_logits[k][end_index],
+                            'span_answer': {
+                                "start_position": start_position,
+                                "end_position": end_position,
+                            },
+                            'span_answer_score' : span_answer_score,
+                            'start_index': start_index,
+                            'end_index':   end_index,
+                            'passage_index' : 0,
+                            'target_type_logits': target_type_logits[k],
+                            'span_answer_text': span_answer_text,
+                            'yes_no_answer': 0,
+                            'start_stdev': start_stdev[k][start_index],
+                            'end_stdev': end_stdev[k][end_index],
+                            'query_passage_similarity': query_passage_similarity[k],
+                            'ir_score': ir_score,
+                            'normalized_ir_score': normalized_ir_score,
+                        })
+                example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
 
-            # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
-            # the LogSumExp trick).
-            scores = np.array([pred["span_answer_score"] for pred in example_predictions])
-            exp_scores = np.exp(scores - np.max(scores))
-            probs = exp_scores / exp_scores.sum()
+                # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
+                # failure.
+                if len(example_predictions) == 0:
+                    logger.info(f'We do not have any non-null predictions for example {example_id}')
+                    example_predictions.append(
+                        {
+                            'example_id': str(feature['example_id']) + "_" + str(k + 1),
+                            'cls_score': 0.0,
+                            'start_logit': 0.0,
+                            'end_logit': 0.0,
+                            'span_answer': {'start_position': -1, 'end_position': -1,},
+                            'span_answer_score': 0.0,
+                            'span_answer_text': "empty",
+                            'start_index': -1,
+                            'end_index':   -1,
+                            'passage_index' : -1,
+                            'target_type_logits' : [0, 0, 0, 0, 0],
+                            'yes_no_answer': int(TargetType.NO_ANSWER),
+                            'start_stdev': 0,
+                            'end_stdev': 0,
+                            'query_passage_similarity': 0,
+                            'ir_score': 0,
+                            'normalized_ir_score': 0,
+                        })
 
-            # Include the probabilities in our predictions.
-            for prob, pred in zip(probs, example_predictions):
-                pred["normalized_span_answer_score"] = prob
+                # Compute the softmax of all scores (we do it with numpy to stay independent from torch/tf in this file, using
+                # the LogSumExp trick).
+                scores = np.array([pred["span_answer_score"] for pred in example_predictions])
+                exp_scores = np.exp(scores - np.max(scores))
+                probs = exp_scores / exp_scores.sum()
 
-            # Confidence score
-            if self._confidence_scorer is not None and self._confidence_scorer.model_exists():
-                scores = self._confidence_scorer.predict_scores(example_predictions)
-                for i in range(len(example_predictions)):
-                    example_predictions[i]["confidence_score"] = scores[i]
-            else:
-                for i in range(len(example_predictions)):
-                    example_predictions[i]["confidence_score"] = example_predictions[i]["normalized_span_answer_score"]
+                # Include the probabilities in our predictions.
+                for prob, pred in zip(probs, example_predictions):
+                    pred["normalized_span_answer_score"] = prob
+
+                # Confidence score
+                if self._confidence_scorer is not None and self._confidence_scorer.model_exists():
+                    scores = self._confidence_scorer.predict_scores(example_predictions)
+                    for i in range(len(example_predictions)):
+                        example_predictions[i]["confidence_score"] = scores[i]
+                else:
+                    for i in range(len(example_predictions)):
+                        example_predictions[i]["confidence_score"] = example_predictions[i]["normalized_span_answer_score"]
+
+                all_predictions[str(feature['example_id']) + "_" + str(k + 1)] = example_predictions
 
         return all_predictions
         

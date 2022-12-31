@@ -66,7 +66,15 @@ class ExtractiveQAHead(AbstractTaskHead):
             Extractive QA task head result in data structure corresponding to type of `model_outputs`.
         """
         sequence_output = model_outputs[0]
-
+        if start_positions is not None and end_positions is not None and target_type is not None:
+#            print("qqqqqqqqq", flush=True)
+#            print(sequence_output.size())
+#            print(start_positions.size())
+#            print(end_positions.size())
+            batch_size, num_passage = start_positions.size()
+            start_positions = start_positions.view(batch_size * num_passage)
+            end_positions = end_positions.view(batch_size * num_passage)
+            target_type = target_type.view(batch_size * num_passage)
         # Predict target answer type for the whole question answer pair
         answer_type_logits = self.classifier(sequence_output)
 
@@ -75,6 +83,10 @@ class ExtractiveQAHead(AbstractTaskHead):
         start_logits, end_logits = logits.split(1, dim=-1)
         start_logits = start_logits.squeeze(-1)
         end_logits = end_logits.squeeze(-1)
+
+#        print("aaaaaaaaa", flush=True)
+#        print(start_logits.size(), end_logits.size(), answer_type_logits.size(), flush=True)
+#        print(answer_type_logits, flush=True)
 
         total_loss = None
         if start_positions is not None and end_positions is not None and target_type is not None:
@@ -95,6 +107,10 @@ class ExtractiveQAHead(AbstractTaskHead):
             end_loss = loss_fct(end_logits, end_positions)
             answer_type_loss = loss_fct(answer_type_logits, target_type)
             total_loss = (start_loss + end_loss + answer_type_loss) / 3
+        else:
+            start_logits = start_logits.unsqueeze(0)
+            end_logits = end_logits.unsqueeze(0)
+            answer_type_logits = answer_type_logits.unsqueeze(0)
 
         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)
