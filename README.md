@@ -38,7 +38,21 @@ Replicating the experiments that [Dr. Decr](https://huggingface.co/ibm/DrDecr_XO
 - [Machine Reading Comprehension with XLM-R](https://github.com/primeqa/primeqa/tree/main/primeqa/mrc): to replicate the experiments to get to the top of the TyDI leaderboard similar to the performance of the IBM GAAMA system. Coming soon: code to replicate GAAMA's performance on Natural Questions. 
 - [Multimedia QA over news & movies](https://arxiv.org/abs/2112.10728): coming soon! to replicate the experiments run over multi-hop QA over images, text over variety of domains. Collaboration with [UIUC Blender lab](https://blender.cs.illinois.edu/).
 
+## 🏅 Top of the Leaderboard
 
+PrimeQA is at the top of several leaderboards: XOR-TyDi, TyDiQA-main, OTT-QA and HybridQA.
+
+### [XOR-TyDi](https://nlp.cs.washington.edu/xorqa/)
+<img src="docs/_static/img/xor-tydi.png" width="50%">
+
+### [TyDiQA-main](https://ai.google.com/research/tydiqa)
+<img src="docs/_static/img/tydi-main.png" width="50%">
+
+### [OTT-QA](https://codalab.lisn.upsaclay.fr/competitions/7967)
+<img src="docs/_static/img/ott-qa.png" width="50%">
+
+### [HybridQA](https://codalab.lisn.upsaclay.fr/competitions/7979)
+<img src="docs/_static/img/hybridqa.png" width="50%">
 
 ## ✔️ Getting Started
 
@@ -69,6 +83,23 @@ pip install -e .[all]
 Please note that dependencies (specified in [setup.py](./setup.py)) are pinned to provide a stable experience.
 When installing from source these can be modified, however this is not officially supported.
 
+**Note:** in many environments, conda-forge based faiss libraries perform substantially better than the default ones installed with pip. To install faiss libraries from conda-forge, use the following steps:
+
+- Create and activate a conda environment
+- Install faiss libraries, using a command
+
+```conda install -c conda-forge faiss=1.7.0 faiss-gpu=1.7.0```
+
+- In `setup.py`, remove the faiss-related lines:
+
+```commandline
+"faiss-cpu~=1.7.2": ["install", "gpu"],
+"faiss-gpu~=1.7.2": ["gpu"],
+```
+
+- Continue with the `pip install` commands as desctibed above.
+
+
 ### JAVA requirements
 Java 11 is required for BM25 retrieval. 
 
@@ -95,7 +126,6 @@ For more information, see:
 - Our [tox.ini](./tox.ini)
 - The [pytest](https://docs.pytest.org) and [tox](https://tox.wiki/en/latest/) documentation    
 
-
 ## 🔭 Learn more
 
 | Section | Description |
@@ -117,7 +147,7 @@ For more information, see:
 |<img width="75" alt="stanford" src="docs/_static/img/collab-stanford-circle.png">| Stanford NLP |<img width="75" alt="i" src="docs/_static/img/collab-i-circle.png">| University of Illinois |
 |<img width="75" alt="stuttgart" src="docs/_static/img/collab-stuttgart-circle.png">| University of Stuttgart | <img width="75" alt="notredame" src="docs/_static/img/collab-notredame-circle.png">| University of Notre Dame |
 |<img width="75" alt="ohio" src="docs/_static/img/collab-ohio-circle.png">| Ohio State University |<img width="75" alt="carnegie" src="docs/_static/img/collab-carnegie-circle.png">| Carnegie Mellon University |
-|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |
+|<img width="75" alt="massachusetts" src="docs/_static/img/collab-massachusetts-circle.png">| University of Massachusetts |<img width="75" height="75" alt="ibm" src="docs/_static/img/collab-ibm-circle.png">| IBM Research |
 | | | | |
 
 

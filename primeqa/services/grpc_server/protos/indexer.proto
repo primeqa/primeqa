@@ -13,7 +13,7 @@ service Indexer {
     rpc GetIndexes(GetIndexesRequest) returns (GetIndexesResponse);
 }
 
-message IndexerComponent {
+message Indexer {
     string indexer_id = 1;
     repeated parameter.Parameter parameters = 2;
 }
@@ -22,7 +22,7 @@ message GetIndexersRequest {
 }
 
 message GetIndexersResponse {
-    repeated IndexerComponent indexers = 1;
+    repeated Indexer indexers = 1;
 }
 
 message Document {
@@ -32,7 +32,7 @@ message Document {
 }
 
 message GenerateIndexRequest {
-    IndexerComponent indexer = 1;
+    Indexer indexer = 1;
     repeated Document documents = 2;
     string index_id = 3;
 }

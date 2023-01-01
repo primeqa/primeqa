@@ -238,7 +238,7 @@ class BiEncoderLoader(MultiFileLoader):
         elif self.hypers.training_data_type == 'num_triples':
             for line in lines:
                 [query_id, positive_id, negative_id] = json.loads(line)
-                qry = self.queries[query_id]
+                qry = self.queries[str(query_id)]
                 # because of title and text handling in colbert.evaluation.loaders.load_collection
                 positive_title, positive_text = re.split(r" \| ", self.collection[positive_id], maxsplit=1)
                 negative_title, negative_text = re.split(r" \| ", self.collection[negative_id], maxsplit=1)

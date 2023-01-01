@@ -87,7 +87,7 @@ This will start a `ReaderService`, a `IndexerService` and a `RetrieverService` a
 I1020 12:14:01.815917763 2539136 socket_utils_common_posix.cc:353] TCP_USER_TIMEOUT is available. TCP_USER_TIMEOUT will be used thereafter
 {"time":"2022-10-20 12:14:01,817", "name": "GrpcServer", "level": "INFO", "message": "Server instance started on port 50055 - initialization took 0 seconds"}
 ```
-- Use one of the [Clients](./Clients) to send requests to the service.
+- Use one of the [Clients](#clients) to send requests to the service.
 
 <h3>💻 Docker</h3>
 
@@ -100,7 +100,7 @@ docker build -f Dockerfiles/Dockerfile.cpu -t primeqa:$(cat VERSION) --build-arg
 ```
 <h4> Run Container </h4>
 
-The container needs write access to a cache directory for caching Huggingface model and datasets.  Additionally will need write access to a store directory for index creation. 
+The container needs write access to a cache directory for caching Huggingface model and datasets.  Additionally will need write access to a store directory for custom models and index creation. See [Store](./store)
 
 ```
 chmod -R 777 $HOME/.cache/
@@ -120,7 +120,76 @@ docker run --rm --name primeqa -it -p <host-port>:50052 --mount type=bind,source
 
 WARNING: The PrimeQA orchestrator and UI will only work with gRPC deployment without SSL. The parameter `require-ssl` must be set to `false`.
 
-<h3>💻 Clients</h3>
+<h3>💻 Store</h3>
+
+The `primeqa store` provides a location for dropping in your own models, index and checkpoints. The store directory within the container is mounted at `/store`.  The directory structure is as follows:
+
+```
+store
+├── checkpoints
+│   └── <dense-ir-checkpoint-name>
+│       └── <checkpoint-file>
+├── indexes
+│   └── <collection-name>
+│       ├── documents.sqlite
+│       ├── documents.tsv
+│       ├── index
+│       └── information.json
+└── models
+    └── <reader-model-name>
+        ├── config.json
+        ├── pytorch_model.bin
+        └── tokenizer.json
+```
+### Drop in a Reader model 
+
+Create a directory under `models` and copy `pytorch_model.bin`, `config.json` and `tokenizer.json` files into the direcotory.
+
+### Drop in a Dense IR index and checkpoint 
+
+- Create a directory under `checkpoints` and copy the checkpoint file, e.g. a ColBERT dnn or DPR model file,  here.  
+
+- Create a directory under indexes with a unique name for the collection `<collection-name>`. Place the following files in the directory:
+  - `documents.tsv` a tsv file contains the passages that were indexed. The format is `id\ttext\ttitle`.  
+  - `index` is a directory containing the index
+  - Create `documents.sqlite` by running the following python code from `indexes/<collection-name>` directory. This file is required to fetch the document text.
+
+    ```
+    from sqlitedict import SqliteDict
+
+    documents_tsv_file_path = "documents.tsv"
+    documents_sqlite_file_path = "documents.sqlite"
+
+    with open(documents_tsv_file_path, "r", encoding="utf-8") as documents_file, SqliteDict(
+      documents_sqlite_file_path, tablename="documents"
+    ) as documents_db:
+      next(documents_file)
+      for line in documents_file:
+          if len(line.rstrip("\n").split("\t")):
+            document_idx, text, title = line.rstrip("\n").split("\t")
+          else:
+            document_idx, text = line.rstrip("\n").split("\t")
+            title = None
+          documents_db[document_idx] = {
+            "document_id": document_idx,
+            "text": text,
+            "title": title,
+          }
+      #  Commit to save documents_db
+      documents_db.commit()
+    ```
+
+  - Create file `information.json` and copy the following into the file:
+
+  ```
+    {
+      "index_id": "<collection-name>",
+      "status": "READY"
+    }
+  ```
+  - The index is now available for search
+
+<h3 id="clients">💻 Clients</h3>
 
 <h4>Python</h4> 
 

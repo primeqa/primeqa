@@ -3,7 +3,7 @@ from typing import Union
 
 from grpc import ServicerContext, StatusCode
 
-from primeqa.services.exceptions import ErrorMessages
+from primeqa.services.exceptions import Error, ErrorMessages
 from primeqa.services.configurations import Settings
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -18,7 +18,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderSe
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     GetReadersRequest,
     GetReadersResponse,
-    ReaderComponent,
+    Reader,
     GetAnswersRequest,
     Answer,
     AnswersForContext,
@@ -49,14 +49,19 @@ class ReaderService(ReaderServicer):
         Returns:
             GetReadersResponse: List of available readers
         """
-        return GetReadersResponse(
-            readers=[
-                ReaderComponent(
-                    reader_id=reader_id, parameters=generate_parameters(reader)
-                )
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
-        )
+        try:
+            return GetReadersResponse(
+                readers=[
+                    Reader(
+                        reader_id=reader_id, parameters=generate_parameters(reader)
+                    )
+                    for reader_id, reader in READERS_REGISTRY.items()
+                ]
+            )
+        except Error as err:
+            context.set_code(StatusCode.INTERNAL)
+            context.set_details(err.args[0])
+            return GetAnswersResponse()
 
     def GetAnswers(
         self, request: GetAnswersRequest, context: ServicerContext
@@ -119,14 +124,37 @@ class ReaderService(ReaderServicer):
             return GetAnswersResponse()
 
         # Step 5: Run apply method
+        instance_fields = [
+            k
+            for k, v in instance.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
         answers_response = GetAnswersResponse()
         try:
             for idx, query in enumerate(request.queries):
                 # Step 5.a: Run "apply" per query
+                self._logger.info(
+                    "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
+                    instance.__class__.__name__,
+                    {
+                        k: getattr(instance, k) if k in instance_fields else v
+                        for k, v in reader_kwargs.items()
+                    },
+                    query,
+                    request.contexts[idx].texts,
+                )
                 try:
-                    predictions = instance.apply(
-                        input_texts=[query] * len(request.contexts[idx].texts),
-                        context=[[text] for text in request.contexts[idx].texts],
+                    predictions = instance.predict(
+                        questions=[query] * len(request.contexts[idx].texts),
+                        contexts=[[text] for text in request.contexts[idx].texts],
+                        **reader_kwargs,
+                    )
+                    self._logger.info(
+                        "Applying '%s' reader for query = '%s' returns predictions = %s",
+                        instance.__class__.__name__,
+                        query,
+                        predictions,
                     )
 
                     # Step 5.b: Add answers for current query into response object
@@ -151,11 +179,17 @@ class ReaderService(ReaderServicer):
                                         for prediction in predictions_for_context
                                     ]
                                 )
-                                for predictions_for_context in predictions
+                                for predictions_for_context in predictions.values()
                             ]
                         )
                     )
-
+                except AssertionError:
+                    context.set_code(StatusCode.INTERNAL)
+                    context.set_details(
+                        ErrorMessages.INVALID_READER_INPUT.value
+                    )
+                    return GetAnswersResponse()
+                    
                 except TypeError:
                     context.set_code(StatusCode.INTERNAL)
                     context.set_details(
