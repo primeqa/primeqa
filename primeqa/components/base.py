@@ -5,13 +5,22 @@ from dataclasses import dataclass, field
 
 @dataclass(init=False, repr=False, eq=False)
 class Component(ABC):
+    config: str = field(
+        metadata={
+            "name": "config path",
+            "description": "Path to config json file",
+        },
+    )
     @abstractmethod
     def load(self, *args, **kwargs):
         pass
-    def train(self, *args, **kwargs):
-        pass
+    @abstractmethod
     def predict(self, *args, **kwargs):
         pass
+    @abstractmethod
+    def train(self, *args, **kwargs):
+        pass
+    @abstractmethod
     def eval(self, *args, **kwargs):
         pass
 
