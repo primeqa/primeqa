@@ -10,7 +10,7 @@ from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
 
 def train_table_retriever(root_dir,triples_file_name):
     #test_files_location = 'data/ottqa/'
-    output_dir=os.path.join(root_dir, 'output_dir')
+    output_dir=os.path.join(root_dir, 'table_retriever')
     os.makedirs(output_dir, exist_ok=True)
     print(output_dir)
     text_triples_fn = os.path.join(root_dir, triples_file_name)
@@ -28,7 +28,7 @@ def train_table_retriever(root_dir,triples_file_name):
         trainer.train()
         
 def predict_table_retriever(data_path_root,collection_file,raw_data):
-    output_dir=os.path.join(data_path_root, 'output_dir')
+    output_dir=os.path.join(data_path_root, 'table_retriever')
     if not os.path.exists(output_dir):
         collection_fn = os.path.join(data_path_root, collection_file)
         indexing_args = [
