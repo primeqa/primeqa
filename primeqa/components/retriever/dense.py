@@ -127,3 +127,6 @@ class ColBERTRetriever(RetrieverComponent):
             [(result[0], result[-1]) for result in results_per_query]
             for results_per_query in ranking_results.data.values()
         ]
+        
+    def get_engine_type(self):
+        return "ColBERT"

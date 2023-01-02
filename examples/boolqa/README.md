@@ -1,6 +1,6 @@
 # Training a full TyDiQA model
 
-Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDiQA leaderboard on 11/1/2022.
+Here we describe how to train the TyDiQA model `PrimeQA-Reader-with-Boolean` which was submitted to the TyDiQA [leaderboard](https://ai.google.com/research/tydiqa) on 11/1/2022.
 This model has full support for boolean questions.  For simplified inference-only TyDiQA with suppport for boolean questions using earlier models,
 please see [here](../../primeqa/boolqa/README.md).
 Training this model is a multistage process:
@@ -25,6 +25,7 @@ that maps the passage answer begin and ends as the reference for training exampl
 epochs=1
 seed=42
 lr=1e-5
+BASE_MODEL=PrimeQA/nq_tydi-reader-xlmr_large-20221210
 python primeqa/mrc/run_mrc.py \
   --model_name_or_path  ${BASE_MODEL} \
   --output_dir ${OUTPUT_DIR} --fp16 --learning_rate ${lr} \
