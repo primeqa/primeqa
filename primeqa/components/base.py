@@ -79,3 +79,7 @@ class Retriever(Component):
             "name": "Index name",
         },
     )
+
+    @abstractmethod
+    def retrieve(self, input_texts: List[str], *args, **kwargs):
+        pass
