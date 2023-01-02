@@ -12,8 +12,10 @@ from primeqa.components.base import (
 from primeqa.components.reader.extractive import ExtractiveReader
 
 from primeqa.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.sparse import BM25Retriever
 
 from primeqa.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
@@ -46,9 +48,7 @@ class ReaderFactory:
     _logger = logging.getLogger("ReaderFactory")
 
     @classmethod
-    def get(
-        cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs
-    ):
+    def get(cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
 

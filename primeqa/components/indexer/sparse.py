@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import json
 
 from primeqa.components.base import Indexer
+from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 
 @dataclass
