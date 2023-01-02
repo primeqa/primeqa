@@ -2,7 +2,7 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import IndexerComponent
+from primeqa.components.base import Indexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 

@@ -11,11 +11,11 @@ from primeqa.components.base import (
 )
 from primeqa.components.reader.extractive import ExtractiveReader
 
-from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
-from primeqa.pipelines.components.retriever.sparse import BM25Retriever
+from primeqa.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.sparse import BM25Retriever
 
-from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
-from primeqa.pipelines.components.indexer.sparse import BM25Indexer
+from primeqa.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
