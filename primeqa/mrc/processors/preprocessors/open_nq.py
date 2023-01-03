@@ -120,21 +120,59 @@ class OpenNQPreProcessor(AbstractPreProcessor):
         single_feature_for_example['example_id'] = id
 #        print("id", id, flush=True)
 #        sys.exit(1)
-        single_feature_for_example['input_ids'] = [features['input_ids']]
-        single_feature_for_example['offset_mapping'] = [features['offset_mapping']]
-        single_feature_for_example['attention_mask'] = [features['attention_mask']]
         if is_train:
-            single_feature_for_example['start_positions'] = [features['start_positions']]
-            single_feature_for_example['end_positions'] = [features['end_positions']]
-            single_feature_for_example['target_type'] = [features['target_type']]
-#            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
-#            single_feature_for_example['subsample_type'] = [subsample_type]
-
             if any([t == SubsampleType.POSITIVE for t in features['subsample_type']]):
                 single_feature_for_example['subsample_type'] = [SubsampleType.POSITIVE]
             else:
                 single_feature_for_example['subsample_type'] = [SubsampleType.NEGATIVE_NO_ANSWER]
-#        print(features['input_ids'], flush=True)
+
+            start_positions = []
+            end_positions = []
+            target_type = []
+            input_ids = []
+            offset_mapping = []
+            attention_mask = []
+            for k in range(len(features['subsample_type'])):
+                if features['subsample_type'][k] == SubsampleType.POSITIVE:
+                    start_positions.append(features['start_positions'][k])
+                    end_positions.append(features['end_positions'][k])
+                    target_type.append(features['target_type'][k])
+                    input_ids.append(features['input_ids'][k])
+                    offset_mapping.append(features['offset_mapping'][k])
+                    attention_mask.append(features['attention_mask'][k])
+            for k in range(len(features['subsample_type'])):
+                if features['subsample_type'][k] != SubsampleType.POSITIVE:
+                    start_positions.append(features['start_positions'][k])
+                    end_positions.append(features['end_positions'][k])
+                    target_type.append(features['target_type'][k])
+                    input_ids.append(features['input_ids'][k])
+                    offset_mapping.append(features['offset_mapping'][k])
+                    attention_mask.append(features['attention_mask'][k])
+            single_feature_for_example['start_positions'] = [start_positions[0:16]]
+            single_feature_for_example['end_positions'] = [end_positions[0:16]]
+            single_feature_for_example['target_type'] = [target_type[0:16]]
+            single_feature_for_example['input_ids'] = [input_ids[0:16]]
+            single_feature_for_example['offset_mapping'] = [offset_mapping[0:16]]
+            single_feature_for_example['attention_mask'] = [attention_mask[0:16]]
+
+
+
+#        single_feature_for_example['start_positions'] = [features['start_positions']]
+#            single_feature_for_example['end_positions'] = [features['end_positions']]
+#            single_feature_for_example['target_type'] = [features['target_type']]
+##            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
+##            single_feature_for_example['subsample_type'] = [subsample_type]
+
+#            if any([t == SubsampleType.POSITIVE for t in features['subsample_type']]):
+#                single_feature_for_example['subsample_type'] = [SubsampleType.POSITIVE]
+#            else:
+#                single_feature_for_example['subsample_type'] = [SubsampleType.NEGATIVE_NO_ANSWER]
+##        print(features['input_ids'], flush=True)
+        else:
+            single_feature_for_example['input_ids'] = [features['input_ids']]
+            single_feature_for_example['offset_mapping'] = [features['offset_mapping']]
+            single_feature_for_example['attention_mask'] = [features['attention_mask']]
+
         return single_feature_for_example
 
 

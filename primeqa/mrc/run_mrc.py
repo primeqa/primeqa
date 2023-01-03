@@ -383,7 +383,6 @@ def main():
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
-    print("hahhahahahah", flush=True)
 
     # load data
     logger.info('Loading dataset')
