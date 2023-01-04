@@ -1,0 +1,31 @@
+{
+    "mrc": {
+	    "model": "/dccstor/jsmc-nmt-01/bool/expts/adapters-pqa/primeqa-model-2022-07-15/"
+    },
+    "qtc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": null,
+        "label_list": ["short_answer","boolean"],
+        "output_label_prefix": "question_type",
+        "overwrite_cache": true,
+        "use_auth_token": true,
+        "adapter_model": "/dccstor/jsmc-nmt-01/bool/expts/adapters-pqa/qtc/a/a3_pq.pfeiffer.json/lr_2e-4_epochs_10_seed_1235_ga_4/glue"
+    },
+    "evc": {
+        "id_key": "example_id",
+        "sentence1_key": "question",
+        "sentence2_key": "passage_answer_text",
+        "label_list": ["no", "no_answer", "yes"],
+        "output_label_prefix": "boolean_answer",
+        "overwrite_cache": true,
+        "drop_label": "no_answer",
+        "use_auth_token": true,
+        "adapter_model": "/dccstor/jsmc-nmt-01/bool/expts/adapters-pqa/evc/a/a6.pq/lr_3e-4_epochs_2_seed_1235_ga_1/glue/"
+    },
+    "sn": {
+        "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
+        "qtc_is_boolean_label": "boolean",
+        "evc_no_answer_class": "no_answer"
+    }
+}
