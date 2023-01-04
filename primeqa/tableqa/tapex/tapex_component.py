@@ -35,7 +35,7 @@ from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_funct
 from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
 from primeqa.tableqa.tapex.run_tapex import ModelArguments, DataTrainingArguments
 from primeqa.tableqa.tapex.metrics.tapex_accuracy import TapexAccuracy
-from primeqa.pipelines.components.base import Reader
+from primeqa.components.base import Reader
 
 logger = logging.getLogger(__name__)
 
