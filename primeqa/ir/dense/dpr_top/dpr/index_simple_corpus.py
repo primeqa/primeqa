@@ -2,19 +2,23 @@ from primeqa.ir.dense.dpr_top.util.line_corpus import write_open
 import ujson as json
 import logging
 import os
-from primeqa.ir.dense.dpr_top.util.args_help import fill_from_args
+import base64
 import torch
 from typing import List
 import numpy as np
+
 from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import gzip_str
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import build_index, IndexOptions
-import base64
+
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
 from primeqa.ir.util.corpus_reader import corpus_reader, Passage
 from transformers import (
     DPRContextEncoder,
     DPRContextEncoderTokenizerFast,
 )
+
+from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
+from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -27,19 +31,14 @@ class Options(IndexOptions):
         self.sharded_index = False
         self.corpus = ''
         self.output_dir = ''  # the output_dir will have the passages dataset and the hnsw_index.faiss
-        self.batch_size = 16
+        self.bsize = 16
         self.__required_args__ = ['output_dir']
-
-        # for compatibility with run_ir.py
-        self.engine_type = 'DPR'
-        self.do_index = False
-
         self.max_doc_length=128 # to match dataloader_biencoder.make_batch : self.ctx_tokenizer(ctx_titles, ctx_texts
 
 class DPRIndexer():
-    def __init__(self):
+    def __init__(self, config: DPRIndexingConfig):
         self.opts = Options()
-        fill_from_args(self.opts)
+        fill_from_config(self.opts, config)
 
         torch.set_grad_enabled(False)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -93,7 +92,7 @@ class DPRIndexer():
             if report.is_time():
                 logger.info(f'on instance {report.check_count}, {report.check_count/report.elapsed_seconds()} instances per second')
             doc_batch.append(passage)
-            if len(doc_batch) == self.opts.batch_size:
+            if len(doc_batch) == self.opts.bsize:
                 embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
                 cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
                 doc_batch = []

@@ -3,13 +3,15 @@ import torch
 import os
 import socket
 import transformers.utils.logging
-from primeqa.ir.dense.dpr_top.util.args_help import fill_from_args, fill_from_dict, name_value_list
 import ujson as json
 import time
 import random
 import numpy as np
 from typing import Dict, Callable, Optional
+
 from primeqa.ir.dense.dpr_top.util.line_corpus import jsonl_lines, block_shuffle
+from primeqa.ir.dense.dpr_top.util.args_help import fill_from_args, fill_from_dict, name_value_list
+from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,7 @@ class HypersBase:
         self.seed = 42
         self.fp16 = False
         self.fp16_opt_level = 'O1'  # previous default was O2
-        self.full_train_batch_size = 8  # previous default was 32
+        self.bsize = 8  # previous default was 32
         self.per_gpu_eval_batch_size = 8
         self.output_dir = ''  # where to save model
         self.log_on_all_nodes = False
@@ -107,15 +109,15 @@ class HypersBase:
 
     def set_gradient_accumulation_steps(self):
         """
-        when searching for full_train_batch_size in hyperparameter tuning we need to update
+        when searching for bsize in hyperparameter tuning we need to update
         the gradient accumulation steps to stay within GPU memory constraints
         :return:
         """
-        if self.n_gpu * self.world_size * self.per_gpu_train_batch_size > self.full_train_batch_size:
-            self.per_gpu_train_batch_size = self.full_train_batch_size // (self.n_gpu * self.world_size)
+        if self.n_gpu * self.world_size * self.per_gpu_train_batch_size > self.bsize:
+            self.per_gpu_train_batch_size = self.bsize // (self.n_gpu * self.world_size)
             self.gradient_accumulation_steps = 1
         else:
-            self.gradient_accumulation_steps = self.full_train_batch_size // \
+            self.gradient_accumulation_steps = self.bsize // \
                                                (self.n_gpu * self.world_size * self.per_gpu_train_batch_size)
 
     def _basic_post_init(self):
@@ -130,10 +132,10 @@ class HypersBase:
             self.n_gpu = 1
 
         if 'per_gpu_train_batch_size' not in self.__passed_args__ and self.gradient_accumulation_steps > 0:
-            self.per_gpu_train_batch_size = self.full_train_batch_size // \
+            self.per_gpu_train_batch_size = self.bsize // \
                                             ((self.n_gpu if self.n_gpu > 0 else 1) * self.world_size * self.gradient_accumulation_steps)
         else:
-            self.gradient_accumulation_steps = self.full_train_batch_size // \
+            self.gradient_accumulation_steps = self.bsize // \
                                             ((self.n_gpu if self.n_gpu > 0 else 1) * self.world_size * self.per_gpu_train_batch_size)
 
         self.stop_time = None
@@ -220,6 +222,15 @@ class HypersBase:
         :return:
         """
         fill_from_args(self)
+        self._post_init()
+        return self
+
+    def fill_from_config(self, config):
+        """
+        Fill this hyperparameter object from the config.
+        :return:
+        """
+        fill_from_config(self, config)
         self._post_init()
         return self
 

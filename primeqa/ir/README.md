@@ -88,7 +88,7 @@ python primeqa/ir/run_ir.py \
     --train_dir <training_file_or_directory> \
     --output_dir <output_directory> \
     --num_train_epochs <number_of_training_epochs \
-    --full_train_batch_size <training_batch_size> \
+    --bsize <training_batch_size> \
     --training_data_type text_triples
 ```
 
@@ -155,7 +155,7 @@ python primeqa/ir/run_ir.py \
     --sharded_index \
     --corpus <document_collection>  \
     --output_dir <output_directory> \
-    --batch_size <indexing_batch_size> \
+    --bsize <indexing_batch_size> \
 ```
 Indexing can be parallelized using the `--embed` argument. To accomplish that, we specify the same `parts_total` value (e.g. 16) for all the parallel indexing commands, and specify the `part_number` values (from 1 to `parts_total`) used in the individual commands, e.g. `1of16`, `2of16` to `16of16`.
 

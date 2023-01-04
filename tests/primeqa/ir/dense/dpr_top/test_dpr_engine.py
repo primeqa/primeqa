@@ -6,9 +6,13 @@ import argparse, sys
 from unittest.mock import patch
 import tempfile
 
+from transformers import HfArgumentParser
+
 from primeqa.ir.dense.dpr_top.dpr.biencoder_trainer import BiEncoderTrainer
 from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingConfig, DPRIndexingConfig, DPRSearchConfig
+
 
 class TestDprEngine(UnitTest):
     @pytest.fixture(scope='session')
@@ -33,7 +37,7 @@ class TestDprEngine(UnitTest):
             "--num_train_epochs", "2",
             "--sample_negative_from_top_k", "5",
             "--encoder_gpu_train_limit", "32",
-            "--full_train_batch_size", "1",
+            "--bsize", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
             "--training_data_type", "kgi_jsonl",
@@ -41,9 +45,10 @@ class TestDprEngine(UnitTest):
         ]
 
         with patch.object(sys, 'argv', test_args):
-            trainer = BiEncoderTrainer()
+            parser = HfArgumentParser([DPRTrainingConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
-
 
         print("===== DPR TRAINING, -training_data_type text_triples")
 
@@ -54,14 +59,16 @@ class TestDprEngine(UnitTest):
             "--num_train_epochs", "2",
             "--sample_negative_from_top_k", "5",
             "--encoder_gpu_train_limit", "32",
-            "--full_train_batch_size", "1",
+            "--bsize", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
             "--training_data_type", "text_triples"
         ]
 
         with patch.object(sys, 'argv', test_args):
-            trainer = BiEncoderTrainer()
+            parser = HfArgumentParser([DPRTrainingConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
 
         print("===== DPR TRAINING, -training_data_type text_triples_with_title")
@@ -73,14 +80,16 @@ class TestDprEngine(UnitTest):
             "--num_train_epochs", "2",
             "--sample_negative_from_top_k", "5",
             "--encoder_gpu_train_limit", "32",
-            "--full_train_batch_size", "1",
+            "--bsize", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
             "--training_data_type", "text_triples_with_title"
         ]
 
         with patch.object(sys, 'argv', test_args):
-            trainer = BiEncoderTrainer()
+            parser = HfArgumentParser([DPRTrainingConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
 
         print("===== DPR TRAINING, -training_data_type num_triples")
@@ -94,16 +103,17 @@ class TestDprEngine(UnitTest):
             "--num_train_epochs", "2",
             "--sample_negative_from_top_k", "5",
             "--encoder_gpu_train_limit", "32",
-            "--full_train_batch_size", "1",
+            "--bsize", "1",
             "--max_grad_norm", "1.0",
             "--learning_rate", "5e-5",
             "--training_data_type", "num_triples"
         ]
 
         with patch.object(sys, 'argv', test_args):
-            trainer = BiEncoderTrainer()
+            parser = HfArgumentParser([DPRTrainingConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
-
 
         print("===== DPR INDEXING")
 
@@ -113,12 +123,14 @@ class TestDprEngine(UnitTest):
             "--dpr_ctx_encoder_path", os.path.join(output_dir, "ctx_encoder"),
             "--embed", "1of1",
             "--sharded_index",
-            "--batch_size", "1",
+            "--bsize", "1",
             "--corpus", os.path.join(test_files_location,"xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv"),
             "--output_dir", output_dir]
 
         with patch.object(sys, 'argv', test_args):
-            indexer = DPRIndexer()
+            parser = HfArgumentParser([DPRIndexingConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            indexer = DPRIndexer(dpr_args)
             indexer.index()
 
         print("===== DPR SEARCH")
@@ -134,7 +146,9 @@ class TestDprEngine(UnitTest):
             "--top_k", "1"]
 
         with patch.object(sys, 'argv', test_args):
-            searcher = DPRSearcher()
+            parser = HfArgumentParser([DPRSearchConfig])
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            searcher = DPRSearcher(dpr_args)
             searcher.search()
             searcher.search(query_batch = ['Who maintained the throne for the longest time in China?'], mode = 'query_list')
 

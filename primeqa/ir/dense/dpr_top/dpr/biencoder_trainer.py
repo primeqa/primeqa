@@ -12,6 +12,7 @@ from primeqa.ir.dense.dpr_top.dpr.biencoder_hypers import BiEncoderHypers
 from primeqa.ir.dense.dpr_top.dpr.biencoder_gcp import BiEncoder
 from primeqa.ir.dense.dpr_top.dpr.dataloader_biencoder import BiEncoderLoader
 from primeqa.ir.dense.dpr_top.util.line_corpus import jsonl_lines, jsonl_records
+from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +50,9 @@ class BiEncoderTrainArgs(BiEncoderHypers):
             logger.info(f'Counted num_instances = {self.num_instances}')
 
 class BiEncoderTrainer():
-    def __init__(self):
-        self.args = BiEncoderTrainArgs().fill_from_args()
+    def __init__(self, config: DPRTrainingConfig):
+        self.args = BiEncoderTrainArgs().fill_from_config(config)
+
         if self.args.n_gpu > 1:
             logger.error('Multi-GPU training must be through torch.distributed')
             exit(1)

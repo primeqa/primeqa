@@ -25,10 +25,6 @@ class BiEncoderHypers(HypersBase):
         self.collection = '' # used with training_data_type == 'num_triples'
         self.queries = ''    # used with training_data_type == 'num_triples'
 
-        # for compatibility with run_ir.py
-        self.engine_type = ''
-        self.do_train = False
-
         self.__required_args__ = []
 
     def _post_init(self):

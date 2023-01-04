@@ -4,15 +4,16 @@ import csv
 from typing import Union
 import os
 import numpy as np
+import ujson as json
+import logging
 
 from primeqa.ir.dense.dpr_top.util.line_corpus import read_lines, write_open
-import ujson as json
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
-import logging
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import DPROptions, queries_to_vectors
-from primeqa.ir.dense.dpr_top.util.args_help import fill_from_args
+from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
 from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import Corpus
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import ANNIndex
+from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchConfig
 
 logger = logging.getLogger(__name__)
 
@@ -35,22 +36,15 @@ class Options(DPROptions):
         self.default_qry_tokenizer_path = 'facebook/dpr-question_encoder-multiset-base'
         self.qry_tokenizer_path = self.default_qry_tokenizer_path
         self.queries = ''
-
         self.query_file_type = 'id_text'
-
         self.__required_args__ = ['index_location', 'output_dir']
-
-        # for compatibility with run_ir.py
-        self.engine_type = 'DPR'
-        self.do_search = False
-
         self.output_json = False
 
 class DPRSearcher():
-    def __init__(self):
+    def __init__(self, config: DPRSearchConfig):
         # from dpr_apply.main
         self.opts = Options()
-        fill_from_args(self.opts)
+        fill_from_config(self.opts, config)
         torch.set_grad_enabled(False)
         self.report = Reporting()
         # ^ from dpr_apply.main
