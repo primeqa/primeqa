@@ -95,11 +95,11 @@ reader.load()
 - Step 2: Execute the reader in inference mode:
 ```python
 question = ["Which country is Canberra located in?"]
-context = ["""Canberra is the capital city of Australia. 
+context = [["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""]
-answers = reader.apply(question,context)  
+largest inland city"""]]
+answers = reader.predict(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 
@@ -149,7 +149,7 @@ context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is ba
             One of the environmental impacts of aviation is that persistent contrails can 
             form into large mats of cirrus, and increased air traffic has been implicated 
             as one possible cause of the increasing frequency and amount of cirrus"""]]
-answers = fid_reader.apply(question,context)  
+answers = fid_reader.predict(question,context)  
 print(json.dumps(answers, indent=4)) 
 ```
 

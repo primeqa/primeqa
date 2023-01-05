@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from dataclasses import dataclass, field
 import json
 
@@ -108,7 +108,7 @@ class ExtractiveReader(ReaderComponent):
         default=None,
         metadata={
             "name": "Minimum score threshold",
-            "api_support": True,
+            "api_support": False,
             "exclude_from_hash": True,
         },
     )
@@ -162,6 +162,7 @@ class ExtractiveReader(ReaderComponent):
             stride=self.stride,
             max_seq_len=self.max_seq_len,
             tokenizer=self._tokenizer,
+            single_context_multiple_passages=False,
         )
 
         # Configure scorer
@@ -187,7 +188,14 @@ class ExtractiveReader(ReaderComponent):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -213,7 +221,6 @@ class ExtractiveReader(ReaderComponent):
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
             scorer_type=self._scorer_type_as_enum,
-            single_context_multiple_passages=self._preprocessor._single_context_multiple_passages,
         )
 
         # Step 3: Load trainer
@@ -225,43 +232,51 @@ class ExtractiveReader(ReaderComponent):
         )
 
         # Step 4: Prepare dataset from input texts and contexts
-        eval_examples = Dataset.from_dict(
-            dict(
-                question=input_texts,
-                context=context,
-                example_id=[str(idx) for idx in range(len(input_texts))],
-            )
+        assert len(questions) == len(contexts)
+
+        if example_ids is None:
+            example_ids = [str(idx) for idx in range(len(questions))]
+
+        assert len(example_ids) == len(questions)
+
+        examples_dict = dict(
+            question=questions, context=contexts, example_id=example_ids
         )
+
+        eval_examples = Dataset.from_dict(examples_dict)
+
+        eval_examples = Dataset.from_dict(examples_dict)
+
+        eval_examples = Dataset.from_dict(examples_dict)
 
         eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
 
         # Step 5: Run predict
-        predictions = [[] for _ in range(len(input_texts))]
-        for passage_idx, raw_predictions in trainer.predict(
+        predictions = {}
+        for example_id, raw_predictions in trainer.predict(
             eval_dataset=eval_dataset, eval_examples=eval_examples
         ).items():
+            predictions[example_id] = []
             for raw_prediction in raw_predictions:
+                if (
+                    min_score_threshold
+                    and raw_prediction["confidence_score"] < min_score_threshold
+                ):
+                    continue
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
+                processed_prediction["passage_index"] = raw_prediction["passage_index"]
                 processed_prediction["span_answer_text"] = raw_prediction[
                     "span_answer_text"
                 ]
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
+                processed_prediction["span_answer_score"] = raw_prediction[
+                    "span_answer_score"
+                ]
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]
-                predictions[int(passage_idx)].append(processed_prediction)
 
-        # Step 6: If min_score_threshold is provide, use it to filter out predictions
-        if min_score_threshold:
-            filtered_predictions = []
-            for sorted_predictions_for_passage in predictions:
-                filtered_predictions_for_passage = []
-                for sorted_prediction in sorted_predictions_for_passage:
-                    if sorted_prediction["confidence_score"] >= min_score_threshold:
-                        filtered_predictions_for_passage.append(sorted_prediction)
+                predictions[example_id].append(processed_prediction)
 
-                filtered_predictions.append(filtered_predictions_for_passage)
-            return filtered_predictions
-        else:
-            return predictions
+        return predictions

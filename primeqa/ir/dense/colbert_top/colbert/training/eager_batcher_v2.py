@@ -1,4 +1,5 @@
 
+import csv
 import random
 import os
 import ujson
@@ -52,11 +53,12 @@ class EagerBatcher():
         triples = []
 
         with open(path) as f:
-            for line_idx, line in enumerate(f):
+            csv_reader = csv.DictReader(f, fieldnames=["query", "positive", "negative"], delimiter="\t")
+            for line_idx, row in enumerate(csv_reader):
                 if line_idx % nranks == rank:
-                    query, pos, neg = line.strip().split('\t')
-
-                    # triples.append((remove_first_and_last_quote(query), remove_first_and_last_quote(pos), remove_first_and_last_quote(neg)))
+                    query = row["query"]
+                    pos = row["positive"]
+                    neg = row["negative"]
                     triples.append((query, pos, neg))
 
         return triples
