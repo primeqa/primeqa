@@ -371,16 +371,16 @@
 <span class="c1"># If you want to run on GPU make sure to install torch appropriately</span>
 
 <span class="c1"># E.g. for torch 1.11 + CUDA 11.3:</span>
-pip install <span class="s1">&#39;torch~=1.11.0&#39;</span> --extra-index-url https://download.pytorch.org/whl/cu113
+pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;torch~=1.11.0&#39;</span><span class="w"> </span>--extra-index-url<span class="w"> </span>https://download.pytorch.org/whl/cu113
 
 <span class="c1"># Install as editable (-e) or non-editable using pip, with extras (e.g. tests) as desired</span>
 <span class="c1"># Example installation commands:</span>
 
 <span class="c1"># Minimal install (non-editable)</span>
-pip install .
+pip<span class="w"> </span>install<span class="w"> </span>.
 
 <span class="c1"># Full install (editable)</span>
-pip install -e .<span class="o">[</span>all<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>all<span class="o">]</span>
 </pre></div>
 </div>
 <p>Please note that dependencies (specified in <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/setup.py">setup.py</a>)
@@ -391,8 +391,8 @@ however this is not officially supported.</p>
 <p>Java 11 is required for BM25 retrieval.</p>
 <p>Download Java 11 package from <a class="reference external" href="https://jdk.java.net/archive/">https://jdk.java.net/archive/</a> and uncompress</p>
 <p>Set <strong>JAVA_HOME</strong>:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">JAVA_HOME</span><span class="o">=</span>&lt;jdk-dir&gt;
-<span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="nv">$JAVA_HOME</span>/bin:<span class="nv">$PATH</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">JAVA_HOME</span><span class="o">=</span>&lt;jdk-dir&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$JAVA_HOME</span>/bin:<span class="nv">$PATH</span>
 </pre></div>
 </div>
 </section>

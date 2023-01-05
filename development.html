@@ -458,8 +458,8 @@ Additionally, there is an <code class="docutils literal notranslate"><span class
 <p>PrimeQA uses <a class="reference external" href="https://semver.org/">Semantic Versioning</a>. Version can be incremented using <code class="docutils literal notranslate"><span class="pre">bump2version</span></code>.
 Make sure the <code class="docutils literal notranslate"><span class="pre">dev</span></code> extras are installed.</p>
 <p>Note: These commands need to be run from the project root.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>bump2version <span class="o">{</span>patch,minor,major<span class="o">}</span>
-git push  <span class="c1"># above command creates a commit so we need to push</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>bump2version<span class="w"> </span><span class="o">{</span>patch,minor,major<span class="o">}</span>
+git<span class="w"> </span>push<span class="w">  </span><span class="c1"># above command creates a commit so we need to push</span>
 </pre></div>
 </div>
 <p>This will update the version accordingly and commit the change.
@@ -545,8 +545,8 @@ Further, when creating classes whose methods need logging, create a
 <p>Make sure to have the <code class="docutils literal notranslate"><span class="pre">docs</span></code> extras installed before building the documentation.
 The documentation can be built as shown below.</p>
 <p>Note: These commands need to be run from the project root.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> docs
-sphinx-build -b html ./ ./generated/
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+sphinx-build<span class="w"> </span>-b<span class="w"> </span>html<span class="w"> </span>./<span class="w"> </span>./generated/
 </pre></div>
 </div>
 <section id="docstrings">

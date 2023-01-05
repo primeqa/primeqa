@@ -353,17 +353,17 @@ The primary script for QG is <a class="reference external" href="https://github.
 <section id="example-usage">
 <h2>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">#</a></h2>
 <p>An example for training the model on WikiSQL dataset:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python primeqa/qg/run_qg.py <span class="se">\</span>
-    --model_name_or_path t5-base <span class="se">\</span>
-    --modality table <span class="se">\</span>
-    --dataset_name wikisql <span class="se">\</span>
-    --do_train <span class="se">\</span>
-    --max_len <span class="m">200</span> <span class="se">\</span>
-    --target_max_len <span class="m">40</span> <span class="se">\</span>
-    --output_dir  models/qg/<span class="nv">$DIR_NAME</span> <span class="se">\</span>
-    --learning_rate <span class="m">0</span>.0001 <span class="se">\</span>
-    --num_train_epochs <span class="m">4</span><span class="se">\</span>
-    --per_device_train_batch_size <span class="m">32</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/qg/run_qg.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>t5-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--modality<span class="w"> </span>table<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dataset_name<span class="w"> </span>wikisql<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--max_len<span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--target_max_len<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w">  </span>models/qg/<span class="nv">$DIR_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--learning_rate<span class="w"> </span><span class="m">0</span>.0001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num_train_epochs<span class="w"> </span><span class="m">4</span><span class="se">\</span>
+<span class="w">    </span>--per_device_train_batch_size<span class="w"> </span><span class="m">32</span>
 </pre></div>
 </div>
 <p>Where the model_name_or_path can be any generator from huggingface (‘t5’, ‘mt5’, ‘bart’)</p>
@@ -378,15 +378,15 @@ eval_samples_per_second =     48.733<br />
 eval_steps_per_second   =      1.528\</p>
 <p>Inference can be done on any table in particular dict format. Check this <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/qg/tableqg_inference.ipynb">notebook</a> for more information.</p>
 <p>An example usage for training the model on TydiQA dataset:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python primeqa/qg/run_qg.py<span class="se">\</span>
-    --model_name_or_path google/mt5-base <span class="se">\</span>
-    --modality passage <span class="se">\</span>
-    --dataset_name tydiqa <span class="se">\</span>
-    --do_train <span class="se">\</span>
-    --do_eval <span class="se">\</span>
-    --output_dir models/qg/<span class="nv">$DIR_NAME</span> <span class="se">\</span>
-    --learning_rate <span class="m">0</span>.0001 <span class="se">\</span>
-    --num_train_epochs <span class="m">4</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/qg/run_qg.py<span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>google/mt5-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--modality<span class="w"> </span>passage<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dataset_name<span class="w"> </span>tydiqa<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_eval<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>models/qg/<span class="nv">$DIR_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--learning_rate<span class="w"> </span><span class="m">0</span>.0001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num_train_epochs<span class="w"> </span><span class="m">4</span>
 </pre></div>
 </div>
 <p>We evaluated the generated questions against the gold standard questions available in TydiQA benchmark using Rogue metrics. The results are shown as follows:</p>
@@ -403,16 +403,16 @@ eval_steps_per_second   =      1.528\</p>
 <p>Inference can be done for PassageQG over a given passage. Check this <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/qg/passageqg_inference.ipynb">notebook</a> for more information.</p>
 <p>One can also train and/or evaluate QG on custom data which is prepared in squad or tydiqa format (a sample file <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/examples/custom_mrc/custom_data/examples_train_squad.jsonl">here</a>).
 An example usage of qg training and evauation using custom data files is as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python primeqa/qg/run_qg.py<span class="se">\</span>
-    --model_name_or_path google/mt5-base <span class="se">\</span>
-    --modality passage <span class="se">\</span>
-    --train_file &lt;path to sample train file&gt; <span class="se">\</span>
-    --do_train <span class="se">\</span>
-    --do_eval <span class="se">\</span>
-    --eval_file &lt;path to sample <span class="nb">eval</span> file&gt; <span class="se">\</span>
-    --output_dir models/qg/<span class="nv">$DIR_NAME</span> <span class="se">\</span>
-    --learning_rate <span class="m">0</span>.0001 <span class="se">\</span>
-    --num_train_epochs <span class="m">4</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/qg/run_qg.py<span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>google/mt5-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--modality<span class="w"> </span>passage<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--train_file<span class="w"> </span>&lt;path<span class="w"> </span>to<span class="w"> </span>sample<span class="w"> </span>train<span class="w"> </span>file&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_eval<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--eval_file<span class="w"> </span>&lt;path<span class="w"> </span>to<span class="w"> </span>sample<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>file&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>models/qg/<span class="nv">$DIR_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--learning_rate<span class="w"> </span><span class="m">0</span>.0001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num_train_epochs<span class="w"> </span><span class="m">4</span>
 </pre></div>
 </div>
 </section>

@@ -372,27 +372,27 @@ which can be used to evaluate the performance of the confidence calibration mode
 <section id="example-usage">
 <h3>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">#</a></h3>
 <p>An example usage using TyDiQA dataset is as follows.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/calibration/train_confidence_calibrator.py <span class="se">\</span>
-       --model_name_or_path xlm-roberta-large <span class="se">\</span>
-       --dataset_name tydiqa <span class="se">\</span>
-       --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> <span class="se">\</span>
-       --fp16 --learning_rate 4e-5 <span class="se">\</span>
-       --do_train --do_eval <span class="se">\</span>
-       --per_device_train_batch_size <span class="m">16</span> <span class="se">\</span>
-       --per_device_eval_batch_size <span class="m">32</span> <span class="se">\</span>
-       --gradient_accumulation_steps <span class="m">4</span> <span class="se">\</span>
-       --warmup_ratio <span class="m">0</span>.1 --weight_decay <span class="m">0</span>.1 <span class="se">\</span>
-       --save_steps <span class="m">50000</span> <span class="se">\</span>
-       --overwrite_output_dir --num_train_epochs <span class="m">1</span> <span class="se">\</span>
-       --evaluation_strategy no <span class="se">\</span>
-       --confidence_dataset_dir <span class="si">${</span><span class="nv">CONFIDENCE_DATASET_DIR</span><span class="si">}</span> <span class="se">\</span>
-       --relative_confidence_train_size <span class="m">0</span>.1 <span class="se">\</span>
-       --output_dropout_rate <span class="m">0</span>.25 <span class="se">\</span>
-       --decoding_times_with_dropout <span class="m">5</span> <span class="se">\</span>
-       --confidence_model_dir <span class="si">${</span><span class="nv">CONFIDENCE_MODEL_DIR</span><span class="si">}</span> <span class="se">\</span>
-       --max_iter_of_confidence_model_training <span class="m">200</span> <span class="se">\</span>
-       --prediction_reference_overlap_threshold <span class="m">0</span>.5 <span class="se">\</span>
-       --task_heads primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/calibration/train_confidence_calibrator.py<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--model_name_or_path<span class="w"> </span>xlm-roberta-large<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--dataset_name<span class="w"> </span>tydiqa<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--fp16<span class="w"> </span>--learning_rate<span class="w"> </span>4e-5<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--do_train<span class="w"> </span>--do_eval<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--per_device_train_batch_size<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--per_device_eval_batch_size<span class="w"> </span><span class="m">32</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--gradient_accumulation_steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--warmup_ratio<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span>--weight_decay<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--save_steps<span class="w"> </span><span class="m">50000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--overwrite_output_dir<span class="w"> </span>--num_train_epochs<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--evaluation_strategy<span class="w"> </span>no<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--confidence_dataset_dir<span class="w"> </span><span class="si">${</span><span class="nv">CONFIDENCE_DATASET_DIR</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--relative_confidence_train_size<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--output_dropout_rate<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--decoding_times_with_dropout<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--confidence_model_dir<span class="w"> </span><span class="si">${</span><span class="nv">CONFIDENCE_MODEL_DIR</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--max_iter_of_confidence_model_training<span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--prediction_reference_overlap_threshold<span class="w"> </span><span class="m">0</span>.5<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--task_heads<span class="w"> </span>primeqa.mrc.models.heads.extractive.EXTRACTIVE_WITH_CONFIDENCE_HEAD
 </pre></div>
 </div>
 </section>

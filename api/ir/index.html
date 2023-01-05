@@ -461,19 +461,19 @@ This table shows two lines from the file, with the positive and negative passage
 </tbody>
 </table>
 <p>(English translation of the original Korean query is “<em>Who maintained the throne for the longest time in China?</em>”)</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_train <span class="se">\</span>
-    --engine_type ColBERT <span class="se">\</span>
-    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
-    --bsize &lt;training_batch_size&gt; <span class="se">\</span>
-    --accum &lt;number_of_gradient_accumulation_steps&gt; <span class="se">\</span>
-    --maxsteps &lt;number_of_training_steps&gt; <span class="se">\</span>
-    --save_steps &lt;number_of_training_steps_between_saving_checkpoins&gt; <span class="se">\</span>
-    --lr &lt;learnig_rate&gt; <span class="se">\</span>
-    --model_type xlm-roberta-base <span class="se">\</span>
-    --triples &lt;training_data&gt; <span class="se">\</span>
-    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>ColBERT<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--doc_maxlen<span class="w"> </span>&lt;maximum_number_of_document_tokens&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;training_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--accum<span class="w"> </span>&lt;number_of_gradient_accumulation_steps&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--maxsteps<span class="w"> </span>&lt;number_of_training_steps&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--save_steps<span class="w"> </span>&lt;number_of_training_steps_between_saving_checkpoins&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--lr<span class="w"> </span>&lt;learnig_rate&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_type<span class="w"> </span>xlm-roberta-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--triples<span class="w"> </span>&lt;training_data&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--root<span class="w"> </span>&lt;experiments_root_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--experiment<span class="w"> </span>&lt;experiment_label&gt;
 </pre></div>
 </div>
 <p>The trained model is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/none/&lt;year_month/&lt;day&gt;/&lt;time&gt;/checkpoints/colbert-LAST.dnn</span></code>, with intermediate model files in the same <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> directory.</p>
@@ -500,14 +500,14 @@ This table shows two lines from the file, with the positive and negative passage
 </tr>
 </tbody>
 </table>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_train <span class="se">\</span>
-    --engine_type DPR <span class="se">\</span>
-    --train_dir &lt;training_file_or_directory&gt; <span class="se">\</span>
-    --output_dir &lt;output_directory&gt; <span class="se">\</span>
-    --num_train_epochs &lt;number_of_training_epochs <span class="se">\</span>
-    --full_train_batch_size &lt;training_batch_size&gt; <span class="se">\</span>
-    --training_data_type text_triples
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>DPR<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--train_dir<span class="w"> </span>&lt;training_file_or_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num_train_epochs<span class="w"> </span>&lt;number_of_training_epochs<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--full_train_batch_size<span class="w"> </span>&lt;training_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--training_data_type<span class="w"> </span>text_triples
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">--train_dir</span></code> contains either a name of a single file, or a directory. If we specify a directory, the script runs training using all files in the directory with the filename extension matching the expected file type (e.g. <em>.tsv</em>).</p>
@@ -578,17 +578,17 @@ An example of a collection file is <a class="reference external" href="https://g
 <section id="dense-index-with-colbert-engine">
 <h3>Dense Index With ColBERT Engine<a class="headerlink" href="#dense-index-with-colbert-engine" title="Permalink to this headline">#</a></h3>
 <p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-colbert-engine">here</a>, the following command builds the ColBERT index.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_index <span class="se">\</span>
-    --engine_type ColBERT <span class="se">\</span>
-    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
-    --bsize &lt;indexing_batch_size&gt; <span class="se">\</span>
-    --checkpoint &lt;model_checkpoint&gt; <span class="se">\</span>
-    --collection &lt;document_collection&gt; <span class="se">\</span>
-    --root &lt;experiments_root_directory&gt; <span class="se">\</span>
-    --experiment &lt;experiment_label&gt; <span class="se">\</span>
-    --index_name &lt;index_label&gt; <span class="se">\</span>
-    --compression_level &lt;number_of_bits_in_residual_representations&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_index<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>ColBERT<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--doc_maxlen<span class="w"> </span>&lt;maximum_number_of_document_tokens&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;indexing_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--checkpoint<span class="w"> </span>&lt;model_checkpoint&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--collection<span class="w"> </span>&lt;document_collection&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--root<span class="w"> </span>&lt;experiments_root_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--experiment<span class="w"> </span>&lt;experiment_label&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index_name<span class="w"> </span>&lt;index_label&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--compression_level<span class="w"> </span>&lt;number_of_bits_in_residual_representations&gt;
 </pre></div>
 </div>
 <p>The index is stored in <code class="docutils literal notranslate"><span class="pre">&lt;experiments_root_directory&gt;/&lt;experiment_label&gt;/indexes/&lt;index_label&gt;</span></code> directory.</p>
@@ -596,15 +596,15 @@ An example of a collection file is <a class="reference external" href="https://g
 <section id="dense-index-with-dpr">
 <h3>Dense Index With DPR<a class="headerlink" href="#dense-index-with-dpr" title="Permalink to this headline">#</a></h3>
 <p>Using a model trained as described <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-dpr-engine">here</a>, the following command builds the DPR index.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --engine_type DPR <span class="se">\</span>
-    --do_index <span class="se">\</span>
-    --dpr_ctx_encoder_path &lt;context_encoder_model&gt; <span class="se">\</span>
-    --embed &lt;part_number&gt;of&lt;parts_total&gt; <span class="se">\</span>
-    --sharded_index <span class="se">\</span>
-    --corpus &lt;document_collection&gt;  <span class="se">\</span>
-    --output_dir &lt;output_directory&gt; <span class="se">\</span>
-    --batch_size &lt;indexing_batch_size&gt; <span class="se">\</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>DPR<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_index<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dpr_ctx_encoder_path<span class="w"> </span>&lt;context_encoder_model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--embed<span class="w"> </span>&lt;part_number&gt;of&lt;parts_total&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sharded_index<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--corpus<span class="w"> </span>&lt;document_collection&gt;<span class="w">  </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--batch_size<span class="w"> </span>&lt;indexing_batch_size&gt;<span class="w"> </span><span class="se">\</span>
 </pre></div>
 </div>
 <p>Indexing can be parallelized using the <code class="docutils literal notranslate"><span class="pre">--embed</span></code> argument. To accomplish that, we specify the same <code class="docutils literal notranslate"><span class="pre">parts_total</span></code> value (e.g. 16) for all the parallel indexing commands, and specify the <code class="docutils literal notranslate"><span class="pre">part_number</span></code> values (from 1 to <code class="docutils literal notranslate"><span class="pre">parts_total</span></code>) used in the individual commands, e.g. <code class="docutils literal notranslate"><span class="pre">1of16</span></code>, <code class="docutils literal notranslate"><span class="pre">2of16</span></code> to <code class="docutils literal notranslate"><span class="pre">16of16</span></code>.</p>
@@ -613,12 +613,12 @@ An example of a collection file is <a class="reference external" href="https://g
 <section id="sparse-index-with-pyserini">
 <h3>Sparse Index With Pyserini<a class="headerlink" href="#sparse-index-with-pyserini" title="Permalink to this headline">#</a></h3>
 <p>The following command builds an index for BM25 retrieval.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_index <span class="se">\</span>
-    --engine_type BM25 <span class="se">\</span>
-    --collection &lt;document_collection&gt; <span class="se">\</span>
-    --index_path &lt;index_dir&gt;
-    --threads &lt;num_threads&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_index<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>BM25<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--collection<span class="w"> </span>&lt;document_collection&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index_path<span class="w"> </span>&lt;index_dir&gt;
+<span class="w">    </span>--threads<span class="w"> </span>&lt;num_threads&gt;
 </pre></div>
 </div>
 </section>
@@ -630,16 +630,16 @@ An example of a queries data file is <a class="reference external" href="https:/
 <section id="dense-index-retrieval-with-colbert-engine">
 <h3>Dense Index Retrieval With Colbert Engine<a class="headerlink" href="#dense-index-retrieval-with-colbert-engine" title="Permalink to this headline">#</a></h3>
 <p>The command uses a model and index as created in the previous training and indexing steps, described  <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-colbert-engine">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#dense-index-with-colbert-engine">here</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_search <span class="se">\</span>
-    --engine_type ColBERT <span class="se">\</span>
-    --doc_maxlen &lt;maximum_number_of_document_tokens&gt; <span class="se">\</span>
-    --bsize &lt;search_batch_size&gt; <span class="se">\</span>
-    --queries &lt;query_file&gt; <span class="se">\</span>
-    --model_name_or_path &lt;model_filename_or_directory&gt; <span class="se">\</span>
-    --index_location &lt;directory_containing_index_files&gt; <span class="se">\</span>
-    --top_k &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
-    --output_dir &lt;output_directory&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_search<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>ColBERT<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--doc_maxlen<span class="w"> </span>&lt;maximum_number_of_document_tokens&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;search_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--queries<span class="w"> </span>&lt;query_file&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>&lt;model_filename_or_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index_location<span class="w"> </span>&lt;directory_containing_index_files&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--top_k<span class="w"> </span>&lt;number_of_items_per_query_retrieved&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;
 </pre></div>
 </div>
 <p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output_directory&gt;</span></code>, in a file named <code class="docutils literal notranslate"><span class="pre">ranked_passages.tsv</span></code>.</p>
@@ -679,15 +679,15 @@ An example of a queries data file is <a class="reference external" href="https:/
 <section id="dense-index-retrieval-with-dpr-engine">
 <h3>Dense Index Retrieval With DPR Engine<a class="headerlink" href="#dense-index-retrieval-with-dpr-engine" title="Permalink to this headline">#</a></h3>
 <p>The command uses a model and index as created in the previous training and indexing steps, described  <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#model-training-with-dpr-engine">here</a> and <a class="reference external" href="https://github.com/primeqa/primeqa/tree/main/primeqa/ir#dense-index-with-dpr-engine">here</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-    --do_search <span class="se">\</span>
-    --engine_type DPR <span class="se">\</span>
-    --queries &lt;query_file&gt; <span class="se">\</span>
-    --model_name_or_path &lt;query_encoder_model&gt; <span class="se">\</span>
-    --bsize &lt;search_batch_size&gt; <span class="se">\</span>
-    --index_location &lt;directory_containing_index_files&gt; <span class="se">\</span>
-    --top_k &lt;number_of_items_per_query_retrieved&gt; <span class="se">\</span>
-    --output_dir &lt;output_directory&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_search<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--engine_type<span class="w"> </span>DPR<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--queries<span class="w"> </span>&lt;query_file&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>&lt;query_encoder_model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;search_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index_location<span class="w"> </span>&lt;directory_containing_index_files&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--top_k<span class="w"> </span>&lt;number_of_items_per_query_retrieved&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;
 </pre></div>
 </div>
 <p>The engine uses a default tokenizer (currently <code class="docutils literal notranslate"><span class="pre">facebook/dpr-ctx_encoder-multiset-base</span></code>).  If needed, the tokenizer may be specified using the <code class="docutils literal notranslate"><span class="pre">--qry_tokenizer_path</span></code> argument.</p>
@@ -696,12 +696,12 @@ An example of a queries data file is <a class="reference external" href="https:/
 <section id="sparse-index-retrieval">
 <h3>Sparse Index Retrieval<a class="headerlink" href="#sparse-index-retrieval" title="Permalink to this headline">#</a></h3>
 <p>The command requires an index and a queries tsv file as input.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/ir/run_ir.py <span class="se">\</span>
-      --do_search <span class="se">\</span>
-      --engine_type BM25 <span class="se">\</span>
-      --index_location &lt;index-dir&gt; <span class="se">\</span>
-      --queries  &lt;query_file&gt; <span class="se">\ </span>
-      --output_dir &lt;output-dir&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>--do_search<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>--engine_type<span class="w"> </span>BM25<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>--index_location<span class="w"> </span>&lt;index-dir&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>--queries<span class="w">  </span>&lt;query_file&gt;<span class="w"> </span><span class="se">\ </span>
+<span class="w">      </span>--output_dir<span class="w"> </span>&lt;output-dir&gt;
 </pre></div>
 </div>
 <p>The resulting .tsv file, containing query IDs, document IDs, ranks, and scores is stored in <code class="docutils literal notranslate"><span class="pre">&lt;output-dir&gt;</span></code> in ‘ranked_passages.tsv’ file.</p>
@@ -753,18 +753,18 @@ The following describes the steps to evaluate retrieval on the <a class="referen
 <section id="convert-for-evaluation">
 <h3>Convert for evaluation<a class="headerlink" href="#convert-for-evaluation" title="Permalink to this headline">#</a></h3>
 <p>Convert the search results obtained from the retrieval step into the format required by the evaluation script.  This is done by running the conversion script:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>    python primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py <span class="se">\</span>
-    -c &lt;document_collection&gt; <span class="se">\</span>
-    -q &lt;ground_truth_data&gt;
-    -p &lt;scores_and_ranks&gt; <span class="se">\</span>
-    -o &lt;ranking_xortydi_format.json&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="w">    </span>python<span class="w"> </span>primeqa/ir/scripts/xortydi/convert_colbert_results_to_xor.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-c<span class="w"> </span>&lt;document_collection&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-q<span class="w"> </span>&lt;ground_truth_data&gt;
+<span class="w">    </span>-p<span class="w"> </span>&lt;scores_and_ranks&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span>&lt;ranking_xortydi_format.json&gt;
 </pre></div>
 </div>
 </section>
 <section id="run-evaluation-script">
 <h3>Run Evaluation Script<a class="headerlink" href="#run-evaluation-script" title="Permalink to this headline">#</a></h3>
 <p>Run:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python &lt;path-to-xorqa-repo&gt;/evals/eval_xor_retrieve.py --data_file &lt;ground_truth_data&gt; --pred_file &lt;ranking_xortydi_format.json&gt;
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>&lt;path-to-xorqa-repo&gt;/evals/eval_xor_retrieve.py<span class="w"> </span>--data_file<span class="w"> </span>&lt;ground_truth_data&gt;<span class="w"> </span>--pred_file<span class="w"> </span>&lt;ranking_xortydi_format.json&gt;
 </pre></div>
 </div>
 </section>

@@ -394,20 +394,20 @@ highly recommended</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">Setup and activate a Virtual Environment</a> (follow steps below) or use <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">Conda</a></p></li>
 </ul>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install virtualenv</span>
-pip3 install virtualenv
+pip3<span class="w"> </span>install<span class="w"> </span>virtualenv
 
 <span class="c1"># Create a new virtual environment for this project. If using pyenv, path_to_python_3.9_executable will be ~/.pyenv/versions/3.9.x/bin/python</span>
-virtualenv --python<span class="o">=</span>&lt;path_to_python_3.9_executable&gt; venv
+virtualenv<span class="w"> </span>--python<span class="o">=</span>&lt;path_to_python_3.9_executable&gt;<span class="w"> </span>venv
 
 <span class="c1"># Activate virtual environment</span>
-<span class="nb">source</span> venv/bin/activate
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Install dependencies</p></li>
 </ul>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install -r requirements.txt
-pip install -r requirements_test.txt
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements_test.txt
 </pre></div>
 </div>
 <h3>📜 TLS and Certificate Management</h3>

@@ -396,26 +396,26 @@
 <h1>Documentation (Sphinx)<a class="headerlink" href="#documentation-sphinx" title="Permalink to this headline">#</a></h1>
 <p>PrimeQA uses Sphinx for documentation.  Before continuing make sure you have installed PrimeQA
 with <code class="docutils literal notranslate"><span class="pre">docs</span></code> extras.  For example, from the top level of the project:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install .<span class="o">[</span>docs<span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.<span class="o">[</span>docs<span class="o">]</span>
 </pre></div>
 </div>
 <p>The documentation can then be built with:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> docs
-make html -e <span class="nv">SPHINXOPTS</span><span class="o">=</span><span class="s1">&#39;--keep-going --no-color -w &quot;{log_file}&quot;&#39;</span>   
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html<span class="w"> </span>-e<span class="w"> </span><span class="nv">SPHINXOPTS</span><span class="o">=</span><span class="s1">&#39;--keep-going --no-color -w &quot;{log_file}&quot;&#39;</span><span class="w">   </span>
 </pre></div>
 </div>
 <p>This will generate the documentation in HTML.</p>
 <section id="docker">
 <h2>Docker<a class="headerlink" href="#docker" title="Permalink to this headline">#</a></h2>
 <p>The documentation can also be built and served from a Docker container.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">VERSION</span><span class="o">=</span><span class="k">$(</span>cat VERSION<span class="k">)</span>
-<span class="nb">cd</span> docs
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">VERSION</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>VERSION<span class="k">)</span>
+<span class="nb">cd</span><span class="w"> </span>docs
 
 <span class="c1"># build image</span>
 ./buildDocker.sh
 
 <span class="c1"># run container</span>
-docker run -p <span class="m">80</span>:80 --rm -d --name primeqa-docs primeqa-docs:<span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span>
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">80</span>:80<span class="w"> </span>--rm<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>primeqa-docs<span class="w"> </span>primeqa-docs:<span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span>
 </pre></div>
 </div>
 </section>

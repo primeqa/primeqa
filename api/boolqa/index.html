@@ -354,10 +354,10 @@ description is inference-only, assuming existing models. For a description of ho
 First, as a single command line argument in <code class="docutils literal notranslate"><span class="pre">run_mrc.py</span></code> to run all steps, and secondly, as a step-by-step process detailed in the
 later sections of this README.<br />
 The single command line argument is:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 <span class="se">\</span>
-       --output_dir <span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span> --fp16 --overwrite_cache <span class="se">\</span>
-       --per_device_eval_batch_size <span class="m">128</span> --overwrite_output_dir <span class="se">\</span>
-       --do_boolean --boolean_config  primeqa/boolqa/tydi_boolqa_config.json
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/mrc/run_mrc.py<span class="w"> </span>--model_name_or_path<span class="w"> </span>PrimeQA/tydi-reader_bpes-xlmr_large-20221117<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="w"> </span>--fp16<span class="w"> </span>--overwrite_cache<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--per_device_eval_batch_size<span class="w"> </span><span class="m">128</span><span class="w"> </span>--overwrite_output_dir<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>--do_boolean<span class="w"> </span>--boolean_config<span class="w">  </span>primeqa/boolqa/tydi_boolqa_config.json
 </pre></div>
 </div>
 <p>The option <code class="docutils literal notranslate"><span class="pre">--do_boolean</span></code> supercedes the <code class="docutils literal notranslate"><span class="pre">--do_eval</span></code> option, and runs the following four-stage process:</p>
@@ -417,13 +417,13 @@ and <a class="reference external" href="https://arxiv.org/abs/2206.08441">GAAMA 
 <p>The machine reading comprehension differs from the default invocation of <code class="docutils literal notranslate"><span class="pre">run_mrc.py</span></code> (see <a class="reference internal" href="../mrc/index.html"><span class="doc std std-doc">readme</span></a>)
 as follows: the postprocessor provides additional information (language, question)
 needed by the downstream components</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 <span class="se">\</span>
-        --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/ --fp16 --learning_rate 4e-5 <span class="se">\</span>
-        --do_eval --per_device_train_batch_size <span class="m">16</span> --fp16 <span class="se">\</span>
-        --per_device_eval_batch_size <span class="m">128</span> --gradient_accumulation_steps <span class="m">4</span> <span class="se">\</span>
-        --warmup_ratio <span class="m">0</span>.1 --weight_decay <span class="m">0</span>.1 --save_steps <span class="m">50000</span> <span class="se">\</span>
-        --overwrite_output_dir --num_train_epochs <span class="m">1</span> --evaluation_strategy no <span class="se">\</span>
-        --postprocessor primeqa.text_classification.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/mrc/run_mrc.py<span class="w"> </span>--model_name_or_path<span class="w"> </span>PrimeQA/tydi-reader_bpes-xlmr_large-20221117<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/<span class="w"> </span>--fp16<span class="w"> </span>--learning_rate<span class="w"> </span>4e-5<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--do_eval<span class="w"> </span>--per_device_train_batch_size<span class="w"> </span><span class="m">16</span><span class="w"> </span>--fp16<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--per_device_eval_batch_size<span class="w"> </span><span class="m">128</span><span class="w"> </span>--gradient_accumulation_steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--warmup_ratio<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span>--weight_decay<span class="w"> </span><span class="m">0</span>.1<span class="w"> </span>--save_steps<span class="w"> </span><span class="m">50000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--overwrite_output_dir<span class="w"> </span>--num_train_epochs<span class="w"> </span><span class="m">1</span><span class="w"> </span>--evaluation_strategy<span class="w"> </span>no<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--postprocessor<span class="w"> </span>primeqa.text_classification.processors.postprocessors.extractive.ExtractivePipelinePostProcessor
 </pre></div>
 </div>
 </section>
@@ -431,18 +431,18 @@ needed by the downstream components</p>
 <h2>Question type classification<a class="headerlink" href="#question-type-classification" title="Permalink to this headline">#</a></h2>
 <p>Given a question (obtained from the <code class="docutils literal notranslate"><span class="pre">eval_predictions.json</span></code> file created in the previous step, predict
 whether the question is <code class="docutils literal notranslate"><span class="pre">boolean</span></code> or <code class="docutils literal notranslate"><span class="pre">short_answer</span></code>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/text_classification/run_nway_classifier.py <span class="se">\</span>
-    --overwrite_cache <span class="se">\</span>
-    --example_id_key example_id <span class="se">\</span>
-    --do_mrc_pipeline <span class="se">\</span>
-    --fp16 <span class="se">\</span>
-    --sentence1_key question <span class="se">\</span>
-    --label_list boolean other <span class="se">\</span>
-    --output_label_prefix question_type <span class="se">\</span>
-    --model_name_or_path PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117 <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/eval_predictions.json <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc <span class="se">\</span>
-    --use_auth_token
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/text_classification/run_nway_classifier.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--overwrite_cache<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--example_id_key<span class="w"> </span>example_id<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_mrc_pipeline<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--fp16<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sentence1_key<span class="w"> </span>question<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--label_list<span class="w"> </span>boolean<span class="w"> </span>other<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_label_prefix<span class="w"> </span>question_type<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--test_file<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/mrc/eval_predictions.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--use_auth_token
 </pre></div>
 </div>
 </section>
@@ -451,18 +451,18 @@ whether the question is <code class="docutils literal notranslate"><span class="
 <p>Given a question and the passage predicted by the first step, predict whether the span supports
 a <code class="docutils literal notranslate"><span class="pre">yes</span></code> or <code class="docutils literal notranslate"><span class="pre">no</span></code> answer to question.  Both question and span are passed through the <code class="docutils literal notranslate"><span class="pre">eval_predictions.json</span></code>
 file output by the previous step.  The details of this process are analyzed in this jupyter <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/boolqa/evc.ipynb">notebook</a>.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/text_classification/run_nway_classifier.py <span class="se">\</span>
-    --overwrite_cache  <span class="se">\</span>
-    --example_id_key example_id <span class="se">\</span>
-    --do_mrc_pipeline <span class="se">\</span>
-    --sentence1_key question <span class="se">\</span>
-    --sentence2_key passage_answer_text <span class="se">\</span>
-    --label_list no yes <span class="se">\</span>
-    --output_label_prefix boolean_answer <span class="se">\</span>
-    --model_name_or_path PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117 <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc/predictions.json <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc <span class="se">\</span>
-    --use_auth_token
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/text_classification/run_nway_classifier.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--overwrite_cache<span class="w">  </span><span class="se">\</span>
+<span class="w">    </span>--example_id_key<span class="w"> </span>example_id<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_mrc_pipeline<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sentence1_key<span class="w"> </span>question<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--sentence2_key<span class="w"> </span>passage_answer_text<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--label_list<span class="w"> </span>no<span class="w"> </span>yes<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_label_prefix<span class="w"> </span>boolean_answer<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--test_file<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/qtc/predictions.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--use_auth_token
 </pre></div>
 </div>
 </section>
@@ -473,11 +473,11 @@ and output a file suitable for the TyDiQA evaluation script.
 Warning: The score normalizer was developed for a leaderboard submission with a hidden test set.</p>
 <p>Therefore, the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evaluation of the submission is on the TyDiQA <a class="reference external" href="https://ai.google.com/research/tydiqa">leaderboard</a> itself.</p>
 <p>Another fair evalutation is on the other half of the dev set - for details, see <span class="xref myst">training</span></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python primeqa/boolqa/run_score_normalizer.py <span class="se">\</span>
-    --test_file <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc/predictions.json <span class="se">\</span>
-    --model_name_or_path tests/resources/boolqa/score_normalizer_model/sn.pickle <span class="se">\</span>
-    --output_dir <span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/sn <span class="se">\</span>
-    --do_apply
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/boolqa/run_score_normalizer.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--test_file<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/evc/predictions.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_name_or_path<span class="w"> </span>tests/resources/boolqa/score_normalizer_model/sn.pickle<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span><span class="si">${</span><span class="nv">BASE</span><span class="si">}</span>/sn<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--do_apply
 </pre></div>
 </div>
 </section>
