@@ -45,11 +45,12 @@ class ExtractiveWithBooleanReader(ReaderComponent):
     """
 
     boolean_config: str = field(
-        default="tydi_boolqa_config.json",
+        default="/store/models/tydi_boolqa_config.json",
         metadata={"name": "Model", "api_support": True},
     )
     model: str = field(
-        default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
+#        default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
+        default="/store/models/a4_1e-5_1_42_a100/",
         metadata={"name": "Model", "api_support": True},
     )    
     use_fast: bool = field(
