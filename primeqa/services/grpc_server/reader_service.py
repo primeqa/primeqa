@@ -24,6 +24,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     AnswersForContext,
     AnswersForQuery,
     GetAnswersResponse,
+    PerQueryResponse
 )
 
 
@@ -150,6 +151,8 @@ class ReaderService(ReaderServicer):
                         context=[[text] for text in request.contexts[idx].texts],
                         **reader_kwargs,
                     )
+                    if type(predictions)==tuple:
+                        (predictions, per_query_predictions) = predictions
                     self._logger.info(
                         "Applying '%s' reader for query = '%s' returns predictions = %s",
                         instance.__class__.__name__,
@@ -158,31 +161,65 @@ class ReaderService(ReaderServicer):
                     )
 
                     # Step 5.b: Add answers for current query into response object
-                    answers_response.query_answers.append(
-                        AnswersForQuery(
-                            context_answers=[
-                                AnswersForContext(
-                                    answers=[
-                                        Answer(
-                                            text=prediction["span_answer_text"],
-                                            start_char_offset=prediction["span_answer"][
-                                                "start_position"
-                                            ],
-                                            end_char_offset=prediction["span_answer"][
-                                                "end_position"
-                                            ],
-                                            confidence_score=prediction[
-                                                "confidence_score"
-                                            ],
-                                            context_index=int(prediction["example_id"]),
-                                        )
-                                        for prediction in predictions_for_context
-                                    ]
-                                )
-                                for predictions_for_context in predictions
-                            ]
+                    if per_query_predictions is not None:
+                        answers_response.query_answers.append(
+                            AnswersForQuery(
+                                context_answers=[
+                                    AnswersForContext(
+                                        answers=[
+                                            Answer(
+                                                text=prediction["span_answer_text"],
+                                                start_char_offset=prediction["span_answer"][
+                                                    "start_position"
+                                                ],
+                                                end_char_offset=prediction["span_answer"][
+                                                    "end_position"
+                                                ],
+                                                confidence_score=prediction[
+                                                    "confidence_score"
+                                                ],
+                                                context_index=int(prediction["example_id"]),
+                                            )
+                                            for prediction in predictions_for_context
+                                        ]
+                                    )
+                                    for predictions_for_context in predictions
+                                ],
+                                per_query_response = [
+                                    PerQueryResponse( 
+                                        question_type_prediction=per_query_prediction["question_type_pred"],
+                                        boolean_answer_prediction=per_query_prediction["boolean_answer_pred"]
+                                    )
+                                    for per_query_prediction in per_query_predictions
+                                ],
+                            )
                         )
-                    )
+                    else:
+                        answers_response.query_answers.append(
+                            AnswersForQuery(
+                                context_answers=[
+                                    AnswersForContext(
+                                        answers=[
+                                            Answer(
+                                                text=prediction["span_answer_text"],
+                                                start_char_offset=prediction["span_answer"][
+                                                    "start_position"
+                                                ],
+                                                end_char_offset=prediction["span_answer"][
+                                                    "end_position"
+                                                ],
+                                                confidence_score=prediction[
+                                                    "confidence_score"
+                                                ],
+                                                context_index=int(prediction["example_id"]),
+                                            )
+                                            for prediction in predictions_for_context
+                                        ]
+                                    )
+                                    for predictions_for_context in predictions
+                                ]
+                            )
+                        )  
 
                 except TypeError:
                     context.set_code(StatusCode.INTERNAL)

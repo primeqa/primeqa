@@ -15,7 +15,7 @@ _sym_db = _symbol_database.Default()
 from . import parameter_pb2 as parameter__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0creader.proto\x12\x06reader\x1a\x0fparameter.proto\"N\n\x0fReaderComponent\x12\x11\n\treader_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x13\n\x11GetReadersRequest\">\n\x12GetReadersResponse\x12(\n\x07readers\x18\x01 \x03(\x0b\x32\x17.reader.ReaderComponent\"q\n\x11GetAnswersRequest\x12\'\n\x06reader\x18\x01 \x01(\x0b\x32\x17.reader.ReaderComponent\x12\x0f\n\x07queries\x18\x02 \x03(\t\x12\"\n\x08\x63ontexts\x18\x03 \x03(\x0b\x32\x10.reader.Contexts\"\x19\n\x08\x43ontexts\x12\r\n\x05texts\x18\x01 \x03(\t\"{\n\x06\x41nswer\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x19\n\x11start_char_offset\x18\x02 \x01(\r\x12\x17\n\x0f\x65nd_char_offset\x18\x03 \x01(\r\x12\x18\n\x10\x63onfidence_score\x18\x04 \x01(\x01\x12\x15\n\rcontext_index\x18\x05 \x01(\r\"4\n\x11\x41nswersForContext\x12\x1f\n\x07\x61nswers\x18\x01 \x03(\x0b\x32\x0e.reader.Answer\"E\n\x0f\x41nswersForQuery\x12\x32\n\x0f\x63ontext_answers\x18\x01 \x03(\x0b\x32\x19.reader.AnswersForContext\"D\n\x12GetAnswersResponse\x12.\n\rquery_answers\x18\x01 \x03(\x0b\x32\x17.reader.AnswersForQuery2\x92\x01\n\x06Reader\x12\x43\n\nGetReaders\x12\x19.reader.GetReadersRequest\x1a\x1a.reader.GetReadersResponse\x12\x43\n\nGetAnswers\x12\x19.reader.GetAnswersRequest\x1a\x1a.reader.GetAnswersResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0creader.proto\x12\x06reader\x1a\x0fparameter.proto\"N\n\x0fReaderComponent\x12\x11\n\treader_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x13\n\x11GetReadersRequest\">\n\x12GetReadersResponse\x12(\n\x07readers\x18\x01 \x03(\x0b\x32\x17.reader.ReaderComponent\"q\n\x11GetAnswersRequest\x12\'\n\x06reader\x18\x01 \x01(\x0b\x32\x17.reader.ReaderComponent\x12\x0f\n\x07queries\x18\x02 \x03(\t\x12\"\n\x08\x63ontexts\x18\x03 \x03(\x0b\x32\x10.reader.Contexts\"\x19\n\x08\x43ontexts\x12\r\n\x05texts\x18\x01 \x03(\t\"{\n\x06\x41nswer\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x19\n\x11start_char_offset\x18\x02 \x01(\r\x12\x17\n\x0f\x65nd_char_offset\x18\x03 \x01(\r\x12\x18\n\x10\x63onfidence_score\x18\x04 \x01(\x01\x12\x15\n\rcontext_index\x18\x05 \x01(\r\"4\n\x11\x41nswersForContext\x12\x1f\n\x07\x61nswers\x18\x01 \x03(\x0b\x32\x0e.reader.Answer\"W\n\x10PerQueryResponse\x12 \n\x18question_type_prediction\x18\x01 \x01(\t\x12!\n\x19\x62oolean_answer_prediction\x18\x02 \x01(\t\"{\n\x0f\x41nswersForQuery\x12\x32\n\x0f\x63ontext_answers\x18\x01 \x03(\x0b\x32\x19.reader.AnswersForContext\x12\x34\n\x12per_query_response\x18\x02 \x03(\x0b\x32\x18.reader.PerQueryResponse\"D\n\x12GetAnswersResponse\x12.\n\rquery_answers\x18\x01 \x03(\x0b\x32\x17.reader.AnswersForQuery2\x92\x01\n\x06Reader\x12\x43\n\nGetReaders\x12\x19.reader.GetReadersRequest\x1a\x1a.reader.GetReadersResponse\x12\x43\n\nGetAnswers\x12\x19.reader.GetAnswersRequest\x1a\x1a.reader.GetAnswersResponseb\x06proto3')
 
 
 
@@ -26,6 +26,7 @@ _GETANSWERSREQUEST = DESCRIPTOR.message_types_by_name['GetAnswersRequest']
 _CONTEXTS = DESCRIPTOR.message_types_by_name['Contexts']
 _ANSWER = DESCRIPTOR.message_types_by_name['Answer']
 _ANSWERSFORCONTEXT = DESCRIPTOR.message_types_by_name['AnswersForContext']
+_PERQUERYRESPONSE = DESCRIPTOR.message_types_by_name['PerQueryResponse']
 _ANSWERSFORQUERY = DESCRIPTOR.message_types_by_name['AnswersForQuery']
 _GETANSWERSRESPONSE = DESCRIPTOR.message_types_by_name['GetAnswersResponse']
 ReaderComponent = _reflection.GeneratedProtocolMessageType('ReaderComponent', (_message.Message,), {
@@ -77,6 +78,13 @@ AnswersForContext = _reflection.GeneratedProtocolMessageType('AnswersForContext'
   })
 _sym_db.RegisterMessage(AnswersForContext)
 
+PerQueryResponse = _reflection.GeneratedProtocolMessageType('PerQueryResponse', (_message.Message,), {
+  'DESCRIPTOR' : _PERQUERYRESPONSE,
+  '__module__' : 'reader_pb2'
+  # @@protoc_insertion_point(class_scope:reader.PerQueryResponse)
+  })
+_sym_db.RegisterMessage(PerQueryResponse)
+
 AnswersForQuery = _reflection.GeneratedProtocolMessageType('AnswersForQuery', (_message.Message,), {
   'DESCRIPTOR' : _ANSWERSFORQUERY,
   '__module__' : 'reader_pb2'
@@ -109,10 +117,12 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _ANSWER._serialized_end=471
   _ANSWERSFORCONTEXT._serialized_start=473
   _ANSWERSFORCONTEXT._serialized_end=525
-  _ANSWERSFORQUERY._serialized_start=527
-  _ANSWERSFORQUERY._serialized_end=596
-  _GETANSWERSRESPONSE._serialized_start=598
-  _GETANSWERSRESPONSE._serialized_end=666
-  _READER._serialized_start=669
-  _READER._serialized_end=815
+  _PERQUERYRESPONSE._serialized_start=527
+  _PERQUERYRESPONSE._serialized_end=614
+  _ANSWERSFORQUERY._serialized_start=616
+  _ANSWERSFORQUERY._serialized_end=739
+  _GETANSWERSRESPONSE._serialized_start=741
+  _GETANSWERSRESPONSE._serialized_end=809
+  _READER._serialized_start=812
+  _READER._serialized_end=958
 # @@protoc_insertion_point(module_scope)
