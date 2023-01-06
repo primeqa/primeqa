@@ -254,7 +254,7 @@ Cross domain experiments can be run by running train and eval as separate proces
  
 ### Custom Data
 
-Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../extensions/custom_mrc/README.md).
 
 ## Special MRC Features:
 

@@ -20,7 +20,7 @@
 
 Here, we describe how PrimeQA supports both the boolean questions and the short answer questions in the TyDiQA dataset. This
 description is inference-only, assuming existing models. For a description of how such models are trained as part of the 
-11/1/2022 TyDiQA leaderboard submission, see the [README](../../examples/boolqa/README.md) 
+11/1/2022 TyDiQA leaderboard submission, see the [README](../../extensions/boolqa/README.md) 
 
 The TyDiQA dataset can be decoded, with full support for both boolean and short-answer questions in two different ways:
 First, as a single command line argument in `run_mrc.py` to run all steps, and secondly, as a step-by-step process detailed in the 
@@ -155,7 +155,7 @@ Warning: The score normalizer was developed for a leaderboard submission with a 
 
 Therefore, the score normalizer component was trained on system output on half of the dev set.  As a result the full dev set results are contaminated.  The fair evaluation of the submission is on the TyDiQA [leaderboard](https://ai.google.com/research/tydiqa) itself.
 
-Another fair evalutation is on the other half of the dev set - for details, see [training](../../examples/boolqa/README.md) 
+Another fair evalutation is on the other half of the dev set - for details, see [training](../../extensions/boolqa/README.md) 
 
 
 ```shell
