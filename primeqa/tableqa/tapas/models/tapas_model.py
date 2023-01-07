@@ -2,7 +2,7 @@ import logging
 from pickle import NONE
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 from primeqa.mrc.run_mrc import ModelArguments, DataTrainingArguments
-from primeqa.tableqa.tapas.run_tapas import  TableQAArguments
+from primeqa.tableqa.tapas.utils.tapas_args import TableQAArguments
 import pandas as pd
 import numpy as np
 import torch.utils.data

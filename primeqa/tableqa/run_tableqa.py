@@ -1,9 +1,9 @@
 import logging
-from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
-from primeqa.tableqa.models.tableqa_model import TableQAModel
-from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
-from primeqa.tableqa.preprocessors.dataset import TableQADataset
-from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
+from primeqa.tableqa.tapas.metrics.answer_accuracy import compute_denotation_accuracy
+from primeqa.tableqa.tapas.models.tapas_model import TapasModel
+from primeqa.tableqa.tapas.postprocessor.wikisql import WikiSQLPostprocessor
+from primeqa.tableqa.tapas.preprocessors.dataset import TableQADataset
+from primeqa.tableqa.tapas.trainers.tableqa_trainer import TableQATrainer
 from dataclasses import dataclass, field
 from transformers import TapasConfig
 from transformers import (
@@ -13,8 +13,8 @@ from transformers import (
     set_seed,default_data_collator,
 )
 import pandas as pd
-from primeqa.tableqa.utils.data_collator import TapasCollator
-from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
+from primeqa.tableqa.tapas.utils.data_collator import TapasCollator
+from primeqa.tableqa.tapas.preprocessors.wikisql_preprocessor import load_data
 import os
 
 @dataclass
@@ -68,7 +68,7 @@ def run_table_qa(data_args,model_args,training_args):
     tqa_parser = HfArgumentParser(TableQAArguments)
     tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tableqa_config_file))[0]
     config = TapasConfig(tqa_args)
-    tableqa_model = TableQAModel(model_args.model_name_or_path,config=config)
+    tableqa_model = TapasModel(model_args.model_name_or_path,config=config)
     model = tableqa_model.model
     tokenizer = tableqa_model.tokenizer
     post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
