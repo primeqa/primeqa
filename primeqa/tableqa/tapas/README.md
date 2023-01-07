@@ -54,5 +54,6 @@ The format of dataset required for training and evaluation is:
 
 The tables in csv format should be placed under `data_path_root/tables/`. The tables should have first row as column headers.
 
-One can also run TAPAS without run_mrc using the TapasReader class defined in tapas_component class [here](./tapas_component.py)
-Our python [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tapas_inference.ipynb) shows how to use the TapasReader with a [config file](./configs/tapas_config.json) for inference using the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup). TapasReader also supports training with a config file as shown in this [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/tableqa/tapas_inference.ipynb)
+One can also run TAPAS without run_mrc using the TapasReader class defined in tapas_component class [here](./tapas_component.py).
+
+Our python [notebook](https://github.com/primeqa/primeqa/blob/tapas_v2/notebooks/tableqa/tapas_inference.ipynb) shows how to use the TapasReader with a [config file](./configs/tapas_config.json) for inference using the pre-trained model available [here](https://huggingface.co/PrimeQA/tapas-based-tableqa-wikisql-lookup). TapasReader also supports training with a config file as shown in this [notebook](https://github.com/primeqa/primeqa/blob/tapas_v2/notebooks/tableqa/tapas_inference.ipynb)
