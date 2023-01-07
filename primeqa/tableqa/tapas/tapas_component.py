@@ -2,7 +2,7 @@ import logging
 from pickle import NONE
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 from primeqa.mrc.run_mrc import ModelArguments, DataTrainingArguments
-from primeqa.tableqa.tapas.run_tapas import  TableQAArguments
+from primeqa.tableqa.tapas.utils.tapas_args import TableQAArguments
 import pandas as pd
 import numpy as np
 import torch.utils.data
@@ -27,11 +27,29 @@ import pandas as pd
 from primeqa.tableqa.tapas.utils.data_collator import TapasCollator
 from primeqa.tableqa.tapas.preprocessors.wikisql_preprocessor import load_data
 import os
+from primeqa.components.base import Reader
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level = logging.WARNING)
 
-class TapasModel():
+
+class TapasReader(Reader):
+
+    def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `Reader`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
+        pass
+
+    def load(self):
+        pass
+
     def __init__(self,path_to_config_json):
         """Tapas model class
 
