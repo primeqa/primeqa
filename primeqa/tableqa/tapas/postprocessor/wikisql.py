@@ -6,7 +6,9 @@ import pandas as pd
 import os
 import ast
 
+import logging
 logger = logging.getLogger(__name__)
+logging.basicConfig(level = logging.WARNING)
 
         
 class WikiSQLPostprocessor:

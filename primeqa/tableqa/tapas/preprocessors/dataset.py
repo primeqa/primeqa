@@ -74,11 +74,14 @@ class TableQADataset:
         Returns:
             Dataset, Dataset: Returns train dataset and eval dataset
         """
-        train_data = pd.read_csv(self.train_dataset_path, sep='\t')
-        train_dataset = DatasetProcessor(train_data, self.tokenizer,self.data_path_root)
-
-        dev_data = pd.read_csv(self.dev_dataset_path, sep='\t')
-        dev_dataset = DatasetProcessor(dev_data, self.tokenizer,self.data_path_root)
+        train_dataset = None
+        dev_dataset = None
+        if self.train_dataset_path is not None:
+            train_data = pd.read_csv(self.train_dataset_path, sep='\t')
+            train_dataset = DatasetProcessor(train_data, self.tokenizer,self.data_path_root)
+        if self.dev_dataset_path is not None:
+            dev_data = pd.read_csv(self.dev_dataset_path, sep='\t')
+            dev_dataset = DatasetProcessor(dev_data, self.tokenizer,self.data_path_root)
         return train_dataset,dev_dataset
 
 

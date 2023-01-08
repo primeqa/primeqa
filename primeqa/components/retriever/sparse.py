@@ -1,7 +1,8 @@
 from typing import List
 from dataclasses import dataclass, field
 
-from primeqa.pipelines.components.base import Retriever
+from primeqa.components.base import Retriever
+from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 
 @dataclass

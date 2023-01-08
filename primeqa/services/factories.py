@@ -17,6 +17,7 @@ from primeqa.components.retriever.sparse import BM25Retriever
 from primeqa.components.indexer.dense import ColBERTIndexer
 from primeqa.components.indexer.sparse import BM25Indexer
 
+
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
 }

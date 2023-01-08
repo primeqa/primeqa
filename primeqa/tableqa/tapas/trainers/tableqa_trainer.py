@@ -1,6 +1,10 @@
 from transformers import Trainer
 import os
 import json
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level = logging.WARNING)
+
 class TableQATrainer(Trainer):
     def __init__(self, *args, eval_examples=None, post_process_function=None, **kwargs):
         """Basic tableQA trainer which extends huggingface's transformers Trainer class
