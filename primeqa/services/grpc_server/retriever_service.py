@@ -19,7 +19,7 @@ from primeqa.services.grpc_server.grpc_generated.retriever_pb2_grpc import (
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import Document
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
     GetRetrieversRequest,
-    RetrieverComponent,
+    Retriever,
     GetRetrieversResponse,
     RetrieveRequest,
     Hit,
@@ -52,7 +52,7 @@ class RetrieverService(RetrieverServicer):
         """
         return GetRetrieversResponse(
             retrievers=[
-                RetrieverComponent(
+                Retriever(
                     retriever_id=retriever_id,
                     parameters=generate_parameters(
                         retriever, skip=["index_root", "index_name"]
@@ -166,9 +166,28 @@ class RetrieverService(RetrieverServicer):
             return RetrieveResponse()
 
         # Step 6: Retrieve
+        instance_fields = [
+            k
+            for k, v in instance.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+        self._logger.info(
+            "Applying '%s' retriever with parameters = %s for queries = %s",
+            instance.__class__.__name__,
+            {
+                k: getattr(instance, k) if k in instance_fields else v
+                for k, v in retriever_kwargs.items()
+            },
+            request.queries,
+        )
         try:
-            results = instance.retrieve(
-                input_texts=request.queries,
+            results = instance.retrieve(input_texts=request.queries, **retriever_kwargs)
+            self._logger.info(
+                "Applying '%s' retriever for queries = %s returns results = %s",
+                instance.__class__.__name__,
+                request.queries,
+                results,
             )
         except TypeError:
             context.set_code(StatusCode.INTERNAL)

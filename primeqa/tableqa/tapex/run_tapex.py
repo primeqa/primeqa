@@ -209,7 +209,6 @@ def main():
             "label_smoothing is enabled but the `prepare_decoder_input_ids_from_labels` method is not defined for"
             f"`{model.__class__.__name__}`. This will lead to loss being calculated twice and will take up more memory"
         )
-
     if data_args.dataset_name == 'wikisql':
         preprocess_tableqa_function = partial(preprocess_tableqa_function_wikisql, model_args=model_args, data_args=data_args,is_training=False)
         
@@ -405,6 +404,7 @@ def main():
 def _mp_fn(index):
     # For xla_spawn (TPUs)
     main()
-    
+
+
 if __name__ == "__main__":
     main()

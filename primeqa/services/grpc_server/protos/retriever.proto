@@ -12,7 +12,7 @@ service Retriever {
     rpc Retrieve(RetrieveRequest) returns (RetrieveResponse);
 }
 
-message RetrieverComponent {
+message Retriever {
     string retriever_id = 1;
     repeated parameter.Parameter parameters = 2;
 }
@@ -21,12 +21,12 @@ message GetRetrieversRequest {
 }
 
 message GetRetrieversResponse {
-    repeated RetrieverComponent retrievers = 1;
+    repeated Retriever retrievers = 1;
 }
 
 
 message RetrieveRequest {
-    RetrieverComponent retriever = 1;
+    Retriever retriever = 1;
     string index_id = 2; 
     repeated string queries = 3;
 }

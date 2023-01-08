@@ -12,11 +12,12 @@ class BM25Engine:
     def __init__(self, config: BM25Config):
         self.config = config
         logger.info(f"Running BM25")
+        logger.info(config)
         
     def do_index(self):
         logger.info("Running BM25 indexing")
         indexer = PyseriniIndexer()
-        rc = indexer.index_collection(self.config.corpus_path, self.config.index_location, 
+        rc = indexer.index_collection(self.config.collection, self.config.index_location, 
                     self.config.fieldnames, self.config.overwrite, 
                     self.config.threads, self.config.additional_indexing_args )
         logger.info(f"BM25 Indexing finished with rc: {rc}")

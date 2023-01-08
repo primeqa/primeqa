@@ -38,7 +38,7 @@ class TableQATrainer(Trainer):
 
       
         if self.post_process_function is not None:
-            eval_preds,gold_answers = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+            eval_preds,gold_answers = self.post_process_function(eval_examples, eval_dataset, output.predictions[1])
             with open(os.path.join(self.args.output_dir, 'eval_predictions.json'), 'w') as f:
                 json.dump(eval_preds, f, indent=4)
         if self.compute_metrics is not None:

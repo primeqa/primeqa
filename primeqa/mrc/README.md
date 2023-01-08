@@ -26,16 +26,17 @@ The following shows how to use the MRC component within PrimeQA to extract an an
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive import ExtractiveReader
 reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+reader.load()
 ```
 - Step 2: Execute the reader in inference mode:
 ```python
 question = ["Which country is Canberra located in?"]
-context = ["""Canberra is the capital city of Australia. 
+context = [["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""]
+largest inland city"""]]
 answers = reader.apply(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
@@ -260,9 +261,9 @@ Users can also train (fine-tune) and evaluate the MRC model on custom data by pr
 PrimeQA also supports special features for MRC systems as follows:
 
 ### Boolean Questions
-Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI. Please read the details of [inference](https://primeqa.github.io/primeqa/api/boolqa/index.html) or [training](https://primeqa.github.io/primeqa/examples/boolqa/index.html):
 ```shell
-python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
