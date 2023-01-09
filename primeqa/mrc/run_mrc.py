@@ -537,7 +537,7 @@ def main():
         if data_args.eval_fof is not None and task_args.task_trainer == MSKD_MRCTrainer:
             eval_dataset = ConcatDataset(eval_datasets)
             setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
-        else: # only eval on the first dataset
+        else:
             eval_examples, eval_dataset = eval_examples[0], eval_datasets[0]        
 
     # If using mixed precision we pad for efficient hardware acceleration
