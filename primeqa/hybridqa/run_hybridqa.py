@@ -72,7 +72,7 @@ def run_hybrid_qa():
       else:
          #train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
          #dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
-         train_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
+         train_data_processed = json.load(open("data/hybridqa/train_processed.json"))
          dev_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
       logger.info("Train: Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
