@@ -290,7 +290,7 @@ tydiqa primary_task 0.1 primeqa.mrc.processors.preprocessors.tydiqa.TyDiQAPrepro
 squad  plain_text   0.1 primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor
 ```
 
-To evaluate the checkpoint models during training, the validation dataset needs be specified in "--eval_fof" which format is same to "--train_fof". Multiple datatsets can be included into "--eval_fof", but only the first one is used for evaluation.
+To evaluate the checkpoint models during training, the validation dataset needs be specified in "--eval_fof" which format is same to "--train_fof". Multiple datatsets can be included into "--eval_fof" if use the trainer 'MSKD_MRCTrainer', otherwise a single validation dataset is expected.
 
 Please note that, if "--train_fof" and "--eval_fof" are given in input arguments, other dataset related parameters, i.e. "--dataset_name", "--train_file", and "--eval_file" are ignored.
 
