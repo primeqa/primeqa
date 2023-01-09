@@ -945,7 +945,7 @@ def load_and_cache_examples(args,ae_data, tokenizer, evaluate=False, output_exam
     return dataset
 
 
-def run_answer_extractor(args,ae_data):
+def train_ae(args,ae_data):
     if args.doc_stride >= args.max_seq_length - args.max_query_length:
         logger.warning(
             "WARNING - You've set a doc stride which may be superior to the document length in some "
@@ -960,7 +960,7 @@ def run_answer_extractor(args,ae_data):
     args.n_gpu = torch.cuda.device_count()
 
     args.device = device
-    args.output_dir = os.path.join(args.output_dir, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+    #args.output_dir = os.path.join(args.output_dir, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
     # Setup logging
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -1005,73 +1005,79 @@ def run_answer_extractor(args,ae_data):
         except ImportError:
             raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
 
-    # Training
-    if args.do_train_ae:
-        train_dataset = load_and_cache_examples(args,ae_data, tokenizer, evaluate=False)
-        global_step, tr_loss = train(args, train_dataset, model, tokenizer)
-        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
+    train_dataset = load_and_cache_examples(args,ae_data, tokenizer, evaluate=False)
+    global_step, tr_loss = train(args, train_dataset, model, tokenizer)
+    logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
-    # Evaluation - we can ask to evaluate all the checkpoints (sub-directories) in a directory    
-    if args.do_eval_ae and args.local_rank in [-1, 0]:
-        results = {}
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
-        checkpoints = []
+def predict_ae(args,ae_data):
+    print("here we are")
+    if args.doc_stride >= args.max_seq_length - args.max_query_length:
+        logger.warning(
+            "WARNING - You've set a doc stride which may be superior to the document length in some "
+            "examples. This could result in errors when building features from the examples. Please reduce the doc "
+            "stride or increase the maximum length to ensure the features are correctly built."
+        )
 
-        logger.info("Evaluate the following checkpoints: %s", args.model_name_or_path_ae)
+    assert(args.local_rank == -1)
+    # Setup CUDA, GPU & distributed training
+    device = torch.device("cuda")
+    args.n_gpu = torch.cuda.device_count()
 
-        model = model_class.from_pretrained(args.model_name_or_path_ae)
-        model.to(args.device)
+    args.device = device
+    #args.output_dir = os.path.join(args.output_dir, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
+    # Setup logging
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        level=logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
+    )
+    # Set seed
+    set_seed(args)
 
-        # Evaluate
-        # with open(args.predict_file, 'r') as f:
-        #     full_split = json.load(f)
-        full_split=ae_data
-        key2idx = {}
-        for step, d in enumerate(full_split):
-            key2idx[d['question_id']] = step            
+    args.model_type = args.model_type.lower()
+    config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
+    
+    config = config_class.from_pretrained(
+        args.config_name if args.config_name else args.model_name_or_path_ae,
+        cache_dir=args.cache_dir if args.cache_dir else None,
+    )
 
-        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
-        for k, step in key2idx.items():
-            full_split[step]['pred'] = prediction.get(k, 'None')
+    tokenizer = tokenizer_class.from_pretrained(
+        args.tokenizer_name if args.tokenizer_name else args.model_name_or_path_ae,
+        do_lower_case=args.do_lower_case,
+        cache_dir=args.cache_dir if args.cache_dir else None,return_token_type_ids = True,
+    )
+    model = model_class.from_pretrained(
+        args.model_name_or_path_ae,
+        from_tf=bool(".ckpt" in args.model_name_or_path_ae),
+        config=config,
+        cache_dir=args.cache_dir if args.cache_dir else None,
 
-        with open(args.pred_ans_file, 'w') as f:
-            json.dump(full_split, f, indent=2)
-        return prediction_file,nbest_file
+    )
 
-    if args.do_predict_ae and args.local_rank in [-1, 0]:
-        logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
-        model = model_class.from_pretrained(args.model_name_or_path_ae)
-        model.to(args.device)
+    model.to(args.device)
+    logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
+    model = model_class.from_pretrained(args.model_name_or_path_ae)
+    model.to(args.device)
+    
+    #evaluate(args, model, tokenizer, prefix=global_step)
+    # with open(args.predict_file, 'r') as f:
+    #     data = json.load(f)
+    data=ae_data
+    full_split = []
+    key2idx = {}
+    for step, d in enumerate(data):
+        full_split.append({'context': d['context'], 'title': d['title'], 
+                            'question': d['question'], 'question_id': d['question_id'],
+                            'answers': [{'answer_start': None, 'text': None}]})
         
-        #evaluate(args, model, tokenizer, prefix=global_step)
-        # with open(args.predict_file, 'r') as f:
-        #     data = json.load(f)
-        data=ae_data
-        full_split = []
-        key2idx = {}
-        for step, d in enumerate(data):
-            full_split.append({'context': d['context'], 'title': d['title'], 
-                              'question': d['question'], 'question_id': d['question_id'],
-                              'answers': [{'answer_start': None, 'text': None}]})
-            
-            key2idx[d['question_id']] = step
+        key2idx[d['question_id']] = step
 
 
-        prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)
-                
-        for k, step in key2idx.items():
-            data[step]['pred'] = prediction.get(k, 'None')
-      
-        #for _ in data:
-        #    assert isinstance(_['pred'], str), "there are some unprocessed stage3 examples"
+    prediction,prediction_file,nbest_file = evaluate_simplified(full_split, args, model, tokenizer)   
+    for k, step in key2idx.items():
+        data[step]['pred'] = prediction.get(k, 'None')
+    with open(args.pred_ans_file, 'w') as f:
+        json.dump(data, f, indent=2)
+    return prediction_file,nbest_file
 
-        with open(args.pred_ans_file, 'w') as f:
-            json.dump(data, f, indent=2)
-    if args.do_predict_ae:
-        return prediction_file,nbest_file
-    if args.do_train_ae:
-        return args.output_dir
-
-
-if __name__ == "__main__":
-    main()

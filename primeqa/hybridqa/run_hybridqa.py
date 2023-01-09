@@ -8,7 +8,7 @@ from utils.model_utils.reranker import re_rank_ae_output
 from utils.link_predictor import predict_link_for_tables,train_link_generator
 from utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
 from utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
-from utils.model_utils.answer_extractor_multi_Answer import run_answer_extractor
+from utils.model_utils.answer_extractor_multi_Answer import train_ae,predict_ae
 from processors.preprocessors.preprocess_raw_data import preprocess_data
 import logging
 import torch
@@ -42,7 +42,6 @@ def run_hybrid_qa():
          test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       else:
          test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
-
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
@@ -51,7 +50,7 @@ def run_hybrid_qa():
       logger.info("Row retrieval output processed")
       answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
       logger.info("Answer extraction data generated")
-      ae_output_path,ae_output_path_nbest = run_answer_extractor(ae_args,answer_extraction_data)
+      ae_output_path,ae_output_path_nbest = predict_ae(ae_args,answer_extraction_data)
       logger.info(ae_output_path)
       logger.info(ae_output_path_nbest)
       re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_args.pred_ans_file) 
@@ -71,8 +70,10 @@ def run_hybrid_qa():
          train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_train,split="train",test=test)
          dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_dev,split="dev",test=test)
       else:
-         train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
-         dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
+         #train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
+         #dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
+         train_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
+         dev_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
       logger.info("Train: Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       logger.info("Train: Training row retrieval model")
@@ -80,18 +81,20 @@ def run_hybrid_qa():
       qid_scores_dict_train = rr.predict(train_data_processed)
       qid_scores_dict_dev = rr.predict(dev_data_processed)
       train_processed_data = preprocess_data_using_row_retrieval_scores(raw_train_data,qid_scores_dict_train,test)
-      dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,test)
+      
+      dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,True)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
-      answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,test)
-      output_dir = run_answer_extractor(ae_args,answer_extraction_train_data)
+      json.dump(answer_extraction_train_data, open("data/hybridqa/answer_extraction_train_data.json","w"))
+      answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,True)
+      json.dump(answer_extraction_dev_data, open("data/hybridqa/answer_extraction_dev_data.json","w"))
+      output_dir = train_ae(ae_args,answer_extraction_train_data)
+      logger.info("Answer extraction Training done")
       ae_args.do_train_ae = False
-      ae_output_path,ae_output_path_nbest = run_answer_extractor(ae_args,answer_extraction_dev_data)
+      
+      ae_args.model_name_or_path_ae = ae_args.output_dir+"checkpoint-epoch2/"
+      ae_output_path,ae_output_path_nbest = predict_ae(ae_args,answer_extraction_dev_data)
       re_rank_ae_output(qid_scores_dict_dev,ae_output_path_nbest,ae_args.pred_ans_file) 
       logger.info(f"Train: Training Done model saved at: {output_dir}")
-      
-      
-      
-      
       
 if __name__ == '__main__':
     run_hybrid_qa()
