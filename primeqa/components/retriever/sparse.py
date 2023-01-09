@@ -2,7 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import RetrieverComponent
+from primeqa.components.base import Retriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 from primeqa.components.base import Retriever
 
