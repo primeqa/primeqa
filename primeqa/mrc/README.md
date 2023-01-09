@@ -261,7 +261,7 @@ Users can also train (fine-tune) and evaluate the MRC model on custom data by pr
 
 PrimeQA supports the training of MRC model with combination of multiple datasets, which are specified in "--train_fof" argument. This argument points to a file of training files (fof). This fof can be in any of three supported formats: csv, jsonl, and json.
 
-In csv format, the columns of each line, separated by space, are for:
+In the csv format, each line of train_fof consists of four columns, separated by spaces:
  - HuggingFace dataset name, or path of local data file, or path of dataset processing script (in python);
  - Dataset config name or data file format;
  - Sampling rate within range 0.0 to 1.0, e.g. 0.5 means 50% of the examples are randomly selected and used in MRC training;
