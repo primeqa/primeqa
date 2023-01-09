@@ -153,12 +153,16 @@ class ReaderService(ReaderServicer):
                     )
                     if type(predictions)==tuple:
                         (predictions, per_query_predictions) = predictions
+                    else:
+                        per_query_predictions=None
+
                     self._logger.info(
                         "Applying '%s' reader for query = '%s' returns predictions = %s",
                         instance.__class__.__name__,
                         query,
                         predictions,
                     )
+
 
                     # Step 5.b: Add answers for current query into response object
                     if per_query_predictions is not None:
