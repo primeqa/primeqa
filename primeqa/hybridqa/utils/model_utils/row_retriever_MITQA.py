@@ -48,7 +48,7 @@ class Training:
         correct_predictions = 0
         predictions_labels = []
         true_labels = []
-        print("length of data loader",len(self.data_loader))
+        #print("length of data loader",len(self.data_loader))
         for idx, (q_r_input,labels) in enumerate(tqdm(self.data_loader,total = len(self.data_loader),position=0, leave=True)):
             true_labels += labels.numpy().flatten().tolist()
             labels = labels.to(self.device)

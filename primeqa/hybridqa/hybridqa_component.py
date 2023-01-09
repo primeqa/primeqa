@@ -20,13 +20,16 @@ from primeqa.components import Component
 
 class HybridqaReader(Component):
    
-   def load(self,config_file):
+   def __init__(self,config_file):
+      self._config_file = config_file
+   
+   def load(self):
       self.logger = logging.getLogger(__name__)
       hqa_parser = HfArgumentParser((HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments))
       self.hqa_args,self.lp_args,self.rr_args,self.ae_args,= hqa_parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
 
-   def predict(self,config_file):
-      self.load(config_file)
+   def predict(self):
+      self.load(self._config_file)
       raw_test_data = json.load(open(self.hqa_args.test_data_path))
       test=True
       self.ae_args.do_predict_ae = True
@@ -52,8 +55,8 @@ class HybridqaReader(Component):
       re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,self.ae_args.pred_ans_file) 
    
    
-   def train(self,config_file):
-      self.load(config_file)
+   def train(self):
+      self.load(self._config_file)
       test =False
       raw_train_data = json.load(open(self.hqa_args.train_data_path))
       raw_dev_data = json.load(open(self.hqa_args.dev_data_path))

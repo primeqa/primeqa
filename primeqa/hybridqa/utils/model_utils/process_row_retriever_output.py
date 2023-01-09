@@ -30,7 +30,7 @@ def create_dataset_for_answer_extractor(data, data_path_root,test=False):
     i=1
     no_found = 0
     found_set = set([])
-    output_file = os.path.join(data_path_root,"ae_input_train.json") if test else os.path.join(data_path_root,"ae_input_test.json")
+    output_file = os.path.join(data_path_root,"ae_input_test.json") if test else os.path.join(data_path_root,"ae_input_train.json")
     for d in tqdm(data):
         new_data = {}
         if test or d['label'] == 1: # or d['match_score'] != '-INF':
