@@ -47,7 +47,7 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
 
     boolean_config: str = field(
         default="tydi_boolqa_config_adapters1.json",
-        metadata={"name": "Model", "api_support": True},
+        metadata={"name": "aggregate configuration", "api_support": True},
     )
     # model: str = field(
     #     #default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
@@ -204,8 +204,7 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
 
 
         predict_output=self._extractiveReader._predict(input_texts, context, args, kwargs)
-        qtc_prediction_output=self._booleanQTCReader._predict(input_texts, 
-                        context, args, kwargs)
+        qtc_prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
         evc_prediction_output=self._booleanEVCReader._predict(input_texts, context, args, kwargs)
 
         qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
@@ -213,28 +212,48 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
 
         predictions = [[] for _ in range(len(input_texts))]
 
+        # for passage_idx, raw_predictions in predict_output.items():
+        #     print(json.dumps(raw_predictions, indent=4))
+        #     qtcp = qtc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][qtc_pred_key]
+        #     evcp = evc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][evc_pred_key]            
+        #     for idx, raw_prediction in enumerate(raw_predictions):
+        #         processed_prediction = {}
+        #         processed_prediction["example_id"] = raw_prediction["example_id"]
+        #         mrcp = raw_prediction['span_answer_text']
+        #         print(idx)
+        #         if idx==0:
+        #             processed_prediction["span_answer_text"] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
+        #         else:
+        #             processed_prediction["span_answer_text"] = mrcp
+        #         processed_prediction["span_answer"] = raw_prediction["span_answer"]
+        #         # processed_prediction["confidence_score"] = raw_prediction[
+        #         #    "confidence_score"
+        #         # ]
+        #         # handle score normalizer here
+        #         processed_prediction["confidence_score"] = self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")
+        #         predictions[int(passage_idx)].append(processed_prediction)
+
+        per_query_predictions = [{} for _ in range(len(input_texts))]
+        for passage_idx, qtc_raw_prediction in qtc_prediction_output.predictions.items():
+            per_query_predictions[int(passage_idx)]['question_type_pred']=qtc_raw_prediction[0]['question_type_pred']
+
+        for passage_idx, qtc_raw_prediction in evc_prediction_output.predictions.items():
+            per_query_predictions[int(passage_idx)]['boolean_answer_pred']=qtc_raw_prediction[0]['boolean_answer_pred']
+
+
         for passage_idx, raw_predictions in predict_output.items():
-            print(json.dumps(raw_predictions, indent=4))
-            qtcp = qtc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][qtc_pred_key]
-            evcp = evc_prediction_output.predictions[raw_predictions[0]['example_id']] [0][evc_pred_key]            
-            for idx, raw_prediction in enumerate(raw_predictions):
+            for raw_prediction in raw_predictions:
                 processed_prediction = {}
                 processed_prediction["example_id"] = raw_prediction["example_id"]
-                mrcp = raw_prediction['span_answer_text']
-                print(idx)
-                if idx==0:
-                    processed_prediction["span_answer_text"] = f'question type: {qtcp} boolean answer: {evcp} mrc: {mrcp}'
-                else:
-                    processed_prediction["span_answer_text"] = mrcp
+                processed_prediction["span_answer_text"] = raw_prediction[
+                    "span_answer_text"
+                ]
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
-                # processed_prediction["confidence_score"] = raw_prediction[
-                #    "confidence_score"
-                # ]
-                # handle score normalizer here
+                qtcp=per_query_predictions[int(passage_idx)]['question_type_pred']
                 processed_prediction["confidence_score"] = self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")
-
-
                 predictions[int(passage_idx)].append(processed_prediction)
+
+
 
 
         # Step 6: If min_score_threshold is provide, use it to filter out predictions
@@ -247,9 +266,9 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
                         filtered_predictions_for_passage.append(sorted_prediction)
 
                 filtered_predictions.append(filtered_predictions_for_passage)
-            return filtered_predictions
+            return filtered_predictions, per_query_predictions
         else:
-            return predictions
+            return predictions, per_query_predictions
 
 
         return predictions
