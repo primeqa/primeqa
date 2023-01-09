@@ -1,6 +1,5 @@
-# Table Question Answering using Tapex and OmniTab
-PrimeQA supports training and eval over two major table question answering datasets like wikisql, wikitablequestions
-Users can fine-tune a model to do question answering using tapex.
+# Table Question Answering using Tapex
+PrimeQA supports Tapex based training and eval over two major table question answering datasets like wikisql, wikitablequestions
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
 
@@ -73,3 +72,4 @@ The trained model yields the following results on wikisql dev set:
   eval_steps_per_second    =      4.748
 ```
 
+Tapex can also be used from PrimeQA built-in-class TapexReader to do train/eval/inference with minimal line of codes. See example [notebooks](https://github.com/primeqa/primeqa/tree/tapex_integration/notebooks/tableqa) for the same. 
