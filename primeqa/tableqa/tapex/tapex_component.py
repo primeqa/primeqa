@@ -352,7 +352,7 @@ class TapexReader(Reader):
             label_pad_token_id=label_pad_token_id,
             pad_to_multiple_of=8 if training_args.fp16 else None,
         )
-
+        test_dataset = test_dataset.select(range(data_args.max_eval_samples))
         tf = TapexAccuracy(self._tokenizer,data_args)
         training_args.predict_with_generate=True
         # Initialize our Trainer

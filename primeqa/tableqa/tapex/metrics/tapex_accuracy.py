@@ -1,18 +1,22 @@
 import ast
 import logging
+import numpy as np
+from collections import defaultdict
+from typing import List
 logger = logging.getLogger(__name__)
+
 
 class TapexAccuracy:
     def __init__(self,tokenizer,data_args):
         self.tokenizer = tokenizer
         self.data_args=data_args
 
-    def postprocess_text(preds, labels):
+    def postprocess_text(self,preds, labels):
         preds = [pred.strip() for pred in preds]
         labels = [label.strip() for label in labels]
         return preds, labels
 
-    def compute_metrics(eval_preds):
+    def compute_metrics(self,eval_preds):
         preds, labels = eval_preds
         if isinstance(preds, tuple):
             preds = preds[0]
@@ -23,7 +27,7 @@ class TapexAccuracy:
         decoded_labels = self.tokenizer.batch_decode(labels, skip_special_tokens=True)
 
         # Some simple post-processing
-        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+        decoded_preds, decoded_labels = self.postprocess_text(decoded_preds, decoded_labels)
 
         delimiter = ", "
 
