@@ -38,9 +38,7 @@ class TableQATrainer(Trainer):
                 ignore_keys=ignore_keys,
             )
         finally:
-            self.compute_metrics = compute_metrics
-
-      
+            self.compute_metrics = compute_metrics     
         if self.post_process_function is not None:
             eval_preds,gold_answers = self.post_process_function(eval_examples, eval_dataset, output.predictions[1])
             with open(os.path.join(self.args.output_dir, 'eval_predictions.json'), 'w') as f:

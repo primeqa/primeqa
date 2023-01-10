@@ -27,6 +27,7 @@ class MRCTrainer(Trainer):
             post_process_function:  Function to create predictions from model outputs.
             **kwargs: Keyword arguments for super-class constructor.
         """
+        kwargs['args'].label_names = ['start_positions', 'end_positions']
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.eval_dataset = eval_dataset
