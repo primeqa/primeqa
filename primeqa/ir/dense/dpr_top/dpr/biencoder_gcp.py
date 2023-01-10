@@ -28,7 +28,7 @@ class BiEncoder(torch.nn.Module):
     def __init__(self, hypers: BiEncoderHypers):
         super().__init__()
         self.hypers = hypers
-        logger.info(f'BiEncoder: initializing from {hypers.qry_encoder_name_or_path} and {hypers.qry_encoder_name_or_path}')
+        logger.info(f'BiEncoder: initializing from {hypers.qry_encoder_name_or_path} and {hypers.ctx_encoder_name_or_path}')
         self.qry_model = EncoderWrapper(DPRQuestionEncoder.from_pretrained(hypers.qry_encoder_name_or_path))
         self.ctx_model = EncoderWrapper(DPRContextEncoder.from_pretrained(hypers.ctx_encoder_name_or_path))
         self.saved_debug = False

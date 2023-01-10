@@ -11,8 +11,7 @@ import logging
 from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
-from primeqa.ir.sparse.bm25_engine import BM25Engine
-from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingConfig, DPRIndexingConfig, DPRSearchConfig
+#from primeqa.ir.sparse.bm25_engine import BM25Engine
 
 logger = logging.getLogger(__name__)
 
@@ -134,15 +133,17 @@ def main():
         logger.info(f"Running DPR")
 
         if hasattr(process_args, 'do_train') and process_args.do_train:
-            parser = HfArgumentParser([DPRTrainingConfig])
-            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingArguments
+            parser = HfArgumentParser(DPRTrainingArguments)
+            training_args, remaining_args = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
             from primeqa.ir.dense.dpr_top.dpr.biencoder_trainer import BiEncoderTrainer
-            trainer = BiEncoderTrainer(dpr_args)
+            trainer = BiEncoderTrainer(training_args)
             trainer.train()
 
         if hasattr(process_args, 'do_index') and process_args.do_index:
-            parser = HfArgumentParser([DPRIndexingConfig])
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+            parser = HfArgumentParser(DPRIndexingArguments)
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
             from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
@@ -150,7 +151,8 @@ def main():
             indexer.index()
 
         if hasattr(process_args, 'do_search') and process_args.do_search:
-            parser = HfArgumentParser([DPRSearchConfig])
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
+            parser = HfArgumentParser(DPRSearchArguments)
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
 
             from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher

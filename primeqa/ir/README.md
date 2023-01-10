@@ -150,7 +150,7 @@ Using a model trained as described [here](https://github.com/primeqa/primeqa/tre
 python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --do_index \
-    --dpr_ctx_encoder_path <context_encoder_model> \
+    --ctx_encoder_name_or_path <context_encoder_model> \
     --embed <part_number>of<parts_total> \
     --sharded_index \
     --corpus <document_collection>  \

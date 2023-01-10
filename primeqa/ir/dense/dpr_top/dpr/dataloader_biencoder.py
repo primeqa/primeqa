@@ -200,10 +200,7 @@ class BiEncoderLoader(MultiFileLoader):
                 if len(negs) == 0:
                     logger.warning(f'bad instance! {len(negs)} negatives')
                     continue
-                if self.hypers.sample_negative_from_top_k > 0:
-                    neg_ndx = random.randint(0, min(len(negs), self.hypers.sample_negative_from_top_k)-1)
-                else:
-                    neg_ndx = 0
+                neg_ndx = random.randint(0, min(len(negs), self.hypers.sample_negative_from_top_k)-1)
                 hard_neg = negs[neg_ndx]['title'], negs[neg_ndx]['text']
                 ctx_pids = [jobj['positive']['pid'], negs[neg_ndx]['pid']]
                 pos_pids = self.id2pos_pids[jobj['id']]

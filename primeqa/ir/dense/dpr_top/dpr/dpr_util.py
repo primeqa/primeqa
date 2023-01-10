@@ -9,17 +9,11 @@ logger = logging.getLogger(__name__)
 class DPROptions(HypersBase):
     def __init__(self):
         super().__init__()
-        self.corpus_endpoint = ''
         self.port = 5001
-        self.model_name_or_path = ''  # used as qry_encoder_path
         self.rag_model_path = ''
-        self.__required_args__ = ['corpus_endpoint']
 
     def _post_init(self):
         super()._post_init()
-        # launch the server with a fork if corpus_endpoint is a directory
-        #self._server_pid = CorpusClient.ensure_server(self)
-
 
 def tokenize_queries(tokenizer: Union[RagTokenizer, DPRQuestionEncoderTokenizer],
                      queries: Union[List[str], List[Tuple[str, str]]], *, max_length: int):

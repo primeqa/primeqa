@@ -19,7 +19,7 @@ class BiEncoderHypers(HypersBase):
         self.seq_len_q = 64   # max length for query
         self.seq_len_c = 128  # max length for context
         self.debug_location = ''  # where to save debug info
-        self.sample_negative_from_top_k = -1  # always take the first negative if <= 0, otherwise sample a negative from the top-k
+        self.sample_negative_from_top_k = 1
         self.force_confict_free_batches = False  # we check that batches do not contain instances s.t. batch negatives will actually be positives
         self.training_data_type = 'dpr'
         self.collection = '' # used with training_data_type == 'num_triples'
@@ -29,6 +29,3 @@ class BiEncoderHypers(HypersBase):
 
     def _post_init(self):
         super()._post_init()
-        if self.resume_from:
-            self.qry_encoder_name_or_path = os.path.join(self.resume_from, 'qry_encoder')
-            self.ctx_encoder_name_or_path = os.path.join(self.resume_from, 'ctx_encoder')

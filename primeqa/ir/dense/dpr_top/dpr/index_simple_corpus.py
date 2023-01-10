@@ -18,15 +18,14 @@ from transformers import (
 )
 
 from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
-from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingConfig
+from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
 
 logger = logging.getLogger(__name__)
 
 class Options(IndexOptions):
     def __init__(self):
         super().__init__()
-        self.dpr_ctx_encoder_model_name = 'facebook/dpr-ctx_encoder-multiset-base'
-        self.dpr_ctx_encoder_path = ''
+        self.ctx_encoder_name_or_path = 'facebook/dpr-ctx_encoder-multiset-base'
         self.embed = '1of1'
         self.sharded_index = False
         self.corpus = ''
@@ -36,7 +35,7 @@ class Options(IndexOptions):
         self.max_doc_length=128 # to match dataloader_biencoder.make_batch : self.ctx_tokenizer(ctx_titles, ctx_texts
 
 class DPRIndexer():
-    def __init__(self, config: DPRIndexingConfig):
+    def __init__(self, config: DPRIndexingArguments):
         self.opts = Options()
         fill_from_config(self.opts, config)
 
@@ -47,11 +46,9 @@ class DPRIndexer():
         self.embed_num, self.embed_count = [int(n.strip()) for n in self.opts.embed.split('of')]
         assert 1 <= self.embed_num <= self.embed_count
 
-        # And compute the embeddings
-        self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.dpr_ctx_encoder_path if self.opts.dpr_ctx_encoder_path
-                                                    else self.opts.dpr_ctx_encoder_model_name).to(device=self.device)
+        self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.ctx_encoder_name_or_path).to(device=self.device)
         self.ctx_encoder.eval()
-        self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.opts.dpr_ctx_encoder_model_name)
+        self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.opts.ctx_encoder_name_or_path)
 
 
     def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:

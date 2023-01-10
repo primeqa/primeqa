@@ -80,21 +80,7 @@ class MultiFileLoader:
         self.hypers = hypers
         self.train_dir = train_dir
         self.per_gpu_batch_size = per_gpu_batch_size
-        if hypers.resume_from and os.path.isfile(os.path.join(hypers.resume_from, "loader_checkpoint.json")):
-            resume_from = hypers.resume_from
-        elif os.path.isfile(os.path.join(hypers.model_name_or_path, "loader_checkpoint.json")):
-            resume_from = hypers.model_name_or_path
-        else:
-            resume_from = None
-        if checkpoint_info is None and resume_from is not None:
-            with read_open(os.path.join(resume_from, "loader_checkpoint.json")) as f:
-                checkpoint_info = json.load(f)
-            logger.info(f'loaded distloader checkpoint from {resume_from}')
-        # CONSIDER: get checkpoint as a json.load from hypers.output_dir/loader_checkpoint.json
-        if checkpoint_info and 'completed_files' in checkpoint_info:
-            self.completed_files = checkpoint_info['completed_files']
-        else:
-            self.completed_files = []
+        self.completed_files = []
         if checkpoint_info and 'on_epoch' in checkpoint_info:
             self.on_epoch = checkpoint_info['on_epoch']
         else:

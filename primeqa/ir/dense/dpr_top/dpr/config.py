@@ -2,34 +2,24 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class CommonArguments:
-    """
-    Arguments used in multiple operational modes (training, indexing, search) with the same default value
-    """
-
-    output_dir: str = field(
-        default=None,
-        metadata={"help": "Output directory to write out search results"},
-    )
-
-    queries: str = field(
-        default=None,
-        metadata={
-            "help": "Path to the tsv file where each line is in format 'id\tquery'"
-        },
-    )
-
-
-@dataclass
-class TrainingArguments:
+class DPRTrainingArguments:
     """
     Arguments used in training
     """
+
+    output_dir: str = field(
+        metadata={"help": "Output directory to write results"},
+    )
 
     bsize: int = field(default=8, metadata={"help": "Batch size"})
 
     collection: str = field(
         default="", metadata={"help": "Training collection file path"}
+    )
+
+    ctx_encoder_name_or_path: str = field(
+        default="facebook/dpr-ctx_encoder-multiset-base",
+        metadata={"help": "Query model name or path"},
     )
 
     force_confict_free_batches: bool = field(
@@ -54,16 +44,50 @@ class TrainingArguments:
         default=2.0, metadata={"help": "Max gradient norm"}
     )
 
+    max_negatives: int = field(
+        default=0,
+        metadata={
+            "help": 'Max non-hard negatives (only applies with the "dpr" training data type)'
+        },
+    )
+
+    max_hard_negatives: int = field(
+        default=1,
+        metadata={
+            "help": 'Max hard negatives (only applies with the "dpr" training data type)'
+        },
+    )
+
     num_train_epochs: int = field(
         default=3, metadata={"help": "Number of training epochs"}
     )
 
     positive_pids: str = field(
-        default="None", metadata={"help": "Path to the positive passage IDs file"}
+        default="None",
+        metadata={"help": "Path to the positive passage IDs file"},
+    )
+
+    qry_encoder_name_or_path: str = field(
+        default="facebook/dpr-question_encoder-multiset-base",
+        metadata={"help": "Query model name or path"},
+    )
+
+    queries: str = field(
+        default=None,
+        metadata={
+            "help": 'Path to the tsv file where each line is in format "id<TAB>query"'
+        },
+    )
+
+    resume_from_checkpoint: str = field(
+        default="",
+        metadata={
+            "help": "Path to the checkpoint file used to resume training"
+        },
     )
 
     sample_negative_from_top_k: int = field(
-        default=5,
+        default=1,
         metadata={
             "help": "Take the first negative if <= 0, otherwise sample a negative from the top-k"
         },
@@ -77,31 +101,45 @@ class TrainingArguments:
         default="None",
         metadata={
             "help": "Training data type",
-            "choices": ["dpr", "kgi_jsonl", "num_triples", "text_triples", "text_triples_with_title"],
+            "choices": [
+                "dpr",
+                "kgi_jsonl",
+                "num_triples",
+                "text_triples",
+                "text_triples_with_title",
+            ],
+        },
+    )
+
+    warmup_instances: int = field(
+        default=0, metadata={"help": "Number of warm-up instances"}
+    )
+
+    warmup_fraction: int = field(
+        default=0.0,
+        metadata={
+            "help": "Warm-up instances fraction, only applies if warmup_instances <= 0"
         },
     )
 
 
 @dataclass
-class IndexingArguments:
+class DPRIndexingArguments:
     """
     Arguments used in indexing
     """
+
+    output_dir: str = field(
+        metadata={"help": "Output directory to write results"},
+    )
 
     bsize: int = field(default=16, metadata={"help": "Batch size"})
 
     corpus: str = field(default="None", metadata={"help": "Corpus file path"})
 
-    dpr_ctx_encoder_model_name: str = field(
+    ctx_encoder_name_or_path: str = field(
         default="facebook/dpr-ctx_encoder-multiset-base",
-        metadata={"help": "Context encoder model name"},
-    )
-
-    dpr_ctx_encoder_path: str = field(
-        default="None",
-        metadata={
-            "help": "Context encoder model path (takes precedence over dpr_ctx_encoder_model_name if specified)"
-        },
+        metadata={"help": "Query model name or path"},
     )
 
     embed: str = field(
@@ -115,10 +153,20 @@ class IndexingArguments:
 
 
 @dataclass
-class SearchArguments:
+class DPRSearchArguments:
     """
     Arguments used in search
     """
+
+    output_dir: str = field(
+        metadata={"help": "Output directory to write results"},
+    )
+
+    queries: str = field(
+        metadata={
+            "help": "Path to the tsv file where each line is in format 'id\tquery'"
+        },
+    )
 
     bsize: int = field(default=10, metadata={"help": "Batch size"})
 
@@ -127,31 +175,15 @@ class SearchArguments:
     )
 
     model_name_or_path: str = field(
-        default="", metadata={"help": "Query encoder model name or path"}
+        default="",
+        metadata={"help": "Query encoder model name or path"},
     )
 
-    queries: str = field(
-        default=None,
-        metadata={
-            "help": "Path to the tsv file where each line is in format 'id\tquery'"
-        },
+    qry_encoder_name_or_path: str = field(
+        default="facebook/dpr-question_encoder-multiset-base",
+        metadata={"help": "Query model name or path"},
     )
 
     top_k: int = field(
         default=10, metadata={"help": "Number of hits to return"}
     )
-
-
-@dataclass
-class DPRTrainingConfig(CommonArguments, TrainingArguments):
-    pass
-
-
-@dataclass
-class DPRIndexingConfig(CommonArguments, IndexingArguments):
-    pass
-
-
-@dataclass
-class DPRSearchConfig(CommonArguments, SearchArguments):
-    pass

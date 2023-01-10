@@ -11,7 +11,7 @@ from transformers import HfArgumentParser
 from primeqa.ir.dense.dpr_top.dpr.biencoder_trainer import BiEncoderTrainer
 from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
-from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingConfig, DPRIndexingConfig, DPRSearchConfig
+from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingArguments, DPRIndexingArguments, DPRSearchArguments
 
 
 class TestDprEngine(UnitTest):
@@ -45,7 +45,7 @@ class TestDprEngine(UnitTest):
         ]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRTrainingConfig])
+            parser = HfArgumentParser([DPRTrainingArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
@@ -66,7 +66,7 @@ class TestDprEngine(UnitTest):
         ]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRTrainingConfig])
+            parser = HfArgumentParser([DPRTrainingArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
@@ -87,7 +87,7 @@ class TestDprEngine(UnitTest):
         ]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRTrainingConfig])
+            parser = HfArgumentParser([DPRTrainingArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
@@ -110,7 +110,7 @@ class TestDprEngine(UnitTest):
         ]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRTrainingConfig])
+            parser = HfArgumentParser([DPRTrainingArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             trainer = BiEncoderTrainer(dpr_args)
             trainer.train()
@@ -119,8 +119,7 @@ class TestDprEngine(UnitTest):
 
         test_args = [
             "prog",
-            "--dpr_ctx_encoder_model_name", "facebook/dpr-ctx_encoder-multiset-base",
-            "--dpr_ctx_encoder_path", os.path.join(output_dir, "ctx_encoder"),
+            "--ctx_encoder_name_or_path", os.path.join(output_dir, "ctx_encoder"),
             "--embed", "1of1",
             "--sharded_index",
             "--bsize", "1",
@@ -128,7 +127,7 @@ class TestDprEngine(UnitTest):
             "--output_dir", output_dir]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRIndexingConfig])
+            parser = HfArgumentParser([DPRIndexingArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             indexer = DPRIndexer(dpr_args)
             indexer.index()
@@ -139,14 +138,13 @@ class TestDprEngine(UnitTest):
             "prog",
             "--queries", os.path.join(test_files_location, "xorqa.train_ir_001pct_at_0_pct_queries_fornum_en.tsv"),
             "--model_name_or_path", os.path.join(output_dir, "qry_encoder"),
-            "--qry_tokenizer_path", "facebook/dpr-question_encoder-multiset-base",
             "--bsize", "1",
             "--index_location", output_dir,
             "--output_dir", os.path.join(output_dir, "search_output"),
             "--top_k", "1"]
 
         with patch.object(sys, 'argv', test_args):
-            parser = HfArgumentParser([DPRSearchConfig])
+            parser = HfArgumentParser([DPRSearchArguments])
             (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
             searcher = DPRSearcher(dpr_args)
             searcher.search()

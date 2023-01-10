@@ -69,7 +69,6 @@ class HypersBase:
         # required parameters initialized to the datatype
         self.model_type = ''
         self.model_name_or_path = ''
-        self.resume_from = ''  # to resume training from a checkpoint
         self.config_name = ''
         self.tokenizer_name = ''
         self.cache_dir = ''
