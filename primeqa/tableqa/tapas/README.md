@@ -41,7 +41,7 @@ For training and evaluation of a TAPAS based Table Question Answering model on w
        --select_one_column true \
        --allow_empty_column_selection true \
        --temperature 0.0352513
-'''
+```
 This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
 
 The current performance on wikisql dev set is:
