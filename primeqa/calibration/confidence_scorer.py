@@ -131,6 +131,8 @@ class ConfidenceScorer(object):
                 pred["end_stdev"],
                 pred["query_passage_similarity"],
             ]
+            if 'normalized_span_answer_score_by_passage' in pred:
+                feat.append(pred['normalized_span_answer_score_by_passage'])
             if "ir_score" in pred:
                 feat.append(pred["ir_score"])
             if "normalized_ir_score" in pred:

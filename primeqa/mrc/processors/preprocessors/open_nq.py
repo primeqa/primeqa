@@ -58,6 +58,9 @@ class OpenNQPreProcessor(AbstractPreProcessor):
 
         texts = [p['text'] for p in example['passages'][0]]
         titles = [p['title'] for p in example['passages'][0]]
+        # add title to context
+        for i in range(len(texts)):
+            texts[i] = texts[i] + " </s> " + titles[i]
         scores = [p['score'] for p in example['passages'][0]]
         normalized_scores = [p['normalized_score'] for p in example['passages'][0]]
         starts = [p['start'] for p in example['passages'][0]]
@@ -109,17 +112,11 @@ class OpenNQPreProcessor(AbstractPreProcessor):
                     for k, o in enumerate(features["offset_mapping"][i])
                 ]
 
-#        if is_train:
-#            pruned_features = {}
-#            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
-
-
-#        print(features, flush=True)
+        # put all features derived from the same question into a single feature
         single_feature_for_example = {}
         single_feature_for_example['example_idx'] = [idx]
         single_feature_for_example['example_id'] = id
-#        print("id", id, flush=True)
-#        sys.exit(1)
+
         if is_train:
             if any([t == SubsampleType.POSITIVE for t in features['subsample_type']]):
                 single_feature_for_example['subsample_type'] = [SubsampleType.POSITIVE]
@@ -154,20 +151,6 @@ class OpenNQPreProcessor(AbstractPreProcessor):
             single_feature_for_example['input_ids'] = [input_ids[0:16]]
             single_feature_for_example['offset_mapping'] = [offset_mapping[0:16]]
             single_feature_for_example['attention_mask'] = [attention_mask[0:16]]
-
-
-
-#        single_feature_for_example['start_positions'] = [features['start_positions']]
-#            single_feature_for_example['end_positions'] = [features['end_positions']]
-#            single_feature_for_example['target_type'] = [features['target_type']]
-##            subsample_type = any([t == SubsampleType.POSITIVE for t in features['subsample_type']])
-##            single_feature_for_example['subsample_type'] = [subsample_type]
-
-#            if any([t == SubsampleType.POSITIVE for t in features['subsample_type']]):
-#                single_feature_for_example['subsample_type'] = [SubsampleType.POSITIVE]
-#            else:
-#                single_feature_for_example['subsample_type'] = [SubsampleType.NEGATIVE_NO_ANSWER]
-##        print(features['input_ids'], flush=True)
         else:
             single_feature_for_example['input_ids'] = [features['input_ids']]
             single_feature_for_example['offset_mapping'] = [features['offset_mapping']]

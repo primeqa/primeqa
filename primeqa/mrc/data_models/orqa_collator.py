@@ -20,7 +20,6 @@ class ORQADataCollator:
         if return_tensors is None:
             return_tensors = self.return_tensors
 
-#        print(features, flush=True)
         batch_features = {}
         for feature in features:
             for k,v in feature.items(): 

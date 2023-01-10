@@ -77,16 +77,9 @@ class ModelForORQATasks(PreTrainedModel):
         """
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
-#        print("!!!!!!!", flush=True)
-#        print(input_ids.dim(), flush=True)
-#        print(input_ids.size(), flush=True)
-#        print(attention_mask.size(), flush=True)
-#        print(input_ids, flush=True)
         batch_size, num_passage, seq_length = input_ids.size()
         input_ids = input_ids.view(batch_size * num_passage, seq_length)
         attention_mask = attention_mask.view(batch_size * num_passage, seq_length)
-#        print(input_ids.size(), flush=True)
-#        print(attention_mask.size(), flush=True)
 
         outputs = self.model_(
             input_ids,

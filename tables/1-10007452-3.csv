@@ -1,0 +1,8 @@
+,Order Year,Manufacturer,Model,Fleet Series (Quantity),Powertrain (Engine/Transmission),Fuel Propulsion
+0,1992-93,Gillig,Phantom (High Floor),444-464 (21),DD S50EGR Allison WB-400R,Diesel
+1,1996,Gillig,Phantom (High Floor),465-467 (3),DD S50 Allison WB-400R,Diesel
+2,1998,Gillig,Phantom (High Floor),468-473 (6),DD S50 Allison WB-400R,Diesel
+3,2000,Gillig,Advantage (Low Floor),474-481 (8),Cummins ISC Allison WB-400R,Diesel
+4,2002,Gillig,Advantage (Low Floor),482-492 (11),Cummins ISL Allison WB-400R,Diesel
+5,2010,NFI,GE40LFR,300-309 (10),Ford Triton V10 ISE-Thundervolt TB40-HG,Hybrid
+6,2011,NFI,C40LFR,310-329 (20),Cummins Westport ISL-G Allison WB-400R,CNG

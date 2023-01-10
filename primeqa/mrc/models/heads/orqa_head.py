@@ -13,7 +13,7 @@ from primeqa.mrc.data_models.model_outputs.extractive import ExtractiveQAModelOu
 from primeqa.mrc.data_models.target_type import TargetType
 
 
-class ExtractiveQAHead(AbstractTaskHead):
+class ExtractiveOpenNQHead(AbstractTaskHead):
     """
     Task head for extractive Question Answering.
     """
@@ -47,6 +47,12 @@ class ExtractiveQAHead(AbstractTaskHead):
 
         self.classifier = RobertaClassificationHead(config_for_classification_head)
 
+#        config_for_classification_head_2 = deepcopy(config)
+#        config_for_classification_head_2.num_labels = 2
+#        self.num_classification_head_labels_2 = config_for_classification_head_2.num_labels
+#        self.classifier_2 = RobertaClassificationHead(config_for_classification_head_2)
+
+
     def forward(self,
                 model_outputs: Union[tuple, BaseModelOutputWithPoolingAndCrossAttentions],
                 start_positions=None,
@@ -66,6 +72,19 @@ class ExtractiveQAHead(AbstractTaskHead):
             Extractive QA task head result in data structure corresponding to type of `model_outputs`.
         """
         sequence_output = model_outputs[0]
+
+#        combined_cls = sequence_output[:, 0, :].sum(dim=0, keepdim=True).unsqueeze(0) / sequence_output.size()[0]
+#        has_answer_logits = self.classifier_2(combined_cls)
+        if start_positions is not None and end_positions is not None and target_type is not None:
+#            if (start_positions.count_nonzero() > 0):
+#                has_answer_label = torch.tensor([1], device=start_positions.device)
+#            else:
+#                has_answer_label = torch.tensor([0], device=start_positions.device)
+
+            batch_size, num_passage = start_positions.size()
+            start_positions = start_positions.view(batch_size * num_passage)
+            end_positions = end_positions.view(batch_size * num_passage)
+            target_type = target_type.view(batch_size * num_passage)
 
         # Predict target answer type for the whole question answer pair
         answer_type_logits = self.classifier(sequence_output)
@@ -94,7 +113,15 @@ class ExtractiveQAHead(AbstractTaskHead):
             start_loss = loss_fct(start_logits, start_positions)
             end_loss = loss_fct(end_logits, end_positions)
             answer_type_loss = loss_fct(answer_type_logits, target_type)
-            total_loss = (start_loss + end_loss + answer_type_loss) / 3
+
+#            has_answer_loss = loss_fct(has_answer_logits, has_answer_label)
+#            total_loss = (start_loss + end_loss + answer_type_loss + has_answer_loss) / 4
+            total_loss = (start_loss + end_loss + answer_type_loss) / 3 # + has_answer_loss) / 3
+
+        else:
+            start_logits = start_logits.unsqueeze(0)
+            end_logits = end_logits.unsqueeze(0)
+            answer_type_logits = answer_type_logits.unsqueeze(0)
 
         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)
@@ -112,10 +139,10 @@ class ExtractiveQAHead(AbstractTaskHead):
         )
 
 
-EXTRACTIVE_HEAD = dict(qa_head=ExtractiveQAHead)
+EXTRACTIVE_OPENNQ_HEAD = dict(qa_head=ExtractiveOpenNQHead)
 
 
-class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
+class ExtractiveOpenNQWithConfidenceHead(AbstractTaskHead):
     """
     Task head for extractive Question Answering supporting confidence calibration.
     """
@@ -178,6 +205,12 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
             Extractive QA task head result in data structure corresponding to type of `model_outputs`.
         """
         sequence_output = model_outputs[0]
+
+        if start_positions is not None and end_positions is not None and target_type is not None:
+            batch_size, num_passage = start_positions.size()
+            start_positions = start_positions.view(batch_size * num_passage)
+            end_positions = end_positions.view(batch_size * num_passage)
+            target_type = target_type.view(batch_size * num_passage)
 
         # Predict target answer type for the whole question answer pair
         answer_type_logits = self.classifier(sequence_output)
@@ -261,6 +294,13 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
             else:
                 query_passage_similarity = torch.zeros(sequence_output.size()[0], dtype=start_logits.dtype)
 
+            start_logits = start_logits.unsqueeze(0)
+            end_logits = end_logits.unsqueeze(0)
+            answer_type_logits = answer_type_logits.unsqueeze(0)
+            start_stdev = start_stdev.unsqueeze(0)
+            end_stdev = end_stdev.unsqueeze(0)
+            query_passage_similarity = query_passage_similarity.unsqueeze(0)
+
         # (loss), start_logits, end_logits, target_type_logits,
         # start_stdev, end_stdev, query_passage_similarity,
         # (hidden_states), (attentions)
@@ -286,7 +326,7 @@ class ExtractiveQAWithConfidenceHead(AbstractTaskHead):
         )
 
 
-EXTRACTIVE_WITH_CONFIDENCE_HEAD = dict(qa_head=ExtractiveQAWithConfidenceHead)
+EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD = dict(qa_head=ExtractiveOpenNQWithConfidenceHead)
 
 
 

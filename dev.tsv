@@ -1,0 +1,5 @@
+id	question	table_file	answer_coordinates	answer_text	float_answer	aggregation_label
+wikisql_0	What position does the player who played for butler cc (ks) play?	tables/1-10015132-11.csv	[(0, 3)]	['guard-forward']		
+wikisql_2	What school did player number 21 play for?	tables/1-10015132-11.csv	[(0, 5)]	['duke']		
+wikisql_3	Who is the player that wears number 42?	tables/1-10015132-11.csv	[(4, 0)]	['art long']		
+wikisql_4	What player played guard for toronto in 1996-97?	tables/1-10015132-11.csv	[(5, 0)]	['john long']		

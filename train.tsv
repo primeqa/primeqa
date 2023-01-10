@@ -1,0 +1,8 @@
+id	question	table_file	answer_coordinates	answer_text	float_answer	aggregation_label
+wikisql_0	Tell me what the notes are for South Australia 	tables/1-1000181-1.csv	[(1, 5)]	['no slogan on current series']		
+wikisql_1	What is the current series where the new series began in June 2011?	tables/1-1000181-1.csv	[(3, 4)]	['cb·06·zz']		
+wikisql_2	What is the format for South Australia?	tables/1-1000181-1.csv	[(5, 2)]	['snnn·aaa']		
+wikisql_3	Name the background colour for the Australian Capital Territory	tables/1-1000181-1.csv	[(0, 1)]	['blue/white']		
+wikisql_5	what is the fuel propulsion where the fleet series (quantity) is 310-329 (20)?	tables/1-10007452-3.csv	[(6, 5)]	['cng']		
+wikisql_6	who is the manufacturer for the order year 1998?	tables/1-10007452-3.csv	[(0, 1)]	['gillig']		
+wikisql_9	what is the powertrain (engine/transmission) when the order year is 2000?	tables/1-10007452-3.csv	[(3, 4)]	['cummins isc allison wb-400r']		
