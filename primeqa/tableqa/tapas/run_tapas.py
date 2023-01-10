@@ -1,11 +1,12 @@
 import logging
 from primeqa.tableqa.tapas.metrics.answer_accuracy import compute_denotation_accuracy
-from primeqa.tableqa.tapas.tapas_component import TapasReader
+#from primeqa.tableqa.tapas.tapas_component import TapasReader
+from primeqa.mrc.run_mrc import ModelArguments, DataTrainingArguments
 from primeqa.tableqa.tapas.postprocessor.wikisql import WikiSQLPostprocessor
 from primeqa.tableqa.tapas.preprocessors.dataset import TableQADataset
 from primeqa.tableqa.tapas.trainers.tableqa_trainer import TableQATrainer
 from dataclasses import dataclass, field
-from transformers import TapasConfig
+from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 from transformers import (
     DataCollator,
     HfArgumentParser,
@@ -65,14 +66,24 @@ class TableQAArguments:
     temperature: float = field(
         default=0.0352513, metadata={"help": "temperature"}
     )
-def run_table_qa(data_args,model_args,training_args):
+
+def main():
     logger = logging.getLogger(__name__)
-    tqa_parser = HfArgumentParser(TableQAArguments)
-    tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tableqa_config_file))[0]
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments,TableQAArguments))
+    model_args,data_args,training_args,tqa_args=parser.parse_args_into_dataclasses()
+    if data_args.tableqa_config_file is not None:
+        tqa_parser = HfArgumentParser(TableQAArguments)
+        tqa_args = tqa_parser.parse_json_file(json_file=os.path.abspath(data_args.tableqa_config_file))[0]
     config = TapasConfig(tqa_args)
-    tableqa_model = TapasReader(model_args.model_name_or_path,config=config)
-    model = tableqa_model.model
-    tokenizer = tableqa_model.tokenizer
+    model = TapasForQuestionAnswering.from_pretrained(model_args.model_name_or_path)
+    tokenizer = TapasTokenizer.from_pretrained(model_args.model_name_or_path)
+
+
+
+
+    # tableqa_model = TapasReader(model_args.model_name_or_path,config=config)
+    # model = tableqa_model.model
+    # tokenizer = tableqa_model.tokenizer
     post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
     if data_args.dataset_name=="wikisql":
         train_dataset,eval_dataset = load_data(tqa_args.data_path_root,tokenizer)
@@ -83,7 +94,7 @@ def run_table_qa(data_args,model_args,training_args):
                             args=training_args,
                             train_dataset=train_dataset if training_args.do_train else None,
                             eval_dataset=eval_dataset if training_args.do_eval else None,
-                            tokenizer=tableqa_model.tokenizer,
+                            tokenizer=tokenizer,
                             data_collator=TapasCollator(),
                             post_process_function= post_obj.postprocess_prediction,
                             compute_metrics=compute_denotation_accuracy  
@@ -100,4 +111,6 @@ def run_table_qa(data_args,model_args,training_args):
         metrics = trainer.evaluate()
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
-    
+
+if __name__ == "__main__":
+    main()
