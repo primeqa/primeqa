@@ -83,7 +83,7 @@ class TapasReader(Reader):
         return self._tokenizer
     
         
-    def load_model_from_config(self,config_json) :
+    def load(self,config_json) :
         print("loading from config at ",config_json)
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments,TableQAArguments))
         model_args, data_args, training_args, tqa_args = parser.parse_json_file(json_file=os.path.abspath(config_json)) 
@@ -108,7 +108,7 @@ class TapasReader(Reader):
         """
 
         print("in predict for TapasModel with data: ",data_dict , " ,queries:", queries_list)
-        self.load_model_from_config(self._config_json)
+        self.load(self._config_json)
 
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table=table, queries=queries_list, padding='max_length', return_tensors="pt")
@@ -132,7 +132,7 @@ class TapasReader(Reader):
         return query_answer_dict
 
     def eval(self):
-        model_args, data_args, training_args, tqa_args= self.load_model_from_config(self._config_json)
+        model_args, data_args, training_args, tqa_args= self.load(self._config_json)
         post_obj = WikiSQLPostprocessor(self._tokenizer,tqa_args)
         
         if data_args.dataset_name=="wikisql":
@@ -154,7 +154,7 @@ class TapasReader(Reader):
         trainer.save_metrics("eval", metrics)
     
     def train(self):
-        model_args, data_args, training_args, tqa_args= self.load_model_from_config(self._config_json)
+        model_args, data_args, training_args, tqa_args= self.load(self._config_json)
         post_obj = WikiSQLPostprocessor(self._tokenizer,tqa_args)
         
         if data_args.dataset_name=="wikisql":

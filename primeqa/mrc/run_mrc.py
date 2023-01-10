@@ -48,7 +48,6 @@ from primeqa.text_classification.run_nway_classifier import main as cls_main
 from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 from primeqa.mrc.run_mrc_utils import object_reference
-from primeqa.tableqa.run_tableqa import run_table_qa
 
 
 
@@ -374,11 +373,6 @@ def main():
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
-
-    # Run Table Question Answering        
-    if task_args.modality=="table":
-        run_table_qa(data_args,model_args,training_args)
-        sys.exit(0)
 
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(

@@ -20,18 +20,28 @@
 
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
-PrimeQA also supports answering questions over tables through run_mrc.
+PrimeQA also supports answering questions over tables using TAPAS
 
-For training and evaluation of a Table Question Answering model on wikisql dataset run the following script:
+For training and evaluation of a TAPAS based Table Question Answering model on wikisql dataset run the following script:
 ```shell
-       python primeqa/mrc/run_mrc.py --modality "table" \
-       --dataset_name "wikisql" \
-       --tableqa_config_file "primeqa/tableqa/tableqa_config.json" \
-       --output_dir "models/wikisql/" \
-       --model_name_or_path "google/tapas-base" \
+       python primeqa/tableqa/tapas/run_tapas.py \
+       --model_name_or_path "PrimeQA/tapas-based-tableqa-wikisql-lookup" \
        --do_train \
-       --do_eval
-```
+       --do_eval \
+       --dataset_name "wikisql" \
+       --num_train_epochs 1.0 \
+       --output_dir "models/wikisql/" \
+       --data_path_root "data/wikisql/" \
+       --num_aggregation_labels 4 \
+       --use_answer_as_supervision true \
+       --answer_loss_cutoff 0.664694 \
+       --cell_selection_preference 0.207951 \
+       --huber_loss_delta 0.121194 \
+       --init_cell_selection_weights_to_zero true \
+       --select_one_column true \
+       --allow_empty_column_selection true \
+       --temperature 0.0352513
+'''
 This runs a [TAPAS](https://aclanthology.org/2020.acl-main.398.pdf) based tableQA pipeline.
 
 The current performance on wikisql dev set is:
