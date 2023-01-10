@@ -22,7 +22,7 @@ from primeqa.mrc.metrics.mlqa.mlqa import MLQA
 from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
-from primeqa.mrc.models.heads.openqa_head import EXTRACTIVE_OPENNQ_HEAD, EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.heads.orqa_head import EXTRACTIVE_OPENNQ_HEAD, EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.models.orqa_model import ModelForORQATasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
