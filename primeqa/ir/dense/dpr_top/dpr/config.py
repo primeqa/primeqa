@@ -5,6 +5,10 @@ from dataclasses import dataclass, field
 class DPRTrainingArguments:
     """
     Arguments used in training
+    Note:
+        here and in the other DPRXArguments classes:
+        (1) Some of the argument name (e.g. "bsize") are chosen to match between the training/indexing/search modalities, and also other IR engines in PrimeQA.
+        (2) The argument names are sorted alphabetically, with the mandatory arguments listed first.
     """
 
     output_dir: str = field(
