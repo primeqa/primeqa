@@ -2,13 +2,13 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import IndexerComponent
+from primeqa.components.base import Indexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 
 
 @dataclass
-class BM25Indexer(IndexerComponent):
+class BM25Indexer(Indexer):
     """_summary_
 
     Args:

@@ -5,17 +5,32 @@ from dataclasses import dataclass, field
 
 @dataclass(init=False, repr=False, eq=False)
 class Component(ABC):
+    config: str = field(
+        metadata={
+            "name": "config path",
+            "description": "Path to config json file",
+        },
+    )
     @abstractmethod
     def load(self, *args, **kwargs):
+        pass
+    @abstractmethod
+    def predict(self, *args, **kwargs):
+        pass
+    @abstractmethod
+    def train(self, *args, **kwargs):
+        pass
+    @abstractmethod
+    def eval(self, *args, **kwargs):
         pass
 
 
 @dataclass(init=False, repr=False, eq=False)
-class ReaderComponent(Component):
+class Reader(Component):
     @abstractmethod
     def __hash__(self) -> int:
         """
-        Custom hashing function useful to compare instances of `ReaderComponent`.
+        Custom hashing function useful to compare instances of `Reader`.
 
         Raises:
             NotImplementedError:
@@ -38,7 +53,7 @@ class ReaderComponent(Component):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class IndexerComponent(Component):
+class Indexer(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -70,7 +85,7 @@ class IndexerComponent(Component):
 
 
 @dataclass(init=False, repr=False, eq=False)
-class RetrieverComponent(Component):
+class Retriever(Component):
     index_root: str = field(
         metadata={
             "name": "Index root",
@@ -91,7 +106,7 @@ class RetrieverComponent(Component):
     @abstractmethod
     def __hash__(self) -> int:
         """
-        Custom hashing function useful to compare instances of `RetrieverComponent`.
+        Custom hashing function useful to compare instances of `Retriever`.
 
         Raises:
             NotImplementedError:

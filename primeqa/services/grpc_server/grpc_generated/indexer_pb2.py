@@ -16,7 +16,7 @@ _sym_db = _symbol_database.Default()
 from . import parameter_pb2 as parameter__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rindexer.proto\x12\x05index\x1a\x0fparameter.proto\"P\n\x10IndexerComponent\x12\x12\n\nindexer_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x14\n\x12GetIndexersRequest\"@\n\x13GetIndexersResponse\x12)\n\x08indexers\x18\x01 \x03(\x0b\x32\x17.index.IndexerComponent\"<\n\x08\x44ocument\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x13\n\x0b\x64ocument_id\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\"v\n\x14GenerateIndexRequest\x12(\n\x07indexer\x18\x01 \x01(\x0b\x32\x17.index.IndexerComponent\x12\"\n\tdocuments\x18\x02 \x03(\x0b\x32\x0f.index.Document\x12\x10\n\x08index_id\x18\x03 \x01(\t\"M\n\x15GenerateIndexResponse\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\")\n\x15GetIndexStatusRequest\x12\x10\n\x08index_id\x18\x01 \x01(\t\"9\n\x13IndexStatusResponse\x12\"\n\x06status\x18\x01 \x01(\x0e\x32\x12.index.IndexStatus\"\x13\n\x11GetIndexesRequest\"H\n\x10IndexInformation\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\">\n\x12GetIndexesResponse\x12(\n\x07indexes\x18\x01 \x03(\x0b\x32\x17.index.IndexInformation*H\n\x0bIndexStatus\x12\t\n\x05READY\x10\x00\x12\x0c\n\x08INDEXING\x10\x01\x12\x13\n\x0f\x44OES_NOT_EXISTS\x10\x02\x12\x0b\n\x07\x43ORRUPT\x10\x03\x32\xac\x02\n\x07Indexer\x12\x44\n\x0bGetIndexers\x12\x19.index.GetIndexersRequest\x1a\x1a.index.GetIndexersResponse\x12L\n\rGenerateIndex\x12\x1b.index.GenerateIndexRequest\x1a\x1c.index.GenerateIndexResponse(\x01\x12J\n\x0eGetIndexStatus\x12\x1c.index.GetIndexStatusRequest\x1a\x1a.index.IndexStatusResponse\x12\x41\n\nGetIndexes\x12\x18.index.GetIndexesRequest\x1a\x19.index.GetIndexesResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rindexer.proto\x12\x05index\x1a\x0fparameter.proto\"P\n\x10Indexer\x12\x12\n\nindexer_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x14\n\x12GetIndexersRequest\"@\n\x13GetIndexersResponse\x12)\n\x08indexers\x18\x01 \x03(\x0b\x32\x17.index.Indexer\"<\n\x08\x44ocument\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x13\n\x0b\x64ocument_id\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\"v\n\x14GenerateIndexRequest\x12(\n\x07indexer\x18\x01 \x01(\x0b\x32\x17.index.Indexer\x12\"\n\tdocuments\x18\x02 \x03(\x0b\x32\x0f.index.Document\x12\x10\n\x08index_id\x18\x03 \x01(\t\"M\n\x15GenerateIndexResponse\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\")\n\x15GetIndexStatusRequest\x12\x10\n\x08index_id\x18\x01 \x01(\t\"9\n\x13IndexStatusResponse\x12\"\n\x06status\x18\x01 \x01(\x0e\x32\x12.index.IndexStatus\"\x13\n\x11GetIndexesRequest\"H\n\x10IndexInformation\x12\x10\n\x08index_id\x18\x01 \x01(\t\x12\"\n\x06status\x18\x02 \x01(\x0e\x32\x12.index.IndexStatus\">\n\x12GetIndexesResponse\x12(\n\x07indexes\x18\x01 \x03(\x0b\x32\x17.index.IndexInformation*H\n\x0bIndexStatus\x12\t\n\x05READY\x10\x00\x12\x0c\n\x08INDEXING\x10\x01\x12\x13\n\x0f\x44OES_NOT_EXISTS\x10\x02\x12\x0b\n\x07\x43ORRUPT\x10\x03\x32\xac\x02\n\x07Indexer\x12\x44\n\x0bGetIndexers\x12\x19.index.GetIndexersRequest\x1a\x1a.index.GetIndexersResponse\x12L\n\rGenerateIndex\x12\x1b.index.GenerateIndexRequest\x1a\x1c.index.GenerateIndexResponse(\x01\x12J\n\x0eGetIndexStatus\x12\x1c.index.GetIndexStatusRequest\x1a\x1a.index.IndexStatusResponse\x12\x41\n\nGetIndexes\x12\x18.index.GetIndexesRequest\x1a\x19.index.GetIndexesResponseb\x06proto3')
 
 _INDEXSTATUS = DESCRIPTOR.enum_types_by_name['IndexStatus']
 IndexStatus = enum_type_wrapper.EnumTypeWrapper(_INDEXSTATUS)
@@ -26,7 +26,7 @@ DOES_NOT_EXISTS = 2
 CORRUPT = 3
 
 
-_INDEXERCOMPONENT = DESCRIPTOR.message_types_by_name['IndexerComponent']
+_Indexer = DESCRIPTOR.message_types_by_name['Indexer']
 _GETINDEXERSREQUEST = DESCRIPTOR.message_types_by_name['GetIndexersRequest']
 _GETINDEXERSRESPONSE = DESCRIPTOR.message_types_by_name['GetIndexersResponse']
 _DOCUMENT = DESCRIPTOR.message_types_by_name['Document']
@@ -37,12 +37,12 @@ _INDEXSTATUSRESPONSE = DESCRIPTOR.message_types_by_name['IndexStatusResponse']
 _GETINDEXESREQUEST = DESCRIPTOR.message_types_by_name['GetIndexesRequest']
 _INDEXINFORMATION = DESCRIPTOR.message_types_by_name['IndexInformation']
 _GETINDEXESRESPONSE = DESCRIPTOR.message_types_by_name['GetIndexesResponse']
-IndexerComponent = _reflection.GeneratedProtocolMessageType('IndexerComponent', (_message.Message,), {
-  'DESCRIPTOR' : _INDEXERCOMPONENT,
+Indexer = _reflection.GeneratedProtocolMessageType('Indexer', (_message.Message,), {
+  'DESCRIPTOR' : _Indexer,
   '__module__' : 'indexer_pb2'
-  # @@protoc_insertion_point(class_scope:index.IndexerComponent)
+  # @@protoc_insertion_point(class_scope:index.Indexer)
   })
-_sym_db.RegisterMessage(IndexerComponent)
+_sym_db.RegisterMessage(Indexer)
 
 GetIndexersRequest = _reflection.GeneratedProtocolMessageType('GetIndexersRequest', (_message.Message,), {
   'DESCRIPTOR' : _GETINDEXERSREQUEST,
@@ -120,8 +120,8 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
   _INDEXSTATUS._serialized_start=733
   _INDEXSTATUS._serialized_end=805
-  _INDEXERCOMPONENT._serialized_start=41
-  _INDEXERCOMPONENT._serialized_end=121
+  _Indexer._serialized_start=41
+  _Indexer._serialized_end=121
   _GETINDEXERSREQUEST._serialized_start=123
   _GETINDEXERSREQUEST._serialized_end=143
   _GETINDEXERSRESPONSE._serialized_start=145

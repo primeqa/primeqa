@@ -18,7 +18,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderSe
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     GetReadersRequest,
     GetReadersResponse,
-    ReaderComponent,
+    Reader,
     GetAnswersRequest,
     Answer,
     AnswersForContext,
@@ -52,7 +52,7 @@ class ReaderService(ReaderServicer):
         try:
             return GetReadersResponse(
                 readers=[
-                    ReaderComponent(
+                    Reader(
                         reader_id=reader_id, parameters=generate_parameters(reader)
                     )
                     for reader_id, reader in READERS_REGISTRY.items()

@@ -4,18 +4,18 @@ import json
 
 from dataclasses import MISSING
 
-from primeqa.pipelines.components.base import (
-    ReaderComponent,
-    RetrieverComponent,
-    IndexerComponent,
+from primeqa.components.base import (
+    Reader,
+    Retriever,
+    Indexer,
 )
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive import ExtractiveReader
 
-from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
-from primeqa.pipelines.components.retriever.sparse import BM25Retriever
+from primeqa.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.sparse import BM25Retriever
 
-from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
-from primeqa.pipelines.components.indexer.sparse import BM25Indexer
+from primeqa.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
@@ -49,7 +49,7 @@ class ReaderFactory:
 
     @classmethod
     def get(
-        cls, reader: ReaderComponent, reader_kwargs: dict, *load_args, **load_kwargs
+        cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs
     ):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
@@ -129,7 +129,7 @@ class RetrieverFactory:
     @classmethod
     def get(
         cls,
-        retriever: RetrieverComponent,
+        retriever: Retriever,
         retriever_kwargs: dict,
         *load_args,
         **load_kwargs,
@@ -212,7 +212,7 @@ class IndexerFactory:
     @classmethod
     def get(
         cls,
-        indexer: IndexerComponent,
+        indexer: Indexer,
         indexer_kwargs: dict,
         *load_args,
         **load_kwargs,
