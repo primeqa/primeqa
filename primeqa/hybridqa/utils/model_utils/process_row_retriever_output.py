@@ -107,7 +107,7 @@ def get_top_k_passages(passages,query,top_k, row=None):
     return relevant_sents
 
 def get_max_score_row(p,q_id):
-    return np.array(p[q_id]).argsort()[-5:]
+    return np.array(p[q_id]).argsort()[-1:]
 
 def preprocess_instance(d,test=False):
     p_d = {}
@@ -124,7 +124,7 @@ def preprocess_data_using_row_retrieval_scores(raw_data,qid_scores_dict,test):
     #data = json.load(open(data_path))
     #p = json.load(open(row_ret_pred_path))
     p = qid_scores_dict
-    print(p)
+    #print(p)
     processed_data = []
     num = 0
     den = 0

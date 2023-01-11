@@ -57,6 +57,9 @@ class AEArguments(TrainingArguments):
    threads: int = field(
         default=1,metadata={"help": "Number of preprocessing threads"}
     )
+   top_k_rr: int = field(
+        default=5,metadata={"help": "Top K "}
+    )
    null_score_diff_threshold: float = field(
         default=0.0,metadata={"help": "If null_score - best_non_null is greater than the threshold predict null"}
     )
