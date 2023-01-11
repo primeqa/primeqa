@@ -21,15 +21,11 @@ import sys
 import copy
 import pdb
 
-
-
-
 def set_seed(args):
     np.random.seed(args.seed_lg)
     torch.manual_seed(args.seed_lg)
     if args.n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed_lg)
-
 
 def get_links(mapping,row_id):
     links =[]
