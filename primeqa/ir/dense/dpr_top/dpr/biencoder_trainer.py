@@ -66,7 +66,7 @@ class BiEncoderTrainer():
         self.model = BiEncoder(self.args)
         self.model.to(self.args.device)
         self.model.train()
-        self.optimizer = TransformerOptimize(self.args, self.args.num_train_epochs * self.args.num_instances, self.model)
+        self.optimizer = TransformerOptimize(self.args, self.args.epochs * self.args.num_instances, self.model)
         self.loader = BiEncoderLoader(self.args, self.args.per_gpu_train_batch_size, self.qry_tokenizer, self.ctx_tokenizer,
                                  self.args.train_dir, self.args.positive_pids, files_per_dataloader=-1)
 

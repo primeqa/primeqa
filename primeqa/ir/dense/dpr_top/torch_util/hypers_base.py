@@ -80,7 +80,7 @@ class HypersBase:
         self.max_grad_norm = 1.0
         self.warmup_instances = 0  # previous default was 0.1 of total
         self.warmup_fraction = 0.0  # only applies if warmup_instances <= 0
-        self.num_train_epochs = 3
+        self.epochs = 3
         self.no_cuda = False
         self.n_gpu = 1
         self.seed = 42

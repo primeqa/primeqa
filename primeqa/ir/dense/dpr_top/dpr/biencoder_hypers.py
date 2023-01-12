@@ -14,7 +14,6 @@ class BiEncoderHypers(HypersBase):
         # https://github.com/facebookresearch/DPR#2-biencoderretriever-training-in-single-set-mode
         self.max_grad_norm = 2.0  # default from HypersBase is 1.0
         self.learning_rate = 2e-05  # default from HypersBase is 5e-5
-        # self.num_train_epochs = 25  (not setting default here since it is so large)
 
         self.seq_len_q = 64   # max length for query
         self.seq_len_c = 128  # max length for context

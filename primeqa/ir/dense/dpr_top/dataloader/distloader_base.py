@@ -85,7 +85,7 @@ class MultiFileLoader:
             self.on_epoch = checkpoint_info['on_epoch']
         else:
             self.on_epoch = 1
-        self.num_epochs = hypers.num_train_epochs
+        self.num_epochs = hypers.epochs
         self.files_per_dataloader = files_per_dataloader
         self.uneven_batches = uneven_batches
         self.first_batches_loaded = False

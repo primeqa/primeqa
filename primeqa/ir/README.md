@@ -87,7 +87,7 @@ python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --train_dir <training_file_or_directory> \
     --output_dir <output_directory> \
-    --num_train_epochs <number_of_training_epochs \
+    --epochs <number_of_training_epochs \
     --bsize <training_batch_size> \
     --training_data_type text_triples
 ```

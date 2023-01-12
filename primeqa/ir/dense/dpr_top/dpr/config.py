@@ -62,7 +62,7 @@ class DPRTrainingArguments:
         },
     )
 
-    num_train_epochs: int = field(
+    epochs: int = field(
         default=3, metadata={"help": "Number of training epochs"}
     )
 

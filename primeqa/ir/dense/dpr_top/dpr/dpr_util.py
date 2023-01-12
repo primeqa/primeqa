@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 class DPROptions(HypersBase):
     def __init__(self):
         super().__init__()
-        self.port = 5001
-        self.rag_model_path = ''
 
     def _post_init(self):
         super()._post_init()
