@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from dataclasses import dataclass, field
 import json
@@ -137,11 +138,13 @@ class TextClassifierReader(ReaderComponent):
 
     def __post_init__(self):
         # Placeholder variables
+        self._logger=None # initialized in load()
         self._loaded_model = None
         self._tokenizer = None
         self._preprocessor = None
         self._data_collector = None
         self.label_list = self.label_list_str.split(' ')
+
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -163,6 +166,10 @@ class TextClassifierReader(ReaderComponent):
             if k in kwargs:
                 setattr(self, k, kwargs[k])
 
+        if self._logger is None:
+            self._logger = logging.getLogger(self.__class__.__name__ +'-'+'-'.join(self.label_list))
+            self._logger.setLevel(logging.INFO)
+            self._logger.info("%s is successfully loaded.", self.__class__.__name__)
 
         # Load configuration for model
         config = AutoConfig.from_pretrained(self.model)
@@ -199,6 +206,9 @@ class TextClassifierReader(ReaderComponent):
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
     def _predict(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        self._logger.info('input_texts: %s', str(input_texts))
+        self._logger.info('context: %s', str(context))
+
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -253,6 +263,7 @@ class TextClassifierReader(ReaderComponent):
 
         # Step 5: Run predict
         prediction_output=trainer.predict(eval_dataset, eval_examples)
+        self._logger.info('prediction_output: %s', str(prediction_output))
         return prediction_output
 
 
@@ -277,7 +288,7 @@ class TextClassifierReader(ReaderComponent):
 @dataclass
 class BooleanQTCReader(TextClassifierReader):
     model: str = field(
-        default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
+        default='/store/models/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},
     )
     output_label_prefix: str = field(
@@ -321,7 +332,7 @@ class BooleanQTCReader(TextClassifierReader):
 @dataclass
 class BooleanEVCReader(TextClassifierReader):
     model: str = field(
-        default='PrimeQA/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117',
+        default='/store/models/tydi-tydi_boolean_answer_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},
     )
     output_label_prefix: str = field(

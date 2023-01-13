@@ -244,5 +244,4 @@ class ReaderService(ReaderServicer):
             return GetAnswersResponse()
 
         # Step 6: Return
-        print('in reader, answers_response=', answers_response)
         return answers_response

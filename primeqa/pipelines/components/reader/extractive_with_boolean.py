@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from dataclasses import dataclass, field
 import json
@@ -46,12 +47,12 @@ class ExtractiveWithBooleanReader(ReaderComponent):
 
     boolean_config: str = field(
         #default="/store/models/tydi_boolqa_config.json",
-        default="./tydi_boolqa_config.json",
+        default="/store/models/tydi_boolqa_config.json",
         metadata={"name": "aggregate configuration", "api_support": True},
     )
     model: str = field(
-        default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
-#        default="/store/models/a4_1e-5_1_42_a100/",
+#        default="/dccstor/jsmc-nmt-01/bool/expts/leaderboard/mrc/a4_1e-5_1_42_a100/",
+        default="/store/models/a4_1e-5_1_42_a100/",
         metadata={"name": "MRC Model", "api_support": True},
     )    
     use_fast: bool = field(
@@ -124,7 +125,8 @@ class ExtractiveWithBooleanReader(ReaderComponent):
     )
 
     def __post_init__(self):
-        print('in __post_init__')
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger.setLevel(logging.INFO)
         # Placeholder variables
         self._loaded_model = None
         self._tokenizer = None
@@ -139,6 +141,7 @@ class ExtractiveWithBooleanReader(ReaderComponent):
         self._extractiveReader.__post_init__()
         self._booleanQTCReader.__post_init__()
         self._booleanEVCReader.__post_init__()
+        self._logger.info("%s is successfully initialized.", self.__class__.__name__)
 
 
 
@@ -181,6 +184,8 @@ class ExtractiveWithBooleanReader(ReaderComponent):
             else self.min_score_threshold
         )
 
+        self._logger.info('input_texts: %s', str(input_texts))
+        self._logger.info('context: %s', str(context))
 
         predict_output=self._extractiveReader._predict(input_texts, context, args, kwargs)
         qtc_prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)
@@ -233,8 +238,6 @@ class ExtractiveWithBooleanReader(ReaderComponent):
                 predictions[int(passage_idx)].append(processed_prediction)
 
 
-
-
         # Step 6: If min_score_threshold is provide, use it to filter out predictions
         if min_score_threshold:
             filtered_predictions = []
@@ -248,7 +251,6 @@ class ExtractiveWithBooleanReader(ReaderComponent):
             return filtered_predictions, per_query_predictions
         else:
             return predictions, per_query_predictions
-
 
         return predictions
 

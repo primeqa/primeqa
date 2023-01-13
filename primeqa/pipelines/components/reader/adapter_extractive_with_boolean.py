@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from dataclasses import dataclass, field
 import json
@@ -46,7 +47,7 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
     """
 
     boolean_config: str = field(
-        default="tydi_boolqa_config_adapters1.json",
+        default="/store/models/tydi_boolqa_config_adapters1.json",
         metadata={"name": "aggregate configuration", "api_support": True},
     )
     # model: str = field(
@@ -124,7 +125,8 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
     )
 
     def __post_init__(self):
-        print('in __post_init__')
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self._logger.setLevel(logging.INFO)        
         # Placeholder variables
         self._loaded_model = None
         self._tokenizer = None
@@ -139,6 +141,7 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
         self._extractiveReader.__post_init__()
         self._booleanQTCReader.__post_init__()
         self._booleanEVCReader.__post_init__()
+        self._logger.info("%s is successfully initialized.", self.__class__.__name__)
 
 
 
@@ -201,7 +204,8 @@ class AdapterExtractiveWithBooleanReader(ReaderComponent):
             if "min_score_threshold" in kwargs
             else self.min_score_threshold
         )
-
+        self._logger.info('input_texts: %s', str(input_texts))
+        self._logger.info('context: %s', str(context))
 
         predict_output=self._extractiveReader._predict(input_texts, context, args, kwargs)
         qtc_prediction_output=self._booleanQTCReader._predict(input_texts, context, args, kwargs)

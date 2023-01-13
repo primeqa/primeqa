@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from dataclasses import dataclass, field
 import json
@@ -139,6 +140,7 @@ class AdapterTextClassifierReader(ReaderComponent):
 
     def __post_init__(self):
         # Placeholder variables
+        self._logger=None # initialized in load()
         self._loaded_model = None
         self._tokenizer = None
         self._preprocessor = None
@@ -164,6 +166,11 @@ class AdapterTextClassifierReader(ReaderComponent):
         for k in ['id_key', 'sentence1_key', 'sentence2_key', 'label_list', 'output_label_prefix', 'adapter_model', '_tokenizer', '_loaded_model']:
             if k in kwargs:
                 setattr(self, k, kwargs[k])
+
+        if self._logger is None:
+            self._logger = logging.getLogger(self.__class__.__name__ +'-'+'-'.join(self.label_list))
+            self._logger.setLevel(logging.INFO)
+            self._logger.info("%s is successfully loaded.", self.__class__.__name__)
 
         # TODO this is ugly
         if self.output_label_prefix=='question_type':
@@ -237,6 +244,9 @@ class AdapterTextClassifierReader(ReaderComponent):
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
     def _predict(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+        self._logger.info('input_texts: %s', str(input_texts))
+        self._logger.info('context: %s', str(context))
+
         # Step 1: Locally update object variable values, if provided
         max_num_answers = (
             kwargs["max_num_answers"]
@@ -293,6 +303,7 @@ class AdapterTextClassifierReader(ReaderComponent):
         self._loaded_model.set_task_head(self._head_key)
         self._loaded_model.set_active_adapters([self._adapter_key])
         prediction_output=trainer.predict(eval_dataset, eval_examples)
+        self._logger.info('prediction_output: %s', str(prediction_output))
         return prediction_output
 
 
