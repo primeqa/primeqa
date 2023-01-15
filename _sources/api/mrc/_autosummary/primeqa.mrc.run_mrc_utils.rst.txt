@@ -15,7 +15,9 @@ run\_mrc\_utils
       :toctree:
       :nosignatures:
    
+      get_raw_datasets
       object_reference
+      process_raw_datasets
    
    
 

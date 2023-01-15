@@ -340,6 +340,11 @@
      Custom Data
     </a>
    </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#training-with-multiple-datasets">
+     Training with Multiple Datasets
+    </a>
+   </li>
   </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -702,12 +707,53 @@ For the MLQA configuration with context language EN and question language DE use
 <span class="w">      </span>--dataset_filter_column_name<span class="w"> </span>subset
 </pre></div>
 </div>
-<p>Cross domain experiments can be run by running train and eval as separate processes. The</p>
+<p>Cross domain experiments can be run by running train and eval as separate processes.</p>
 </section>
 </section>
 <section id="custom-data">
 <h3>Custom Data<a class="headerlink" href="#custom-data" title="Permalink to this headline">#</a></h3>
 <p>Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available <span class="xref myst">here</span>.</p>
+</section>
+<section id="training-with-multiple-datasets">
+<h3>Training with Multiple Datasets<a class="headerlink" href="#training-with-multiple-datasets" title="Permalink to this headline">#</a></h3>
+<p>PrimeQA supports the training of MRC model with combination of multiple datasets, which are specified in “–train_fof” argument. This argument points to a file of training files (fof). This fof can be in any of three supported formats: csv, jsonl, and json.</p>
+<p>In the csv format, each line of train_fof consists of four columns, separated by spaces:</p>
+<ul class="simple">
+<li><p>HuggingFace dataset name, or path of local data file, or path of dataset processing script (in python);</p></li>
+<li><p>Dataset config name or data file format;</p></li>
+<li><p>Sampling rate within range 0.0 to 1.0, e.g. 0.5 means 50% of the examples are randomly selected and used in MRC training;</p></li>
+<li><p>Preprocessor name.</p></li>
+</ul>
+<p>If column 2 to 4 are not given, default values from input arguments will be used, i.e.:</p>
+<ul class="simple">
+<li><p>Value of “–dataset_config_name” for HuggingFace dataset and processing script, or “–data_file_format” for local data file;</p></li>
+<li><p>1.0 for sampling rate;</p></li>
+<li><p>Value of “–preprocessor” for preprocessor name.</p></li>
+</ul>
+<p>If in jsonl format, each line is a dictionary consisting of</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;dataset&#39;</span><span class="p">:</span> <span class="n">dataset_name_or_path_of_data_file_or_processing_script</span><span class="p">,</span>
+ <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="n">dataset_config_or_data_file_format</span><span class="p">,</span>
+ <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="n">sampling_rate</span><span class="p">,</span>
+ <span class="s1">&#39;preprocessor&#39;</span><span class="p">:</span> <span class="n">preprocessor_name</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Fields ‘config’, ‘sampling_rate’, and ‘preprocessor’ are optional.</p>
+<p>If in json format, a list of dictionaries same to that in jsonl is expected.</p>
+<p>The following is an example of “–train_fof” in csv format which includes two HuggingFace datatsets: TyDiQA and SQuAD.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tydiqa</span> <span class="n">primary_task</span> <span class="mf">0.1</span> <span class="n">primeqa</span><span class="o">.</span><span class="n">mrc</span><span class="o">.</span><span class="n">processors</span><span class="o">.</span><span class="n">preprocessors</span><span class="o">.</span><span class="n">tydiqa</span><span class="o">.</span><span class="n">TyDiQAPreprocessor</span>
+<span class="n">squad</span>  <span class="n">plain_text</span>   <span class="mf">0.1</span> <span class="n">primeqa</span><span class="o">.</span><span class="n">mrc</span><span class="o">.</span><span class="n">processors</span><span class="o">.</span><span class="n">preprocessors</span><span class="o">.</span><span class="n">squad</span><span class="o">.</span><span class="n">SQUADPreprocessor</span>
+</pre></div>
+</div>
+<p>To evaluate the checkpoint models during training, the validation dataset needs be specified in “–eval_fof” which format is same to “–train_fof”. Multiple datatsets can be included into “–eval_fof” if use the trainer ‘MSKD_MRCTrainer’, otherwise a single validation dataset is expected.</p>
+<p>Please note that, if “–train_fof” and “–eval_fof” are given in input arguments, other dataset related parameters, i.e. “–dataset_name”, “–train_file”, and “–eval_file” are ignored.</p>
+<p>The following additional command lines show how to train MRC model with TyDiQA+SQuAD, and evaluate on TyDiQA.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/mrc/run_mrc.py<span class="w"> </span>--model_name_or_path<span class="w"> </span>xlm-roberta-large<span class="w"> </span><span class="se">\</span>
+--train_fof<span class="w"> </span><span class="si">${</span><span class="nv">train_fof_including_tydi_squad</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--eval_fof<span class="w"> </span><span class="si">${</span><span class="nv">eval_fof_including_tydi</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+--postprocessor<span class="w"> </span>primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor<span class="w"> </span><span class="se">\</span>
+--eval_metrics<span class="w"> </span>TyDiF1<span class="w"> </span><span class="se">\</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="special-mrc-features">

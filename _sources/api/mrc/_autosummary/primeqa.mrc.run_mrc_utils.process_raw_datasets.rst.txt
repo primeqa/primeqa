@@ -1,0 +1,6 @@
+primeqa.mrc.run\_mrc\_utils.process\_raw\_datasets
+==================================================
+
+.. currentmodule:: primeqa.mrc.run_mrc_utils
+
+.. autofunction:: process_raw_datasets
