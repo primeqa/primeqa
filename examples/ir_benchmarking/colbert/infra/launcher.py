@@ -44,24 +44,7 @@ class Launcher:
             all_procs.append(mp.Process(target=setup_new_process, args=args_))
 
         # Clear GPU space (e.g., after a `Searcher` on GPU-0 is deleted)
-        # TODO: Generalize this from GPU-0 only!
-        # TODO: Move this to a function. And call that function from __del__ in a class that's inherited by Searcher, Indexer, etc.
-
-        # t = torch.cuda.get_device_properties(0).total_memory
-        # r = torch.cuda.memory_reserved(0)
-        # a = torch.cuda.memory_allocated(0)
-        # f = r-a
-
-        # print_message(f"[Pre-Emptying] GPU memory check: r={r}, a={a}, f={f}")
-
         torch.cuda.empty_cache()
-
-        # t = torch.cuda.get_device_properties(0).total_memory
-        # r = torch.cuda.memory_reserved(0)
-        # a = torch.cuda.memory_allocated(0)
-        # f = r-a
-
-        # print_message(f"[Post-Emptying] GPU memory check: r={r}, a={a}, f={f}")
 
         print_memory_stats('MAIN')
 
@@ -70,8 +53,6 @@ class Launcher:
             proc.start()
 
         print_memory_stats('MAIN')
-
-        # TODO: If the processes crash upon join, raise an exception and don't block on .get() below!
 
         return_values = sorted([return_value_queue.get() for _ in all_procs])
         return_values = [val for rank, val in return_values]
@@ -103,13 +84,10 @@ def setup_new_process(callee, port, return_value_queue, config, *args):
     os.environ["WORLD_SIZE"] = str(config.nranks)
     os.environ["RANK"] = str(config.rank)
 
-    # TODO: Ideally the gpus "getter" handles this max-nranks thing!
     os.environ["CUDA_VISIBLE_DEVICES"] = ','.join(map(str, config.gpus_[:nranks]))
 
     nranks_, distributed_ = distributed.init(rank)
     assert nranks_ == nranks
-
-    # Run.init(args.rank, args.root, args.experiment, args.run)
 
     with Run().context(config, inherit_config=False):
         return_val = callee(config, *args)
@@ -118,9 +96,9 @@ def setup_new_process(callee, port, return_value_queue, config, *args):
 
 
 def print_memory_stats(message=''):
-    return  # FIXME: Add this back before release.
+    return
 
-    import psutil  # Remove before releases? Or at least make optional with try/except.
+    import psutil 
 
     global_info = psutil.virtual_memory()
     total, available, used, free = global_info.total, global_info.available, global_info.used, global_info.free
