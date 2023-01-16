@@ -10,8 +10,6 @@ from colbert.data.collection import Collection
 from colbert.data.queries import Queries
 from colbert.data.examples import Examples
 
-# from colbert.utils.runs import Run
-
 
 class RerankBatcher():
     def __init__(self, config: ColBERTConfig, triples, queries, collection, rank=0, nranks=1):
@@ -69,7 +67,3 @@ class RerankBatcher():
 
         queries = flatten([[query] * self.nway for query in queries])
         return [(self.tokenizer.tensorize(queries, passages), scores)]
-
-    # def skip_to_batch(self, batch_idx, intended_batch_size):
-    #     Run.warn(f'Skipping to batch #{batch_idx} (with intended_batch_size = {intended_batch_size}) for training.')
-    #     self.position = intended_batch_size * batch_idx
