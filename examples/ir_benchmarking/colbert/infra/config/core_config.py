@@ -47,12 +47,6 @@ class CoreConfig:
 
         return ignored
 
-        """
-        # TODO: Take a config object, not kw_args.
-
-        for key in config.assigned:
-            value = getattr(config, key)
-        """
 
     def set(self, key, value, ignore_unrecognized=False):
         if hasattr(self, key):
