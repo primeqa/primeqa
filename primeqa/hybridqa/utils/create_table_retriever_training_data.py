@@ -8,7 +8,6 @@ def linearize_row(row):
     row_str = ""
     for c,r in row.items():
         row_str+=str(c)+" is "+str(r)+" . "
-        # row_str+=str(c)+" "+str(r)+" "
     return row_str
 
 def linearize_table(table_id,all_tables):

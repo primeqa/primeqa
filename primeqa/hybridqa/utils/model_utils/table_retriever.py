@@ -9,7 +9,6 @@ from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
 
 def train_table_retriever(root_dir,triples_file_name):
-    #test_files_location = 'data/ottqa/'
     output_dir=os.path.join(root_dir, 'table_retriever')
     os.makedirs(output_dir, exist_ok=True)
     print(output_dir)
@@ -61,10 +60,9 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
         p_data["table_id"] = retrieved_doc_ids[0][0]
         p_data["answer-text"] = d['answer-text']
         new_data.append(p_data)
-    #json.dump(new_data, open(output_dir+"/table_retriever_output_test.json", "w"))
     return new_data
         
 if __name__=="__main__":
-    #train_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","triples_train.tsv")   
+    train_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","triples_train.tsv")   
     raw_data = json.load(open("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/released_data/dev.json"))
     predict_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","linearized_tables.tsv",raw_data)

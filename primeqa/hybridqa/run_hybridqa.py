@@ -16,7 +16,8 @@ import os
 import sys
 from utils.ottqa_utils  import assign_ids
 from utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
-   
+from primeqa.hybridqa.metrics.evaluate_ottqa import get_em_and_f1_ottqa
+from primeqa.hybridqa.metrics.evaluate import get_em_and_f1_hybridqa
 
 def run_hybrid_qa():
    logger = logging.getLogger(__name__)
@@ -38,20 +39,16 @@ def run_hybrid_qa():
       test=True
       ae_args.do_predict_ae = True
       if hqa_args.dataset_name=="ottqa":
-         #retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_test_data)
-         #json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
-         retrieved_data = json.load(open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json")))
+         retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_test_data)
          linked_data = predict_link_for_tables(lp_args,retrieved_data,doc_retriever)
          json.dump(linked_data,open(os.path.join(hqa_args.data_path_root,"linked_data_test.json"),"w"))
          test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       else:
          test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
-      #test_data_processed = json.load(open("data/ottqa/test_processed.json"))
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
       logger.info("Row retrieval predictions Done")
-      #qid_scores_dict = json.load(open("data/ottqa/row_ret_scores.json"))
       raw_test_data_with_ids = assign_ids(test_data_processed)
       test_processed_data = preprocess_data_using_row_retrieval_scores_ottqa(raw_test_data_with_ids,qid_scores_dict,test)
       logger.info("Row retrieval output processed")
@@ -60,7 +57,11 @@ def run_hybrid_qa():
       ae_output_path,ae_output_path_nbest = predict_ae(ae_args,answer_extraction_data)
       logger.info(ae_output_path)
       logger.info(ae_output_path_nbest)
-      re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_args.pred_ans_file) 
+      re_ranked_output_file  = re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_args.pred_ans_file) 
+      if hqa_args.dataset_name=="ottqa":
+         logger.info(get_em_and_f1_ottqa(re_ranked_output_file,"data/ottqa/released_data/dev_reference.json"))
+      else:
+         logger.info(get_em_and_f1_hybridqa(re_ranked_output_file,"data/ottqa/dev_reference.json"))
    else:
       logger.info("Training Mode")
       if hqa_args.dataset_name == "ottqa":
@@ -79,34 +80,28 @@ def run_hybrid_qa():
       else:
          train_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
          dev_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
-         #train_data_processed = json.load(open("data/hybridqa/train_processed.json"))
-         #dev_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
-      #logger.info("Train: Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
-      #logger.info("Train: Training row retrieval model")
+      logger.info("Train: Training row retrieval model")
       rr.train(train_data_processed,dev_data_processed)
       qid_scores_dict_train = rr.predict(train_data_processed)
       qid_scores_dict_dev = rr.predict(dev_data_processed)
       json.dump(qid_scores_dict_train,open("data/hybridqa/qid_scores_train.json","w"))
       json.dump(qid_scores_dict_dev,open("data/hybridqa/qid_scores_dev.json","w"))
-      #qid_scores_dict_dev = json.load(open("data/hybridqa/qid_scores_dev.json"))
-
       train_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_train_data,qid_scores_dict_train,test)
-      
       dev_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_dev_data,qid_scores_dict_dev,True)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
       json.dump(answer_extraction_train_data, open("data/hybridqa/answer_extraction_train_data.json","w"))
       answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,True)
       json.dump(answer_extraction_dev_data, open("data/hybridqa/answer_extraction_dev_data.json","w"))
-      #answer_extraction_dev_data = json.load(open("data/hybridqa/answer_extraction_dev_data.json"))
       output_dir = train_ae(ae_args,answer_extraction_train_data)
-      logger.info("Answer extraction Training done")
-      # ae_args.do_train_ae = False
-      
+      logger.info("Answer extraction Training done")      
       ae_args.model_name_or_path_ae = "data/hybridqa/models/answer_extractor/checkpoint-epoch2/"
       ae_output_path,ae_output_path_nbest = predict_ae(ae_args,answer_extraction_dev_data)
-      re_rank_ae_output(qid_scores_dict_dev,ae_output_path_nbest,ae_args.pred_ans_file) 
-      #logger.info(f"Train: Training Done model saved at: {output_dir}")
-      
+      re_ranked_output_file = re_rank_ae_output(qid_scores_dict_dev,ae_output_path_nbest,ae_args.pred_ans_file) 
+      logger.info(f"Train: Training Done")
+      if hqa_args.dataset_name=="ottqa":
+         logger.info(get_em_and_f1_ottqa(re_ranked_output_file,"data/ottqa/released_data/dev_reference.json"))
+      else:
+         logger.info(get_em_and_f1_hybridqa(re_ranked_output_file,"data/ottqa/dev_reference.json"))
 if __name__ == '__main__':
     run_hybrid_qa()

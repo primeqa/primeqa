@@ -170,17 +170,6 @@ def train_link_generator(args):
      
 
 def predict_link_for_tables(args,retrieved_data,doc_retriever):
-    # passage_emb = pickle.load(open("/dccstor/cssblr/vishwajeet/git/tabtextqa/data/ott_qa/passage_embeddings_all_passages.pickle",'rb'))
-    # print("passage embedding loaded")
-    # enum = enumerate(passage_emb.keys())
-    # passage_id_dict = dict((i,j) for i,j in enum)
-    # print("passage dict created")
-    # passage_embeddings = torch.stack(list(passage_emb.values()))
-    # print("passage torch embedding object created")
-
-    # passage_path = "data/ottqa/all_passages.json"
-    # passage_dict = json.load(open(passage_path))
-    # print("Passage dict loaded")
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)
     tokenizer.add_tokens(['[SEP]', '[EOS]', '[START]', '[ENT]'])
     model = GPT2LMHeadModel.from_pretrained(args.model)
@@ -231,7 +220,6 @@ def predict_link_for_tables(args,retrieved_data,doc_retriever):
         else:
             mapping[k].extend(v)
     
-    #index, shard = [int(_) for _ in args.shard.split('@')]
     new_data = []
     for d in retrieved_data:
         table_id = d['table_id']
@@ -239,10 +227,7 @@ def predict_link_for_tables(args,retrieved_data,doc_retriever):
         table_links =[]
         for i,r in enumerate(table_data['data']):
             row_id = table_id+"_"+str(i)
-            # print(row_id)
             row_links = get_links(mapping,row_id)
-            #new_links = get_top_k_passages_from_corpus(passage_embeddings,passage_id_dict,doc_retriever,d['question']+" "+ " ".join(r),5)
-            #table_links.append(row_links+new_links)table_links.append(row_links
             table_links.append(row_links)
 
         d['row_passage_links'] = table_links
@@ -250,8 +235,6 @@ def predict_link_for_tables(args,retrieved_data,doc_retriever):
         new_data.append(d)
     
     return new_data
-    #     f.write(json_str + '\n')
-    # f.close()
     
 
 
@@ -285,9 +268,6 @@ class LinkGenearationDataset(Dataset):
 
         self.data = []
         for k, table in tables.items():
-            # if k not in table_ids:
-            #     continue
-
             title = table['title']
             sec_title = table['section_title']
 
