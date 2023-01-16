@@ -21,9 +21,8 @@ from colbert.data.ranking import Ranking
 
 class AnnotateEM:
     def __init__(self, collection, qas):
-        # TODO: These should just be Queries! But Queries needs to support looking up answers as qid2answers below.
         qas = load_qas_(qas)
-        collection = Collection.cast(collection)  # .tolist() #load_collection_(collection, retain_titles=True)
+        collection = Collection.cast(collection)
 
         self.parallel_pool = Pool(30)
 
@@ -38,8 +37,6 @@ class AnnotateEM:
 
     def annotate(self, ranking):
         rankings = Ranking.cast(ranking)
-
-        # print(len(rankings), rankings[0])
 
         print_message('#> Lookup passages from PIDs...')
         expanded_rankings = [(qid, pid, rank, self.collection[pid], self.qid2answers[qid])
@@ -100,7 +97,6 @@ class AnnotateEM:
             extra = '__WARNING' if self.num_judged_queries != self.num_ranked_queries else ''
             d[f'success{extra}'] = {k: v / self.num_judged_queries for k, v in self.success.items()}
             d[f'counts{extra}'] = {k: v / self.num_judged_queries for k, v in self.counts.items()}
-            # d['arguments'] = get_metadata(args)  # TODO: Need arguments...
 
             f.write(format_metadata(d) + '\n')
 
