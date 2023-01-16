@@ -1,9 +1,4 @@
 
-# Could be .tsv or .json. The latter always allows more customization via optional parameters.
-# I think it could be worth doing some kind of parallel reads too, if the file exceeds 1 GiBs.
-# Just need to use a datastructure that shares things across processes without too much pickling.
-# I think multiprocessing.Manager can do that!
-
 import os
 import itertools
 
@@ -17,15 +12,12 @@ class Collection:
         self.data = data or self._load_file(path)
 
     def __iter__(self):
-        # TODO: If __data isn't there, stream from disk!
         return self.data.__iter__()
 
     def __getitem__(self, item):
-        # TODO: Load from disk the first time this is called. Unless self.data is already not None.
         return self.data[item]
 
     def __len__(self):
-        # TODO: Load here too. Basically, let's make data a property function and, on first call, either load or get __data.
         return len(self.data)
 
     def _load_file(self, path):
@@ -45,11 +37,10 @@ class Collection:
         return {'provenance': self.provenance()}
 
     def save(self, new_path):
-        assert new_path.endswith('.tsv'), "TODO: Support .json[l] too."
+        assert new_path.endswith('.tsv'),
         assert not os.path.exists(new_path), new_path
 
         with Run().open(new_path, 'w') as f:
-            # TODO: expects content to always be a string here; no separate title!
             for pid, content in enumerate(self.data):
                 content = f'{pid}\t{content}\n'
                 f.write(content)
@@ -62,7 +53,7 @@ class Collection:
                 yield (offset + idx, passage)
 
     def enumerate_batches(self, rank, chunksize=None):
-        assert rank is not None, "TODO: Add support for the rank=None case."
+        assert rank is not None
 
         chunksize = chunksize or self.get_chunksize()
 
@@ -81,7 +72,7 @@ class Collection:
                 return
     
     def get_chunksize(self):
-        return min(25_000, 1 + len(self) // Run().nranks)  # 25k is great, 10k allows things to reside on GPU??
+        return min(25_000, 1 + len(self) // Run().nranks)
 
     @classmethod
     def cast(cls, obj):
@@ -96,5 +87,3 @@ class Collection:
 
         assert False, f"obj has type {type(obj)} which is not compatible with cast()"
 
-
-# TODO: Look up path in some global [per-thread or thread-safe] list.
