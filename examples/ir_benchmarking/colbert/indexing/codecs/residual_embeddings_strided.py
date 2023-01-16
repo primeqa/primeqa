@@ -1,14 +1,6 @@
-# from colbert.indexing.codecs.residual import ResidualCodec
 import colbert.indexing.codecs.residual_embeddings as residual_embeddings
 
 from colbert.search.strided_tensor import StridedTensor
-
-"""
-import line_profiler
-import atexit
-profile = line_profiler.LineProfiler()
-atexit.register(profile.print_stats)
-"""
 
 class ResidualEmbeddingsStrided:
     def __init__(self, codec, embeddings, doclens):
@@ -26,7 +18,6 @@ class ResidualEmbeddingsStrided:
 
         return self.codec.decompress(residual_embeddings.ResidualEmbeddings(codes, residuals))
 
-    # @profile
     def lookup_pids(self, passage_ids, out_device='cuda'):
         codes_packed, codes_lengths = self.codes_strided.lookup(passage_ids)#.as_packed_tensor()
         residuals_packed, _ = self.residuals_strided.lookup(passage_ids)#.as_packed_tensor()
@@ -34,8 +25,6 @@ class ResidualEmbeddingsStrided:
         embeddings_packed = self.codec.decompress(residual_embeddings.ResidualEmbeddings(codes_packed, residuals_packed))
 
         return embeddings_packed, codes_lengths
-        # return StridedTensor(embeddings_packed, codes_lengths).as_padded_tensor()
-        # return StridedTensor.pad_packed(embeddings_packed, codes_lengths)
 
     def lookup_codes(self, passage_ids):
         return self.codes_strided.lookup(passage_ids)#.as_packed_tensor()
