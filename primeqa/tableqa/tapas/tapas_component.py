@@ -60,10 +60,8 @@ class TapasReader(Reader):
             self._config_json = path_to_config_json
         else:
             self._config_json = "../../primeqa/tableqa/tapas/configs/tapas_config.json"
-
-        # self._model = TapasForQuestionAnswering.from_pretrained(model_name_path)
-        # self.config = config
-        # self._tokenizer = TapasTokenizer.from_pretrained(model_name_path)
+        
+        self.load(path_to_config_json)
 
 
     @property
@@ -135,7 +133,7 @@ class TapasReader(Reader):
         model_args, data_args, training_args, tqa_args= self.load(self._config_json)
         post_obj = WikiSQLPostprocessor(self._tokenizer,tqa_args)
         
-        if data_args.dataset_name=="wikisql":
+        if data_args.dataset_name=="wikisql" and (data_args.train_file is not None and data_args.eval_file is not None) :
             train_dataset,eval_dataset = load_data(tqa_args.data_path_root,self._tokenizer)
         else:
             tqadataset = TableQADataset(tqa_args.data_path_root,data_args.train_file,data_args.eval_file,self._tokenizer)
@@ -152,6 +150,7 @@ class TapasReader(Reader):
         metrics = trainer.evaluate()
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+        return metrics
     
     def train(self):
         model_args, data_args, training_args, tqa_args= self.load(self._config_json)
