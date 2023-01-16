@@ -97,7 +97,6 @@ class IndexScorer(IndexLoader, CandidateGeneration):
             Otherwise, each query matrix will be compared against the *aligned* passage.
         """
 
-        # TODO: Remove batching?
         batch_size = 2 ** 20
 
         if self.use_gpu:
