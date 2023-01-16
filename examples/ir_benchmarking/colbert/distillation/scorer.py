@@ -64,5 +64,3 @@ class Scorer:
 
         return scores
 
-
-# LONG-TERM TODO: This can be sped up by sorting by length in advance.
