@@ -44,7 +44,6 @@ def load_qrels(qrels_path):
             qrels[qid] = qrels.get(qid, [])
             qrels[qid].append(pid)
 
-    # assert all(len(qrels[qid]) == len(set(qrels[qid])) for qid in qrels)
     for qid in qrels:
         qrels[qid] = list(set(qrels[qid]))
 
@@ -178,9 +177,6 @@ def load_collection(collection_path):
 
 def load_colbert(args, do_print=True):
     colbert, checkpoint = load_model(args, do_print)
-
-    # TODO: If the parameters below were not specified on the command line, their *checkpoint* values should be used.
-    # I.e., not their purely (i.e., training) default values.
 
     for k in ['query_maxlen', 'doc_maxlen', 'dim', 'similarity', 'amp']:
         if 'arguments' in checkpoint and hasattr(args, k):
