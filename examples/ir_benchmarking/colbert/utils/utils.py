@@ -112,12 +112,6 @@ def create_directory(path):
         print_message("#> Creating directory", path, '\n\n')
         os.makedirs(path)
 
-# def batch(file, bsize):
-#     while True:
-#         L = [ujson.loads(file.readline()) for _ in range(bsize)]
-#         yield L
-#     return
-
 
 def f7(seq):
     """
@@ -154,7 +148,6 @@ class dotdict_lax(dict):
 
 
 def flatten(L):
-    # return [x for y in L for x in y]
 
     result = []
     for _list in L:
@@ -280,7 +273,6 @@ def lengths2offsets(lengths):
     return
 
 
-# see https://stackoverflow.com/a/45187287
 class NullContextManager(object):
     def __init__(self, dummy_resource=None):
         self.dummy_resource = dummy_resource
