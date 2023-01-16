@@ -3,7 +3,6 @@ import sys
 import time
 import __main__
 import traceback
-# import mlflow
 
 import colbert.utils.distributed as distributed
 
@@ -39,8 +38,6 @@ class _RunManager():
                 print('\n\n')
                 print_message("It seems that ", self.path, " already exists.")
                 print_message("Do you want to overwrite it? \t yes/no \n")
-
-                # TODO: This should timeout and exit (i.e., fail) given no response for 60 seconds.
 
                 response = input()
                 if response.strip() != 'yes':
@@ -97,8 +94,6 @@ class _RunManager():
             self.log_new_artifact(os.path.join(self._logger.logs_path, 'name.txt'), name)
 
             self._logger._log_all_artifacts()
-
-            # mlflow.end_run(status=self.exit_status)
 
 
 Run = _RunManager()
