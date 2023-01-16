@@ -107,7 +107,6 @@ class CollectionIndexer():
 
         typical_doclen = 120  # let's keep sampling independent of the actual doc_maxlen
         sampled_pids = 16 * np.sqrt(typical_doclen * num_passages)
-        # sampled_pids = int(2 ** np.floor(np.log2(1 + sampled_pids)))
         sampled_pids = min(1 + int(sampled_pids), num_passages)
 
         sampled_pids = random.sample(range(num_passages), sampled_pids)
@@ -174,7 +173,6 @@ class CollectionIndexer():
                         'avg_doclen_est' in plan):
                     return False
 
-                # TODO: Verify config matches
                 self.num_chunks = plan['num_chunks']
                 self.num_partitions = plan['num_partitions']
                 self.num_embeddings_est = plan['num_embeddings_est']
@@ -222,7 +220,6 @@ class CollectionIndexer():
     def _concatenate_and_split_sample(self):
         print_memory_stats(f'***1*** \t RANK:{self.rank}')
 
-        # TODO: Allocate a float16 array. Load the samples from disk, copy to array.
         sample = torch.empty(self.num_sample_embs, self.config.dim, dtype=torch.float16)
 
         offset = 0
@@ -312,11 +309,6 @@ class CollectionIndexer():
 
         return bucket_cutoffs, bucket_weights, avg_residual.mean()
 
-        # EVENTAULLY: Compare the above with non-heldout sample. If too different, we can do better!
-        # sample = sample[subsample_idxs]
-        # sample_reconstruct = get_centroids_for(centroids, sample)
-        # sample_avg_residual = (sample - sample_reconstruct).mean(dim=0)
-
     def index(self):
         with self.saver.thread():
             batches = self.collection.enumerate_batches(rank=self.rank)
@@ -354,7 +346,6 @@ class CollectionIndexer():
             if not self.saver.check_chunk_exists(chunk_idx):
                 success = False
                 Run().print_main(f"#> ERROR: Could not find chunk {chunk_idx}!")
-                #TODO: Fail here?
         if success:
             Run().print_main("Found all files!")
 
@@ -457,13 +448,3 @@ def compute_faiss_kmeans(dim, num_partitions, kmeans_niters, shared_lists, retur
 
     return centroids
 
-
-"""
-TODOs:
-
-1. Notice we're using self.config.bsize.
-
-2. Consider saving/using heldout_avg_residual as a vector --- that is, using 128 averages!
-
-3. Consider the operations with .cuda() tensors. Are all of them good for OOM?
-"""
