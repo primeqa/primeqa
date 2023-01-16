@@ -1,15 +1,15 @@
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
 import pytest
-from primeqa.tableqa.models.tableqa_model import TableQAModel
-from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
+from primeqa.tableqa.tapas.models.tapas_model import TapasModel
+from primeqa.tableqa.tapas.tapas_component import TapasReader
+from primeqa.tableqa.tapas.preprocessors.wikisql_preprocessor import load_data
 
 @pytest.mark.parametrize("output_dir",["."])
 def test_tableqa_model(output_dir):
-    config=None
-    tqam = TableQAModel("google/tapas-base",config=config)
-    model = tqam.model
-    tokenizer = tqam.tokenizer
+    config_json_path= "./primeqa/tableqa/tapas/configs/tapas_config.json"
+    reader = TapasReader(config_json_path)
+    tokenizer = reader.tokenizer
     train_dataset={}
     eval_dataset={}
     train_dataset,eval_dataset = load_data(output_dir,tokenizer,10,5)

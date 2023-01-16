@@ -1,11 +1,11 @@
 from transformers import TapasConfig,TapasTokenizer, TapasForQuestionAnswering
 import pandas as pd
 import pytest
-from primeqa.tableqa.models.tableqa_model import TableQAModel
+from primeqa.tableqa.tapas.tapas_component import TapasReader
+import unittest
 
-from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
-from primeqa.tableqa.models.tableqa_model import TableQAModel
-from primeqa.tableqa.trainers.tableqa_trainer import TableQATrainer
+from primeqa.tableqa.tapas.metrics.answer_accuracy import compute_denotation_accuracy
+from primeqa.tableqa.tapas.trainers.tableqa_trainer import TableQATrainer
 from transformers import TapasConfig
 from transformers import (
     DataCollator,
@@ -13,33 +13,42 @@ from transformers import (
     TrainingArguments,
     set_seed,default_data_collator,
 )
+from primeqa.mrc.run_mrc import ModelArguments, DataTrainingArguments
+from primeqa.tableqa.tapas.utils.tapas_args import TableQAArguments
+from primeqa.tableqa.tapas.utils.data_collator import TapasCollator
+from primeqa.tableqa.tapas.preprocessors.wikisql_preprocessor import load_data
+from primeqa.tableqa.tapas.postprocessor.wikisql import WikiSQLPostprocessor
+from primeqa.tableqa.tapas.metrics.answer_accuracy import compute_denotation_accuracy
+import os
 
-from primeqa.tableqa.run_tableqa import TableQAArguments
-from primeqa.tableqa.utils.data_collator import TapasCollator
-from primeqa.tableqa.preprocessors.wikisql_preprocessor import load_data
-from primeqa.tableqa.postprocessor.wikisql import WikiSQLPostprocessor
-from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
+def test_tableqa_model():
+    config_json_path= "./primeqa/tableqa/tapas/configs/tapas_config.json"
+    reader = TapasReader(config_json_path)
+    assert type(reader.model)==TapasForQuestionAnswering
+    assert type(reader.tokenizer)==TapasTokenizer
+    model = reader.model
+    tokenizer = reader.tokenizer
+    
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments,TableQAArguments))
+    model_args, data_args, training_args, tqa_args = parser.parse_json_file(json_file=os.path.abspath(config_json_path)) 
 
-@pytest.mark.parametrize("model_name_path",["google/tapas-base"])
-def test_tableqa_model(model_name_path):
-    config=None
-    tqam = TableQAModel("google/tapas-base",config=config)
-    assert type(tqam.model)==TapasForQuestionAnswering
-    assert type(tqam.tokenizer)==TapasTokenizer
+
+    
 
     dataset_name="wikisql" 
     data_path_root="data/wikisql/" 
     output_dir="../../models/tableqa/wikisql_nb"
 
     tqa_args = TableQAArguments()
-    tqa_args.dataset_name=dataset_name
     tqa_args.data_path_root=data_path_root
-    config = TapasConfig(tqa_args)
-    tableqa_model = TableQAModel("google/tapas-base",config=config)
-    assert type(tableqa_model.model)==TapasForQuestionAnswering
-    assert type(tableqa_model.tokenizer)==TapasTokenizer
-    model = tableqa_model.model
-    tokenizer = tableqa_model.tokenizer
+    
+    # config = TapasConfig(tqa_args)
+    # tableqa_model = TableQAModel("google/tapas-base",config=config)
+    # assert type(tableqa_model.model)==TapasForQuestionAnswering
+    # assert type(tableqa_model.tokenizer)==TapasTokenizer
+    # model = tableqa_model.model
+    # tokenizer = tableqa_model.tokenizer
+
     post_obj = WikiSQLPostprocessor(tokenizer,tqa_args)
 
     train_args = TrainingArguments(
@@ -54,7 +63,7 @@ def test_tableqa_model(model_name_path):
                                 args=train_args,
                                 train_dataset=train_dataset if train_args.do_train else None,
                                 eval_dataset=eval_dataset if train_args.do_eval else None,
-                                tokenizer=tableqa_model.tokenizer,
+                                tokenizer=reader.tokenizer,
                                 data_collator=TapasCollator(),
                                 post_process_function= post_obj.postprocess_prediction,
                                 compute_metrics=compute_denotation_accuracy  
