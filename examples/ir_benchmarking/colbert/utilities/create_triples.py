@@ -14,7 +14,7 @@ MAX_NUM_TRIPLES = 40_000_000
 
 class Triples:
     def __init__(self, ranking, seed=12345):
-        random.seed(seed)  # TODO: Use internal RNG instead..
+        random.seed(seed)
         self.seed = seed
 
         ranking = Ranking.cast(ranking)
