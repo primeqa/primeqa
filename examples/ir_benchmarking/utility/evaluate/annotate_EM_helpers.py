@@ -64,11 +64,3 @@ def compute_and_write_labels(output_path, qid2answers, qid2rankings):
 
     return success, counts
 
-
-# def dump_metrics(f, nqueries, cutoffs, success, counts):
-#     for cutoff in cutoffs:
-#         success_log = "#> P@{} = {}".format(cutoff, success[cutoff] / nqueries)
-#         counts_log = "#> D@{} = {}".format(cutoff, counts[cutoff] / nqueries)
-#         print('\n'.join([success_log, counts_log]) + '\n')
-
-#         f.write('\n'.join([success_log, counts_log]) + '\n\n')
