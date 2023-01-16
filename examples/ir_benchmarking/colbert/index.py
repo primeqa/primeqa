@@ -1,8 +1,4 @@
 
-
-# TODO: This is the loaded index, underneath a searcher.
-
-
 """
 ## Operations:
 
