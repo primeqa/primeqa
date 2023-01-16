@@ -62,7 +62,7 @@ class ColBERT(BaseColBERT):
         return scores
 
     def compute_ib_loss(self, Q, D, D_mask):
-        # TODO: Organize the code below! Quite messy.
+        
         scores = (D.unsqueeze(0) @ Q.permute(0, 2, 1).unsqueeze(1)).flatten(0, 1)  # query-major unsqueeze
 
         scores = colbert_score_reduce(scores, D_mask.repeat(Q.size(0), 1, 1), self.colbert_config)
@@ -113,7 +113,6 @@ class ColBERT(BaseColBERT):
         return D
 
     def score(self, Q, D_padded, D_mask):
-        # assert self.colbert_config.similarity == 'cosine'
 
         if self.colbert_config.similarity == 'l2':
             assert self.colbert_config.interaction == 'colbert'
@@ -126,9 +125,6 @@ class ColBERT(BaseColBERT):
         return mask
 
 
-# TODO: In Query/DocTokenizer, use colbert.raw_tokenizer
-
-# TODO: The masking below might also be applicable in the kNN part
 def colbert_score_reduce(scores_padded, D_mask, config: ColBERTConfig):
     D_padding = ~D_mask.view(scores_padded.size(0), scores_padded.size(1)).bool()
     scores_padded[D_padding] = -9999
@@ -154,7 +150,6 @@ def colbert_score_reduce(scores_padded, D_mask, config: ColBERTConfig):
     return scores.sum(-1)
 
 
-# TODO: Wherever this is called, pass `config=`
 def colbert_score(Q, D_padded, D_mask, config=ColBERTConfig()):
     """
         Supply sizes Q = (1 | num_docs, *, dim) and D = (num_docs, *, dim).
