@@ -19,14 +19,7 @@ class HF_ColBERT(BertPreTrainedModel):
         self.bert = BertModel(config)
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
 
-        # if colbert_config.relu:
-        #     self.score_scaler = nn.Linear(1, 1)
-
         self.init_weights()
-
-        # if colbert_config.relu:
-        #     self.score_scaler.weight.data.fill_(1.0)
-        #     self.score_scaler.bias.data.fill_(-8.0)
 
     @classmethod
     def from_pretrained(cls, name_or_path, colbert_config):
@@ -59,11 +52,4 @@ class HF_ColBERT(BertPreTrainedModel):
         obj.base = name_or_path
 
         return obj
-
-"""
-TODO: It's easy to write a class generator that takes "name_or_path" and loads AutoConfig to check the Architecture's
-      name, finds that name's *PreTrainedModel and *Model in dir(transformers), and then basically repeats the above.
-
-      It's easy for the BaseColBERT class to instantiate things from there.
-"""
 
