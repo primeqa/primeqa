@@ -11,8 +11,6 @@ from colbert.modeling.colbert import ColBERT
 class Checkpoint(ColBERT):
     """
         Easy inference with ColBERT.
-
-        TODO: Add .cast() accepting [also] an object instance-of(Checkpoint) as first argument.
     """
 
     def __init__(self, name, colbert_config=None):
@@ -132,15 +130,3 @@ def _stack_3D_tensors(groups):
     return output
 
 
-"""
-TODO:
-
-def tokenize_and_encode(checkpoint, passages):
-    embeddings, token_ids = checkpoint.docFromText(passages, bsize=128, keep_dims=False, showprogress=True, return_tokens=True)
-    tokens = [checkpoint.doc_tokenizer.tok.convert_ids_to_tokens(ids.tolist()) for ids in token_ids]
-    tokens = [tokens[:tokens.index('[PAD]') if '[PAD]' in tokens else -1] for tokens in tokens]
-    tokens = [[tok for tok in tokens if tok not in checkpoint.skiplist] for tokens in tokens]
-
-    return embeddings, tokens
-
-"""
