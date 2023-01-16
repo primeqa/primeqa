@@ -14,8 +14,6 @@ from utility.utils.save_metadata import format_metadata, get_metadata
 from utility.evaluate.annotate_EM_helpers import *
 
 
-# TODO: Tokenize passages in advance, especially if the ranked list is long! This requires changes to the has_answer input, slightly.
-
 def main(args):
     qas = load_qas_(args.qas)
     collection = load_collection_(args.collection, retain_titles=True)
