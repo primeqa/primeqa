@@ -28,8 +28,7 @@ class IndexSaver():
             return False
 
     def check_chunk_exists(self, chunk_idx):
-        # TODO: Verify that the chunk has the right amount of data?
-
+        
         doclens_path = os.path.join(self.config.index_path_, f'doclens.{chunk_idx}.json')
         if not os.path.exists(doclens_path):
             return False
