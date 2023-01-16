@@ -1,29 +1,11 @@
 import torch
 
-
 def tensorize_triples(query_tokenizer, doc_tokenizer, queries, passages, scores, bsize, nway):
-    # assert len(passages) == len(scores) == bsize * nway
-    # assert bsize is None or len(queries) % bsize == 0
-
-    # N = len(queries)
     Q_ids, Q_mask = query_tokenizer.tensorize(queries)
     D_ids, D_mask = doc_tokenizer.tensorize(passages)
-    # D_ids, D_mask = D_ids.view(2, N, -1), D_mask.view(2, N, -1)
-
-    # # Compute max among {length of i^th positive, length of i^th negative} for i \in N
-    # maxlens = D_mask.sum(-1).max(0).values
-
-    # # Sort by maxlens
-    # indices = maxlens.sort().indices
-    # Q_ids, Q_mask = Q_ids[indices], Q_mask[indices]
-    # D_ids, D_mask = D_ids[:, indices], D_mask[:, indices]
-
-    # (positive_ids, negative_ids), (positive_mask, negative_mask) = D_ids, D_mask
 
     query_batches = _split_into_batches(Q_ids, Q_mask, bsize)
     doc_batches = _split_into_batches(D_ids, D_mask, bsize * nway)
-    # positive_batches = _split_into_batches(positive_ids, positive_mask, bsize)
-    # negative_batches = _split_into_batches(negative_ids, negative_mask, bsize)
 
     if len(scores):
         score_batches = _split_into_batches2(scores, bsize * nway)
