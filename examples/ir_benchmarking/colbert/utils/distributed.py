@@ -5,9 +5,6 @@ import numpy as np
 
 ALREADY_INITALIZED = False
 
-# TODO: Consider torch.distributed.is_initialized() instead
-
-
 def init(rank):
     nranks = 'WORLD_SIZE' in os.environ and int(os.environ['WORLD_SIZE'])
     nranks = max(1, nranks)
