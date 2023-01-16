@@ -55,6 +55,9 @@ class QGDataLoader:
                 raise ValueError(
                     "Loaded dataset is of type DatasetDict, did you choose a split?"
                 )
+        else:
+            assert(dataset_split is not None)
+            dataset = dataset[dataset_split]
 
         # NOTE works only if data has correct format
         return self.processor(dataset)
