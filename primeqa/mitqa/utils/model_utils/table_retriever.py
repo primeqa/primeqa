@@ -9,6 +9,18 @@ from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
 
 def train_table_retriever(root_dir,triples_file_name):
+    """
+    The train_table_retriever function trains a table retriever model.
+    It takes as input the root directory of the dataset and the name of triples file.
+    The output is stored in a folder named 'table_retriever' under root directory.
+    
+    Args:
+        root_dir: Specify the directory where all of the files for training are stored
+        triples_file_name: Specify the name of the text triples file that will be used for training
+    
+    Returns:
+        The trained model and the tokenizer
+    """
     output_dir=os.path.join(root_dir, 'table_retriever')
     os.makedirs(output_dir, exist_ok=True)
     print(output_dir)
@@ -27,6 +39,20 @@ def train_table_retriever(root_dir,triples_file_name):
         trainer.train()
         
 def predict_table_retriever(data_path_root,collection_file,raw_data):
+    """
+    The predict_table_retriever function takes in a data_path_root, collection file and raw data.
+    It then creates an output directory for the table retriever model to be stored in. 
+    The indexer is called which will create the sharded index of the corpus and save it to output_dir. 
+    The searcher is called which will load the qry encoder from model_name_or path and use it to search over all queries in query batch size of 256 on top k = 5 documents from our corpus that are indexed at location specified by index location. The retrieved document IDs are returned along with passages.
+    
+    Args:
+        data_path_root: Specify the path to the root directory of your data
+        collection_file: Specify the path to the collection file
+        raw_data: Pass the data that we want to predict
+    
+    Returns:
+        A list of dictionaries
+    """
     output_dir=os.path.join(data_path_root, 'table_retriever')
     if not os.path.exists(output_dir):
         collection_fn = os.path.join(data_path_root, collection_file)
@@ -52,14 +78,15 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
         searcher = DPRSearcher()
     new_data = []
     for d in tqdm(raw_data):
-        p_data = {}
         query = d['question']
         retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 5, mode = 'query_list')
-        p_data['question'] =query
-        p_data['question_id'] = d['question_id']
-        p_data["table_id"] = retrieved_doc_ids[0][0]
-        p_data["answer-text"] = d['answer-text']
-        new_data.append(p_data)
+        for id in range(len(retrieved_doc_ids[0])):
+            p_data = {}
+            p_data['question'] =query
+            p_data['question_id'] = d['question_id']
+            p_data["table_id"] = retrieved_doc_ids[0][id]
+            p_data["answer-text"] = d['answer-text']
+            new_data.append(p_data)
     return new_data
         
 if __name__=="__main__":

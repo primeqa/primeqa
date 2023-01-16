@@ -161,9 +161,6 @@ class RowRetriever():
         return q_id_scores_list
 
     def train(self,train_data_processed,dev_data_processed):
-        # if self.t_args.row_retriever_model_name_path != '':
-        #     state_dict = torch.load(self.t_args.row_retriever_model_name_path)
-        #     self.model.load_state_dict(state_dict,strict=True)
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
@@ -171,11 +168,6 @@ class RowRetriever():
 
         self.model.to(self.device)
         bert_tokenizer = BertTokenizer.from_pretrained(self.t_args.rr_model_name)
-        print('Model Loaded')
-
-        #Load train and dev data from raw files
-        #train_data = read_data(train_data_path)
-        #dev_data = read_data(dev_data_path)
         train_data = train_data_processed
         dev_data = dev_data_processed
 
@@ -188,8 +180,6 @@ class RowRetriever():
         dev_data_loader, _ = partial_label_data_loader(dev_data,
                                                     tokenized_data = dev_dataset,
                                                     batch_size=self.t_args.per_device_eval_batch_size_rr)
-
-        print('Partial label dataset-loaders created!')
 
         #loss function
         criterion = nn.CrossEntropyLoss(reduce=False) # using reduce=False to get loss per instance

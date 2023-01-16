@@ -798,8 +798,6 @@ class SquadExample(object):
 
 class SquadProcessor(DataProcessor):
     def get_train_examples(self, filename=None):
-        #with open(os.path.join(filename), "r", encoding="utf-8") as reader:
-        #    input_data = json.load(reader)
         input_data = readGZip(filename)
         return self._create_examples(input_data, "train")
 
@@ -903,17 +901,6 @@ def load_and_cache_examples(args,ae_data, tokenizer, evaluate=False, output_exam
             ),
         )
 
-        # Init features and dataset from cache if it exists
-    # if os.path.exists(cached_features_file) and not args.overwrite_cache:
-    #     logger.info("Loading features from cached file %s", cached_features_file)
-    #     features_and_dataset = torch.load(cached_features_file)
-    #     features, dataset, examples = (
-    #         features_and_dataset["features"],
-    #         features_and_dataset["dataset"],
-    #         features_and_dataset["examples"],
-    #     )
-    # else:
-
     logger.info("Creating features from dataset file at %s", args.output_dir)
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
@@ -960,7 +947,6 @@ def train_ae(args,ae_data):
     args.n_gpu = torch.cuda.device_count()
 
     args.device = device
-    #args.output_dir = os.path.join(args.output_dir, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
     # Setup logging
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -995,9 +981,6 @@ def train_ae(args,ae_data):
 
     logger.info("Training/evaluation parameters %s", args)
 
-    # Before we do anything with models, we want to ensure that we get fp16 execution of torch.einsum if args.fp16 is set.
-    # Otherwise it'll default to "promote" mode, and we'll get fp32 operations. Note that running `--fp16_opt_level="O2"` will
-    # remove the need for this code, but it is still valid.
     if args.fp16:
         try:
             import apex
@@ -1010,7 +993,19 @@ def train_ae(args,ae_data):
     logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
 def predict_ae(args,ae_data):
-    print("here we are")
+    """
+    The predict_ae function is a helper function that wraps the functionality of the
+    `run_squad.py` script (which we call &quot;main&quot; from here).  It takes in as input:
+    
+    Args:
+        args: Set the task specific parameters
+        ae_data: Pass the data to the predict_ae function
+    
+    Returns:
+        path to the predicted file and nbest file
+    
+   
+    """
     if args.doc_stride >= args.max_seq_length - args.max_query_length:
         logger.warning(
             "WARNING - You've set a doc stride which may be superior to the document length in some "
@@ -1024,7 +1019,6 @@ def predict_ae(args,ae_data):
     args.n_gpu = torch.cuda.device_count()
 
     args.device = device
-    #args.output_dir = os.path.join(args.output_dir, datetime.now().strftime('%Y_%m_%d_%H_%M_%S'))
     # Setup logging
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -1059,10 +1053,6 @@ def predict_ae(args,ae_data):
     logger.info("Loading checkpoint %s for evaluation", args.model_name_or_path_ae)
     model = model_class.from_pretrained(args.model_name_or_path_ae)
     model.to(args.device)
-    
-    #evaluate(args, model, tokenizer, prefix=global_step)
-    # with open(args.predict_file, 'r') as f:
-    #     data = json.load(f)
     data=ae_data
     full_split = []
     key2idx = {}
