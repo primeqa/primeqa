@@ -53,7 +53,6 @@ class BaseConfig(CoreConfig):
             dnn = torch_load_dnn(checkpoint_path)
             config, _ = cls.from_deprecated_args(dnn.get('arguments', {}))
 
-            # TODO: FIXME: Decide if the line below will have any unintended consequences. We don't want to overwrite those!
             config.set('checkpoint', checkpoint_path)
 
             return config
@@ -69,14 +68,7 @@ class BaseConfig(CoreConfig):
 
     @classmethod
     def load_from_index(cls, index_path):
-        # FIXME: We should start here with initial_config = ColBERTConfig(config, Run().config).
-        # This should allow us to say initial_config.index_root. Then, below, set config = Config(..., initial_c)
-
-        # default_index_root = os.path.join(Run().root, Run().experiment, 'indexes/')
-        # index_path = os.path.join(default_index_root, index_path)
-
-        # CONSIDER: No more plan/metadata.json. Only metadata.json to avoid weird issues when loading an index.
-
+        
         try:
             metadata_path = os.path.join(index_path, 'metadata.json')
             loaded_config, _ = cls.from_path(metadata_path)
@@ -93,7 +85,6 @@ class BaseConfig(CoreConfig):
             args = self.export()  # dict(self.__config)
             args['meta'] = get_metadata_only()
             args['meta']['version'] = 'colbert-v0.4'
-            # TODO: Add git_status details.. It can't be too large! It should be a path that Runs() saves on exit, maybe!
 
             f.write(ujson.dumps(args, indent=4) + '\n')
 
