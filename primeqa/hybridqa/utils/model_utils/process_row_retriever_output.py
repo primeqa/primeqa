@@ -77,11 +77,9 @@ def create_dataset_for_answer_extractor(data, data_path_root,test=False):
 
 
 # We use the Bi-Encoder to encode all passages, so that we can use it with sematic search
-model_name = 'msmarco-distilbert-base-tas-b'
-doc_retriever = SentenceTransformer(model_name)
 top_k = 2
 
-def get_top_k_passages(passages,query,top_k, row=None):
+def get_top_k_passages(doc_retriever,passages,query,top_k, row=None):
     old_passages = passages
     if row is not None:
         row_str = ""
@@ -118,9 +116,37 @@ def preprocess_instance(d,test=False):
     p_d['table'] = fetch_table(d['table_id'])
     p_d['table_id'] = d['table_id']
     return p_d
+
+def preprocess_ottqa_instance(d,test=False):
+    p_d = {}
+    p_d['question'] = d['question']
+    p_d['question_id'] = d['question_id']
+    if not test:
+        p_d['answer-text'] = d['answer-text']
+    p_d['table_id'] = d['table_id']
+    return p_d
+    
+def preprocess_data_using_row_retrieval_scores_ottqa(raw_dataset_with_ids,qid_scores_dict,test):
+    
+    p = qid_scores_dict
+    new_data =[]
+    for d in tqdm(raw_dataset_with_ids):
+        question_id = d['question_id']
+        prefix_qid = question_id.split("_")[0]
+        suffix_qid = question_id.split("_")[1]
+        topk = get_max_score_row(p,prefix_qid)
+        if int(suffix_qid) in topk:
+            d['question_id']=prefix_qid
+            new_data.append(d)
+        else:
+            continue 
+    return new_data
+
+    
     
 
-def preprocess_data_using_row_retrieval_scores(raw_data,qid_scores_dict,test):
+
+def preprocess_data_using_row_retrieval_scores(doc_retriever,raw_data,qid_scores_dict,test):
     #data = json.load(open(data_path))
     #p = json.load(open(row_ret_pred_path))
     p = qid_scores_dict
@@ -181,7 +207,7 @@ def preprocess_data_using_row_retrieval_scores(raw_data,qid_scores_dict,test):
             elif (len(npr)==1):
                 npr = npr[0]
             else:
-                npr = " ".join(get_top_k_passages(npr, question_str, 100, r))
+                npr = " ".join(get_top_k_passages(doc_retriever,npr, question_str, 100, r))
                 #npr = " ".join(npr)
 
             

@@ -2,6 +2,7 @@ import json
 import os
 
 resource_path = "/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/hybridqa/WikiTables-WithLinks"
+resource_path_ottqa = "/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/all_plain_tables.json"
 
 def load_data(table_id):
     with open('{}/request_tok/{}.json'.format(resource_path, table_id)) as f:
@@ -9,6 +10,10 @@ def load_data(table_id):
     with open('{}/tables_tok/{}.json'.format(resource_path, table_id)) as f:
         table = json.load(f)
     return table,requested_documents
+
+
+    
+    
 
 
 def load_passages(data_path_root):
@@ -23,9 +28,7 @@ def fetch_ottqa_passages(d,passages_dict):
         row_passage = [passages_dict[i] for i in row_links if i in passages_dict.keys()]
         passages_rows.append(row_passage)
     return table, passages_rows
-    
-
-    
+        
 
 
 def fetch_table(table_id):

@@ -1,6 +1,6 @@
 import os
 import argparse, sys
-
+import json
 import tempfile
 from unittest.mock import patch
 from tqdm import tqdm
@@ -19,8 +19,8 @@ def train_table_retriever(root_dir,triples_file_name):
         "prog",
         "--train_dir", text_triples_fn,
         "--output_dir", output_dir,
-        "--full_train_batch_size", "1",
-        "--num_train_epochs", "1",
+        "--full_train_batch_size", "256",
+        "--num_train_epochs", "3",
         "--training_data_type", "text_triples"]
 
     with patch.object(sys, 'argv', model_training_args):
@@ -36,7 +36,7 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
                 "--dpr_ctx_encoder_path", os.path.join(output_dir, "ctx_encoder"),
                 "--embed", "1of1",
                 "--sharded_index",
-                "--batch_size", "1",
+                "--batch_size", "256",
                 "--corpus", collection_fn,
                 "--output_dir", output_dir]    
         with patch.object(sys, 'argv', indexing_args):
@@ -55,13 +55,16 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
     for d in tqdm(raw_data):
         p_data = {}
         query = d['question']
-        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 1, mode = 'query_list')
+        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 5, mode = 'query_list')
         p_data['question'] =query
         p_data['question_id'] = d['question_id']
         p_data["table_id"] = retrieved_doc_ids[0][0]
         p_data["answer-text"] = d['answer-text']
         new_data.append(p_data)
+    #json.dump(new_data, open(output_dir+"/table_retriever_output_test.json", "w"))
     return new_data
         
 if __name__=="__main__":
-    train_table_retriever()   
+    #train_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","triples_train.tsv")   
+    raw_data = json.load(open("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/released_data/dev.json"))
+    predict_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","linearized_tables.tsv",raw_data)

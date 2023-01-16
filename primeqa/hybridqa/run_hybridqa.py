@@ -7,13 +7,14 @@ from utils.model_utils.row_retriever_MITQA import RowRetriever
 from utils.model_utils.reranker import re_rank_ae_output
 from utils.link_predictor import predict_link_for_tables,train_link_generator
 from utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
-from utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
+from utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor,preprocess_data_using_row_retrieval_scores_ottqa
 from utils.model_utils.answer_extractor_multi_Answer import train_ae,predict_ae
-from processors.preprocessors.preprocess_raw_data import preprocess_data
+from processors.preprocessors.preprocess_raw_data import preprocess_data,load_st_model
 import logging
 import torch
 import os
 import sys
+from utils.ottqa_utils  import assign_ids
 from utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
    
 
@@ -31,22 +32,28 @@ def run_hybrid_qa():
    raw_dev_data = json.load(open(hqa_args.dev_data_path))
    raw_test_data = json.load(open(hqa_args.test_data_path))
    test=False
+   doc_retriever = load_st_model()
    if hqa_args.test_data_path is not None and hqa_args.test:
       logger.info("Test Mode")
       test=True
       ae_args.do_predict_ae = True
       if hqa_args.dataset_name=="ottqa":
-         retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
-         json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
-         linked_data = predict_link_for_tables(lp_args,retrieved_data)
-         test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
+         #retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_test_data)
+         #json.dump(retrieved_data,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json"),"w"))
+         retrieved_data = json.load(open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_test.json")))
+         linked_data = predict_link_for_tables(lp_args,retrieved_data,doc_retriever)
+         json.dump(linked_data,open(os.path.join(hqa_args.data_path_root,"linked_data_test.json"),"w"))
+         test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       else:
-         test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
+         test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
+      #test_data_processed = json.load(open("data/ottqa/test_processed.json"))
       logger.info("Initial preprocessing done")
       rr = RowRetriever(hqa_args,rr_args)
       qid_scores_dict = rr.predict(test_data_processed)
       logger.info("Row retrieval predictions Done")
-      test_processed_data = preprocess_data_using_row_retrieval_scores(raw_test_data,qid_scores_dict,test)
+      #qid_scores_dict = json.load(open("data/ottqa/row_ret_scores.json"))
+      raw_test_data_with_ids = assign_ids(test_data_processed)
+      test_processed_data = preprocess_data_using_row_retrieval_scores_ottqa(raw_test_data_with_ids,qid_scores_dict,test)
       logger.info("Row retrieval output processed")
       answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
       logger.info("Answer extraction data generated")
@@ -67,11 +74,11 @@ def run_hybrid_qa():
          retrieved_data_dev = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_dev_data)
          json.dump(retrieved_data_dev,open(os.path.join(hqa_args.data_path_root,"table_retrieval_output_dev.json"),"w"))
          linked_data_dev = predict_link_for_tables(lp_args,retrieved_data_dev)
-         train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_train,split="train",test=test)
-         dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,linked_data_dev,split="dev",test=test)
+         train_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,linked_data_train,split="train",test=test)
+         dev_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,linked_data_dev,split="dev",test=test)
       else:
-         train_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
-         dev_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
+         train_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_train_data,split="train",test=test)
+         dev_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_dev_data,split="dev",test=test)
          #train_data_processed = json.load(open("data/hybridqa/train_processed.json"))
          #dev_data_processed = json.load(open("data/hybridqa/dev_processed.json"))
       #logger.info("Train: Initial preprocessing done")
@@ -84,9 +91,9 @@ def run_hybrid_qa():
       json.dump(qid_scores_dict_dev,open("data/hybridqa/qid_scores_dev.json","w"))
       #qid_scores_dict_dev = json.load(open("data/hybridqa/qid_scores_dev.json"))
 
-      train_processed_data = preprocess_data_using_row_retrieval_scores(raw_train_data,qid_scores_dict_train,test)
+      train_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_train_data,qid_scores_dict_train,test)
       
-      dev_processed_data = preprocess_data_using_row_retrieval_scores(raw_dev_data,qid_scores_dict_dev,True)
+      dev_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_dev_data,qid_scores_dict_dev,True)
       answer_extraction_train_data = create_dataset_for_answer_extractor(train_processed_data,hqa_args.data_path_root,test)
       json.dump(answer_extraction_train_data, open("data/hybridqa/answer_extraction_train_data.json","w"))
       answer_extraction_dev_data = create_dataset_for_answer_extractor(dev_processed_data,hqa_args.data_path_root,True)
