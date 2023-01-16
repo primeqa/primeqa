@@ -11,17 +11,10 @@ def optimize_ivf(orig_ivf, orig_ivf_lengths, index_path):
     print_message("#> Building the emb2pid mapping..")
     all_doclens = load_doclens(index_path, flatten=False)
 
-    # assert self.num_embeddings == sum(flatten(all_doclens))
-
     all_doclens = flatten(all_doclens)
     total_num_embeddings = sum(all_doclens)
 
     emb2pid = torch.zeros(total_num_embeddings, dtype=torch.int)
-
-    """
-    EVENTUALLY: Use two tensors. emb2pid_offsets will have every 256th element.
-    emb2pid_delta will have the delta from the corresponding offset,
-    """
 
     offset_doclens = 0
     for pid, dlength in enumerate(all_doclens):
