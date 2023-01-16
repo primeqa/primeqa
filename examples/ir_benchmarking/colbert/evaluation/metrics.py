@@ -110,5 +110,3 @@ def evaluate_recall(qrels, queries, topK_pids):
     recall_at_k = round(recall_at_k, 3)
     print("Recall @ maximum depth =", recall_at_k)
 
-
-# TODO: If implicit qrels are used (for re-ranking), warn if a recall metric is requested + add an asterisk to output.
