@@ -92,5 +92,10 @@ with open(sys.argv[1], 'r') as f:
 
 with open(sys.argv[2], 'r') as f:
     ref = json.load(f)
+    
+def get_em_and_f1_hybridqa(data_file,ref_file):
+    data = json.load(data_file)
+    ref = json.load(ref_file)
+    return get_raw_scores(data, ref)
 
 print(get_raw_scores(data, ref))

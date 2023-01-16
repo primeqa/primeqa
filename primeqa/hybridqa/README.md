@@ -19,3 +19,7 @@ python primeqa/hybridqa/run_hybridqa.py primeqa/hybridqa/config/inference_hybrid
 ```shell
 python primeqa/hybridqa/run_hybridqa.py primeqa/hybridqa/config/inference_ottqa.json
 ```
+
+#### Dataset and Performance
+- Model trained on hybridqa dataset achieves: 65 % EM and 72 % F1 on dev set.
+- Model trained on ottqa dataset achievs:  28% EM and 31% F1 on dev set.
