@@ -48,7 +48,7 @@ from primeqa.mrc.trainers.mrc_mskd import MSKD_MRCTrainer
 from primeqa.text_classification.run_nway_classifier import main as cls_main
 from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 from primeqa.boolqa.run_score_normalizer import main as sn_main
-from run_mrc_utils import object_reference, get_raw_datasets, process_raw_datasets
+from primeqa.mrc.run_mrc_utils import object_reference, get_raw_datasets, process_raw_datasets
 
 
 
