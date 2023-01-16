@@ -20,13 +20,10 @@ class Run(object):
             cls._instance = super().__new__(cls)
             cls._instance.stack = []
 
-            # TODO: Save a timestamp here! And re-use it! But allow the user to override it on calling Run().context a second time.
             run_config = RunConfig()
             run_config.assign_defaults()
             
             cls._instance.__append(run_config)
-
-        # TODO: atexit.register(all_done)
 
         return cls._instance
 
@@ -41,7 +38,6 @@ class Run(object):
         super().__getattr__(name)
 
     def __append(self, runconfig: RunConfig):
-        # runconfig.disallow_writes(readonly=True)
         self.stack.append(runconfig)
 
     def __pop(self):
@@ -87,6 +83,3 @@ if __name__ == '__main__':
 
         print(Run().config, '!')
         print(Run().rank)
-
-
-# TODO: Handle logging all prints to a file. There should be a way to determine the level of logs that go to stdout.
