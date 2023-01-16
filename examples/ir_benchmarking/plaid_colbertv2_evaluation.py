@@ -17,10 +17,6 @@ print(torch.cuda.device_count())
 
 CKPT = "msmarco.psg.kldR2.nway64.ib__colbert-400000"
 
-#chosen_collection = "collection.tsv" 
-#chosen_queries = "queries.dev.small.tsv" 
-#chosen_dataset = "MS_MARCO"
-
 chosen_collection = "psgs_w100.tsv" 
 chosen_queries = "xorqa_dev_gmt.tsv" 
 chosen_dataset = "XOR_TyDi"
@@ -67,9 +63,6 @@ def evaluate(index=True):
         else:
             device = "gpu"
         
-        #ranking = searcher.search_all(queries, k=k)
-        #ranking.save(f"msmarco.k={k}.device={device}.ranking.tsv")
-
         # Warmup
         print("Performing warmup!") 
         for query, count in zip(queries, range(10)):
