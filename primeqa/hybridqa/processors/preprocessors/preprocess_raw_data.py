@@ -14,11 +14,13 @@ if not torch.cuda.is_available():
   print("Warning: No GPU found. Please add GPU to your notebook")
 
 
-model_name = 'msmarco-distilbert-base-tas-b' 
-doc_retriever = SentenceTransformer(model_name)
+def load_st_model():
+    model_name = 'msmarco-distilbert-base-tas-b' 
+    doc_retriever = SentenceTransformer(model_name)
+    return doc_retriever
 
 """ Rank passages most relevant to the query higher than other passages """
-def get_top_k_passages(passages,query,top_k, row=None):
+def get_top_k_passages(doc_retriever,passages,query,top_k, row=None):
     old_passages = passages
     if row is not None:
         row_str = ""
@@ -57,7 +59,7 @@ def preprocess_instance(d,dataset_name,passages_dict=None,test=False):
 
 
 """ Preprocess the full data """
-def preprocess_data(data_root_path,dataset_name,raw_data,split,test):
+def preprocess_data(doc_retriever,data_root_path,dataset_name,raw_data,split,test):
     #data = json.load(open(data_path))
     passages_dict = None
     if dataset_name=="ottqa":
@@ -116,7 +118,7 @@ def preprocess_data(data_root_path,dataset_name,raw_data,split,test):
             elif (len(npr)==1):
                 npr = npr[0]
             else:
-                npr = " ".join(get_top_k_passages(npr, question_str, 100, r))
+                npr = " ".join(get_top_k_passages(doc_retriever, npr, question_str, 100, r))
             
             npi['table_passage_row'] = npr
             

@@ -20,12 +20,30 @@ from primeqa.hybridqa.utils.hybridqa_utils import whitelist, is_year
 import sys
 import copy
 import pdb
+import pickle
+from sentence_transformers import SentenceTransformer, CrossEncoder, util
+
+
 
 def set_seed(args):
     np.random.seed(args.seed_lg)
     torch.manual_seed(args.seed_lg)
     if args.n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed_lg)
+        
+def get_top_k_passages_from_corpus(passage_embeddings,passage_id_dict,doc_retriever,query,top_k):
+    
+    corpus_embeddings = util.normalize_embeddings(passage_embeddings)
+
+    query_embeddings = doc_retriever.encode([query], convert_to_tensor=True)
+    query_embeddings = util.normalize_embeddings(query_embeddings)
+
+    hits = util.semantic_search(query_embeddings, corpus_embeddings, top_k=top_k, score_function=util.dot_score)
+    hits = hits[0]
+    relevant_sents =[]
+    for hit in hits:
+        relevant_sents.append(passage_id_dict[hit['corpus_id']])
+    return relevant_sents
 
 def get_links(mapping,row_id):
     links =[]
@@ -151,8 +169,18 @@ def train_link_generator(args):
         torch.save(model.module.state_dict(), 'link_generator/model-ep{}.pt'.format(epoch))
      
 
-def predict_link_for_tables(args,retrieved_data):
- 
+def predict_link_for_tables(args,retrieved_data,doc_retriever):
+    # passage_emb = pickle.load(open("/dccstor/cssblr/vishwajeet/git/tabtextqa/data/ott_qa/passage_embeddings_all_passages.pickle",'rb'))
+    # print("passage embedding loaded")
+    # enum = enumerate(passage_emb.keys())
+    # passage_id_dict = dict((i,j) for i,j in enum)
+    # print("passage dict created")
+    # passage_embeddings = torch.stack(list(passage_emb.values()))
+    # print("passage torch embedding object created")
+
+    # passage_path = "data/ottqa/all_passages.json"
+    # passage_dict = json.load(open(passage_path))
+    # print("Passage dict loaded")
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)
     tokenizer.add_tokens(['[SEP]', '[EOS]', '[START]', '[ENT]'])
     model = GPT2LMHeadModel.from_pretrained(args.model)
@@ -164,6 +192,7 @@ def predict_link_for_tables(args,retrieved_data):
         
     dataset = LinkGenearationDataset(table_dict, 'custom', tokenizer, args.max_source_len, args.max_target_len, args.shard)
     sampler = SequentialSampler(dataset)
+    
     dev_dataloader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size_lg, num_workers=8, pin_memory=True, drop_last=True)        
     print("Dataset Size = {}. Loader Size = {}".format(len(dataset), len(dev_dataloader)))
     
@@ -212,7 +241,10 @@ def predict_link_for_tables(args,retrieved_data):
             row_id = table_id+"_"+str(i)
             # print(row_id)
             row_links = get_links(mapping,row_id)
+            #new_links = get_top_k_passages_from_corpus(passage_embeddings,passage_id_dict,doc_retriever,d['question']+" "+ " ".join(r),5)
+            #table_links.append(row_links+new_links)table_links.append(row_links
             table_links.append(row_links)
+
         d['row_passage_links'] = table_links
         d["table"] = table_data
         new_data.append(d)

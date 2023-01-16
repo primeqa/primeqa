@@ -23,12 +23,12 @@ def linearize_table(table_id,all_tables):
         
 
 def load_all_tables():
-    data = json.load(open("data/released_data/ottqa/all_plain_tables.json"))
+    data = json.load(open("data/ottqa/all_plain_tables.json"))
     return data  
 
 def create_collections():
     data = load_all_tables()
-    tsv_file = open("data/released_data/ottqa/linearized_tables.tsv", 'w', encoding='utf8', newline='')
+    tsv_file = open("data/ottqa/linearized_tables.tsv", 'w', encoding='utf8', newline='')
     tsv_writer = csv.writer(tsv_file, delimiter='\t',lineterminator='\n')
     for k,v in data.items():
         id = k
@@ -41,8 +41,8 @@ def create_collections():
 
 def gen_triples_from_dict(split):
     all_tables = load_all_tables()
-    triples_data = json.load(open("data/released_data/ottqa/triples_dict_"+split+".json"))
-    tsv_file = open("data/released_data/ottqa/triples_"+split+".tsv", 'w', encoding='utf8', newline='')
+    triples_data = json.load(open("data/ottqa/triples_dict_"+split+".json"))
+    tsv_file = open("data/ottqa/triples_"+split+".tsv", 'w', encoding='utf8', newline='')
     tsv_writer = csv.writer(tsv_file, delimiter='\t', lineterminator='\n')
     for k,v in tqdm(triples_data.items()):
         question = k
@@ -56,7 +56,7 @@ def gen_triples_from_dict(split):
 def gen_pos_neg_table_id_dict(split):
     """Generates training data for training dpr
     """
-    data = json.load(open("data/released_data/"+split+".json"))
+    data = json.load(open("data/ottqa/released_data/"+split+".json"))
     question_table_id_dict = {}
     all_table_ids = list(load_all_tables().keys())
     neg_tables= all_table_ids.copy()
@@ -74,7 +74,7 @@ def gen_pos_neg_table_id_dict(split):
         neg_tables.append(pos_table_id)
 
     print(not_found)
-    json.dump(question_table_id_dict,open("data/released_data/ottqa/triples_dict_"+split+".json","w"))
+    json.dump(question_table_id_dict,open("data/ottqa/triples_dict_"+split+".json","w"))
     
 def generate_table_retriever_data(split):
     gen_pos_neg_table_id_dict(split)

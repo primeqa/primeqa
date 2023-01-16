@@ -9,7 +9,7 @@ from primeqa.hybridqa.utils.model_utils.row_retriever_MITQA import RowRetriever
 from primeqa.hybridqa.utils.model_utils.reranker import re_rank_ae_output
 from primeqa.hybridqa.utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
 from primeqa.hybridqa.utils.model_utils.answer_extractor_multi_Answer import run_answer_extractor
-from primeqa.hybridqa.processors.preprocessors.preprocess_raw_data import preprocess_data
+from primeqa.hybridqa.processors.preprocessors.preprocess_raw_data import preprocess_data,load_st_model
 import logging
 import torch
 import os
@@ -63,14 +63,15 @@ class TestHybridqa():
         test=True
         hqa_args,lp_args,rr_args,ae_args,= hqa_parser.parse_dict(config)
         raw_test_data = json.load(open(hqa_args.test_data_path))
+        doc_retriever = load_st_model()
         assert len(raw_test_data) !=0
-        test_data_processed = preprocess_data(hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
+        test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
         assert test_data_processed[0]['table_passage_row'] != None
         assert len(raw_test_data) == len(test_data_processed)
         rr = RowRetriever(hqa_args,rr_args)
         qid_scores_dict = rr.predict(test_data_processed)
         assert qid_scores_dict != None
-        test_processed_data = preprocess_data_using_row_retrieval_scores(raw_test_data,qid_scores_dict,test)
+        test_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_test_data,qid_scores_dict,test)
         assert test_processed_data != None
         answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
         assert answer_extraction_data != None
