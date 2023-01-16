@@ -61,7 +61,7 @@ class Ranking:
         raise NotImplementedError
 
     def save(self, new_path):
-        assert 'tsv' in new_path.strip('/').split('/')[-1].split('.'), "TODO: Support .json[l] too."
+        assert 'tsv' in new_path.strip('/').split('/')[-1].split('.')
 
         with Run().open(new_path, 'w') as f:
             for items in self.flat_ranking:
