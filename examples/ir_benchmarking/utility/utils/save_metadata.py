@@ -41,9 +41,6 @@ def get_metadata(args):
 
     return dict(args.__dict__)
 
-# TODO:  No reason for deepcopy. But: (a) Call provenance() on objects that can, (b) Only save simple, small objects. No massive lists or models or weird stuff!
-# With that, I think we don't even need (necessarily) to restrict things to input_arguments.
-
 def format_metadata(metadata):
     assert type(metadata) == dict
 
