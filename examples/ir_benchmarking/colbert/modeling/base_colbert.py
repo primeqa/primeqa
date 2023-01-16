@@ -80,28 +80,11 @@ if __name__ == '__main__':
 
     exit()
 
-    # m = HF_ColBERT.from_pretrained('nreimers/MiniLMv2-L6-H768-distilled-from-BERT-Large')
     m = HF_ColBERT.from_pretrained('/future/u/okhattab/tmp/2021/08/model.deleteme/')
     print('HF_ColBERT', m.linear.weight)
 
     m.save_pretrained('/future/u/okhattab/tmp/2021/08/model.deleteme/')
 
-    # old = OldColBERT.from_pretrained('bert-base-uncased')
-    # print(old.bert.encoder.layer[10].attention.self.value.weight)
-
-    # random.seed(12345)
-    # np.random.seed(12345)
-    # torch.manual_seed(12345)
-
     dnn = torch_load_dnn(
         "/future/u/okhattab/root/TACL21/experiments/Feb26.NQ/train.py/ColBERT.C3/checkpoints/colbert-60000.dnn")
-    # base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
-
-    # new = BaseColBERT.from_pretrained('bert-base-uncased', state_dict=dnn['model_state_dict'])
-
-    # print(new.bert.encoder.layer[10].attention.self.value.weight)
-
     print(dnn['model_state_dict']['linear.weight'])
-    # print(dnn['model_state_dict']['bert.encoder.layer.10.attention.self.value.weight'])
-
-    # # base_model_prefix
