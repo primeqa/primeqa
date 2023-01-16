@@ -78,12 +78,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     start_batch_idx = 0
 
-    # if config.resume:
-    #     assert config.checkpoint is not None
-    #     start_batch_idx = checkpoint['batch']
-
-    #     reader.skip_to_batch(start_batch_idx, checkpoint['arguments']['bsize'])
-
     for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
         if (warmup_bert is not None) and warmup_bert <= batch_idx:
             set_bert_grad(colbert, True)
@@ -145,7 +139,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         print_message("#> Done with all triples!")
         ckpt_path = manage_checkpoints(config, colbert, optimizer, batch_idx+1, savepath=None, consumed_all_triples=True)
 
-        return ckpt_path  # TODO: This should validate and return the best checkpoint, not just the last one.
+        return ckpt_path
     
 
 
