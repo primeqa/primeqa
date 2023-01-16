@@ -52,15 +52,3 @@ def get_deltas(directory):
     parts_paths = [os.path.join(directory, '{}{}'.format(filename, extension)) for filename in parts]
 
     return parts, parts_paths
-
-
-# def load_compression_data(level, path):
-#     with open(path, "r") as f:
-#         for line in f:
-#             line = line.split(',')
-#             bits = int(line[0])
-
-#             if bits == level:
-#                 return [float(v) for v in line[1:]]
-
-#     raise ValueError(f"No data found for {level}-bit compression")
