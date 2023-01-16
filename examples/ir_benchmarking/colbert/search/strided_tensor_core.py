@@ -6,16 +6,7 @@ import numpy as np
 from colbert.utils.utils import flatten
 
 
-"""
-import line_profiler
-import atexit
-profile = line_profiler.LineProfiler()
-atexit.register(profile.print_stats)
-"""
-
-
 class StridedTensorCore:
-    # # @profile
     def __init__(self, packed_tensor, lengths, dim=None, use_gpu=True):
         self.dim = dim
         self.tensor = packed_tensor
@@ -31,10 +22,6 @@ class StridedTensorCore:
         self.offsets = torch.cat((zero, torch.cumsum(self.lengths, dim=0)))
 
         if self.offsets[-2] + self.max_stride > self.tensor.size(0):
-            # if self.tensor.size(0) > 10_000_000:
-            #     print("#> WARNING: StridedTensor has to add padding, internally, to a large tensor.")
-            #     print("#> WARNING: Consider doing this padding in advance to save memory!")
-
             padding = torch.zeros(self.max_stride, *self.inner_dims, dtype=self.tensor.dtype, device=self.tensor.device)
             self.tensor = torch.cat((self.tensor, padding))
 
@@ -59,9 +46,6 @@ class StridedTensorCore:
 
     @classmethod
     def from_tensors_list(cls, tensors):
-        # torch.cat(tensors)
-        # lengths.
-        # cls(tensor, lengths)
         raise NotImplementedError()
 
     def as_packed_tensor(self, return_offsets=False):
@@ -74,14 +58,11 @@ class StridedTensorCore:
 
         return tuple(return_vals)
 
-    # # @profile
     def as_padded_tensor(self):
         if self.use_gpu:
             view = _create_view(self.tensor.cuda(), self.max_stride, self.inner_dims)[self.offsets[:-1]]
             mask = _create_mask(self.lengths.cuda(), self.max_stride, like=view, use_gpu=self.use_gpu)
         else:
-            #import pdb
-            #pdb.set_trace()
             view = _create_view(self.tensor, self.max_stride, self.inner_dims)
             view = view[self.offsets[:-1]]
             mask = _create_mask(self.lengths, self.max_stride, like=view, use_gpu=self.use_gpu)
