@@ -15,7 +15,6 @@ class ResidualEmbeddings:
             Supply the already compressed residuals.
         """
 
-        # assert isinstance(residuals, bitarray), type(residuals)
         assert codes.size(0) == residuals.size(0), (codes.size(), residuals.size())
         assert codes.dim() == 1 and residuals.dim() == 2, (codes.size(), residuals.size())
         assert residuals.dtype == torch.uint8
@@ -47,8 +46,6 @@ class ResidualEmbeddings:
 
             codes_offset = codes_endpos
 
-        # codes, residuals = codes.cuda(), residuals.cuda()  # FIXME: REMOVE THIS LINE!
-
         return cls(codes, residuals)
 
     @classmethod
@@ -65,25 +62,22 @@ class ResidualEmbeddings:
 
     @classmethod
     def load_residuals(self, index_path, chunk_idx):
-        residuals_path = os.path.join(index_path, f'{chunk_idx}.residuals.pt')  # f'{chunk_idx}.residuals.bn'
-        # return _load_bitarray(residuals_path)
+        residuals_path = os.path.join(index_path, f'{chunk_idx}.residuals.pt')
 
         return torch.load(residuals_path, map_location='cpu')
 
     def save(self, path_prefix):
         codes_path = f'{path_prefix}.codes.pt'
-        residuals_path = f'{path_prefix}.residuals.pt'  # f'{path_prefix}.residuals.bn'
+        residuals_path = f'{path_prefix}.residuals.pt' 
 
         torch.save(self.codes, codes_path)
         torch.save(self.residuals, residuals_path)
-        # _save_bitarray(self.residuals, residuals_path)
 
     def __len__(self):
         return self.codes.size(0)
 
 
 def get_dim_and_nbits(index_path):
-    # TODO: Ideally load this using ColBERTConfig.load_from_index!
     with open(os.path.join(index_path, 'metadata.json')) as f:
         metadata = ujson.load(f)['config']
 
