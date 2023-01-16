@@ -25,16 +25,54 @@ def normalize_answer(s):
 
 
 def get_tokens(s):
+    """
+    The get_tokens function takes a string as input and returns the tokens in that string.
+    The function normalizes the answer to lowercase, removes punctuation, and splits on whitespace.
+    
+    
+    Args:
+        s: Normalize the string
+    
+    Returns:
+        A list of the normalized tokens in a string
+    """
     if not s:
         return []
     return normalize_answer(s).split()
 
 
 def compute_exact(a_gold, a_pred):
+    """
+    The compute_exact function takes in two arguments, a_gold and a_pred.
+    The function normalizes the gold answer and the predicted answer (using the normalize_answer function)
+    and checks whether they are equal. If so, it returns 1; otherwise 0.
+    
+    Args:
+        a_gold: Store the gold answer and a_pred is used to store the predicted answer
+        a_pred: Store the predicted answer
+    
+    Returns:
+        An integer value of 1 if the normalized answers match exactly, and 0 otherwise
+    
+    """
     return int(normalize_answer(a_gold) == normalize_answer(a_pred))
 
 
 def compute_f1(a_gold, a_pred):
+    """
+    The compute_f1 function takes in two arguments: a_gold and a_pred.
+    The 'a_gold' argument is the list of words that are found in the gold
+    standard, and 'a_pred' is the list of words that our system outputs as 
+    the answer. The compute f function then calculates whether any of these 
+    words match, and if so how many there are. If either input has length 0, then F=0.
+    
+    Args:
+        a_gold: Pass in the gold answer
+        a_pred: Store the predicted answer from the model
+    
+    Returns:
+        The f-score for the two arguments
+    """
     gold_toks = get_tokens(a_gold)
     pred_toks = get_tokens(a_pred)
     common = collections.Counter(gold_toks) & collections.Counter(pred_toks)
@@ -80,13 +118,6 @@ def get_raw_scores(examples, reference):
         ]
     )
 
-assert len(sys.argv) == 3, "you need to input the file"
-
-with open(sys.argv[1], 'r') as f:
-    data = json.load(f)
-
-with open(sys.argv[2], 'r') as f:
-    ref = json.load(f)
     
 def get_em_and_f1_ottqa(data_file,ref_file):
     data = json.load(open(data_file))
@@ -94,4 +125,3 @@ def get_em_and_f1_ottqa(data_file,ref_file):
     return get_raw_scores(data, ref)
     
 
-print(get_raw_scores(data, ref))

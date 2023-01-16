@@ -17,13 +17,39 @@ if not torch.cuda.is_available():
 
 
 def linearize(row):
+    """
+    The linearize function takes a row of the table and returns a string
+    representation of that row. The string representation is just each column
+    name followed by its value, separated by spaces, with every word separated
+    by spaces as well. For example: "player is Sachin . "
+    
+    Args:
+        row: A table row
+    
+    Returns:
+        A string of the form: "column header is value ."
+    """
     row_str = ""
     for c,r in row.items():
         row_str+=str(c)+" is "+str(r)+" . "
-        # row_str+=str(c)+" "+str(r)+" "
     return row_str
 
 def create_dataset_for_answer_extractor(data, data_path_root,test=False):
+    """
+    The create_dataset_for_answer_extractor function takes in a list of dictionaries, each dictionary representing
+    a row from the original data file. Each dictionary contains keys for 'question_id', 'table_id', and 'answer-text'.
+    The function then iterates through this list of dictionaries, and for each one that has an answer label of 1 (i.e., 
+    the correct answer is present in the table), it extracts the context (i.e., all rows concatenated together) from 
+    the corresponding table, as well as the question text itself. These are stored under keys &quot;context&quot; and &quot;question&quot;, respectively.
+    
+    Args:
+        data: Create the dataset
+        data_path_root: Specify the path where the data is stored
+        test: Create the test dataset
+    
+    Returns:
+        A list of dictionaries
+    """
     #print(len(data))
     label_1_data = []
     prev_qid = ""
@@ -80,32 +106,54 @@ def create_dataset_for_answer_extractor(data, data_path_root,test=False):
 top_k = 2
 
 def get_top_k_passages(doc_retriever,passages,query,top_k, row=None):
+    """
+    The get_top_k_passages function takes in a doc_retriever object, a list of passages (strings),
+    a query string, and an integer k. It returns the top k passages that are most relevant to the query.
+    
+    
+    Args:
+        doc_retriever: Encode the passages and query
+        passages: Pass in the passages that are being used to search for the query
+        query: Search for the relevant passages
+        top_k: Specify how many of the top passages to return
+        row: Pass the current row of the dataframe to get_top_k_passages
+    
+    Returns:
+        The top k passages based on the semantic similarity of the query and each passage
+    """
     old_passages = passages
     if row is not None:
         row_str = ""
         for k, v in row.items():
             row_str += " " + k + " is " + v + " . "
         passages = [row_str+passage for passage in passages]
-    # print(passages)
     corpus_embeddings = doc_retriever.encode(passages, convert_to_tensor=True, show_progress_bar=False)
-    # print(corpus_embeddings)
     corpus_embeddings = util.normalize_embeddings(corpus_embeddings)
 
     query_embeddings = doc_retriever.encode([query], convert_to_tensor=True)
-    # print(query_embeddings)
     query_embeddings = util.normalize_embeddings(query_embeddings)
 
     hits = util.semantic_search(query_embeddings, corpus_embeddings, top_k=top_k, score_function=util.dot_score)
     hits = hits[0]
-    #print(hits)
     relevant_sents =[]
     for hit in hits:
-        #print("\t{:.3f}\t{}".format(hit['score'], passage[hit['corpus_id']]))
         relevant_sents.append(old_passages[hit['corpus_id']])
     return relevant_sents
 
 def get_max_score_row(p,q_id):
-    return np.array(p[q_id]).argsort()[-1:]
+    """
+    The get_max_score_row function takes in a list of lists (p) and an integer (q_id).
+    It returns the indices of the 5 rows with the highest scores for query q_id.
+    
+    
+    Args:
+        p: Store the scores of each question
+        q_id: Select the row of p that corresponds to the question
+    
+    Returns:
+        The row numbers of the top 5 scores for a given query
+    """
+    return np.array(p[q_id]).argsort()[-5:]
 
 def preprocess_instance(d,test=False):
     p_d = {}
@@ -127,6 +175,17 @@ def preprocess_ottqa_instance(d,test=False):
     return p_d
     
 def preprocess_data_using_row_retrieval_scores_ottqa(raw_dataset_with_ids,qid_scores_dict,test):
+    """
+    The preprocess_data_using_row_retrieval_scores_ottqa function takes in a dataset with question_ids and the qid_scores dictionary. It then uses the scores to filter out rows that have low retrieval scores for each question. The function returns a new dataset with only those questions that had high retrieval scores.
+    
+    Args:
+        raw_dataset_with_ids: Pass the raw dataset with ids
+        qid_scores_dict: Store the scores of each question
+        test: Decide whether the function is used for training or testing
+    
+    Returns:
+        A list of dictionaries with the question_id replaced by the prefix_qid
+    """
     
     p = qid_scores_dict
     new_data =[]
@@ -147,27 +206,33 @@ def preprocess_data_using_row_retrieval_scores_ottqa(raw_dataset_with_ids,qid_sc
 
 
 def preprocess_data_using_row_retrieval_scores(doc_retriever,raw_data,qid_scores_dict,test):
-    #data = json.load(open(data_path))
-    #p = json.load(open(row_ret_pred_path))
+    """
+    The preprocess_data_using_row_retrieval_scores function takes in a list of dictionaries, each dictionary representing an instance.
+    The function then preprocesses the data by retrieving the top 100 passages for each question and table pair. 
+    It then creates a new dictionary with all of these information as keys and values. The function returns this list of dictionaries.
+    
+    Args:
+        doc_retriever: Retrieve the passages for each row
+        raw_data: Pass the data to be preprocessed
+        qid_scores_dict: Store the scores of each question-id
+        test: Determine whether the data is being processed for training or testing
+    
+    Returns:
+        The processed data
+    """
     p = qid_scores_dict
-    #print(p)
     processed_data = []
     num = 0
     den = 0
     for d in tqdm(raw_data):
-        # if d['label'] != 1:
-        #     continue
         pi = preprocess_instance(d,test=test)
         question_str = pi['question']
         if not test:
             answer_text = pi['answer-text']
         q_id = pi['question_id']
         table_id = pi['table_id']
-        
-        #question = [d['question']]
-        #q_input = self.tokenizer(question,add_special_tokens=True, truncation=True,padding=True, return_tensors='pt', max_length = self.max_seq_len)
         header = pi['table']['header']
-        cri = get_max_score_row(p,q_id) #d['correct_row_index']
+        cri = get_max_score_row(p,q_id)
         rows =  [pi['table']['data'][cr] for cr in cri]
         table_rows = []
         table_row_passages = []
@@ -181,17 +246,9 @@ def preprocess_data_using_row_retrieval_scores(doc_retriever,raw_data,qid_scores
                 one_row[h] = r_v["cell_value"]
                 passage+= " ".join(r_v['passages'])
                 passages += r_v['passages']
-            # l1, l2 = sorted([v.strip().lower() for v in one_row.values()]), sorted([v.strip().lower() for v in d['table_row'].values()])
-            # xl.append([l1, l2])# print(l1)
-            # # print(l2)
-            # if  l1 != l2:
-            #     continue
-            # nm += 1
             table_rows.append(one_row)
             table_row_passages.append(passage)
             table_row_passages_new.append(passages)
-        # if (nm==0):
-        #     print(xl)
         for r,pr,npr in zip(table_rows,table_row_passages,table_row_passages_new):
             npi={}
             npi['question_id'] = q_id
@@ -208,14 +265,12 @@ def preprocess_data_using_row_retrieval_scores(doc_retriever,raw_data,qid_scores
                 npr = npr[0]
             else:
                 npr = " ".join(get_top_k_passages(doc_retriever,npr, question_str, 100, r))
-                #npr = " ".join(npr)
 
             
             npi['table_passage_row'] = npr
             
             if not test:
                 npi['answer-text'] = answer_text
-                # if answer_text.lower() in pr.lower() or answer_text.lower() in row_values:
                 npi['label'] =1
 
                 if answer_text.lower() in npr.lower() or answer_text.lower() in row_values:
@@ -226,10 +281,6 @@ def preprocess_data_using_row_retrieval_scores(doc_retriever,raw_data,qid_scores
                 if (npi['label_new']!=npi['label']):
                     num += 1
                 den += 1
-
-                # else:
-                #     npi['label'] = 1
-            
 
             processed_data.append(npi)
     print("total", den, "changed", num, len(processed_data))

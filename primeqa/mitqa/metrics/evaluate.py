@@ -25,6 +25,16 @@ def normalize_answer(s):
 
 
 def get_tokens(s):
+    """
+    The get_tokens function takes a string as input and returns the tokens in that string.
+    The function normalizes the answer to lowercase, removes punctuation, and splits on whitespace.
+    
+    Args:
+        s: Normalize the string
+    
+    Returns:
+        The tokens in a string
+    """
     if not s:
         return []
     return normalize_answer(s).split()
@@ -84,18 +94,8 @@ def get_raw_scores(examples, reference):
             ("total", total),
         ]
     )
-
-assert len(sys.argv) == 3, "you need to input the file"
-
-with open(sys.argv[1], 'r') as f:
-    data = json.load(f)
-
-with open(sys.argv[2], 'r') as f:
-    ref = json.load(f)
     
 def get_em_and_f1_hybridqa(data_file,ref_file):
     data = json.load(data_file)
     ref = json.load(ref_file)
     return get_raw_scores(data, ref)
-
-print(get_raw_scores(data, ref))

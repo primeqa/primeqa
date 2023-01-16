@@ -15,12 +15,37 @@ if not torch.cuda.is_available():
 
 
 def load_st_model():
+    """
+    The load_st_model function loads a pre-trained sentence transformer model.
+    It returns the loaded model.
+    
+    Args:
+    
+    Returns:
+        A sentencetransformer model
+    """
     model_name = 'msmarco-distilbert-base-tas-b' 
     doc_retriever = SentenceTransformer(model_name)
     return doc_retriever
 
-""" Rank passages most relevant to the query higher than other passages """
 def get_top_k_passages(doc_retriever,passages,query,top_k, row=None):
+    """
+    The get_top_k_passages function takes in a doc_retriever object, a list of passages and the query.
+    It then encodes the passages and query using the doc_retriever's encode function. It then normalizes
+    the embeddings for both corpus and query. Then it performs semantic search on corpus embeddings with 
+    query embedding as input to get top k hits which are returned as a list of dictionaries containing 
+    corpus id, score, passage text.
+    
+    Args:
+        doc_retriever: Encode the passages and query
+        passages: Retrieve the passages from the index
+        query: Query the passage for a specific information
+        top_k: Specify the number of passages to return
+        row: Pass in the row 
+    
+    Returns:
+        The top k passages that are most relevant to the query
+    """
     old_passages = passages
     if row is not None:
         row_str = ""
@@ -60,7 +85,24 @@ def preprocess_instance(d,dataset_name,passages_dict=None,test=False):
 
 """ Preprocess the full data """
 def preprocess_data(doc_retriever,data_root_path,dataset_name,raw_data,split,test):
-    #data = json.load(open(data_path))
+    """
+    The preprocess_data function takes in a list of dictionaries, where each dictionary is an instance.
+    It then preprocesses the data by:
+        1) Extracting the question and answer text from the instance. 
+        2) Extracting all table rows and header values from the table associated with this instance. 
+        3) For each row value, extracting any relevant passages (i.e., sentences). 
+    
+    Args:
+        doc_retriever: Retrieve the top-k passages for a given question and table
+        data_root_path: Specify the path to the data directory
+        dataset_name: Specify which dataset to preprocess
+        raw_data: Pass the raw data
+        split: Split the data into train, dev and test
+        test: Decide whether to include the answer text in the processed data or not
+    
+    Returns:
+        A list of dictionaries, where each dictionary corresponds to a single instance
+    """
     passages_dict = None
     if dataset_name=="ottqa":
         passages_dict = load_passages(data_root_path)
@@ -69,8 +111,6 @@ def preprocess_data(doc_retriever,data_root_path,dataset_name,raw_data,split,tes
     num = 0
     den = 0
     for d in tqdm(raw_data):
-        # if d['label'] != 1:
-        #     continue
         pi = preprocess_instance(d,dataset_name,passages_dict,test=test)
         question_str = pi['question']
         if not test:
@@ -88,7 +128,6 @@ def preprocess_data(doc_retriever,data_root_path,dataset_name,raw_data,split,tes
             passage = ""
             passages = []
             for r_v,h in zip(r,header):
-                
                 if dataset_name=="hybridqa":
                     one_row[h] = r_v["cell_value"]
                     passage+= " ".join(r_v['passages'])
