@@ -61,8 +61,6 @@ class StridedTensor(StridedTensorCore):
 
         assert pids.dim() == 1
 
-        #if self.use_gpu:
-        #    pids = pids.cuda()
         pids = pids.cpu()
         pids = pids.long()
         lengths = self.lengths[pids]
@@ -165,21 +163,12 @@ class StridedTensor(StridedTensorCore):
             tensor = tensor.cuda()
 
         mask = _create_mask(lengths, stride, use_gpu=self.use_gpu)
-        # tensor = tensor[mask]
 
         return tensor, lengths, mask
 
 
 if __name__ == '__main__':
-    # lst = []
-    # for _ in range(10):
-    #     lst.append(list(range(random.randint(0, 10))))
-
-    # print(lst)
-
-    # t = StridedTensor.from_nested_list(lst)
-    # print(t.lookup([9]))
-
+    
     import os
     import pickle
 
