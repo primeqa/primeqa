@@ -55,21 +55,12 @@ class RetrieverService(RetrieverServicer):
             RetrieverComponent(
                 retriever_id=retriever_id,
                 parameters=generate_parameters(
-                    retriever, skip=["index_root", "index_name"]
+                    retriever, skip=["index_root", "index_name"],
+                    checkpoints=self._store.get_checkpoints()
                 ),
             )
             for retriever_id, retriever in RETRIEVERS_REGISTRY.items()
         ]
-
-        # Custom behavior: Add checkpoints as options in checkpoint parameter:
-        try:
-            colbert_component = next(component for component in retrievers if component.retriever_id == 'ColBERTRetriever')
-            for parameter in colbert_component.parameters:
-                if parameter.parameter_id == 'checkpoint':
-                    for checkpoint in self._store.get_checkpoints():
-                        parameter.options.append(Value(string_value=checkpoint))
-        except StopIteration:
-            pass
 
         return GetRetrieversResponse(retrievers=retrievers)
         

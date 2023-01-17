@@ -8,7 +8,7 @@ from primeqa.services.grpc_server.grpc_generated.parameter_pb2 import Parameter
 from primeqa.services.parameters import get_parameters
 
 
-def generate_parameters(component: Component, skip: List[str] = None) -> Dict[str, Any]:
+def generate_parameters(component: Component, skip: List[str] = None, **kwargs) -> Dict[str, Any]:
     grpc_parameters = []
     for parameter_dict in get_parameters(component):
         # Step 1: Exclude parameters provided in skip list
@@ -80,6 +80,11 @@ def generate_parameters(component: Component, skip: List[str] = None) -> Dict[st
         else:
             raise ValueError(f"Unsupported parameter type: {parameter_dict['type']}.")
 
+        component.populate_parameter(
+            grpc_parameter,
+            checkpoints=kwargs.get("checkpoints", {}),
+            value_wrap=lambda value: Value(string_value=value)
+        )
         grpc_parameters.append(grpc_parameter)
 
     return grpc_parameters

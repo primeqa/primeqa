@@ -127,3 +127,27 @@ class ColBERTRetriever(RetrieverComponent):
             [(result[0], result[-1]) for result in results_per_query]
             for results_per_query in ranking_results.data.values()
         ]
+
+    @staticmethod
+    def populate_parameter(parameter, **kwargs):
+        """
+        This is a function that does something.
+        Custom parameter population, targeting "checkpoints" for this ColBERTRetriever.
+
+        Args:
+            parameter (Any): data structure instance representing a component's parameter.
+            kwargs : additional keyword arguments
+                checkpoints (List[str]): String values for set options in the 'checkpoint' parameter
+                value_wrap (Callable[[Any], Any]): A function to wrap values, if needed.
+        Returns:
+            None
+        """
+        if parameter.parameter_id == "checkpoint":
+            checkpoints = kwargs.get("checkpoints", None)
+            if checkpoints is not None and isinstance(checkpoints, list):
+                value_wrap = kwargs.get("value_wrap", lambda x: x)
+                for checkpoint in checkpoints:
+                    value = value_wrap(checkpoint)
+                    parameter.options.append(value)
+
+

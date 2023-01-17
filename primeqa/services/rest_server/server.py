@@ -443,22 +443,16 @@ class RestServer:
         )
         def get_retrievers():
 
-            # Custom behavior: Add checkpoints as options in checkpoint parameter:
             retrievers = [
                 {
                     "retriever_id": retriever_id,
-                    "parameters": generate_parameters(retriever),
+                    "parameters": generate_parameters(
+                        retriever,
+                        checkpoints=self._store.get_checkpoints()
+                    ),
                 }
                 for retriever_id, retriever in RETRIEVERS_REGISTRY.items()
             ]
-            try:
-                colbert_retriever = next(retriever for retriever in retrievers if retriever.retriever_id == 'ColBERTRetriever')
-                for parameter in colbert_retriever.parameters:
-                    if parameter.parameter_id == 'checkpoint':
-                        for checkpoint in self._store.get_checkpoints():
-                            parameter.options.append(checkpoint)
-            except StopIteration:
-                pass
             
             return retrievers
 

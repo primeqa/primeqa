@@ -7,7 +7,7 @@ from primeqa.pipelines.components.base import Component
 from primeqa.services.parameters import get_parameters
 
 
-def generate_parameters(component: Component, skip: List[str] = None) -> Dict[str, Any]:
+def generate_parameters(component: Component, skip: List[str] = None, **kwargs) -> Dict[str, Any]:
     rest_parameters = []
     for parameter_dict in get_parameters(component):
         # Step 1: Exclude parameters provided in skip list
@@ -47,6 +47,10 @@ def generate_parameters(component: Component, skip: List[str] = None) -> Dict[st
         else:
             raise ValueError(f"Unsupported parametr type: {parameter_dict['type']}.")
 
+        component.populate_parameter(
+            rest_parameter,
+            checkpoints=kwargs.get("checkpoints", None)
+        )
         rest_parameters.append(rest_parameter)
 
     return rest_parameters

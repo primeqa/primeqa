@@ -9,6 +9,17 @@ class Component(ABC):
     def load(self, *args, **kwargs):
         pass
 
+    @staticmethod
+    def populate_parameter(parameter, **kwargs):
+        """
+        Custom parameter population hook.
+
+        Args:
+            parameter (Any): data structure instance representing a component's parameter.
+        """
+        pass
+
+
 
 @dataclass(init=False, repr=False, eq=False)
 class ReaderComponent(Component):
