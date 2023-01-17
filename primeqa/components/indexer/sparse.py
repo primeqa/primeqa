@@ -2,12 +2,12 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import Indexer
+from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 
 @dataclass
-class BM25Indexer(Indexer):
+class BM25Indexer(BaseIndexer):
     """_summary_
 
     Args:
@@ -48,6 +48,9 @@ class BM25Indexer(Indexer):
         self._index_path = f"{self.index_root}/{self.index_name}"
         self._indexer = PyseriniIndexer()
 
+    def get_engine_type(self) -> str:
+        return "BM25"
+
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         if not isinstance(collection, str):
             raise TypeError(
@@ -64,6 +67,3 @@ class BM25Indexer(Indexer):
             if "additional_index_args" in kwargs
             else "--storePositions --storeDocvectors --storeRaw",
         )
-
-    def get_engine_type(self) -> str:
-        return "BM25"

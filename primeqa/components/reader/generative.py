@@ -1,12 +1,11 @@
 from typing import List
 from dataclasses import dataclass, field
-from transformers import AutoConfig, AutoTokenizer
-from transformers import Seq2SeqTrainingArguments
-from datasets import Dataset
-from dataclasses import dataclass
 import json
 
-from primeqa.components.base import Reader
+from datasets import Dataset
+from transformers import AutoConfig, AutoTokenizer, Seq2SeqTrainingArguments
+
+from primeqa.components.base import Reader as BaseReader
 from primeqa.mrc.models.heads.generative import FID_HEAD
 from primeqa.mrc.models.fid_task_model import FiDModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.eli5_fid import ELI5FiDPreprocessor
@@ -16,7 +15,7 @@ from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 
 
 @dataclass
-class GenerativeReader(Reader):
+class GenerativeReader(BaseReader):
     """_summary_
 
     Args:

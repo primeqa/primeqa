@@ -58,17 +58,17 @@ class GrpcServer:
             )
 
             # Add reader service
-            reader_pb2_grpc.add_ReaderServicer_to_server(
+            reader_pb2_grpc.add_ReadingServiceServicer_to_server(
                 ReaderService(config=self._config), server
             )
 
             # Add index service
-            indexer_pb2_grpc.add_IndexerServicer_to_server(
+            indexer_pb2_grpc.add_IndexingServiceServicer_to_server(
                 IndexerService(config=self._config), server
             )
 
             # Add retriever service
-            retriever_pb2_grpc.add_RetrieverServicer_to_server(
+            retriever_pb2_grpc.add_RetrievingServiceServicer_to_server(
                 RetrieverService(config=self._config), server
             )
 
