@@ -5,7 +5,7 @@ import json
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 from datasets import Dataset
 
-from primeqa.components.base import Reader
+from primeqa.components.base import Reader as BaseReader
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
@@ -15,7 +15,7 @@ from primeqa.mrc.trainers.mrc import MRCTrainer
 
 
 @dataclass
-class ExtractiveReader(Reader):
+class ExtractiveReader(BaseReader):
     """_summary_
 
     Args:
@@ -243,13 +243,9 @@ class ExtractiveReader(Reader):
             question=questions, context=contexts, example_id=example_ids
         )
 
-        eval_examples = Dataset.from_dict(examples_dict)
-
-        eval_examples = Dataset.from_dict(examples_dict)
-
-        eval_examples = Dataset.from_dict(examples_dict)
-
-        eval_examples, eval_dataset = self._preprocessor.process_eval(eval_examples)
+        eval_examples, eval_dataset = self._preprocessor.process_eval(
+            Dataset.from_dict(examples_dict)
+        )
 
         # Step 5: Run predict
         predictions = {}
@@ -280,3 +276,9 @@ class ExtractiveReader(Reader):
                 predictions[example_id].append(processed_prediction)
 
         return predictions
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass

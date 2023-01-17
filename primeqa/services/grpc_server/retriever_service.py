@@ -14,7 +14,7 @@ from primeqa.services.grpc_server.utils import (
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2_grpc import (
-    RetrieverServicer,
+    RetrievingServiceServicer,
 )
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import Document
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
@@ -28,7 +28,7 @@ from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
 )
 
 
-class RetrieverService(RetrieverServicer):
+class RetrieverService(RetrievingServiceServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
@@ -89,7 +89,7 @@ class RetrieverService(RetrieverServicer):
 
         # Step 2: Load default retriever keyword arguments
         retriever_kwargs = {
-            k: v.default for k, v in retriever.__dataclass_fields__.items()
+            k: v.default for k, v in retriever.__dataclass_fields__.items() if v.init
         }
 
         # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
@@ -182,7 +182,7 @@ class RetrieverService(RetrieverServicer):
             request.queries,
         )
         try:
-            results = instance.retrieve(input_texts=request.queries, **retriever_kwargs)
+            results = instance.predict(input_texts=request.queries, **retriever_kwargs)
             self._logger.info(
                 "Applying '%s' retriever for queries = %s returns results = %s",
                 instance.__class__.__name__,

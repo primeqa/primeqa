@@ -2,7 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import Retriever
+from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 from primeqa.components.base import Retriever
 
@@ -72,7 +72,16 @@ class BM25Retriever(Retriever):
     def load(self, *args, **kwargs):
         self._searcher = PyseriniRetriever(self._index_path)
 
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
+    def get_engine_type(self):
+        return "BM25"
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, input_texts: List[str], *args, **kwargs):
         qids = [str(idx) for idx, query in enumerate(input_texts)]
         hits = self._searcher.batch_retrieve(
             input_texts, qids, topK=self.max_num_documents, threads=self.num_workers
@@ -81,6 +90,3 @@ class BM25Retriever(Retriever):
             [(result["doc_id"], result["score"]) for result in results_per_query]
             for results_per_query in hits.values()
         ]
-
-    def get_engine_type(self):
-        return "BM25"
