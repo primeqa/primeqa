@@ -79,7 +79,7 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
     new_data = []
     for d in tqdm(raw_data):
         query = d['question']
-        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 5, mode = 'query_list')
+        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 50, mode = 'query_list')
         for id in range(len(retrieved_doc_ids[0])):
             p_data = {}
             p_data['question'] =query

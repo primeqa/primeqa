@@ -21,6 +21,18 @@ def load_passages(data_path_root):
     return passages_dict
 
 def fetch_ottqa_passages(d,passages_dict):
+    """
+    The fetch_ottqa_passages function takes in a dictionary of the OTTQA dataset and returns two lists:
+        1. A list of passages for each row in the table
+        2. The corresponding table itself
+    
+    Args:
+        d: Store the table and row_passage_links
+        passages_dict: Store the passages that have already been fetched
+    
+    Returns:
+        A tuple of two lists (table and passage rows)
+    """
     table = d['table']
     row_passage_links = d['row_passage_links']
     passages_rows = []
@@ -32,11 +44,34 @@ def fetch_ottqa_passages(d,passages_dict):
 
 
 def fetch_table(table_id):
+    """
+    The fetch_table function takes a table_id as input and returns the table with requested documents.
+    The function first loads the data from the json file, then adds passages to each cell in 
+    the table based on which document is requested. The function also returns a list of all 
+    requested documents.
+    
+    Args:
+        table_id: Specify which table to load
+    
+    Returns:
+        A table
+    """
     table,requested_documents = load_data(table_id)
     
     return add_passage_to_cell(table,requested_documents)
 
 def add_passage_to_cell(table,requested_documents):
+    """
+    The add_passage_to_cell function takes a table and adds passages to each cell.
+    The function returns the modified table.
+    
+    Args:
+        table: Get the url of the table
+        requested_documents: Retrieve the passages from the documents that are linked to a cell
+    
+    Returns:
+        A dictionary with passages attached to table cells
+    """
     p_table = {}
     p_table['url'] = table['url']
     new_header = []

@@ -32,6 +32,21 @@ def set_seed(args):
         torch.cuda.manual_seed_all(args.seed_lg)
         
 def get_top_k_passages_from_corpus(passage_embeddings,passage_id_dict,doc_retriever,query,top_k):
+    """
+    The get_top_k_passages_from_corpus function takes in a list of passage embeddings, the dictionary mapping
+    passage IDs to their corresponding passages, and the query. It returns a list of relevant sentences from 
+    the corpus that are most similar to the query.
+    
+    Args:
+        passage_embeddings: Store the embeddings of all passages in the corpus
+        passage_id_dict: Map the passage_id to the actual text
+        doc_retriever: Retrieve the top k passages from the corpus
+        query: Search for the query in the corpus
+        top_k: Specify the number of passages to return
+    
+    Returns:
+        The top k passages from the corpus that are most relevant to the query
+    """
     
     corpus_embeddings = util.normalize_embeddings(passage_embeddings)
 
@@ -46,6 +61,18 @@ def get_top_k_passages_from_corpus(passage_embeddings,passage_id_dict,doc_retrie
     return relevant_sents
 
 def get_links(mapping,row_id):
+    """
+    The get_links function takes in a dictionary mapping and a row_id. It then checks if the row_id is present in the
+    dictionary as key. If it is, it returns all of the links associated with that key (which are stored as values). If not,
+    it returns an empty list.
+    
+    Args:
+        mapping: Map the row_id to the links
+        row_id: Get the row_id from the dataframe
+    
+    Returns:
+        The list of links for a given row_id
+    """
     links =[]
     for k,v in mapping.items():
         if k.lower() == row_id.lower():
@@ -55,6 +82,27 @@ def get_links(mapping,row_id):
 
 def sample_sequence(model, length, context, args, num_samples=1, temperature=1, stop_token=None, \
                     top_k=0, top_p=0.0, device='cuda'):
+    """
+    The sample_sequence function takes in a model, length of output sequence, context (input), args (additional parameters)
+    and returns the generated sequence. The context is concatenated with the token_id for each token in the output sequence.
+    The function also handles batching and padding.
+    
+    Args:
+        model: Pass the model to sample_sequence
+        length: Specify the length of the text that we want to generate
+        context: Provide the model with a starting sentence
+        args: Pass in the following additional arguments:
+        num_samples: Determine how many samples to generate
+        temperature: Control the randomness of the generated text
+        stop_token: Determine when the text generation is stopped
+        \
+                        top_k: Control the number of highest probability vocabulary tokens to consider at each step
+        top_p: Control the &quot;randomness&quot; of the sample
+        device: Tell the model whether you are using a cpu or gpu
+    
+    Returns:
+        The generated sequence
+    """
     if isinstance(context, list):
         context = torch.tensor(context, dtype=torch.long, device=device)
         context = context.unsqueeze(0).repeat(num_samples, 1)
@@ -89,6 +137,16 @@ def load_all_tables():
     return data 
 
 def train_link_generator(args):
+    """
+    The train_link_generator function trains a model to generate links between two entities.
+    The function takes in the following parameters:
+        - args (argparse): A namespace containing the arguments used to train the model. 
+          These arguments are passed from train_link_generator's caller, most likely run_experiment.py. 
+    
+    Args:
+        args: Pass in the parameters like batch_size, learning rate etc
+    
+    """
     args.device_lg = torch.device("cuda")
     args.n_gpu = torch.cuda.device_count()
 
