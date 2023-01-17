@@ -11,12 +11,19 @@ from primeqa.qg.utils.constants import QGSpecialTokens
 
 class PathSampler():
     """
-    Class for sampling hybrid chains from a table and its linked passages, to be used for HybridQG inference.
+    Samples hybrid chains from hybrid context of table and text. The sampled chains act as an input
+    for HybridQG inference to generate relevant questions.
+    
+    Example chain: 
+             <answer> Mactan-Cebu International Airport </answer>
+             <chain> Mactan-Cebu International Airport located on Mactan Island , is the second busiest 
+            airport in the Philippines . <sep> The Island is Cebu. <hsep> The Population is 3,979,155.</chain>
+
+    The sampled chains have two parts, one a named entity or a cell text as a possible answer from the hybird 
+    context, and the other a set of sentences from the context which contain some reference to the named entity. 
+    We use NER from stanza library to extract named entities. Currently we ONLY support English!
     """
     def __init__(self, lang):
-        """
-        We use NER from stanza library here. Currently we support English only.
-        """
         if lang != 'en':
             raise NotImplementedError('This HybridQG for %s language is not supported.' % (lang.upper()))
 

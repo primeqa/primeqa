@@ -40,6 +40,7 @@ class HybridQAProcessor():
         return tokenized_data
     
     def convert_to_features(self, example_batch: Dict):
+        """tokenizes and converts the raw hybrid chains to tensors"""
     	# TODO explicitly provide truncation/padding strategy
     	input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
     									pad_to_max_length=True, max_length=self.input_max_len)
@@ -54,7 +55,10 @@ class HybridQAProcessor():
     	return encodings
 
     def hybrid_chain_to_t5_sequence(self, qdict, chain_id=0):
-        # puts hybrid chain in a format T5 can understand
+        """
+            converts a hybrid chain to a T5 format by adding special tokens
+            to seperate different parts of a hybrid chain.
+        """
         ans = qdict['answer_text']
         chain = qdict['hybrid_chain'][chain_id]['chain-text']
         meta = [qdict['title'], qdict['section_title']]
@@ -116,6 +120,14 @@ class HybridQAProcessor():
         return hybrid_chain_list, hybrid_chain_text
 
     def hybrid_chains(self, data, beam_size=10, num_hops=[3,4], num_chains_per_hops=4):
+        """
+            Extracts reasoning paths from a processed dataset.
+        Args:
+            dataset (dict): A processed dataset where table cell text is linked to its processed passages.
+        Return:
+            chains (list): A list of sampled hybrid chains
+            questions (list): A list of corresponding questions
+        """
         processed_data_dict = {'question': [], 'input': []}
         for qid, qdict in enumerate(data):
             row = qdict.pop('row')
@@ -148,10 +160,10 @@ class HybridQAProcessor():
             t5_input_sequence, target = self.hybrid_chain_to_t5_sequence(qdict)
             processed_data_dict['question'].append(target)
             processed_data_dict['input'].append(t5_input_sequence)
-        return processed_data_dict['input'], processed_data_dict['question']
+        return (processed_data_dict['input'], processed_data_dict['question'])
 
     def link_sents_to_cells(self, qdict):
-        # Split passages in to sentences. Sentences becomes nodes with 'text' and 'link'
+        """Split passages in to sentences. Sentences become nodes with 'text' and 'link'"""
         qdict = deepcopy(qdict)
         pkeys = [key for key in qdict if 'passage_' in key]
         for key in pkeys:
@@ -173,8 +185,10 @@ class HybridQAProcessor():
         return qdict
                         
     def preprocess_hybridqa_data(self, *args):
-        # identify passages linked to cells in the rows of table.
-        # make a nice dict to store this "structured fused block"
+        """
+        identify passages linked to cells in the rows of a table.
+        make a nice dict to store this "structured fused block"
+        """
         new_data = []
         question, answer_text, table = args
         sample = {'question': question, 'answer_text': answer_text}
@@ -240,7 +254,9 @@ class HybridQAProcessor():
 
     def preprocess_data(self, example_batch: Dict):
         processed_data_dict = {'label': [], 'input': []}
-        for question, answer, table in tqdm(zip(example_batch['question'], example_batch['answer_text'], example_batch['table']), desc="Extracting chains"):
+        for question, answer, table in tqdm(zip(example_batch['question'], 
+                        example_batch['answer_text'], 
+                        example_batch['table']), desc="Extracting chains"):
             if not question.strip() or not answer.strip(): continue
             data_all_text = self.preprocess_hybridqa_data(question, answer, table)
             if data_all_text is None: continue
