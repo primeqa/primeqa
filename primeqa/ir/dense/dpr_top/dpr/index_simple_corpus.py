@@ -28,7 +28,7 @@ class Options(IndexOptions):
         self.ctx_encoder_name_or_path = 'facebook/dpr-ctx_encoder-multiset-base'
         self.embed = '1of1'
         self.sharded_index = False
-        self.corpus = ''
+        self.collection = ''
         self.output_dir = ''  # the output_dir will have the passages dataset and the hnsw_index.faiss
         self.bsize = 16
         self.__required_args__ = ['output_dir']
@@ -81,7 +81,7 @@ class DPRIndexer():
 
         report = Reporting()
         doc_batch = []
-        for pndx, passage in enumerate(corpus_reader(self.opts.corpus, fieldnames = ('id', 'text', 'title'))):
+        for pndx, passage in enumerate(corpus_reader(self.opts.collection, fieldnames = ('id', 'text', 'title'))):
             if pndx == 0 and (passage.pid == 'id' or passage.pid == 'pid') and (passage.text == 'text' or passage.text == 'contents') and passage.title == 'title':
                 continue
             if pndx % self.embed_count != (self.embed_num-1):

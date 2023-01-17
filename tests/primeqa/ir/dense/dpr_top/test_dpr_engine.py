@@ -123,7 +123,7 @@ class TestDprEngine(UnitTest):
             "--embed", "1of1",
             "--sharded_index",
             "--bsize", "1",
-            "--corpus", os.path.join(test_files_location,"xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv"),
+            "--collection", os.path.join(test_files_location,"xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv"),
             "--output_dir", output_dir]
 
         with patch.object(sys, 'argv', test_args):

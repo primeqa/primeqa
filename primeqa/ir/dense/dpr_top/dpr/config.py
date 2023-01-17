@@ -139,7 +139,7 @@ class DPRIndexingArguments:
 
     bsize: int = field(default=16, metadata={"help": "Batch size"})
 
-    corpus: str = field(default="None", metadata={"help": "Corpus file path"})
+    collection: str = field(default="None", metadata={"help": "Collection file path"})
 
     ctx_encoder_name_or_path: str = field(
         default="facebook/dpr-ctx_encoder-multiset-base",
@@ -163,10 +163,12 @@ class DPRSearchArguments:
     """
 
     output_dir: str = field(
+        default="",
         metadata={"help": "Output directory to write results"},
     )
 
     queries: str = field(
+        default="",
         metadata={
             "help": "Path to the tsv file where each line is in format 'id\tquery'"
         },

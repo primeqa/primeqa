@@ -153,7 +153,7 @@ python primeqa/ir/run_ir.py \
     --ctx_encoder_name_or_path <context_encoder_model> \
     --embed <part_number>of<parts_total> \
     --sharded_index \
-    --corpus <document_collection>  \
+    --collection <document_collection>  \
     --output_dir <output_directory> \
     --bsize <indexing_batch_size> \
 ```
