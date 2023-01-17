@@ -1,6 +1,7 @@
 import logging
 
 from datasets import Dataset, DatasetDict, load_dataset
+from primeqa.qg.processors.passage_qg.qa2s_processor import QA2SProcessor
 from primeqa.qg.processors.passage_qg.qg_processor import QGProcessor
 from primeqa.qg.processors.table_qg.sql_processor import SqlProcessor
 
@@ -14,6 +15,7 @@ class QGDataLoader:
         modality,
         input_max_len,
         target_max_len,
+        gen_config="qg",
         dataset_name=None,
         dataset_config=None,
         dataset_split=None,
@@ -25,7 +27,10 @@ class QGDataLoader:
         if modality == "table":
             self.processor = SqlProcessor(tokenizer, input_max_len, target_max_len)
         elif modality == "passage":
-            self.processor = QGProcessor(tokenizer, input_max_len, target_max_len)
+            if gen_config == "qg":
+                self.processor = QGProcessor(tokenizer, input_max_len, target_max_len)
+            elif gen_config == "qa2s":
+                self.processor = QA2SProcessor(tokenizer, input_max_len, target_max_len)
 
     def create(
         self,
