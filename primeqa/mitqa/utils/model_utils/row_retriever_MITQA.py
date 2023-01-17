@@ -22,6 +22,18 @@ import os
 
 # Used during test if you want to test the model trained on multiple gpus on a single gpu.
 def clean_model_state_dict(state_dict):
+    """
+    The clean_model_state_dict function removes the &quot;module.&quot; prefix from each key in the state_dict of a model.
+    This is necessary when saving and loading models across devices, because you can't save a model loaded onto GPU as CPU, etc.
+    
+    
+    Args:
+        state_dict: Store the model parameters
+    
+    Returns:
+        A new ordereddict with all the keys, but without the prefix &quot;module
+
+    """
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
         name = k[7:] # remove `module.`
@@ -43,6 +55,18 @@ class Training:
         self.save_model_path = save_model_path
 
     def train(self, best_accuracy=0):
+        """
+        The train function is used to train the model. It takes in a model, optimizer, criterion and data loader as input.
+        The train function trains the model over several epochs using the training data set and updates its weights after each batch of training examples.
+        It also outputs several metrics such as loss per epoch and accuracy per epoch
+        
+        Args:
+            self: Access variables that belongs to the class
+            best_accuracy: Save the best model
+        
+        Returns:
+            The true labels, the predicted labels and the average epoch loss
+        """
         self.model.train()
         losses =0.0
         correct_predictions = 0
@@ -87,6 +111,17 @@ class Validation:
         self.device = device
         self.criterion  = criterion
     def evaluate(self):
+        """
+        The evaluate function is meant to be used for evaluating the performance of a model on 
+        a held-out dataset. It returns the true labels and predicted labels, as well as the average loss per sample.
+        
+        
+        Args:
+            self: Access variables that belongs to the class
+        
+        Returns:
+            The true labels and predicted labels, as well as the average loss for the epoch
+        """
         self.model.eval()
         losses = 0
         correct_predictions = 0
@@ -114,6 +149,21 @@ class RowRetriever():
         self.model = RowClassifierSC(self.t_args.rr_model_name)
 
     def predict(self,processed_test_data):
+        """
+        The predict function is meant to be used for inference. It takes in a path
+        to a file containing preprocessed data, where each line contains the question
+        id, question text, table id and row id separated by spaces. The predict function
+        then loads the model from disk and uses it to generate an answer for each of the 
+        questions in the input file. The answers are written out as JSON objects to an 
+        output directory specified by --output_dir.
+        
+        Args:
+            self: Access the attributes and methods of the class in python
+            processed_test_data: Pass the processed test data
+        
+        Returns:
+            A dictionary of question_id and list of scores for each row
+        """
         state_dict = torch.load(self.t_args.row_retriever_model_name_path)
         state_dict = clean_model_state_dict(state_dict)
         # model = RowClassifierSC()
@@ -161,6 +211,13 @@ class RowRetriever():
         return q_id_scores_list
 
     def train(self,train_data_processed,dev_data_processed):
+        """
+        Trains a row retrieval model using the processed training data
+
+        Args:
+            train_data_processed (List): Processed training data
+            dev_data_processed (List): Processed dev data
+        """
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
@@ -271,6 +328,3 @@ class RowRetriever():
             all_acc['val_acc'].append(validation_accuracy)
 
         print(f'Best Accuracy achieved: {best_accuracy}')
-
-if __name__ == "__main__":
-    main()

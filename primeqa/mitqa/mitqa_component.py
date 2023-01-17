@@ -32,6 +32,9 @@ class MITQAReader(Component):
       self.hqa_args,self.lp_args,self.rr_args,self.ae_args,= hqa_parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
 
    def predict(self):
+      """
+         Get predictions on the dev/test set of OTTQA/HYBRIDQA datasets.
+      """
       self.load(self._config_file)
       raw_test_data = json.load(open(self.hqa_args.test_data_path))
       test=True
@@ -62,6 +65,9 @@ class MITQAReader(Component):
          self.logger.info(get_em_and_f1_hybridqa(re_ranked_output_file,"data/ottqa/dev_reference.json"))
    
    def train(self):
+      """
+         Train the model on OTTQA/HYBRIDQA train set and evaluate on dev set and repot EM and F1 scores on dev set.
+      """
       self.load(self._config_file)
       test =False
       raw_train_data = json.load(open(self.hqa_args.train_data_path))

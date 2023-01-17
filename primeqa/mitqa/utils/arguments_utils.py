@@ -146,7 +146,7 @@ class LinkPredictorArguments:
        default=None, metadata={"help": "which dataset to use"}
     )
    batch_size_lg: int = field(
-       default=2, metadata={"help": "Batch size"}
+       default=64, metadata={"help": "Batch size"}
     )
    linker_model: str = field(
        default=None, metadata={"help": "load from the checkpoint"}
