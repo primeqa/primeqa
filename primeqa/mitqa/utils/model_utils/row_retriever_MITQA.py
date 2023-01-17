@@ -164,26 +164,21 @@ class RowRetriever():
         Returns:
             A dictionary of question_id and list of scores for each row
         """
-        state_dict = torch.load(self.t_args.row_retriever_model_name_path)
-        state_dict = clean_model_state_dict(state_dict)
-        # model = RowClassifierSC()
-        if torch.cuda.device_count() > 1:
-            print("Let's use", torch.cuda.device_count(), "GPUs!")
-            # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-            self.model = nn.DataParallel(self.model)
-        self.model.load_state_dict(state_dict,strict=True)
+        if self.t_args.row_retriever_model_name_path != None:
+            state_dict = torch.load(self.t_args.row_retriever_model_name_path)
+            state_dict = clean_model_state_dict(state_dict)
+            if torch.cuda.device_count() > 1:
+                print("Let's use", torch.cuda.device_count(), "GPUs!")
+                self.model = nn.DataParallel(self.model)
+            self.model.load_state_dict(state_dict,strict=True)
         
-        print("Model Loaded")
         self.model.to(self.device)
         self.model.eval()
         predictions_labels = []
         scores_list = []
         question_ids_list = []
-        bert_tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
-        #bert_tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
-        if processed_test_data is not None:
-            #test_data = read_data(test_data_path)
-            
+        bert_tokenizer = BertTokenizer.from_pretrained(self.t_args.rr_model_name)
+        if processed_test_data is not None:            
             test_dataset = TableQADatasetQRSconcat(processed_test_data,512,bert_tokenizer,use_st_out=True,ret_labels=False)
             test_data_loader = DataLoader(test_dataset, batch_size=self.t_args.per_device_eval_batch_size_rr, batch_sampler=None, 
                                             num_workers=1, shuffle=False, pin_memory=True)
@@ -220,7 +215,6 @@ class RowRetriever():
         """
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
-            # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
             self.model = nn.DataParallel(self.model)
 
         self.model.to(self.device)
