@@ -153,7 +153,7 @@ def get_max_score_row(p,q_id):
     Returns:
         The row numbers of the top 5 scores for a given query
     """
-    return np.array(p[q_id]).argsort()[-5:]
+    return np.array(p[q_id]).argsort()[-1:]
 
 def preprocess_instance(d,test=False):
     p_d = {}
