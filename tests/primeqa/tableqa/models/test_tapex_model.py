@@ -1,6 +1,5 @@
 import pytest
 from primeqa.tableqa.tapex.tapex_component import TapexReader
-from primeqa.tableqa.tapex.models.tapex_model import TapexModel
 from transformers import (
     BartForConditionalGeneration,
     TapexTokenizer

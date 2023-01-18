@@ -60,7 +60,10 @@ class TapexReader(Reader):
         """
         return self._tokenizer
         
-
+    def __hash__(self):
+        class_name = 'TapexReader'
+        return hash(class_name)
+        
         
 
     def predict(self,data_dict,queries_list):
