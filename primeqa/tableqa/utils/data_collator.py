@@ -1,9 +1,7 @@
 from dataclasses import dataclass,field
 from typing import Optional, List, Dict
 import torch
-import logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(level = logging.WARNING)
+
 
 @dataclass
 class TapasCollator:

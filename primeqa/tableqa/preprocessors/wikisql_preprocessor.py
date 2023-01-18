@@ -1,4 +1,4 @@
-from primeqa.tableqa.tapas.preprocessors.convert_to_sqa_format import parse_question
+from primeqa.tableqa.preprocessors.convert_to_sqa_format import parse_question
 from primeqa.qg.processors.table_qg.sql_processor import SqlProcessor
 from primeqa.qg.models.table_qg.sql_sampler import SimpleSqlSampler
 
@@ -7,12 +7,8 @@ import csv
 import nlp
 from nlp import load_dataset
 import os
-from primeqa.tableqa.tapas.preprocessors.dataset import DatasetProcessor
+from primeqa.tableqa.preprocessors.dataset import DatasetProcessor
 from pathlib import Path
-import logging
-
-logger = logging.getLogger(__name__)
-logging.basicConfig(level = logging.WARNING)
 
 def preprocess_wikisql(output_dir,dataset,split):
     """Preprocesses wikisql dataset downloaded from huggingface. Converts it to a format accepted by tapas

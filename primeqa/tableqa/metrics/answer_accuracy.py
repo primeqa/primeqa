@@ -1,7 +1,6 @@
 import ast
 import logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(level = logging.WARNING)
 
 def compute_denotation_accuracy(predicted_answers,gold_answers):
     """Computes denotation accuracy based on predicted and gold answers

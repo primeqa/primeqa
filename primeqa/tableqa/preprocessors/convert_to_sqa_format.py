@@ -37,9 +37,7 @@ import frozendict
 import numpy as np
 import scipy.optimize
 import ast
-import logging
-logger = logging.getLogger(__name__)
-logging.basicConfig(level = logging.WARNING)
+
 class SupervisionMode(enum.Enum):
   # Don't filter out any supervised information.
   NONE = 0
