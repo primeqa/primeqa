@@ -1,11 +1,13 @@
-# Table Question Answering using Tapex
-PrimeQA supports Tapex based training and eval over two major table question answering datasets like wikisql, wikitablequestions
+# Table Question Answering using TAPEX
+
+TAPEX is a table pre-training approach for table-related tasks. By learning a neural SQL executor over a synthetic corpus based on generative language models (e.g., BART), it achieves state-of-the-art performance on several table question answering and table fact verification benchmarks. More details can be found in the original paper [TAPEX: Table Pre-training via Learning a Neural SQL Executor](https://arxiv.org/pdf/2107.07653.pdf).
+
+PrimeQA supports TAPEX based training and eval over two major table question answering datasets like wikisql, wikitablequestions
 Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
 
-
 ## TAPEX based TableQA models
-### Train/Eval using Tapex based Table Question Answering model in PrimeQA on wikitablequestions dataset
 
+### Train/Eval using TAPEX based Table Question Answering model in PrimeQA on wikitablequestions dataset
 ```
 python run_tapex.py \
   --do_train \
@@ -38,7 +40,8 @@ The trained model yields the following results on wikitablequestions dev set:
   eval_samples_per_second  =     10.443
   eval_steps_per_second    =      2.612
 ```
-### Train/Eval using Tapex based Table Question Answering model in PrimeQA on wikisql dataset
+### Train/Eval using TAPEX based Table Question Answering model in PrimeQA on wikisql dataset
+
 ```
 python run_tapex.py \
   --do_train \
@@ -72,4 +75,4 @@ The trained model yields the following results on wikisql dev set:
   eval_steps_per_second    =      4.748
 ```
 
-Tapex can also be used from PrimeQA built-in-class TapexReader to do train/eval/inference with minimal line of codes. See example [notebooks](https://github.com/primeqa/primeqa/tree/tapex_integration/notebooks/tableqa) for the same. 
+TAPEX can also be used from PrimeQA built-in-class TapexReader to do train/eval/inference with minimal line of codes. See example [notebooks](https://github.com/primeqa/primeqa/tree/tapex_integration/notebooks/tableqa) for the same. 
