@@ -1,5 +1,5 @@
 import pytest
-from primeqa.components.reader_component import Reader
+from primeqa.tableqa.tapex.tapex_component import TapexReader
 from primeqa.tableqa.tapex.models.tapex_model import TapexModel
 from transformers import (
     BartForConditionalGeneration,
@@ -8,12 +8,10 @@ from transformers import (
 
 @pytest.mark.parametrize("config_path",["tests/resources/tapex/tapex_config.json"])
 def test_tapex_model(config_path):
-    tapex_model = TapexModel(config_path)
-    tapex_model.load_model_from_config(config_path)
-    reader = Reader('TapexModel',config_path)
-    assert type(reader._class_object)==TapexModel
-    assert type(tapex_model.model)== BartForConditionalGeneration
-    assert type(tapex_model.tokenizer) == TapexTokenizer
+    reader = TapexReader(config_path)
+    reader.load(config_path)
+    assert type(reader.model)== BartForConditionalGeneration
+    assert type(reader.tokenizer) == TapexTokenizer
     
     
     

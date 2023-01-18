@@ -17,7 +17,6 @@ import pandas as pd
 import transformers
 from filelock import FileLock
 import os
-from primeqa.tableqa.models.tableqa_seq2seq_model import TableQASeq2SeqModel
 from transformers import (
     AutoConfig,
     BartForConditionalGeneration,
