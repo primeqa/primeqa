@@ -49,9 +49,7 @@ class ReaderFactory:
     _logger = logging.getLogger("ReaderFactory")
 
     @classmethod
-    def get(
-        cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs
-    ):
+    def get(cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
 

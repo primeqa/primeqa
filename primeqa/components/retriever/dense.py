@@ -1,14 +1,14 @@
-from typing import List
+from typing import List, Any
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import Retriever
+from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 
 @dataclass
-class ColBERTRetriever(Retriever):
+class ColBERTRetriever(BaseRetriever):
     """_summary_
 
     Args:
@@ -110,7 +110,24 @@ class ColBERTRetriever(Retriever):
             config=self._config,
         )
 
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
+    def get_engine_type(self):
+        return "ColBERT"
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, input_texts: List[str], *args, **kwargs) -> Any:
+        """Retrieves relevant documents based on input_texts
+
+        Args:
+            input_texts (List[str]): search queries
+
+        Returns:
+            Any: List of tuples. Each tuple contains a document indetifier and relevancy score
+        """
         # Step 1: Locally update object variable values, if provided
         max_num_documents = (
             kwargs["max_num_documents"]
@@ -127,6 +144,3 @@ class ColBERTRetriever(Retriever):
             [(result[0], result[-1]) for result in results_per_query]
             for results_per_query in ranking_results.data.values()
         ]
-        
-    def get_engine_type(self):
-        return "ColBERT"
