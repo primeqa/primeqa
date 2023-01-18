@@ -131,7 +131,7 @@ setup(
     packages=find_packages(".", include=include_packages),
     include_package_data=True,
     package_data={"": ["*.cpp", "*.cu"]},
-    python_requires=">=3.7.0, <3.10.9",
+    python_requires=">=3.7.0, <=3.10.9",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
