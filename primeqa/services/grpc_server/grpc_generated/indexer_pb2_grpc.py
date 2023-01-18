@@ -5,7 +5,7 @@ import grpc
 from . import indexer_pb2 as indexer__pb2
 
 
-class IndexerStub(object):
+class IndexingServiceStub(object):
     """*
     Service to build index
     """
@@ -17,28 +17,28 @@ class IndexerStub(object):
             channel: A grpc.Channel.
         """
         self.GetIndexers = channel.unary_unary(
-                '/index.Indexer/GetIndexers',
+                '/index.IndexingService/GetIndexers',
                 request_serializer=indexer__pb2.GetIndexersRequest.SerializeToString,
                 response_deserializer=indexer__pb2.GetIndexersResponse.FromString,
                 )
         self.GenerateIndex = channel.stream_unary(
-                '/index.Indexer/GenerateIndex',
+                '/index.IndexingService/GenerateIndex',
                 request_serializer=indexer__pb2.GenerateIndexRequest.SerializeToString,
                 response_deserializer=indexer__pb2.GenerateIndexResponse.FromString,
                 )
         self.GetIndexStatus = channel.unary_unary(
-                '/index.Indexer/GetIndexStatus',
+                '/index.IndexingService/GetIndexStatus',
                 request_serializer=indexer__pb2.GetIndexStatusRequest.SerializeToString,
                 response_deserializer=indexer__pb2.IndexStatusResponse.FromString,
                 )
         self.GetIndexes = channel.unary_unary(
-                '/index.Indexer/GetIndexes',
+                '/index.IndexingService/GetIndexes',
                 request_serializer=indexer__pb2.GetIndexesRequest.SerializeToString,
                 response_deserializer=indexer__pb2.GetIndexesResponse.FromString,
                 )
 
 
-class IndexerServicer(object):
+class IndexingServiceServicer(object):
     """*
     Service to build index
     """
@@ -68,7 +68,7 @@ class IndexerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_IndexerServicer_to_server(servicer, server):
+def add_IndexingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetIndexers': grpc.unary_unary_rpc_method_handler(
                     servicer.GetIndexers,
@@ -92,12 +92,12 @@ def add_IndexerServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'index.Indexer', rpc_method_handlers)
+            'index.IndexingService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class Indexer(object):
+class IndexingService(object):
     """*
     Service to build index
     """
@@ -113,7 +113,7 @@ class Indexer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexers',
+        return grpc.experimental.unary_unary(request, target, '/index.IndexingService/GetIndexers',
             indexer__pb2.GetIndexersRequest.SerializeToString,
             indexer__pb2.GetIndexersResponse.FromString,
             options, channel_credentials,
@@ -130,7 +130,7 @@ class Indexer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(request_iterator, target, '/index.Indexer/GenerateIndex',
+        return grpc.experimental.stream_unary(request_iterator, target, '/index.IndexingService/GenerateIndex',
             indexer__pb2.GenerateIndexRequest.SerializeToString,
             indexer__pb2.GenerateIndexResponse.FromString,
             options, channel_credentials,
@@ -147,7 +147,7 @@ class Indexer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexStatus',
+        return grpc.experimental.unary_unary(request, target, '/index.IndexingService/GetIndexStatus',
             indexer__pb2.GetIndexStatusRequest.SerializeToString,
             indexer__pb2.IndexStatusResponse.FromString,
             options, channel_credentials,
@@ -164,7 +164,7 @@ class Indexer(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/index.Indexer/GetIndexes',
+        return grpc.experimental.unary_unary(request, target, '/index.IndexingService/GetIndexes',
             indexer__pb2.GetIndexesRequest.SerializeToString,
             indexer__pb2.GetIndexesResponse.FromString,
             options, channel_credentials,

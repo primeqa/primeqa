@@ -14,7 +14,9 @@ from primeqa.services.factories import (
     READERS_REGISTRY,
     ReaderFactory,
 )
-from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderServicer
+from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import (
+    ReadingServiceServicer,
+)
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     GetReadersRequest,
     GetReadersResponse,
@@ -27,7 +29,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
 )
 
 
-class ReaderService(ReaderServicer):
+class ReaderService(ReadingServiceServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
@@ -52,9 +54,7 @@ class ReaderService(ReaderServicer):
         try:
             return GetReadersResponse(
                 readers=[
-                    Reader(
-                        reader_id=reader_id, parameters=generate_parameters(reader)
-                    )
+                    Reader(reader_id=reader_id, parameters=generate_parameters(reader))
                     for reader_id, reader in READERS_REGISTRY.items()
                 ]
             )
@@ -95,7 +95,9 @@ class ReaderService(ReaderServicer):
             return GetAnswersResponse()
 
         # Step 3: Load default reader keyword arguments
-        reader_kwargs = {k: v.default for k, v in reader.__dataclass_fields__.items()}
+        reader_kwargs = {
+            k: v.default for k, v in reader.__dataclass_fields__.items() if v.init
+        }
 
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:
@@ -185,11 +187,9 @@ class ReaderService(ReaderServicer):
                     )
                 except AssertionError:
                     context.set_code(StatusCode.INTERNAL)
-                    context.set_details(
-                        ErrorMessages.INVALID_READER_INPUT.value
-                    )
+                    context.set_details(ErrorMessages.INVALID_READER_INPUT.value)
                     return GetAnswersResponse()
-                    
+
                 except TypeError:
                     context.set_code(StatusCode.INTERNAL)
                     context.set_details(
