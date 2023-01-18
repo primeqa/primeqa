@@ -38,9 +38,22 @@ class MRCTrainer(Trainer):
         # FIXME: Work around for a bug in Transformers (4.24.0)
         # Reference: https://github.com/huggingface/transformers/issues/20105
         # -------- START OF FIX --------
-        if transformers.__version__ == "4.24.0" and "args" not in kwargs:
-            kwargs["args"] = TrainingArguments(output_dir="tmp_trainer")
-            kwargs["args"].label_names = ["start_positions", "end_positions"]
+        if transformers.__version__ == "4.24.0":
+            if "args" not in kwargs:
+                kwargs["args"] = TrainingArguments(output_dir="tmp_trainer")
+                kwargs["args"].label_names = ["start_positions", "end_positions"]
+            elif not kwargs["args"].label_names:
+                kwargs["args"].label_names = ["start_positions", "end_positions"]
+            elif (
+                isinstance(kwargs["args"].label_names, list)
+                and "start_positions" not in kwargs["args"].label_names
+            ):
+                kwargs["args"].label_names.append("start_positions")
+            elif (
+                isinstance(kwargs["args"].label_names, list)
+                and "end_positions" not in kwargs["args"].label_names
+            ):
+                kwargs["args"].label_names.append("end_positions")
         # --------  END OF FIX   --------
 
         super().__init__(*args, **kwargs)
