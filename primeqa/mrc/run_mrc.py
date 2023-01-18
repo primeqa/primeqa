@@ -12,6 +12,7 @@ from typing import Optional, Type, List
 from torch.utils.data import ConcatDataset
 
 import datasets
+from datasets import concatenate_datasets
 
 import apache_beam as beam
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
@@ -402,21 +403,16 @@ def main():
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
-        def get_raw_datasets(fof):
-            raw_datasets = []
-            with open(fof, 'r') as infile:
-                for line in infile:
-                    filename = line.strip()
-                    if not filename: continue
-                    raw_dataset = datasets.load_dataset(data_args.data_file_format, data_files=filename, cache_dir=model_args.cache_dir)['train']
-                    raw_datasets.append(raw_dataset)
-            return raw_datasets #, data_files
         raw_datasets = {}
         if data_args.train_fof is not None:
-            raw_train_datasets = get_raw_datasets(data_args.train_fof)
+            raw_train_datasets, train_preprocessors = get_raw_datasets(data_args.train_fof, data_args,
+                                                                       task_args, model_args.cache_dir,
+                                                                       split='train')
             raw_datasets['train'] = raw_train_datasets
         if data_args.eval_fof is not None:            
-            raw_validation_datasets = get_raw_datasets(data_args.eval_fof)
+            raw_validation_datasets, validation_preprocessors = get_raw_datasets(data_args.eval_fof, data_args,
+                                                                                 task_args, model_args.cache_dir,
+                                                                                 split='validation')
             raw_datasets['validation'] = raw_validation_datasets
     else:
         logger.info('Loading dataset')        
@@ -457,20 +453,42 @@ def main():
                 )
 
     # load preprocessor
-    preprocessor_class = task_args.preprocessor
-    preprocessor = preprocessor_class(
-        stride=data_args.doc_stride,
-        tokenizer=tokenizer,
-        negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
-        negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
-        load_from_cache_file=not data_args.overwrite_cache,
-        max_seq_len=data_args.max_seq_length,
-        num_workers=data_args.preprocessing_num_workers,
-        max_q_char_len=data_args.max_q_char_len,
-        single_context_multiple_passages=data_args.single_context_multiple_passages,
-        max_contexts=data_args.max_contexts,
-        max_answer_len=data_args.max_answer_length
-    )
+    if not data_args.train_fof:
+        train_preprocessors = [task_args.preprocessor]
+    if not data_args.eval_fof:
+        validation_preprocessors = [task_args.preprocessor]
+    for i, p in enumerate(train_preprocessors):
+        if isinstance(p, str):
+            p = object_reference(p)
+        train_preprocessors[i] = p(
+            stride=data_args.doc_stride,
+            tokenizer=tokenizer,
+            negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+            negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+            load_from_cache_file=not data_args.overwrite_cache,
+            max_seq_len=data_args.max_seq_length,
+            num_workers=data_args.preprocessing_num_workers,
+            max_q_char_len=data_args.max_q_char_len,
+            single_context_multiple_passages=data_args.single_context_multiple_passages,
+            max_contexts=data_args.max_contexts,
+            max_answer_len=data_args.max_answer_length
+        )
+    for i, p in enumerate(validation_preprocessors):
+        if isinstance(p, str):
+            p = object_reference(p)
+        validation_preprocessors[i] = p(
+            stride=data_args.doc_stride,
+            tokenizer=tokenizer,
+            negative_sampling_prob_when_has_answer=data_args.negative_sampling_prob_when_has_answer,
+            negative_sampling_prob_when_no_answer=data_args.negative_sampling_prob_when_no_answer,
+            load_from_cache_file=not data_args.overwrite_cache,
+            max_seq_len=data_args.max_seq_length,
+            num_workers=data_args.preprocessing_num_workers,
+            max_q_char_len=data_args.max_q_char_len,
+            single_context_multiple_passages=data_args.single_context_multiple_passages,
+            max_contexts=data_args.max_contexts,
+            max_answer_len=data_args.max_answer_length
+        )
 
     # if filtering, check that both column name and column values are provided
     if data_args.dataset_filter_column_values is not None:
@@ -478,33 +496,26 @@ def main():
             raise ValueError(f"Filtering on --dataset_filter_column_values ({data_args.dataset_filter_column_values}) "
                       "requires --dataset_filter_column_name to be provided.")
 
-    def process_raw_datasets(raw_datasets, max_samples, training_args, process_fn, split):
-        examples, datasets = [], []
-        for dataset in raw_datasets:
-            if max_samples is not None:
-                # We will select sample from whole data if argument is specified
-                dataset = dataset.select(range(max_samples))
-            # Feature Creation
-            with training_args.main_process_first(desc=f"{split} dataset map pre-processing"):
-                examples_ds, dataset = process_fn(dataset)
-                examples.append(examples_ds)                    
-                datasets.append(dataset)
-        return examples, datasets
     # process train data
     if training_args.do_train:
-        if data_args.train_fof is not None:
-            train_datasets = raw_datasets['train']
-        else:
-            train_dataset = raw_datasets['train']
+        train_examples = raw_datasets['train']
+        if data_args.train_fof is None:
             if data_args.dataset_filter_column_values is not None:
                 logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
-                train_dataset = train_dataset.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
-                train_dataset = train_dataset.shuffle(seed=training_args.seed)
-                logger.info(f"Filtered TRAIN dataset size {train_dataset.num_rows}")
-            train_datasets = [train_dataset]
+                train_examples = train_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
+                train_examples = train_examples.shuffle(seed=training_args.seed)
+                logger.info(f"Filtered TRAIN dataset size {train_examples.num_rows}")
+            train_examples = [train_examples]
         # Train feature creation
-        _, train_datasets = process_raw_datasets(train_datasets, data_args.max_train_samples, training_args, preprocessor.process_train, 'train')
-        train_dataset = ConcatDataset(train_datasets) if data_args.train_fof is not None else train_datasets[0]
+        _, train_datasets = process_raw_datasets(train_examples, train_preprocessors, training_args,
+                                                 split='train', max_samples=data_args.max_train_samples)
+        if data_args.train_fof is not None:
+            if task_args.task_trainer == MSKD_MRCTrainer:
+                train_dataset = ConcatDataset(train_datasets)
+            else:
+                train_dataset = concatenate_datasets(train_datasets).shuffle(seed=training_args.seed)
+        else:
+            train_dataset = train_datasets[0]
     # process val data
     if training_args.do_eval:
         eval_examples = raw_datasets['validation']
@@ -515,8 +526,9 @@ def main():
                 logger.info(f"Filtered EVAL dataset size {eval_examples.num_rows}")
             eval_examples = [eval_examples]
         # Validation feature creation
-        eval_examples, eval_datasets = process_raw_datasets(eval_examples, data_args.max_eval_samples, training_args, preprocessor.process_eval, 'validation')
-        if data_args.eval_fof is not None:
+        eval_examples, eval_datasets = process_raw_datasets(eval_examples, validation_preprocessors, training_args,
+                                                            split='validation', max_samples=data_args.max_eval_samples)
+        if data_args.eval_fof is not None and task_args.task_trainer == MSKD_MRCTrainer:
             eval_dataset = ConcatDataset(eval_datasets)
             setattr(eval_dataset, 'config_name', getattr(eval_dataset.datasets[0], 'config_name'))
         else:
@@ -535,7 +547,7 @@ def main():
         n_best_size=data_args.n_best_size,
         max_answer_length=data_args.max_answer_length,
         scorer_type=SupportedSpanScorers(scorer_type),
-        single_context_multiple_passages=preprocessor._single_context_multiple_passages,
+        single_context_multiple_passages=train_preprocessors[0]._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,
         output_confidence_feature=True if task_args.task_heads == EXTRACTIVE_WITH_CONFIDENCE_HEAD else False,
         tokenizer=tokenizer,
