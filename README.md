@@ -16,7 +16,7 @@ limitations under the License.
 
 <h3 align="center">
     <img width="350" alt="primeqa" src="docs/_static/img/PrimeQA.png">
-    <p>The prime repository for state-of-the-art Multilingual Question Answering research and development.</p>
+    <p>The Prime Repository for State-of-the-Art Multilingual Question Answering Research and Development.</p>
 </h3>
 
 ![Build Status](https://github.com/primeqa/primeqa/actions/workflows/primeqa-ci.yml/badge.svg)
