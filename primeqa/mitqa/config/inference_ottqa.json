@@ -27,7 +27,7 @@
     "top_k":0,
     "top_p":0.9,
     "seed_lg":42,
-    "batch_size_lg":128,
+    "batch_size_lg":512,
     "linker_model":"data/ottqa/models/link_generator/model-ep9.pt",
     "max_source_len":32,
     "max_target_len":16,

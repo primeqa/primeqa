@@ -79,7 +79,7 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
     new_data = []
     for d in tqdm(raw_data):
         query = d['question']
-        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 50, mode = 'query_list')
+        retrieved_doc_ids, passages = searcher.search(query_batch = [query], top_k = 20, mode = 'query_list')
         for id in range(len(retrieved_doc_ids[0])):
             p_data = {}
             p_data['question'] =query
@@ -88,8 +88,3 @@ def predict_table_retriever(data_path_root,collection_file,raw_data):
             p_data["answer-text"] = d['answer-text']
             new_data.append(p_data)
     return new_data
-        
-if __name__=="__main__":
-    train_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","triples_train.tsv")   
-    raw_data = json.load(open("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/released_data/dev.json"))
-    predict_table_retriever("/dccstor/cssblr/vishwajeet/git/hybridqa_primeqa/data/ottqa/","linearized_tables.tsv",raw_data)
