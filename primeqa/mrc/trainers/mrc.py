@@ -41,19 +41,8 @@ class MRCTrainer(Trainer):
         if transformers.__version__ == "4.24.0":
             if "args" not in kwargs:
                 kwargs["args"] = TrainingArguments(output_dir="tmp_trainer")
-                kwargs["args"].label_names = ["start_positions", "end_positions"]
-            elif not kwargs["args"].label_names:
-                kwargs["args"].label_names = ["start_positions", "end_positions"]
-            elif (
-                isinstance(kwargs["args"].label_names, list)
-                and "start_positions" not in kwargs["args"].label_names
-            ):
-                kwargs["args"].label_names.append("start_positions")
-            elif (
-                isinstance(kwargs["args"].label_names, list)
-                and "end_positions" not in kwargs["args"].label_names
-            ):
-                kwargs["args"].label_names.append("end_positions")
+
+            kwargs["args"].label_names = ["start_positions", "end_positions"]
         # --------  END OF FIX   --------
 
         super().__init__(*args, **kwargs)
