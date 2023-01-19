@@ -153,12 +153,12 @@ class RowRetriever():
         The predict function is meant to be used for inference. It takes in a path
         to a file containing preprocessed data, where each line contains the question
         id, question text, table id and row id separated by spaces. The predict function
-        then loads the model from disk and uses it to generate an answer for each of the 
-        questions in the input file. The answers are written out as JSON objects to an 
-        output directory specified by --output_dir.
+        then loads the model from disk and uses it to predict scores for every row for each of the 
+        questions in the input file. The scores are written out as JSON objects in row_ret_scores.json
+        file in data_path_root.
         
         Args:
-            self: Access the attributes and methods of the class in python
+            self: Access the attributes and methods of the RowRetriever class
             processed_test_data: Pass the processed test data
         
         Returns:
