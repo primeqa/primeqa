@@ -1,0 +1,29 @@
+primeqa.qg.models.hybrid\_qg.path\_sampler.PathSampler
+======================================================
+
+.. currentmodule:: primeqa.qg.models.hybrid_qg.path_sampler
+
+.. autoclass:: PathSampler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~PathSampler.aggregate_data
+      ~PathSampler.create_chains
+      ~PathSampler.create_qg_input
+      ~PathSampler.sample_paths
+      ~PathSampler.tokenize_text
+   
+   
+
+   
+   
+   

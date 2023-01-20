@@ -1,0 +1,32 @@
+path\_sampler
+=============
+
+.. automodule:: primeqa.qg.models.hybrid_qg.path_sampler
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      PathSampler
+   
+   
+
+   
+   
+   
+
+
+

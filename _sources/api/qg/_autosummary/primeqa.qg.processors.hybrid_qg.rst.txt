@@ -1,0 +1,30 @@
+hybrid\_qg
+==========
+
+.. automodule:: primeqa.qg.processors.hybrid_qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.processors.hybrid_qg.hybridqa_processor
+

@@ -1,0 +1,30 @@
+hybrid\_qg
+==========
+
+.. automodule:: primeqa.qg.models.hybrid_qg
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.qg.models.hybrid_qg.path_sampler
+

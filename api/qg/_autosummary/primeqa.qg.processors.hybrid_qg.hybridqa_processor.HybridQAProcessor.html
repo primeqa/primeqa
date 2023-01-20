@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>data_loader &#8212; PrimeQA  documentation</title>
+    <title>primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -281,11 +281,11 @@
    </i>
   </label>
   <ul class="current">
-   <li class="toctree-l2 current active has-children">
-    <a class="current reference internal" href="#">
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.qg.processors.data_loader.html">
      data_loader
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
     <label for="toctree-checkbox-10">
      <i class="fas fa-chevron-down">
      </i>
@@ -298,28 +298,28 @@
      </li>
     </ul>
    </li>
-   <li class="toctree-l2 has-children">
+   <li class="toctree-l2 current active has-children">
     <a class="reference internal" href="primeqa.qg.processors.hybrid_qg.html">
      hybrid_qg
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
     <label for="toctree-checkbox-11">
      <i class="fas fa-chevron-down">
      </i>
     </label>
-    <ul>
-     <li class="toctree-l3 has-children">
+    <ul class="current">
+     <li class="toctree-l3 current active has-children">
       <a class="reference internal" href="primeqa.qg.processors.hybrid_qg.hybridqa_processor.html">
        hybridqa_processor
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" type="checkbox"/>
       <label for="toctree-checkbox-12">
        <i class="fas fa-chevron-down">
        </i>
       </label>
-      <ul>
-       <li class="toctree-l4">
-        <a class="reference internal" href="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.html">
+      <ul class="current">
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
          primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor
         </a>
        </li>
@@ -541,7 +541,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/qg/_autosummary/primeqa.qg.processors.data_loader.rst.txt", '_blank');
+                window.open("../../../_sources/api/qg/_autosummary/primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -571,20 +571,113 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="module-primeqa.qg.processors.data_loader">
-<span id="data-loader"></span><h1>data_loader<a class="headerlink" href="#module-primeqa.qg.processors.data_loader" title="Permalink to this headline">#</a></h1>
-<p class="rubric">Classes</p>
+  <section id="primeqa-qg-processors-hybrid-qg-hybridqa-processor-hybridqaprocessor">
+<h1>primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor<a class="headerlink" href="#primeqa-qg-processors-hybrid-qg-hybridqa-processor-hybridqaprocessor" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.qg.processors.hybrid_qg.hybridqa_processor.</span></span><span class="sig-name descname"><span class="pre">HybridQAProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_max_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_max_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p class="rubric">Methods</p>
 <table class="longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.qg.processors.data_loader.QGDataLoader.html#primeqa.qg.processors.data_loader.QGDataLoader" title="primeqa.qg.processors.data_loader.QGDataLoader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">QGDataLoader</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.convert_to_features" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.convert_to_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_to_features</span></code></a></p></td>
+<td><p>tokenizes and converts the raw hybrid chains to tensors</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.get_candidate_hybrid_chains" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.get_candidate_hybrid_chains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_candidate_hybrid_chains</span></code></a></p></td>
+<td><p>Extracts reasoning paths from a processed table row.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chain_to_t5_sequence" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chain_to_t5_sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hybrid_chain_to_t5_sequence</span></code></a></p></td>
+<td><p>converts a hybrid chain to a T5 format by adding special tokens to seperate different parts of a hybrid chain.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chains" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hybrid_chains</span></code></a></p></td>
+<td><p>Extracts reasoning paths from a processed dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.link_sents_to_cells" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.link_sents_to_cells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">link_sents_to_cells</span></code></a></p></td>
+<td><p>Split passages in to sentences.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocess_data</span></code></p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.preprocess_hybridqa_data" title="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.preprocess_hybridqa_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocess_hybridqa_data</span></code></a></p></td>
+<td><p>identify passages linked to cells in the rows of a table.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datasets.arrow_dataset.Dataset</span></span></span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.__call__" title="Permalink to this definition">#</a></dt>
+<dd><p>Call self as a function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.convert_to_features">
+<span class="sig-name descname"><span class="pre">convert_to_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.convert_to_features" title="Permalink to this definition">#</a></dt>
+<dd><p>tokenizes and converts the raw hybrid chains to tensors</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.get_candidate_hybrid_chains">
+<span class="sig-name descname"><span class="pre">get_candidate_hybrid_chains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">answer_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.get_candidate_hybrid_chains" title="Permalink to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>Extracts reasoning paths from a processed table row.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>row</strong> (<em>dict</em>) – A dictionary of a processed table row.</p></li>
+<li><p><strong>answer_node</strong> (<em>str</em>) – Gold answer.</p></li>
+<li><p><strong>num_hops</strong> (<em>int</em>) – Number of hops to reach an answer from the question over the entity graph.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chain_to_t5_sequence">
+<span class="sig-name descname"><span class="pre">hybrid_chain_to_t5_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qdict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chain_to_t5_sequence" title="Permalink to this definition">#</a></dt>
+<dd><p>converts a hybrid chain to a T5 format by adding special tokens
+to seperate different parts of a hybrid chain.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chains">
+<span class="sig-name descname"><span class="pre">hybrid_chains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[3,</span> <span class="pre">4]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_chains_per_hops</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.hybrid_chains" title="Permalink to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>Extracts reasoning paths from a processed dataset.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<em>dict</em>) – A processed dataset where table cell text is linked to its processed passages.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of sampled hybrid chains
+questions (list): A list of corresponding questions</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>chains (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.link_sents_to_cells">
+<span class="sig-name descname"><span class="pre">link_sents_to_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qdict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.link_sents_to_cells" title="Permalink to this definition">#</a></dt>
+<dd><p>Split passages in to sentences. Sentences become nodes with ‘text’ and ‘link’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.preprocess_hybridqa_data">
+<span class="sig-name descname"><span class="pre">preprocess_hybridqa_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.qg.processors.hybrid_qg.hybridqa_processor.HybridQAProcessor.preprocess_hybridqa_data" title="Permalink to this definition">#</a></dt>
+<dd><p>identify passages linked to cells in the rows of a table.
+make a nice dict to store this “structured fused block”</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 
 

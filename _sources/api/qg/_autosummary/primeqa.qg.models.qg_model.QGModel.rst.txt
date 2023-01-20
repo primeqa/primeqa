@@ -17,6 +17,7 @@ primeqa.qg.models.qg\_model.QGModel
       :nosignatures:
    
       ~QGModel.generate_questions
+      ~QGModel.prune_hallucinations
    
    
 

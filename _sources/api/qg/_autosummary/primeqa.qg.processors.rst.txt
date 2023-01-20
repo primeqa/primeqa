@@ -27,6 +27,7 @@ processors
    :recursive:
 
    primeqa.qg.processors.data_loader
+   primeqa.qg.processors.hybrid_qg
    primeqa.qg.processors.passage_qg
    primeqa.qg.processors.table_qg
 

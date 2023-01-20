@@ -1,0 +1,31 @@
+primeqa.qg.processors.hybrid\_qg.hybridqa\_processor.HybridQAProcessor
+======================================================================
+
+.. currentmodule:: primeqa.qg.processors.hybrid_qg.hybridqa_processor
+
+.. autoclass:: HybridQAProcessor
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HybridQAProcessor.convert_to_features
+      ~HybridQAProcessor.get_candidate_hybrid_chains
+      ~HybridQAProcessor.hybrid_chain_to_t5_sequence
+      ~HybridQAProcessor.hybrid_chains
+      ~HybridQAProcessor.link_sents_to_cells
+      ~HybridQAProcessor.preprocess_data
+      ~HybridQAProcessor.preprocess_hybridqa_data
+   
+   
+
+   
+   
+   

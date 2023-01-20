@@ -1,0 +1,32 @@
+hybridqa\_processor
+===================
+
+.. automodule:: primeqa.qg.processors.hybrid_qg.hybridqa_processor
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      HybridQAProcessor
+   
+   
+
+   
+   
+   
+
+
+
