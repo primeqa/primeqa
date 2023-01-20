@@ -41,18 +41,18 @@ class HybridQAProcessor():
     
     def convert_to_features(self, example_batch: Dict):
         """tokenizes and converts the raw hybrid chains to tensors"""
-    	# TODO explicitly provide truncation/padding strategy
-    	input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
-    									pad_to_max_length=True, max_length=self.input_max_len)
-    	target_encodings = self.tokenizer.batch_encode_plus(example_batch['label'], 
-    									pad_to_max_length=True, max_length=self.target_max_len)
-    	encodings = {
-    		'input_ids': input_encodings['input_ids'], 
-    		'attention_mask': input_encodings['attention_mask'],
-    		'target_ids': target_encodings['input_ids'],
-    		'target_attention_mask': target_encodings['attention_mask']
-    	}
-    	return encodings
+        # TODO explicitly provide truncation/padding strategy
+        input_encodings = self.tokenizer.batch_encode_plus(example_batch['input'], 
+        								pad_to_max_length=True, max_length=self.input_max_len)
+        target_encodings = self.tokenizer.batch_encode_plus(example_batch['label'], 
+        								pad_to_max_length=True, max_length=self.target_max_len)
+        encodings = {
+        	'input_ids': input_encodings['input_ids'], 
+        	'attention_mask': input_encodings['attention_mask'],
+        	'target_ids': target_encodings['input_ids'],
+        	'target_attention_mask': target_encodings['attention_mask']
+        }
+        return encodings
 
     def hybrid_chain_to_t5_sequence(self, qdict, chain_id=0):
         """
