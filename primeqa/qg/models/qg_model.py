@@ -1,6 +1,9 @@
 import copy
 import numpy as np
 
+import torch
+from torch import cuda
+
 from primeqa.qg.utils.constants import QGSpecialTokens
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from primeqa.qg.models.hybrid_qg.path_sampler import PathSampler
@@ -20,7 +23,8 @@ class QGModel():
         if modality not in ['table', 'passage', 'hybrid']:
             raise NotImplementedError('This modality is not supported: ' + modality)
 
-        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        self._device = torch.device('cuda') if cuda.is_available() else torch.device('cpu')
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to(self._device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
         
         special_tokens_list = []
@@ -63,7 +67,10 @@ class QGModel():
 
     def prune_hallucinations(self, qdicts, num_instances=5, hallucination_prop=0.25):
         """
-            Prunes hallucinated questions using an entity lookup approach.
+        Our approach to pruning hallucinated questions uses an entity lookup to check that 
+        a generated entity or a part of it is present in the hybrid context. If the entity is not present, 
+        the question and the entity are considered to be hallucinated.
+
         Args:
             qdicts (list): A list of dicts, each dict contains, an answer, context and (num_instances) generated questions.
         Returns:
@@ -117,8 +124,11 @@ class QGModel():
                     flag = True
 
         if not new_qdicts:
+            #don't prune if all the generated questions are hallucinated 
             return reserve_hallucinated_qdict
         elif len(new_qdicts) < num_instances:
+            #if number of questions are less than `num_instances` after pruning
+            #use pruned questions to return number of questions equal to `num_instances`
             diff = num_instances - len(new_qdicts)
             np.random.shuffle(reserve_non_hallucinated_qdict) 
             return new_qdicts + reserve_non_hallucinated_qdict[:diff]
@@ -153,7 +163,7 @@ class QGModel():
         input_ids = self._tokenizer(input_str_list, 
                 return_tensors='pt', 
                 padding=True,
-                truncation=True).input_ids
+                truncation=True).to(self._device).input_ids
     
         if self.modality == "hybrid":
             num_return_sequences = num_beams
