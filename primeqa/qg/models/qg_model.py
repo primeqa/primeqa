@@ -144,7 +144,7 @@ class QGModel():
                 hallucination_prop=0.25,
                 num_beams=5,
                 answers_list=[],
-                id_list=[]):
+                id_list=[],num_beams=10):
                 
         if type(data_list) == dict:
             data_list = [data_list]

@@ -8,7 +8,7 @@ from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_STATUS, ATTR_INDEX_ID, IndexStatus
+from primeqa.services.constants import ATTR_STATUS, ATTR_INDEX_ID, IndexStatus, ATTR_ENGINE_TYPE
 from primeqa.services.factories import (
     READERS_REGISTRY,
     INDEXERS_REGISTRY,
@@ -348,6 +348,7 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 8: Save index information
+                index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
                 self._store.save_index_information(
                     index_id=index_information[ATTR_INDEX_ID],
                     information=index_information,
