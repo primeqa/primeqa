@@ -19,10 +19,14 @@ class QGModel():
         Args:
             model_path (str): Either Name of the model or the path to the pre-trained model
             modality (str, optional): The modality specifies what data is predicted based on which input. Possible options include 'table' and 'passage'.
+<<<<<<< HEAD
         """        
         if modality not in ['table', 'passage', 'hybrid']:
             raise NotImplementedError('This modality is not supported: ' + modality)
 
+=======
+        """
+>>>>>>> main
         self._device = torch.device('cuda') if cuda.is_available() else torch.device('cpu')
         self._model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to(self._device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -144,7 +148,7 @@ class QGModel():
                 hallucination_prop=0.25,
                 num_beams=5,
                 answers_list=[],
-                id_list=[]):
+                id_list=[],num_beams=10):
                 
         if type(data_list) == dict:
             data_list = [data_list]
@@ -161,6 +165,7 @@ class QGModel():
                         num_questions_per_instance, id_list)
 
         input_ids = self._tokenizer(input_str_list, 
+<<<<<<< HEAD
                 return_tensors='pt', 
                 padding=True,
                 truncation=True).to(self._device).input_ids
@@ -170,6 +175,12 @@ class QGModel():
         else:
             num_return_sequences = 1
 
+=======
+            return_tensors='pt', 
+            padding=True,
+            truncation=True).to(self._device).input_ids
+        
+>>>>>>> main
         generated_ids = self._model.generate(input_ids,
             max_length=60, 
             num_beams=num_beams,

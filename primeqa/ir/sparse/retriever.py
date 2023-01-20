@@ -6,55 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 logger = logging.getLogger(__name__)
 
-class BaseRetriever(metaclass=ABCMeta):
-    """ 
-        Base class for Retriever
-    """
-
-    @abstractmethod
-    def retrieve(self, query: str, topK: Optional[int] = 10):
-        """
-
-        Run queries against the index to retrieve ranked list of documents
-        Return documents that are most relevant to the query.
-
-        Args:
-             query: search
-             top_k: number of hits to return, defaults to 10
-
-
-        Returns:
-             List of hits, each hit is a dict containing :
-             {
-                "rank": i,
-                "score": hit.score,
-                "doc_id": docid,
-                "title": title,
-                "text": text 
-            }
-                
-
-        """
-        pass
-
-    @abstractmethod
-    def batch_retrieve(self,  queries: List[str], qids: List[str], topK: int = 10, threads: int = 1):
-        """
-           Run a batch of queries 
-
-           Args:
-                queries:  list of query strings
-                qids:     list of qid strings corresponding to queries
-                top_k:    number of hits to return, defaults to 10
-                threads:  maximum number of threads to use
-                
-            Returns:
-                Dict of qid to hits
-                
-        """
-        pass
-
-class PyseriniRetriever(BaseRetriever):
+class PyseriniRetriever:
     def __init__(self, index_location: str, use_bm25: bool = True, k1: float = float(0.9), b: float = float(0.4)):
         """
         Initialize Pyserini retriever
