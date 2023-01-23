@@ -5,7 +5,7 @@ import grpc
 from . import reader_pb2 as reader__pb2
 
 
-class ReaderStub(object):
+class ReadingServiceStub(object):
     """*
     The service for getting readers and answer(s) to a question usign readers
     """
@@ -17,18 +17,18 @@ class ReaderStub(object):
             channel: A grpc.Channel.
         """
         self.GetReaders = channel.unary_unary(
-                '/reader.Reader/GetReaders',
+                '/reader.ReadingService/GetReaders',
                 request_serializer=reader__pb2.GetReadersRequest.SerializeToString,
                 response_deserializer=reader__pb2.GetReadersResponse.FromString,
                 )
         self.GetAnswers = channel.unary_unary(
-                '/reader.Reader/GetAnswers',
+                '/reader.ReadingService/GetAnswers',
                 request_serializer=reader__pb2.GetAnswersRequest.SerializeToString,
                 response_deserializer=reader__pb2.GetAnswersResponse.FromString,
                 )
 
 
-class ReaderServicer(object):
+class ReadingServiceServicer(object):
     """*
     The service for getting readers and answer(s) to a question usign readers
     """
@@ -46,7 +46,7 @@ class ReaderServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_ReaderServicer_to_server(servicer, server):
+def add_ReadingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetReaders': grpc.unary_unary_rpc_method_handler(
                     servicer.GetReaders,
@@ -60,12 +60,12 @@ def add_ReaderServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'reader.Reader', rpc_method_handlers)
+            'reader.ReadingService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class Reader(object):
+class ReadingService(object):
     """*
     The service for getting readers and answer(s) to a question usign readers
     """
@@ -81,7 +81,7 @@ class Reader(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/reader.Reader/GetReaders',
+        return grpc.experimental.unary_unary(request, target, '/reader.ReadingService/GetReaders',
             reader__pb2.GetReadersRequest.SerializeToString,
             reader__pb2.GetReadersResponse.FromString,
             options, channel_credentials,
@@ -98,7 +98,7 @@ class Reader(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/reader.Reader/GetAnswers',
+        return grpc.experimental.unary_unary(request, target, '/reader.ReadingService/GetAnswers',
             reader__pb2.GetAnswersRequest.SerializeToString,
             reader__pb2.GetAnswersResponse.FromString,
             options, channel_credentials,

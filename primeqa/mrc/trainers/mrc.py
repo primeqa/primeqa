@@ -9,14 +9,22 @@ import torch
 from datasets import Dataset
 from packaging import version
 from torch.utils.data import DataLoader
-from transformers import Trainer, is_datasets_available
+import transformers
+from transformers import TrainingArguments, Trainer, is_datasets_available
 from transformers.trainer_pt_utils import IterableDatasetShard
 
 logger = logging.getLogger(__name__)
 
 
 class MRCTrainer(Trainer):
-    def __init__(self, *args, eval_examples=None, eval_dataset=None, post_process_function=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        eval_examples=None,
+        eval_dataset=None,
+        post_process_function=None,
+        **kwargs,
+    ):
         """
         MRC training and evaluation.
 
@@ -27,13 +35,24 @@ class MRCTrainer(Trainer):
             post_process_function:  Function to create predictions from model outputs.
             **kwargs: Keyword arguments for super-class constructor.
         """
-        kwargs['args'].label_names = ['start_positions', 'end_positions']
+        # FIXME: Work around for a bug in Transformers (4.24.0)
+        # Reference: https://github.com/huggingface/transformers/issues/20105
+        # -------- START OF FIX --------
+        if transformers.__version__ == "4.24.0":
+            if "args" not in kwargs:
+                kwargs["args"] = TrainingArguments(output_dir="tmp_trainer")
+
+            kwargs["args"].label_names = ["start_positions", "end_positions"]
+        # --------  END OF FIX   --------
+
         super().__init__(*args, **kwargs)
         self.eval_examples = eval_examples
         self.eval_dataset = eval_dataset
         self.post_process_function = post_process_function
 
-    def _remove_unused_columns(self, dataset: "datasets.Dataset", description: Optional[str] = None):
+    def _remove_unused_columns(
+        self, dataset: "datasets.Dataset", description: Optional[str] = None
+    ):
         """
         Infer needed `Dataset` columns matching model and (active) model head argument names.
         Remove unneeded columns from `dataset`.
@@ -56,7 +75,7 @@ class MRCTrainer(Trainer):
 
             signature_columns = set(model_signature.parameters.keys())
             signature_columns |= task_head_signature.parameters.keys()
-            signature_columns -= {'kwargs'}
+            signature_columns -= {"kwargs"}
 
             # Labels may be named label or label_ids, the default data collator handles that.
             signature_columns |= {"label", "label_ids"}
@@ -66,7 +85,9 @@ class MRCTrainer(Trainer):
         columns = [k for k in self._signature_columns if k in dataset.column_names]
         ignored_columns = list(set(dataset.column_names) - set(self._signature_columns))
         if len(ignored_columns) > 0:
-            dset_description = "" if description is None else f"in the {description} set "
+            dset_description = (
+                "" if description is None else f"in the {description} set "
+            )
             logger.info(
                 f"The following columns {dset_description} don't have a corresponding argument in "
                 f"`{self.model.__class__.__name__}.forward` and have been ignored: {', '.join(ignored_columns)}."
@@ -74,7 +95,9 @@ class MRCTrainer(Trainer):
 
         if version.parse(datasets.__version__) < version.parse("1.4.0"):
             dataset.set_format(
-                type=dataset.format["type"], columns=columns, format_kwargs=dataset.format["format_kwargs"]
+                type=dataset.format["type"],
+                columns=columns,
+                format_kwargs=dataset.format["format_kwargs"],
             )
             return dataset
         else:
@@ -94,7 +117,9 @@ class MRCTrainer(Trainer):
 
         train_dataset = self.train_dataset
         if is_datasets_available() and isinstance(train_dataset, datasets.Dataset):
-            train_dataset = self._remove_unused_columns(train_dataset, description="training")
+            train_dataset = self._remove_unused_columns(
+                train_dataset, description="training"
+            )
 
         if isinstance(train_dataset, torch.utils.data.IterableDataset):
             if self.args.world_size > 1:
@@ -144,7 +169,9 @@ class MRCTrainer(Trainer):
         eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
 
         if is_datasets_available() and isinstance(eval_dataset, datasets.Dataset):
-            eval_dataset = self._remove_unused_columns(eval_dataset, description="evaluation")
+            eval_dataset = self._remove_unused_columns(
+                eval_dataset, description="evaluation"
+            )
 
         if isinstance(eval_dataset, torch.utils.data.IterableDataset):
             if self.args.world_size > 1:
@@ -177,7 +204,13 @@ class MRCTrainer(Trainer):
 
     # TODO: when implementing test support implement `get_test_dataloader`
 
-    def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None, metric_key_prefix: str = "eval"):
+    def evaluate(
+        self,
+        eval_dataset=None,
+        eval_examples=None,
+        ignore_keys=None,
+        metric_key_prefix: str = "eval",
+    ):
         """
         Evaluate model using either eval data passed to method (if given).
         Otherwise use data given to constructor at instantiation.
@@ -199,7 +232,11 @@ class MRCTrainer(Trainer):
         # # Temporarily disable metric computation, we will do it in the loop here.
         compute_metrics = self.compute_metrics
         self.compute_metrics = None
-        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        eval_loop = (
+            self.prediction_loop
+            if self.args.use_legacy_prediction_loop
+            else self.evaluation_loop
+        )
         try:
             output = eval_loop(
                 eval_dataloader,
@@ -207,21 +244,30 @@ class MRCTrainer(Trainer):
                 # No point gathering the predictions if there are no metrics, otherwise we defer to
                 # self.args.prediction_loss_only
                 # gather predictions if running in eval mode
-                prediction_loss_only=self.args.prediction_loss_only, #True if compute_metrics is None else None,
+                prediction_loss_only=self.args.prediction_loss_only,  # True if compute_metrics is None else None,
                 ignore_keys=ignore_keys,
             )
         finally:
             self.compute_metrics = compute_metrics
 
         if self.post_process_function is not None:
-            eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+            eval_preds = self.post_process_function(
+                eval_examples, eval_dataset, output.predictions
+            )
 
             # TODO: return eval_preds and metrics, write save function for preds
-            with open(os.path.join(self.args.output_dir, 'eval_predictions.json'), 'w') as f:
+            with open(
+                os.path.join(self.args.output_dir, "eval_predictions.json"), "w"
+            ) as f:
                 json.dump(eval_preds.predictions, f, indent=4)
-            with open(os.path.join(self.args.output_dir, 'eval_predictions_processed.json'), 'w') as f:
+            with open(
+                os.path.join(self.args.output_dir, "eval_predictions_processed.json"),
+                "w",
+            ) as f:
                 json.dump(eval_preds.processed_predictions, f, indent=4)
-            with open(os.path.join(self.args.output_dir, 'eval_references.json'), 'w') as f:
+            with open(
+                os.path.join(self.args.output_dir, "eval_references.json"), "w"
+            ) as f:
                 json.dump(eval_preds.label_ids, f, indent=4)
 
         if self.post_process_function is not None and self.compute_metrics is not None:
@@ -236,9 +282,11 @@ class MRCTrainer(Trainer):
         else:
             metrics = {}
 
-        self.control = self.callback_handler.on_evaluate(self.args, self.state, self.control, metrics)
+        self.control = self.callback_handler.on_evaluate(
+            self.args, self.state, self.control, metrics
+        )
         return metrics
-    
+
     def predict(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
         """
         Obtain the predictions using either eval data passed to method (if given).
@@ -250,15 +298,18 @@ class MRCTrainer(Trainer):
             ignore_keys: Keys to ignore in evaluation loop.
 
         Returns:
-            Answer predictions if post-processing function was provided to constructor 
+            Answer predictions if post-processing function was provided to constructor
             at instantiation, otherwise an empty dict.
         """
         eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
         eval_dataloader = self.get_eval_dataloader(eval_dataset)
         eval_examples = self.eval_examples if eval_examples is None else eval_examples
 
-        
-        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        eval_loop = (
+            self.prediction_loop
+            if self.args.use_legacy_prediction_loop
+            else self.evaluation_loop
+        )
         try:
             output = eval_loop(
                 eval_dataloader,
@@ -266,14 +317,16 @@ class MRCTrainer(Trainer):
                 # No point gathering the predictions if there are no metrics, otherwise we defer to
                 # self.args.prediction_loss_only
                 # gather predictions if running in eval mode
-                prediction_loss_only=self.args.prediction_loss_only, #True if compute_metrics is None else None,
+                prediction_loss_only=self.args.prediction_loss_only,  # True if compute_metrics is None else None,
                 ignore_keys=ignore_keys,
             )
         finally:
             pass
 
         if self.post_process_function is not None:
-            eval_preds = self.post_process_function(eval_examples, eval_dataset, output.predictions)
+            eval_preds = self.post_process_function(
+                eval_examples, eval_dataset, output.predictions
+            )
         else:
             eval_preds = {}
 

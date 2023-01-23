@@ -5,7 +5,7 @@ import grpc
 from . import retriever_pb2 as retriever__pb2
 
 
-class RetrieverStub(object):
+class RetrievingServiceStub(object):
     """*
     Service to process and retrieve documents
     """
@@ -17,18 +17,18 @@ class RetrieverStub(object):
             channel: A grpc.Channel.
         """
         self.GetRetrievers = channel.unary_unary(
-                '/retrieve.Retriever/GetRetrievers',
+                '/retrieve.RetrievingService/GetRetrievers',
                 request_serializer=retriever__pb2.GetRetrieversRequest.SerializeToString,
                 response_deserializer=retriever__pb2.GetRetrieversResponse.FromString,
                 )
         self.Retrieve = channel.unary_unary(
-                '/retrieve.Retriever/Retrieve',
+                '/retrieve.RetrievingService/Retrieve',
                 request_serializer=retriever__pb2.RetrieveRequest.SerializeToString,
                 response_deserializer=retriever__pb2.RetrieveResponse.FromString,
                 )
 
 
-class RetrieverServicer(object):
+class RetrievingServiceServicer(object):
     """*
     Service to process and retrieve documents
     """
@@ -46,7 +46,7 @@ class RetrieverServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_RetrieverServicer_to_server(servicer, server):
+def add_RetrievingServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetRetrievers': grpc.unary_unary_rpc_method_handler(
                     servicer.GetRetrievers,
@@ -60,12 +60,12 @@ def add_RetrieverServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'retrieve.Retriever', rpc_method_handlers)
+            'retrieve.RetrievingService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
  # This class is part of an EXPERIMENTAL API.
-class Retriever(object):
+class RetrievingService(object):
     """*
     Service to process and retrieve documents
     """
@@ -81,7 +81,7 @@ class Retriever(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/GetRetrievers',
+        return grpc.experimental.unary_unary(request, target, '/retrieve.RetrievingService/GetRetrievers',
             retriever__pb2.GetRetrieversRequest.SerializeToString,
             retriever__pb2.GetRetrieversResponse.FromString,
             options, channel_credentials,
@@ -98,7 +98,7 @@ class Retriever(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/retrieve.Retriever/Retrieve',
+        return grpc.experimental.unary_unary(request, target, '/retrieve.RetrievingService/Retrieve',
             retriever__pb2.RetrieveRequest.SerializeToString,
             retriever__pb2.RetrieveResponse.FromString,
             options, channel_credentials,
