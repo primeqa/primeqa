@@ -376,7 +376,7 @@ The interfaces for the retrieval, indexing and reader components are defined <sp
 <ul class="simple">
 <li><p><strong>Initializing Indexer</strong></p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.pipelines.components.indexer.dense</span> <span class="kn">import</span> <span class="n">ColBERTIndexer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.components.indexer.dense</span> <span class="kn">import</span> <span class="n">ColBERTIndexer</span>
 
 <span class="n">indexer</span> <span class="o">=</span> <span class="n">ColBERTIndexer</span><span class="p">(</span><span class="n">checkpoint</span> <span class="o">=</span> <span class="n">checkpoint_fn</span><span class="p">,</span> <span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">num_partitions_max</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">indexer</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
@@ -416,7 +416,7 @@ An example of a collection file is <a class="reference external" href="https://g
 <ul class="simple">
 <li><p><strong>Initializing Retriever</strong></p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.pipelines.components.retriever.dense</span> <span class="kn">import</span> <span class="n">ColBERTRetriever</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.components.retriever.dense</span> <span class="kn">import</span> <span class="n">ColBERTRetriever</span>
 
 <span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
@@ -444,7 +444,7 @@ Follow the steps below to use the extractive reader:</p>
 <li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
+<span class="kn">from</span> <span class="nn">primeqa.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
 
 <span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110&quot;</span><span class="p">)</span>
 <span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
@@ -473,7 +473,7 @@ Follow the steps below to use the extractive reader:</p>
 <li><p>Step 1:  Initialize the reader.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.generative</span> <span class="kn">import</span> <span class="n">GenerativeFiDReader</span>
+<span class="kn">from</span> <span class="nn">primeqa.components.reader.generative</span> <span class="kn">import</span> <span class="n">GenerativeFiDReader</span>
 <span class="n">fid_reader</span> <span class="o">=</span> <span class="n">GenerativeFiDReader</span><span class="p">()</span>
 <span class="n">fid_reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 </pre></div>

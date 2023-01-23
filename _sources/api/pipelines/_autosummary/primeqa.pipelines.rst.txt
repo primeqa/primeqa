@@ -26,6 +26,5 @@
    :template: custom-module-template.rst
    :recursive:
 
-   primeqa.pipelines.components
    primeqa.pipelines.qa_pipeline
 
