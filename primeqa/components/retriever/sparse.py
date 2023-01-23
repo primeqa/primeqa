@@ -6,7 +6,9 @@ from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 from primeqa.components.base import Retriever
 
-class BM25Retriever(Retriever):
+
+@dataclass
+class BM25Retriever(BaseRetriever):
     """_summary_
 
     Args:

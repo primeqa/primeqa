@@ -6,7 +6,6 @@ from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
 
 
-
 @dataclass
 class BM25Indexer(BaseIndexer):
     """_summary_
