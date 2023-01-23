@@ -6,12 +6,7 @@ from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import (
-    ATTR_INDEX_ID,
-    ATTR_STATUS,
-    IndexStatus,
-    ATTR_ENGINE_TYPE,
-)
+from primeqa.services.constants import ATTR_INDEX_ID, ATTR_STATUS, IndexStatus, ATTR_ENGINE_TYPE
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -23,12 +18,12 @@ from primeqa.services.factories import (
     IndexerFactory,
 )
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2_grpc import (
-    IndexingServiceServicer,
+    IndexerServicer,
 )
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
     GetIndexersRequest,
     GetIndexersResponse,
-    Indexer,
+    IndexerComponent,
     GenerateIndexResponse,
     GetIndexStatusRequest,
     IndexStatusResponse,
@@ -42,7 +37,7 @@ from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import (
 )
 
 
-class IndexerService(IndexingServiceServicer):
+class IndexerService(IndexerServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
@@ -66,7 +61,7 @@ class IndexerService(IndexingServiceServicer):
         """
         return GetIndexersResponse(
             indexers=[
-                Indexer(
+                IndexerComponent(
                     indexer_id=indexer_id,
                     parameters=generate_parameters(
                         indexer, skip=["index_root", "index_name"]
@@ -108,9 +103,7 @@ class IndexerService(IndexingServiceServicer):
 
                 # Step 2.c: Load default retriever keyword arguments
                 indexer_kwargs = {
-                    k: v.default
-                    for k, v in indexer.__dataclass_fields__.items()
-                    if v.init
+                    k: v.default for k, v in indexer.__dataclass_fields__.items()
                 }
 
                 # Step 2.d: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
@@ -188,6 +181,7 @@ class IndexerService(IndexingServiceServicer):
                 index_information[ATTR_INDEX_ID],
             )
             logging.exception(err.args[0])
+
 
         self._store.save_index_information(
             index_information[ATTR_INDEX_ID], information=index_information

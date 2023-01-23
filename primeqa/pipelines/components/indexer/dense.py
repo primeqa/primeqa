@@ -2,13 +2,13 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.components.base import Indexer as BaseIndexer
+from primeqa.pipelines.components.base import IndexerComponent
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
 
 @dataclass
-class ColBERTIndexer(BaseIndexer):
+class ColBERTIndexer(IndexerComponent):
     """_summary_
 
     Args:
@@ -129,9 +129,6 @@ class ColBERTIndexer(BaseIndexer):
     def load(self, *args, **kwargs):
         self._indexer = Indexer(self.checkpoint, config=self._config)
 
-    def get_engine_type(self):
-        return "ColBERT"
-
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         if not isinstance(collection, str):
             raise TypeError(
@@ -142,3 +139,6 @@ class ColBERTIndexer(BaseIndexer):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
+    
+    def get_engine_type(self):
+        return "ColBERT"

@@ -3,7 +3,7 @@ from dataclasses import MISSING
 from math import inf
 from google.protobuf.struct_pb2 import Value
 
-from primeqa.components.base import Component
+from primeqa.pipelines.components.base import Component
 from primeqa.services.grpc_server.grpc_generated.parameter_pb2 import Parameter
 from primeqa.services.parameters import get_parameters
 
