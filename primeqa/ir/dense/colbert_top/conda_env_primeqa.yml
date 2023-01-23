@@ -19,7 +19,6 @@ dependencies:
     - jupyter
     - jupyterlab
     - scipy
-    - spacy
     - tqdm
     - transformers==4.17.0
     - ujson
