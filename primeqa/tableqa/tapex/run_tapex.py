@@ -48,8 +48,8 @@ from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
-from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_function_wikisql
-from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
+from primeqa.tableqa.tapex.processors.preprocessors.wikisql import preprocess_tableqa_function_wikisql
+from primeqa.tableqa.tapex.processors.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
 from primeqa.tableqa.tapex.utils.argument_utils_for_tapex import DataTrainingArguments,ModelArguments
 
 
@@ -58,23 +58,12 @@ check_min_version("4.17.0.dev0")
 
 logger = logging.getLogger(__name__)
 
-try:
-    nltk.data.find("tokenizers/punkt")
-except (LookupError, OSError):
-    if is_offline_mode():
-        raise LookupError(
-            "Offline mode: run this script without TRANSFORMERS_OFFLINE first to download nltk data files"
-        )
-    with FileLock(".lock") as lock:
-        nltk.download("punkt", quiet=True)
-
-
 
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
-
+    
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,

@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import List, Optional
 
-import nltk  # Here to have a nice missing dependency error message early on
 import numpy as np
 import pandas as pd
 from datasets import load_dataset
@@ -30,8 +29,8 @@ from transformers import (
 from transformers.file_utils import is_offline_mode
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
-from primeqa.tableqa.tapex.preprocessors.wikisql import preprocess_tableqa_function_wikisql
-from primeqa.tableqa.tapex.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
+from primeqa.tableqa.tapex.processors.preprocessors.wikisql import preprocess_tableqa_function_wikisql
+from primeqa.tableqa.tapex.processors.preprocessors.wikitablequestions import preprocess_tableqa_function_wtq
 from primeqa.tableqa.tapex.run_tapex import ModelArguments, DataTrainingArguments
 from primeqa.tableqa.tapex.metrics.tapex_accuracy import TapexAccuracy
 from primeqa.components.base import Reader
@@ -77,6 +76,7 @@ class TapexReader(Reader):
             Dict: Returns a dictionary of query and the predicted answer.
         """
         print("in predict for TapexModel with data: ",data_dict , " ,queries:", queries_list)
+        logger.info(f"loading from config at {self._config_json}")
         self.load(self._config_json)
         table = pd.DataFrame.from_dict(data_dict)
         inputs = self._tokenizer(table, queries_list, padding='max_length', return_tensors="pt")
@@ -90,7 +90,7 @@ class TapexReader(Reader):
 
 
     def load(self,config_json) :
-        print("loading from config at ",config_json)
+        logger.info(f"loading from config at {config_json}")
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
         
         # If we pass only one argument to the script and it's the path to a json file,
@@ -180,8 +180,7 @@ class TapexReader(Reader):
             raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
 
     def train(self):
-        
-        print("loading from config")
+        logger.info(f"loading from config at {self._config_jsonn}")
         self.load(self._config_json)
 
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
@@ -285,8 +284,7 @@ class TapexReader(Reader):
         trainer.save_state()
 
     def eval(self):
-        
-        print("loading from config")
+        logger.info(f"loading from config at {self._config_json}")
         self.load(self._config_json)
 
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
