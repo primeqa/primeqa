@@ -33,7 +33,7 @@ There is a corresponding Jupyter notebook [here](https://github.com/primeqa/prim
 
 - **Initializing Indexer**
 ```python
-from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.dense import ColBERTIndexer
 
 indexer = ColBERTIndexer(checkpoint = checkpoint_fn, index_root = index_root, index_name = index_name, num_partitions_max = 2)
 indexer.load()
@@ -60,7 +60,7 @@ This table shows the three lines from the file, with _text_ fields truncated:
 - **Initializing Retriever**
 
 ```python
-from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.dense import ColBERTRetriever
 
 retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, max_num_documents = 1)
 retriever.load()
@@ -86,7 +86,7 @@ Follow the steps below to use the extractive reader:
 - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive import ExtractiveReader
 
 reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
 reader.load()
@@ -115,7 +115,7 @@ Follow the steps below to use the `GenerativeFiDReader`:
 - Step 1:  Initialize the reader.
 ```python
 import json
-from primeqa.pipelines.components.reader.generative import GenerativeFiDReader
+from primeqa.components.reader.generative import GenerativeFiDReader
 fid_reader = GenerativeFiDReader()
 fid_reader.load()
 ```
