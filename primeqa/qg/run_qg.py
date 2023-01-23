@@ -37,8 +37,8 @@ class ModelArguments:
     modality: str = field(
         default="table",
         metadata={
-            "help": "Whether to generate questions from tables or passages",
-            "choices": ["table", "passage"],
+            "help": "Whether to generate questions from tables, passages, or hybrid (tables plus passages)",
+            "choices": ["table", "passage", "hybrid"],
         },
     )
     tokenizer_name: Optional[str] = field(

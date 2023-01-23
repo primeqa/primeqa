@@ -142,7 +142,7 @@ class Indexer:
     @abstractmethod
     def get_engine_type(self) -> str:
         """
-        Return this retriever engine type. Must match with the retriever tha will be used to query the index.
+        Return this retriever engine type. Must match with the retriever that will be used to query the index.
 
         Raises:
             NotImplementedError:

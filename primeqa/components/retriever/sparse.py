@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.components.base import Retriever
 
 
 @dataclass
