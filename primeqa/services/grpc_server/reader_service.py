@@ -54,9 +54,7 @@ class ReaderService(ReadingServiceServicer):
         try:
             return GetReadersResponse(
                 readers=[
-                    Reader(
-                        reader_id=reader_id, parameters=generate_parameters(reader)
-                    )
+                    Reader(reader_id=reader_id, parameters=generate_parameters(reader))
                     for reader_id, reader in READERS_REGISTRY.items()
                 ]
             )
