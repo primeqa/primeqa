@@ -41,7 +41,6 @@ def run_hybrid_qa():
       if hqa_args.dataset_name=="ottqa":
          retrieved_data = predict_table_retriever(hqa_args.data_path_root,hqa_args.collections_file,raw_test_data)
          linked_data = predict_link_for_tables(lp_args,retrieved_data,doc_retriever)
-         #json.dump(linked_data,open(os.path.join(hqa_args.data_path_root,"linked_data_test.json"),"w"))
          test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,linked_data,split="test",test=test)
       else:
          test_data_processed = preprocess_data(doc_retriever,hqa_args.data_path_root,hqa_args.dataset_name,raw_test_data,split="test",test=test)
