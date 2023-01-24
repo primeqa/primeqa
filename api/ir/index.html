@@ -505,8 +505,8 @@ This table shows two lines from the file, with the positive and negative passage
 <span class="w">    </span>--engine_type<span class="w"> </span>DPR<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--train_dir<span class="w"> </span>&lt;training_file_or_directory&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--num_train_epochs<span class="w"> </span>&lt;number_of_training_epochs<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--full_train_batch_size<span class="w"> </span>&lt;training_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--epochs<span class="w"> </span>&lt;number_of_training_epochs<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;training_batch_size&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--training_data_type<span class="w"> </span>text_triples
 </pre></div>
 </div>
@@ -599,12 +599,12 @@ An example of a collection file is <a class="reference external" href="https://g
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>primeqa/ir/run_ir.py<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--engine_type<span class="w"> </span>DPR<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--do_index<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--dpr_ctx_encoder_path<span class="w"> </span>&lt;context_encoder_model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--ctx_encoder_name_or_path<span class="w"> </span>&lt;context_encoder_model&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--embed<span class="w"> </span>&lt;part_number&gt;of&lt;parts_total&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--sharded_index<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--corpus<span class="w"> </span>&lt;document_collection&gt;<span class="w">  </span><span class="se">\</span>
+<span class="w">    </span>--collection<span class="w"> </span>&lt;document_collection&gt;<span class="w">  </span><span class="se">\</span>
 <span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--batch_size<span class="w"> </span>&lt;indexing_batch_size&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--bsize<span class="w"> </span>&lt;indexing_batch_size&gt;<span class="w"> </span><span class="se">\</span>
 </pre></div>
 </div>
 <p>Indexing can be parallelized using the <code class="docutils literal notranslate"><span class="pre">--embed</span></code> argument. To accomplish that, we specify the same <code class="docutils literal notranslate"><span class="pre">parts_total</span></code> value (e.g. 16) for all the parallel indexing commands, and specify the <code class="docutils literal notranslate"><span class="pre">part_number</span></code> values (from 1 to <code class="docutils literal notranslate"><span class="pre">parts_total</span></code>) used in the individual commands, e.g. <code class="docutils literal notranslate"><span class="pre">1of16</span></code>, <code class="docutils literal notranslate"><span class="pre">2of16</span></code> to <code class="docutils literal notranslate"><span class="pre">16of16</span></code>.</p>
