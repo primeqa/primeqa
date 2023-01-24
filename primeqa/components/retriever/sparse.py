@@ -1,5 +1,6 @@
 from typing import List
 from dataclasses import dataclass, field
+import json
 
 from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
