@@ -27,7 +27,6 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import List, Optional
 
-import nltk  # Here to have a nice missing dependency error message early on
 import numpy as np
 import pandas as pd
 from datasets import load_dataset

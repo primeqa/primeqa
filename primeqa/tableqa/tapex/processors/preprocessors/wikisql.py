@@ -7,7 +7,6 @@ from functools import partial
 from typing import List, Optional
 from copy import deepcopy
 
-import nltk  # Here to have a nice missing dependency error message early on
 import numpy as np
 import pandas as pd
 from primeqa.tableqa.tapex.utils.wikisql_utils_for_tapex import _TYPE_CONVERTER, retrieve_wikisql_query_answer_tapas
