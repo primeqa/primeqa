@@ -416,7 +416,7 @@
 <li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
+<span class="kn">from</span> <span class="nn">primeqa.pipelines.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
 <span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/tydiqa-primary-task-xlm-roberta-large&quot;</span><span class="p">)</span>
 <span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 </pre></div>

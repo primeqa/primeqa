@@ -1,0 +1,45 @@
+primeqa.tableqa.tapex.utils.argument\_utils\_for\_tapex.DataTrainingArguments
+=============================================================================
+
+.. currentmodule:: primeqa.tableqa.tapex.utils.argument_utils_for_tapex
+
+.. autoclass:: DataTrainingArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DataTrainingArguments.dataset_config_name
+      ~DataTrainingArguments.dataset_name
+      ~DataTrainingArguments.ignore_pad_token_for_loss
+      ~DataTrainingArguments.max_eval_samples
+      ~DataTrainingArguments.max_predict_samples
+      ~DataTrainingArguments.max_source_length
+      ~DataTrainingArguments.max_target_length
+      ~DataTrainingArguments.max_train_samples
+      ~DataTrainingArguments.num_beams
+      ~DataTrainingArguments.overwrite_cache
+      ~DataTrainingArguments.pad_to_max_length
+      ~DataTrainingArguments.preprocessing_num_workers
+      ~DataTrainingArguments.test_file
+      ~DataTrainingArguments.train_file
+      ~DataTrainingArguments.val_max_target_length
+      ~DataTrainingArguments.validation_file
+   
+   

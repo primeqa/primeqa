@@ -1,0 +1,33 @@
+argument\_utils\_for\_tapex
+===========================
+
+.. automodule:: primeqa.tableqa.tapex.utils.argument_utils_for_tapex
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DataTrainingArguments
+      ModelArguments
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,31 @@
+utils
+=====
+
+.. automodule:: primeqa.tableqa.tapex.utils
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.tapex.utils.argument_utils_for_tapex
+   primeqa.tableqa.tapex.utils.wikisql_utils_for_tapex
+

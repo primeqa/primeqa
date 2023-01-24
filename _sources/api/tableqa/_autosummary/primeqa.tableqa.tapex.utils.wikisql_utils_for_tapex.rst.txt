@@ -1,0 +1,32 @@
+wikisql\_utils\_for\_tapex
+==========================
+
+.. automodule:: primeqa.tableqa.tapex.utils.wikisql_utils_for_tapex
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      convert_to_float
+      retrieve_wikisql_query_answer_tapas
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

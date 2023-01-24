@@ -1,0 +1,30 @@
+metrics
+=======
+
+.. automodule:: primeqa.tableqa.tapex.metrics
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.tapex.metrics.tapex_accuracy
+

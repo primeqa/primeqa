@@ -1,0 +1,26 @@
+primeqa.tableqa.tapex.metrics.tapex\_accuracy.TapexAccuracy
+===========================================================
+
+.. currentmodule:: primeqa.tableqa.tapex.metrics.tapex_accuracy
+
+.. autoclass:: TapexAccuracy
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TapexAccuracy.compute_metrics
+      ~TapexAccuracy.postprocess_text
+   
+   
+
+   
+   
+   

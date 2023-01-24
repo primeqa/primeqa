@@ -1,0 +1,6 @@
+primeqa.tableqa.tapex.utils.wikisql\_utils\_for\_tapex.convert\_to\_float
+=========================================================================
+
+.. currentmodule:: primeqa.tableqa.tapex.utils.wikisql_utils_for_tapex
+
+.. autofunction:: convert_to_float

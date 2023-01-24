@@ -26,7 +26,7 @@ The following shows how to use the MRC component within PrimeQA to extract an an
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.components.reader.extractive import ExtractiveReader
+from primeqa.pipelines.components.reader.extractive import ExtractiveReader
 reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
 reader.load()
 ```

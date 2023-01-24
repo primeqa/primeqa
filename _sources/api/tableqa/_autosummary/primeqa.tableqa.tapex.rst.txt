@@ -1,0 +1,34 @@
+tapex
+=====
+
+.. automodule:: primeqa.tableqa.tapex
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.tapex.metrics
+   primeqa.tableqa.tapex.processors
+   primeqa.tableqa.tapex.run_tapex
+   primeqa.tableqa.tapex.tapex_component
+   primeqa.tableqa.tapex.utils
+

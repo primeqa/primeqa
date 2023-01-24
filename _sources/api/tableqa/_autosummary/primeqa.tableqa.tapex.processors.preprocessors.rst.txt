@@ -1,0 +1,31 @@
+preprocessors
+=============
+
+.. automodule:: primeqa.tableqa.tapex.processors.preprocessors
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.tableqa.tapex.processors.preprocessors.wikisql
+   primeqa.tableqa.tapex.processors.preprocessors.wikitablequestions
+

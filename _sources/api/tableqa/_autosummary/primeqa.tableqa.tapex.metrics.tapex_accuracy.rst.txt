@@ -1,7 +1,7 @@
-qa\_pipeline
-============
+tapex\_accuracy
+===============
 
-.. automodule:: primeqa.pipelines.qa_pipeline
+.. automodule:: primeqa.tableqa.tapex.metrics.tapex_accuracy
 
    
    
@@ -20,7 +20,7 @@ qa\_pipeline
       :template: custom-class-template.rst
       :nosignatures:
    
-      QAPipeline
+      TapexAccuracy
    
    
 

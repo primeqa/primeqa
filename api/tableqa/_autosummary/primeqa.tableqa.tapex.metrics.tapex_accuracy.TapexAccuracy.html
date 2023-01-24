@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>answer_accuracy &#8212; PrimeQA  documentation</title>
+    <title>primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../../_static/plex.css" type="text/css">
 
 <script>
@@ -155,21 +155,21 @@
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
     <ul class="current nav bd-sidenav">
- <li class="toctree-l1 current active has-children">
+ <li class="toctree-l1 has-children">
   <a class="reference internal" href="primeqa.tableqa.metrics.html">
    metrics
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul class="current">
-   <li class="toctree-l2 current active has-children">
-    <a class="current reference internal" href="#">
+  <ul>
+   <li class="toctree-l2 has-children">
+    <a class="reference internal" href="primeqa.tableqa.metrics.answer_accuracy.html">
      answer_accuracy
     </a>
-    <input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+    <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
     <label for="toctree-checkbox-2">
      <i class="fas fa-chevron-down">
      </i>
@@ -276,38 +276,38 @@
    </li>
   </ul>
  </li>
- <li class="toctree-l1 has-children">
+ <li class="toctree-l1 current active has-children">
   <a class="reference internal" href="primeqa.tableqa.tapex.html">
    tapex
   </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" type="checkbox"/>
   <label for="toctree-checkbox-9">
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul>
-   <li class="toctree-l2 has-children">
+  <ul class="current">
+   <li class="toctree-l2 current active has-children">
     <a class="reference internal" href="primeqa.tableqa.tapex.metrics.html">
      metrics
     </a>
-    <input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
+    <input checked="" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" type="checkbox"/>
     <label for="toctree-checkbox-10">
      <i class="fas fa-chevron-down">
      </i>
     </label>
-    <ul>
-     <li class="toctree-l3 has-children">
+    <ul class="current">
+     <li class="toctree-l3 current active has-children">
       <a class="reference internal" href="primeqa.tableqa.tapex.metrics.tapex_accuracy.html">
        tapex_accuracy
       </a>
-      <input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
+      <input checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" type="checkbox"/>
       <label for="toctree-checkbox-11">
        <i class="fas fa-chevron-down">
        </i>
       </label>
-      <ul>
-       <li class="toctree-l4">
-        <a class="reference internal" href="primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy.html">
+      <ul class="current">
+       <li class="toctree-l4 current active">
+        <a class="current reference internal" href="#">
          primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy
         </a>
        </li>
@@ -490,7 +490,7 @@
 
 <script>
         function showSource() {
-                window.open("../../../_sources/api/tableqa/_autosummary/primeqa.tableqa.metrics.answer_accuracy.rst.txt", '_blank');
+                window.open("../../../_sources/api/tableqa/_autosummary/primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy.rst.txt", '_blank');
         }
 
         function hRefGitHub() {
@@ -520,20 +520,29 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="module-primeqa.tableqa.metrics.answer_accuracy">
-<span id="answer-accuracy"></span><h1>answer_accuracy<a class="headerlink" href="#module-primeqa.tableqa.metrics.answer_accuracy" title="Permalink to this headline">#</a></h1>
-<p class="rubric">Functions</p>
+  <section id="primeqa-tableqa-tapex-metrics-tapex-accuracy-tapexaccuracy">
+<h1>primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy<a class="headerlink" href="#primeqa-tableqa-tapex-metrics-tapex-accuracy-tapexaccuracy" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">primeqa.tableqa.tapex.metrics.tapex_accuracy.</span></span><span class="sig-name descname"><span class="pre">TapexAccuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.tableqa.tapex.metrics.tapex_accuracy.TapexAccuracy" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p class="rubric">Methods</p>
 <table class="longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="primeqa.tableqa.metrics.answer_accuracy.compute_denotation_accuracy.html#primeqa.tableqa.metrics.answer_accuracy.compute_denotation_accuracy" title="primeqa.tableqa.metrics.answer_accuracy.compute_denotation_accuracy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_denotation_accuracy</span></code></a></p></td>
-<td><p>Computes denotation accuracy based on predicted and gold answers</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_metrics</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">postprocess_text</span></code></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
 </section>
 
 

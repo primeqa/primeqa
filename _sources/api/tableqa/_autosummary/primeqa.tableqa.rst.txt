@@ -31,6 +31,7 @@
    primeqa.tableqa.postprocessor
    primeqa.tableqa.preprocessors
    primeqa.tableqa.run_tableqa
+   primeqa.tableqa.tapex
    primeqa.tableqa.trainers
    primeqa.tableqa.utils
 

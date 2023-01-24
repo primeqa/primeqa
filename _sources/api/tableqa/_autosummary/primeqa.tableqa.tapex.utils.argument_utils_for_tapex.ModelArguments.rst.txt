@@ -1,0 +1,36 @@
+primeqa.tableqa.tapex.utils.argument\_utils\_for\_tapex.ModelArguments
+======================================================================
+
+.. currentmodule:: primeqa.tableqa.tapex.utils.argument_utils_for_tapex
+
+.. autoclass:: ModelArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ModelArguments.cache_dir
+      ~ModelArguments.config_name
+      ~ModelArguments.model_revision
+      ~ModelArguments.tokenizer_name
+      ~ModelArguments.use_auth_token
+      ~ModelArguments.use_fast_tokenizer
+      ~ModelArguments.model_name_or_path
+   
+   
