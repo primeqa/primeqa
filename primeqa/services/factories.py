@@ -4,12 +4,13 @@ import json
 
 from dataclasses import MISSING
 
-from primeqa.pipelines.components.base import (
+from primeqa.components.base import (
     Reader,
     Retriever,
     Indexer,
 )
 from primeqa.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.generative import GenerativeReader
 
 from primeqa.components.retriever.dense import ColBERTRetriever
 from primeqa.components.retriever.sparse import BM25Retriever
@@ -20,6 +21,7 @@ from primeqa.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
+    GenerativeReader.__name__: GenerativeReader,
 }
 
 RETRIEVERS_REGISTRY = {
