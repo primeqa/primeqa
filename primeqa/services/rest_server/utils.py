@@ -3,7 +3,7 @@ from dataclasses import MISSING
 from math import inf
 
 
-from primeqa.Components.base import Component
+from primeqa.components.base import Component
 from primeqa.services.parameters import get_parameters
 
 
