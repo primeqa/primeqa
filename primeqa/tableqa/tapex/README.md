@@ -75,4 +75,56 @@ The trained model yields the following results on wikisql dev set:
   eval_steps_per_second    =      4.748
 ```
 
-TAPEX can also be used from PrimeQA built-in-class TapexReader to do train/eval/inference with minimal line of codes. See example [notebooks](https://github.com/primeqa/primeqa/tree/tapex_integration/notebooks/tableqa) for the same. 
+
+## Omnitab based TableQA models
+
+OmniTab is an omnivorous pretraining approach that consumes natural data to endow models with the ability to understand and align natural language with tables, and synthetic questions to train models to perform reasoning. More details can be found in the original paper [OmniTab: Pretraining with Natural and Synthetic Data for Few-shot Table-based Question Answering](https://arxiv.org/pdf/2207.03637.pdf).
+
+PrimeQA supports OmniTab based tableqa model training and inference over wikitablequestions dataset
+Before continuing below make sure you have PrimeQA [installed](https://primeqa.github.io/primeqa/installation.html).
+
+
+### Train/Eval using OmniTab based Table Question Answering model in PrimeQA on wikitablequestions dataset
+```
+python run_tapex.py \
+  --do_train \
+  --do_eval \
+  --dataset_name wikitablequestions \
+  --output_dir omnitab_wtq \
+  --max_source_length 1024 \
+  --max_target_length 128 \
+  --model_name_or_path neulab/omnitab-large \
+  --overwrite_output_dir \
+  --per_device_train_batch_size 4 \
+  --gradient_accumulation_steps 8 \
+  --per_device_eval_batch_size 4 \
+  --learning_rate 2e-5 \
+  --logging_steps 10 \
+  --eval_steps 1000 \
+  --val_max_target_length 128 \
+  --save_steps 1000 \
+  --warmup_steps 1000 \
+  --warmup_ratio 0.1 \
+  --evaluation_strategy steps \
+  --predict_with_generate \
+  --num_beams 5 \
+  --weight_decay 1e-2 \
+  --label_smoothing_factor 0.1 \
+  --generation_max_length 128 \
+  --max_steps 20000 
+
+```
+The trained model yields the following results on wikitablequestions dev set:
+```
+
+***** eval metrics *****
+  epoch                    =      49.99
+  eval_denotation_accuracy =      0.598
+  eval_loss                =     2.4315
+  eval_runtime             = 0:08:46.28
+  eval_samples             =       2831
+  eval_samples_per_second  =      5.379
+  eval_steps_per_second    =      0.336 
+
+  ```
+TAPEX and OmniTab can also be used from PrimeQA built-in-class TapexReader to do train/eval/inference with minimal line of codes. See example [notebooks](https://github.com/primeqa/primeqa/notebooks/tableqa) for the same. 
