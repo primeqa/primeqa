@@ -1,6 +1,5 @@
 from typing import List
 from dataclasses import dataclass, field
-import json
 
 from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
@@ -32,14 +31,9 @@ class BM25Retriever(BaseRetriever):
             "description": "Path to root directory where index is stored",
         },
     )
-
-    max_num_documents: int = field(
-        default=5,
+    index_name: str = field(
         metadata={
-            "name": "Maximum number of retrieved documents",
-            "range": [1, 100, 1],
-            "api_support": True,
-            "exclude_from_hash": True,
+            "name": "Index name",
         },
     )
 
@@ -72,7 +66,7 @@ class BM25Retriever(BaseRetriever):
         )
 
     def load(self, *args, **kwargs):
-        self._searcher = PyseriniRetriever(self._index_path)
+        pass
 
     def get_engine_type(self):
         return "BM25"

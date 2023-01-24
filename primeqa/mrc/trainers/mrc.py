@@ -255,7 +255,6 @@ class MRCTrainer(Trainer):
                 eval_examples, eval_dataset, output.predictions
             )
 
-            # TODO: return eval_preds and metrics, write save function for preds
             with open(
                 os.path.join(self.args.output_dir, "eval_predictions.json"), "w"
             ) as f:

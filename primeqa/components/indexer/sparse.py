@@ -1,6 +1,5 @@
 from typing import Union, List
-from dataclasses import dataclass, field
-import json
+from dataclasses import dataclass
 
 from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
@@ -11,8 +10,6 @@ class BM25Indexer(BaseIndexer):
     """_summary_
 
     Args:
-        index_root (str): Path to root directory where index to be stored.
-        index_name (str): Index name.
 
     Important:
     1. Each field has metadata property which can carry additional information for other downstream usages.
