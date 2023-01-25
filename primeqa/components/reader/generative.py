@@ -88,7 +88,7 @@ class GenerativeFiDReader(GenerativeReader):
         metadata={"name": "The number of beams for generation", "range": [1, 5, 1]},
     )
     num_contexts: int = field(
-        default=3,
+        default=1,
         metadata={"name": "The number of passages in the input", "range": [1, 10, 1]},
     )
 
