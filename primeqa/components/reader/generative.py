@@ -68,6 +68,12 @@ class GenerativeReader(BaseReader):
     ):
         pass
 
+    def eval(self, *args, **kwargs):
+        pass
+
+    def train(self, *args, **kwargs):
+        pass
+
 
 @dataclass
 class GenerativeFiDReader(GenerativeReader):
@@ -142,7 +148,7 @@ class GenerativeFiDReader(GenerativeReader):
             stride=0,
             max_seq_len=self.max_seq_len,
             tokenizer=tokenizer,
-            max_contexts=3,  # self.num_contexts,
+            max_contexts=self.num_contexts,
             max_answer_len=self.generation_max_length,
         )
 
@@ -173,6 +179,12 @@ class GenerativeFiDReader(GenerativeReader):
             data_collator=data_collator,
             post_process_function=postprocessor.process,
         )
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def train(self, *args, **kwargs):
+        pass
 
     def train(self, *args, **kwargs):
         pass
@@ -213,8 +225,9 @@ class GenerativeFiDReader(GenerativeReader):
             predictions[raw_prediction["id"]] = processed_prediction
 
         return predictions
+
     def eval(self, *args, **kwargs):
         pass
-    
+
     def train(self, *args, **kwargs):
         pass
