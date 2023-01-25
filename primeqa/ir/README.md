@@ -87,8 +87,8 @@ python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --train_dir <training_file_or_directory> \
     --output_dir <output_directory> \
-    --num_train_epochs <number_of_training_epochs \
-    --full_train_batch_size <training_batch_size> \
+    --epochs <number_of_training_epochs \
+    --bsize <training_batch_size> \
     --training_data_type text_triples
 ```
 
@@ -150,12 +150,12 @@ Using a model trained as described [here](https://github.com/primeqa/primeqa/tre
 python primeqa/ir/run_ir.py \
     --engine_type DPR \
     --do_index \
-    --dpr_ctx_encoder_path <context_encoder_model> \
+    --ctx_encoder_name_or_path <context_encoder_model> \
     --embed <part_number>of<parts_total> \
     --sharded_index \
-    --corpus <document_collection>  \
+    --collection <document_collection>  \
     --output_dir <output_directory> \
-    --batch_size <indexing_batch_size> \
+    --bsize <indexing_batch_size> \
 ```
 Indexing can be parallelized using the `--embed` argument. To accomplish that, we specify the same `parts_total` value (e.g. 16) for all the parallel indexing commands, and specify the `part_number` values (from 1 to `parts_total`) used in the individual commands, e.g. `1of16`, `2of16` to `16of16`.
 
