@@ -1,5 +1,6 @@
 from typing import Union, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import json
 
 from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.sparse.indexer import PyseriniIndexer
