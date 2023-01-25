@@ -6,6 +6,7 @@ import os
 import numpy as np
 import ujson as json
 import logging
+import re
 
 from primeqa.ir.dense.dpr_top.util.line_corpus import read_lines, write_open
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
@@ -52,6 +53,8 @@ class DPRSearcher():
 
         if self.opts.model_name_or_path != "":
             self.opts.qry_encoder_name_or_path = self.opts.model_name_or_path
+
+        self.opts.qry_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.qry_encoder_name_or_path)
 
         self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
         self.qencoder = self.qencoder.to(self.device)

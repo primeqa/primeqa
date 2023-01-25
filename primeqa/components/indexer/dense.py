@@ -17,7 +17,7 @@ class ColBERTIndexer(BaseIndexer):
         checkpoint (str): Model to load.
         similarity (str, optional): Similarity. Defaults to "cosine"
         dim (int, optional): Dimension. Defaults to 128
-        query_maxlen (int, optional): Maxium query length. Defaults to 32.
+        query_maxlen (int, optional): Maximum query length. Defaults to 32.
         doc_maxlen (int, optional): Maximum document length. Defaults to 180.
         mask_punctuation (bool, optional): If set to "True", will mask punctuation. Defaults to True.
         bsize (int, optional): Batch size. Defaults to 128.
@@ -60,7 +60,7 @@ class ColBERTIndexer(BaseIndexer):
     query_maxlen: int = field(
         default=32,
         metadata={
-            "name": "Maxium query length",
+            "name": "Maximum query length",
             "range": [8, 64, 8],
             "api_support": True,
         },
@@ -68,7 +68,7 @@ class ColBERTIndexer(BaseIndexer):
     doc_maxlen: int = field(
         default=180,
         metadata={
-            "name": "Maxium document length",
+            "name": "Maximum document length",
             "range": [32, 256, 4],
             "api_support": True,
         },

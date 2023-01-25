@@ -6,6 +6,7 @@ import base64
 import torch
 from typing import List
 import numpy as np
+import re
 
 from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import gzip_str
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import build_index, IndexOptions
@@ -27,7 +28,7 @@ class Options(IndexOptions):
         super().__init__()
         self.ctx_encoder_name_or_path = 'facebook/dpr-ctx_encoder-multiset-base'
         self.embed = '1of1'
-        self.sharded_index = False
+        self.sharded_index = True
         self.collection = ''
         self.output_dir = ''  # the output_dir will have the passages dataset and the hnsw_index.faiss
         self.bsize = 16
@@ -46,6 +47,7 @@ class DPRIndexer():
         self.embed_num, self.embed_count = [int(n.strip()) for n in self.opts.embed.split('of')]
         assert 1 <= self.embed_num <= self.embed_count
 
+        self.opts.ctx_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.ctx_encoder_name_or_path)
         self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.ctx_encoder_name_or_path).to(device=self.device)
         self.ctx_encoder.eval()
         self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.opts.ctx_encoder_name_or_path)
