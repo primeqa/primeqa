@@ -1,0 +1,32 @@
+qa\_pipeline
+============
+
+.. automodule:: primeqa.pipelines.qa_pipeline
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      QAPipeline
+   
+   
+
+   
+   
+   
+
+
+
