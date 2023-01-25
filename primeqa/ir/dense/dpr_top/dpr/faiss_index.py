@@ -132,7 +132,7 @@ def build_index(corpus_dir, output_file, opts: IndexOptions):
         index.add(to_index)
 
     report = Reporting()
-    #for psg in corpus:
+
     for pndx, psg in enumerate(corpus):
         if (pndx % 100000) == 0:
             logger.info(f'processed {pndx} passages')
@@ -159,18 +159,18 @@ if __name__ == "__main__":
     class CmdOptions(IndexOptions):
         def __init__(self):
             super().__init__()
-            self.corpus = ''  # can be a directory with passages*.json.gz.records or a single such file
-            self.__required_args__ = ['corpus']
+            self.collection = ''  # can be a directory with passages*.json.gz.records or a single such file
+            self.__required_args__ = ['collection']
 
     opts = CmdOptions()
     fill_from_args(opts)
 
-    if os.path.isdir(opts.corpus):
-        output_file = os.path.join(opts.corpus, 'index.faiss')
+    if os.path.isdir(opts.collection):
+        output_file = os.path.join(opts.collection, 'index.faiss')
     else:
-        base_dir, filename = os.path.split(opts.corpus)
+        base_dir, filename = os.path.split(opts.collection)
         assert filename.startswith('passages') and filename.endswith('.json.gz.records')
         index_fname = f'index{filename[len("passages"):-len(".json.gz.records")]}.faiss'
         output_file = os.path.join(base_dir, index_fname)
 
-    build_index(opts.corpus, output_file, opts)
+    build_index(opts.collection, output_file, opts)

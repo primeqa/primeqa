@@ -1,19 +1,36 @@
+/**
+ Copyright 2022-2023 PrimeQA Team
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 syntax = "proto3";
 import "parameter.proto";
+import "google/protobuf/struct.proto";
 
 package index;
 
 /**
     Service to build index
 */
-service Indexer {
+service IndexingService {
     rpc GetIndexers(GetIndexersRequest) returns (GetIndexersResponse);
     rpc GenerateIndex(stream GenerateIndexRequest) returns (GenerateIndexResponse);
     rpc GetIndexStatus(GetIndexStatusRequest) returns (IndexStatusResponse);
     rpc GetIndexes(GetIndexesRequest) returns (GetIndexesResponse);
 }
 
-message IndexerComponent {
+message Indexer {
     string indexer_id = 1;
     repeated parameter.Parameter parameters = 2;
 }
@@ -22,7 +39,7 @@ message GetIndexersRequest {
 }
 
 message GetIndexersResponse {
-    repeated IndexerComponent indexers = 1;
+    repeated Indexer indexers = 1;
 }
 
 message Document {
@@ -32,9 +49,10 @@ message Document {
 }
 
 message GenerateIndexRequest {
-    IndexerComponent indexer = 1;
+    Indexer indexer = 1;
     repeated Document documents = 2;
     string index_id = 3;
+    google.protobuf.Struct metadata = 4;
 }
 
 enum IndexStatus {
@@ -58,11 +76,13 @@ message IndexStatusResponse {
 }
 
 message GetIndexesRequest {
+    string engine_type = 1;
 }
 
 message IndexInformation {
     string index_id = 1;
     IndexStatus status = 2;
+    google.protobuf.Struct metadata = 3;
 }
 
 message GetIndexesResponse {

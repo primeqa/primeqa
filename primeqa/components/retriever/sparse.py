@@ -2,12 +2,13 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import RetrieverComponent
+from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.components.base import Retriever
 
 
 @dataclass
-class BM25Retriever(RetrieverComponent):
+class BM25Retriever(BaseRetriever):
     """_summary_
 
     Args:
@@ -31,17 +32,12 @@ class BM25Retriever(RetrieverComponent):
             "description": "Path to root directory where index is stored",
         },
     )
-
-    max_num_documents: int = field(
-        default=5,
+    index_name: str = field(
         metadata={
-            "name": "Maximum number of retrieved documents",
-            "range": [1, 100, 1],
-            "api_support": True,
-            "exclude_from_hash": True,
+            "name": "Index name",
         },
     )
-    
+
     num_workers: int = field(
         default=1,
         metadata={
@@ -53,9 +49,9 @@ class BM25Retriever(RetrieverComponent):
 
     def __post_init__(self):
         # Placeholder variables
-        self._index_path=f"{self.index_root}/{self.index_name}"
+        self._index_path = f"{self.index_root}/{self.index_name}"
         self._searcher = None
-        
+
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
         hashable_fields = [
@@ -71,15 +67,23 @@ class BM25Retriever(RetrieverComponent):
         )
 
     def load(self, *args, **kwargs):
-        self._searcher = PyseriniRetriever(self._index_path)
+        pass
 
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
-        qids = [str(idx) for  idx, query in enumerate(input_texts) ]
-        hits = self._searcher.batch_retrieve(input_texts, qids, topK=self.max_num_documents, threads=self.num_workers)
-        return [
-            [(result['doc_id'], result['score']) for result in results_per_query]
-            for results_per_query in hits.values()
-        ]
-    
     def get_engine_type(self):
         return "BM25"
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, input_texts: List[str], *args, **kwargs):
+        qids = [str(idx) for idx, query in enumerate(input_texts)]
+        hits = self._searcher.batch_retrieve(
+            input_texts, qids, topK=self.max_num_documents, threads=self.num_workers
+        )
+        return [
+            [(result["doc_id"], result["score"]) for result in results_per_query]
+            for results_per_query in hits.values()
+        ]
