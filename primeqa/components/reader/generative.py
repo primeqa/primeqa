@@ -52,7 +52,12 @@ class GenerativeReader(BaseReader):
     def load(self, *args, **kwargs):
         pass
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def predict(self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs):
         pass
     
     def eval(self, *args, **kwargs):
