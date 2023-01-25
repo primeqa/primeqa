@@ -11,8 +11,7 @@ from primeqa.components.base import (
 )
 from primeqa.components.reader.extractive import ExtractiveReader
 
-from primeqa.components.retriever.dense import ColBERTRetriever
-from primeqa.components.retriever.dense import DPRRetriever
+from primeqa.components.retriever.dense import ColBERTRetriever, DPRRetriever
 from primeqa.components.retriever.sparse import BM25Retriever
 
 from primeqa.components.indexer.dense import ColBERTIndexer

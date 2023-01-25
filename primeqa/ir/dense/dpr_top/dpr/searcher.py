@@ -1,4 +1,4 @@
-from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
+import re
 import torch
 import csv
 from typing import Union
@@ -6,7 +6,8 @@ import os
 import numpy as np
 import ujson as json
 import logging
-import re
+
+from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
 
 from primeqa.ir.dense.dpr_top.util.line_corpus import read_lines, write_open
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting

@@ -1,7 +1,7 @@
 from typing import List, Any
+import os
 from dataclasses import dataclass, field
 import json
-import os
 
 from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -179,7 +179,7 @@ class DPRRetriever(BaseRetriever):
             "api_support": True,
         },
     )
-    collection: str = field( # remove
+    collection: str = field(
         default=None,
         metadata={
             "name": "Collection",
