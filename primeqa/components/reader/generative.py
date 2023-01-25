@@ -54,6 +54,12 @@ class GenerativeReader(BaseReader):
 
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
+    
+    def eval(self, *args, **kwargs):
+        pass
+    
+    def train(self, *args, **kwargs):
+        pass
 
 
 @dataclass
@@ -115,7 +121,7 @@ class GenerativeFiDReader(GenerativeReader):
             stride=0,
             max_seq_len=self.max_seq_len,
             tokenizer=tokenizer,
-            max_contexts=3,  # self.num_contexts,
+            max_contexts=self.num_contexts,
             max_answer_len=self.generation_max_length,
         )
 
@@ -146,6 +152,12 @@ class GenerativeFiDReader(GenerativeReader):
             data_collator=data_collator,
             post_process_function=postprocessor.process,
         )
+    
+    def eval(self, *args, **kwargs):
+        pass
+    
+    def train(self, *args, **kwargs):
+        pass
 
     def predict(
         self,
@@ -177,7 +189,11 @@ class GenerativeFiDReader(GenerativeReader):
         ):
             processed_prediction = {}
             processed_prediction["example_id"] = raw_prediction["id"]
-            processed_prediction["text"] = raw_prediction["prediction_text"]
+            processed_prediction["span_answer_text"] = raw_prediction["prediction_text"]
+            processed_prediction["passage_index"] = -1
+            processed_prediction["span_answer_score"] = 1
+            processed_prediction["confidence_score"] = 1
+            processed_prediction["span_answer"] = {"start_position" : -1, "end_position" : -1}
             predictions.append(processed_prediction)
 
         return predictions
