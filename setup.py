@@ -13,7 +13,7 @@ if sys.platform == "win32" and sys.maxsize.bit_length() == 31:
 
 
 python_min_version = (3, 7, 0)
-python_max_version = (3, 10, 0)
+python_max_version = (3, 11, 0)
 
 if python_min_version >= sys.version_info or python_max_version < sys.version_info:
     print(
@@ -130,7 +130,7 @@ setup(
     packages=find_packages(".", include=include_packages),
     include_package_data=True,
     package_data={"": ["*.cpp", "*.cu"]},
-    python_requires=">=3.7.0, <3.10.0",
+    python_requires=">=3.7.0, <3.11.0",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
