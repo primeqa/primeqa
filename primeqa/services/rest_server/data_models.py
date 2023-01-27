@@ -33,6 +33,10 @@ class GetAnswersRequest(BaseModel):
     queries: List[str]
     contexts: Union[List[List[str]], None] = None
 
+<<<<<<< HEAD
+=======
+# get table answer new 
+>>>>>>> 5836e49540f284e3f1f540157535aa9978391e3e
 class GetTableAnswerRequest(BaseModel):
     queries: List[str]
     contexts: dict
@@ -47,6 +51,10 @@ class Answer(BaseModel):
     confidence_score: float
     context_index: int
 
+<<<<<<< HEAD
+=======
+# get table answer new 
+>>>>>>> 5836e49540f284e3f1f540157535aa9978391e3e
 class TableAnswer(BaseModel):
     answers: dict
 
