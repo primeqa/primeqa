@@ -1,4 +1,5 @@
-from typing import List, Literal, Union
+from typing import List, Union
+from typing_extensions import Literal
 from pydantic import BaseModel
 
 from primeqa.services.constants import IndexStatus
@@ -32,6 +33,9 @@ class GetAnswersRequest(BaseModel):
     queries: List[str]
     contexts: Union[List[List[str]], None] = None
 
+class GetTableAnswerRequest(BaseModel):
+    queries: List[str]
+    contexts: dict
 
 #############################################################################################
 #                       Answer
@@ -43,6 +47,8 @@ class Answer(BaseModel):
     confidence_score: float
     context_index: int
 
+class TableAnswer(BaseModel):
+    answers: dict
 
 #############################################################################################
 #                       Retriever

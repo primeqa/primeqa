@@ -25,6 +25,7 @@ package reader;
 service ReadingService {
     rpc GetReaders (GetReadersRequest) returns (GetReadersResponse);
     rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
+    /* ToDo: a new rpc call for TableReader */
 }
 
 message Reader {

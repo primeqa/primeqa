@@ -29,13 +29,16 @@ from primeqa.services.rest_server.data_models import (
     Reader,
     Retriever,
     GetAnswersRequest,
+    GetTableAnswerRequest,
     Answer,
+    TableAnswer,
     GenerateIndexRequest,
     RetrieveRequest,
     IndexInformation,
     Hit,
 )
 from primeqa.services.rest_server.utils import generate_parameters
+from primeqa.tableqa.tapex.tapex_component import TapexReader
 
 
 class RestServer:
@@ -87,6 +90,19 @@ class RestServer:
         ############################################################################################
         #                           Reader API
         ############################################################################################
+        
+        @app.post(
+            "/get_table_answer",
+            status_code=status.HTTP_200_OK,
+            response_model=TableAnswer,
+            tags=["TableReader"],
+        )
+        def get_answer_from_table_reader(request: GetTableAnswerRequest):
+            
+            reader = TapexReader("./primeqa/tableqa/tapex/configs/tapex_config_inference_wtq.json")
+            answers = reader.predict(request.contexts,request.queries)
+            return  {"answers":answers}
+        
         @app.get(
             "/readers",
             status_code=status.HTTP_200_OK,
@@ -114,7 +130,6 @@ class RestServer:
                     status_code=500,
                     detail={"code": error_code, "message": error_message},
                 ) from None
-
         @app.post(
             "/answers",
             status_code=status.HTTP_201_CREATED,
