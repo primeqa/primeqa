@@ -130,6 +130,7 @@ class RestServer:
                     status_code=500,
                     detail={"code": error_code, "message": error_message},
                 ) from None
+                
         @app.post(
             "/answers",
             status_code=status.HTTP_201_CREATED,
