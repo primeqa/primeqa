@@ -33,7 +33,7 @@ There is a corresponding Jupyter notebook [here](https://github.com/primeqa/prim
 
 - **Initializing Indexer**
 ```python
-from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.dense import ColBERTIndexer
 
 indexer = ColBERTIndexer(checkpoint = checkpoint_fn, index_root = index_root, index_name = index_name, num_partitions_max = 2)
 indexer.load()
@@ -60,7 +60,7 @@ This table shows the three lines from the file, with _text_ fields truncated:
 - **Initializing Retriever**
 
 ```python
-from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.dense import ColBERTRetriever
 
 retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, max_num_documents = 1)
 retriever.load()
@@ -86,7 +86,7 @@ Follow the steps below to use the extractive reader:
 - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive import ExtractiveReader
 
 reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
 reader.load()
@@ -95,11 +95,11 @@ reader.load()
 - Step 2: Execute the reader in inference mode:
 ```python
 question = ["Which country is Canberra located in?"]
-context = ["""Canberra is the capital city of Australia. 
+context = [["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""]
-answers = reader.apply(question,context)  
+largest inland city"""]]
+answers = reader.predict(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 
@@ -115,7 +115,7 @@ Follow the steps below to use the `GenerativeFiDReader`:
 - Step 1:  Initialize the reader.
 ```python
 import json
-from primeqa.pipelines.components.reader.generative import GenerativeFiDReader
+from primeqa.components.reader.generative import GenerativeFiDReader
 fid_reader = GenerativeFiDReader()
 fid_reader.load()
 ```
@@ -149,7 +149,7 @@ context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is ba
             One of the environmental impacts of aviation is that persistent contrails can 
             form into large mats of cirrus, and increased air traffic has been implicated 
             as one possible cause of the increasing frequency and amount of cirrus"""]]
-answers = fid_reader.apply(question,context)  
+answers = fid_reader.predict(question,context)  
 print(json.dumps(answers, indent=4)) 
 ```
 

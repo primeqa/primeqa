@@ -133,21 +133,31 @@ def main():
         logger.info(f"Running DPR")
 
         if hasattr(process_args, 'do_train') and process_args.do_train:
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingArguments
+            parser = HfArgumentParser(DPRTrainingArguments)
+            training_args, remaining_args = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+
             from primeqa.ir.dense.dpr_top.dpr.biencoder_trainer import BiEncoderTrainer
-            trainer = BiEncoderTrainer()
+            trainer = BiEncoderTrainer(training_args)
             trainer.train()
 
         if hasattr(process_args, 'do_index') and process_args.do_index:
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+            parser = HfArgumentParser(DPRIndexingArguments)
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+
             from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
-            indexer = DPRIndexer()
+            indexer = DPRIndexer(dpr_args)
             indexer.index()
-            # raise NotImplementedError(f"Indexing using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
 
         if hasattr(process_args, 'do_search') and process_args.do_search:
+            from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
+            parser = HfArgumentParser(DPRSearchArguments)
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+
             from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
-            searcher = DPRSearcher()
+            searcher = DPRSearcher(dpr_args)
             searcher.search()
-            #raise NotImplementedError(f"Search using the DPR engine is not implemented (yet), but the trained model is compatible with other DPR toolkits.")
 
     elif process_args.engine_type == 'BM25':
         logger.info(f"Running BM25")

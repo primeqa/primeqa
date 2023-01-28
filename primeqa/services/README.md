@@ -87,7 +87,7 @@ This will start a `ReaderService`, a `IndexerService` and a `RetrieverService` a
 I1020 12:14:01.815917763 2539136 socket_utils_common_posix.cc:353] TCP_USER_TIMEOUT is available. TCP_USER_TIMEOUT will be used thereafter
 {"time":"2022-10-20 12:14:01,817", "name": "GrpcServer", "level": "INFO", "message": "Server instance started on port 50055 - initialization took 0 seconds"}
 ```
-- Use one of the [Clients](./Clients) to send requests to the service.
+- Use one of the [Clients](#clients) to send requests to the service.
 
 <h3>💻 Docker</h3>
 
@@ -189,7 +189,7 @@ Create a directory under `models` and copy `pytorch_model.bin`, `config.json` an
   ```
   - The index is now available for search
 
-<h3>💻 Clients</h3>
+<h3 id="clients">💻 Clients</h3>
 
 <h4>Python</h4> 
 

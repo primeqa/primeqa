@@ -12,6 +12,7 @@ from primeqa.ir.dense.dpr_top.dpr.biencoder_hypers import BiEncoderHypers
 from primeqa.ir.dense.dpr_top.dpr.biencoder_gcp import BiEncoder
 from primeqa.ir.dense.dpr_top.dpr.dataloader_biencoder import BiEncoderLoader
 from primeqa.ir.dense.dpr_top.util.line_corpus import jsonl_lines, jsonl_records
+from primeqa.ir.dense.dpr_top.dpr.config import DPRTrainingArguments
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +50,9 @@ class BiEncoderTrainArgs(BiEncoderHypers):
             logger.info(f'Counted num_instances = {self.num_instances}')
 
 class BiEncoderTrainer():
-    def __init__(self):
-        self.args = BiEncoderTrainArgs().fill_from_args()
+    def __init__(self, config: DPRTrainingArguments):
+        self.args = BiEncoderTrainArgs().fill_from_config(config)
+
         if self.args.n_gpu > 1:
             logger.error('Multi-GPU training must be through torch.distributed')
             exit(1)
@@ -64,7 +66,7 @@ class BiEncoderTrainer():
         self.model = BiEncoder(self.args)
         self.model.to(self.args.device)
         self.model.train()
-        self.optimizer = TransformerOptimize(self.args, self.args.num_train_epochs * self.args.num_instances, self.model)
+        self.optimizer = TransformerOptimize(self.args, self.args.epochs * self.args.num_instances, self.model)
         self.loader = BiEncoderLoader(self.args, self.args.per_gpu_train_batch_size, self.qry_tokenizer, self.ctx_tokenizer,
                                  self.args.train_dir, self.args.positive_pids, files_per_dataloader=-1)
 
@@ -126,8 +128,12 @@ class BiEncoderTrainer():
 
         logger.info(f'loaded checkpoint from {load_from_path}')
 
+    def save_tokenizers(self):
+        self.ctx_tokenizer.save_pretrained(os.path.join(self.args.output_dir, 'ctx_encoder'))
+        self.qry_tokenizer.save_pretrained(os.path.join(self.args.output_dir, 'qry_encoder'))
 
     def train(self):
+        self.save_tokenizers()
         while True:
             self.batches = self.loader.get_dataloader()
             if not self.optimizer.should_continue() or self.batches is None:

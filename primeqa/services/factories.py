@@ -4,35 +4,42 @@ import json
 
 from dataclasses import MISSING
 
-from primeqa.pipelines.components.base import (
-    ReaderComponent,
-    RetrieverComponent,
-    IndexerComponent,
+from primeqa.components.base import (
+    Reader,
+    Retriever,
+    Indexer,
 )
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-from primeqa.pipelines.components.reader.extractive_with_boolean import ExtractiveWithBooleanReader
-from primeqa.pipelines.components.reader.adapter_extractive_with_boolean import AdapterExtractiveWithBooleanReader
-from primeqa.pipelines.components.reader.text_classifier_reader import TextClassifierReader, BooleanQTCReader, BooleanEVCReader
-from primeqa.pipelines.components.retriever.dense import ColBERTRetriever
+from primeqa.components.reader.extractive_with_boolean import ExtractiveWithBooleanReader
+from primeqa.components.reader.adapter_extractive_with_boolean import AdapterExtractiveWithBooleanReader
+from primeqa.components.reader.text_classifier_reader import (
+    BooleanQTCReader,
+    BooleanEVCReader
+)
+from primeqa.components.reader.extractive import ExtractiveReader
 
-from primeqa.pipelines.components.indexer.dense import ColBERTIndexer
+from primeqa.components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.sparse import BM25Retriever
+
+from primeqa.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.sparse import BM25Indexer
+
 
 READERS_REGISTRY = {
     ExtractiveWithBooleanReader.__name__: ExtractiveWithBooleanReader,
     AdapterExtractiveWithBooleanReader.__name__: AdapterExtractiveWithBooleanReader,
     ExtractiveReader.__name__: ExtractiveReader,
-    TextClassifierReader.__name__: TextClassifierReader,
-    BooleanQTCReader.__name__: BooleanQTCReader,
-    BooleanEVCReader.__name__: BooleanEVCReader
-#    AdapterExtractiveWithBooleanReader.__name__:AdapterExtractiveWithBooleanReader
+    BooleanQTCReader.__name__: BooleanQTCReader
+#    BooleanEVCReader.__name__: BooleanEVCReader
 }
 
 RETRIEVERS_REGISTRY = {
     ColBERTRetriever.__name__: ColBERTRetriever,
+    BM25Retriever.__name__: BM25Retriever,
 }
 
 INDEXERS_REGISTRY = {
     ColBERTIndexer.__name__: ColBERTIndexer,
+    BM25Indexer.__name__: BM25Indexer,
 }
 
 
@@ -52,9 +59,7 @@ class ReaderFactory:
     _logger = logging.getLogger("ReaderFactory")
 
     @classmethod
-    def get(
-        cls, reader: ReaderComponent, reader_kwargs: dict, *load_args, **load_kwargs
-    ):
+    def get(cls, reader: Reader, reader_kwargs: dict, *load_args, **load_kwargs):
         # Step 1: Validate all required fields are specified
         validate(reader_kwargs)
 
@@ -133,7 +138,7 @@ class RetrieverFactory:
     @classmethod
     def get(
         cls,
-        retriever: RetrieverComponent,
+        retriever: Retriever,
         retriever_kwargs: dict,
         *load_args,
         **load_kwargs,
@@ -216,7 +221,7 @@ class IndexerFactory:
     @classmethod
     def get(
         cls,
-        indexer: IndexerComponent,
+        indexer: Indexer,
         indexer_kwargs: dict,
         *load_args,
         **load_kwargs,

@@ -14,11 +14,13 @@ from primeqa.services.factories import (
     READERS_REGISTRY,
     ReaderFactory,
 )
-from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import ReaderServicer
+from primeqa.services.grpc_server.grpc_generated.reader_pb2_grpc import (
+    ReadingServiceServicer,
+)
 from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     GetReadersRequest,
     GetReadersResponse,
-    ReaderComponent,
+    Reader,
     GetAnswersRequest,
     Answer,
     AnswersForContext,
@@ -28,7 +30,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
 )
 
 
-class ReaderService(ReaderServicer):
+class ReaderService(ReadingServiceServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
@@ -53,9 +55,7 @@ class ReaderService(ReaderServicer):
         try:
             return GetReadersResponse(
                 readers=[
-                    ReaderComponent(
-                        reader_id=reader_id, parameters=generate_parameters(reader)
-                    )
+                    Reader(reader_id=reader_id, parameters=generate_parameters(reader))
                     for reader_id, reader in READERS_REGISTRY.items()
                 ]
             )
@@ -96,7 +96,9 @@ class ReaderService(ReaderServicer):
             return GetAnswersResponse()
 
         # Step 3: Load default reader keyword arguments
-        reader_kwargs = {k: v.default for k, v in reader.__dataclass_fields__.items()}
+        reader_kwargs = {
+            k: v.default for k, v in reader.__dataclass_fields__.items() if v.init
+        }
 
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:
@@ -146,9 +148,9 @@ class ReaderService(ReaderServicer):
                     request.contexts[idx].texts,
                 )
                 try:
-                    predictions = instance.apply(
-                        input_texts=[query] * len(request.contexts[idx].texts),
-                        context=[[text] for text in request.contexts[idx].texts],
+                    predictions = instance.predict(
+                        questions=[query] * len(request.contexts[idx].texts),
+                        contexts=[[text] for text in request.contexts[idx].texts],
                         **reader_kwargs,
                     )
                     if type(predictions)==tuple:
@@ -157,10 +159,11 @@ class ReaderService(ReaderServicer):
                         per_query_predictions=None
 
                     self._logger.info(
-                        "Applying '%s' reader for query = '%s' returns predictions = %s",
+                        "Applying '%s' reader for query = '%s' returns predictions = %s  per_query_predictions = %s",
                         instance.__class__.__name__,
                         query,
                         predictions,
+                        per_query_predictions
                     )
 
 
@@ -187,14 +190,14 @@ class ReaderService(ReaderServicer):
                                             for prediction in predictions_for_context
                                         ]
                                     )
-                                    for predictions_for_context in predictions
+                                    for predictions_for_context in predictions.values()
                                 ],
                                 per_query_response = [
                                     PerQueryResponse( 
                                         question_type_prediction=per_query_prediction["question_type_pred"],
                                         boolean_answer_prediction=per_query_prediction["boolean_answer_pred"]
                                     )
-                                    for per_query_prediction in per_query_predictions
+                                    for per_query_prediction in per_query_predictions.values()
                                 ],
                             )
                         )
@@ -220,10 +223,14 @@ class ReaderService(ReaderServicer):
                                             for prediction in predictions_for_context
                                         ]
                                     )
-                                    for predictions_for_context in predictions
+                                    for predictions_for_context in predictions.values()
                                 ]
                             )
                         )  
+                except AssertionError:
+                    context.set_code(StatusCode.INTERNAL)
+                    context.set_details(ErrorMessages.INVALID_READER_INPUT.value)
+                    return GetAnswersResponse()                        
 
                 except TypeError:
                     context.set_code(StatusCode.INTERNAL)

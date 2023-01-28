@@ -8,7 +8,12 @@ from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_STATUS, ATTR_INDEX_ID, IndexStatus
+from primeqa.services.constants import (
+    ATTR_STATUS,
+    ATTR_INDEX_ID,
+    IndexStatus,
+    ATTR_ENGINE_TYPE,
+)
 from primeqa.services.factories import (
     READERS_REGISTRY,
     INDEXERS_REGISTRY,
@@ -138,7 +143,9 @@ class RestServer:
 
                 # Step 3: Load default reader keyword arguments
                 reader_kwargs = {
-                    k: v.default for k, v in reader.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in reader.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
@@ -312,7 +319,9 @@ class RestServer:
 
                 # Step 4: Load default retriever keyword arguments
                 indexer_kwargs = {
-                    k: v.default for k, v in indexer.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in indexer.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 5: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
@@ -348,6 +357,7 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 8: Save index information
+                index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
                 self._store.save_index_information(
                     index_id=index_information[ATTR_INDEX_ID],
                     information=index_information,
@@ -472,7 +482,9 @@ class RestServer:
 
                 # Step 2: Load default retriever keyword arguments
                 retriever_kwargs = {
-                    k: v.default for k, v in retriever.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in retriever.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
@@ -540,7 +552,7 @@ class RestServer:
                     request.queries,
                 )
                 try:
-                    results = instance.retrieve(
+                    results = instance.predict(
                         input_texts=request.queries, **retriever_kwargs
                     )
                     self._logger.info(
