@@ -139,7 +139,9 @@ class DPRIndexingArguments:
 
     bsize: int = field(default=16, metadata={"help": "Batch size"})
 
-    collection: str = field(default="None", metadata={"help": "Collection file path"})
+    collection: str = field(
+        default="None", metadata={"help": "Collection file path"}
+    )
 
     ctx_encoder_name_or_path: str = field(
         default="facebook/dpr-ctx_encoder-multiset-base",
@@ -152,7 +154,7 @@ class DPRIndexingArguments:
     )
 
     sharded_index: bool = field(
-        default=False, metadata={"help": "Use sharded index"}
+        default=True, metadata={"help": "Use sharded index"}
     )
 
 
