@@ -1,0 +1,33 @@
+biencoder\_gcp
+==============
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_gcp
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BiEncoder
+      EncoderWrapper
+   
+   
+
+   
+   
+   
+
+
+

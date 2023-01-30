@@ -1,0 +1,49 @@
+primeqa.ir.dense.dpr\_top.dpr.config.DPRTrainingArguments
+=========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.config
+
+.. autoclass:: DPRTrainingArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DPRTrainingArguments.bsize
+      ~DPRTrainingArguments.collection
+      ~DPRTrainingArguments.ctx_encoder_name_or_path
+      ~DPRTrainingArguments.encoder_gpu_train_limit
+      ~DPRTrainingArguments.epochs
+      ~DPRTrainingArguments.force_confict_free_batches
+      ~DPRTrainingArguments.learning_rate
+      ~DPRTrainingArguments.max_grad_norm
+      ~DPRTrainingArguments.max_hard_negatives
+      ~DPRTrainingArguments.max_negatives
+      ~DPRTrainingArguments.positive_pids
+      ~DPRTrainingArguments.qry_encoder_name_or_path
+      ~DPRTrainingArguments.queries
+      ~DPRTrainingArguments.resume_from_checkpoint
+      ~DPRTrainingArguments.sample_negative_from_top_k
+      ~DPRTrainingArguments.train_dir
+      ~DPRTrainingArguments.training_data_type
+      ~DPRTrainingArguments.warmup_fraction
+      ~DPRTrainingArguments.warmup_instances
+      ~DPRTrainingArguments.output_dir
+   
+   

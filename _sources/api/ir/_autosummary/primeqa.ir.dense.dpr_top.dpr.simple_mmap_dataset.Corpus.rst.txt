@@ -1,0 +1,27 @@
+primeqa.ir.dense.dpr\_top.dpr.simple\_mmap\_dataset.Corpus
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset
+
+.. autoclass:: Corpus
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Corpus.close
+      ~Corpus.get_by_pid
+      ~Corpus.get_raw
+   
+   
+
+   
+   
+   

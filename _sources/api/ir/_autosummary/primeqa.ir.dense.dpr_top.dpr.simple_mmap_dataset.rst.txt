@@ -1,0 +1,41 @@
+simple\_mmap\_dataset
+=====================
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      gunzip_str
+      gzip_str
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Corpus
+   
+   
+
+   
+   
+   
+
+
+

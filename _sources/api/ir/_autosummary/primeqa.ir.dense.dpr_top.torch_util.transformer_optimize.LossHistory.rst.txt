@@ -1,0 +1,25 @@
+primeqa.ir.dense.dpr\_top.torch\_util.transformer\_optimize.LossHistory
+=======================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.torch_util.transformer_optimize
+
+.. autoclass:: LossHistory
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~LossHistory.note_loss
+   
+   
+
+   
+   
+   

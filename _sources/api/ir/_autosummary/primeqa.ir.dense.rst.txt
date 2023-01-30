@@ -27,4 +27,5 @@ dense
    :recursive:
 
    primeqa.ir.dense.colbert_top
+   primeqa.ir.dense.dpr_top
 

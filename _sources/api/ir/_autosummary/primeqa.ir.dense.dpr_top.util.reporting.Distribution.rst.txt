@@ -1,0 +1,26 @@
+primeqa.ir.dense.dpr\_top.util.reporting.Distribution
+=====================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.reporting
+
+.. autoclass:: Distribution
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Distribution.display
+      ~Distribution.note_value
+   
+   
+
+   
+   
+   

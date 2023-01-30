@@ -1,0 +1,31 @@
+primeqa.ir.dense.dpr\_top.dataloader.distloader\_base.MultiFileLoader
+=====================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dataloader.distloader_base
+
+.. autoclass:: MultiFileLoader
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~MultiFileLoader.all_batches
+      ~MultiFileLoader.batch_dict
+      ~MultiFileLoader.display_batch
+      ~MultiFileLoader.get_checkpoint_info
+      ~MultiFileLoader.get_dataloader
+      ~MultiFileLoader.quick_test
+      ~MultiFileLoader.reset
+   
+   
+
+   
+   
+   

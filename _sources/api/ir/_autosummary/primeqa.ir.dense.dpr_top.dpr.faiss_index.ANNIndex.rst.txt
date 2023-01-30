@@ -1,0 +1,26 @@
+primeqa.ir.dense.dpr\_top.dpr.faiss\_index.ANNIndex
+===================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.faiss_index
+
+.. autoclass:: ANNIndex
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ANNIndex.dim
+      ~ANNIndex.search
+   
+   
+
+   
+   
+   

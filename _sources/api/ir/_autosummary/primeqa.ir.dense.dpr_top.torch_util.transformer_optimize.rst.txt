@@ -1,0 +1,33 @@
+transformer\_optimize
+=====================
+
+.. automodule:: primeqa.ir.dense.dpr_top.torch_util.transformer_optimize
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      LossHistory
+      TransformerOptimize
+   
+   
+
+   
+   
+   
+
+
+

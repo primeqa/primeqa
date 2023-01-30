@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.util.line\_corpus.str2np
+==================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.line_corpus
+
+.. autofunction:: str2np

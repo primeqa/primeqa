@@ -1,0 +1,33 @@
+dpr\_top
+========
+
+.. automodule:: primeqa.ir.dense.dpr_top
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.dpr_top.dataloader
+   primeqa.ir.dense.dpr_top.dpr
+   primeqa.ir.dense.dpr_top.torch_util
+   primeqa.ir.dense.dpr_top.util
+

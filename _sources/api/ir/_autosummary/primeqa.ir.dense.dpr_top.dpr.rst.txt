@@ -1,0 +1,39 @@
+dpr
+===
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.dpr_top.dpr.biencoder_gcp
+   primeqa.ir.dense.dpr_top.dpr.biencoder_hypers
+   primeqa.ir.dense.dpr_top.dpr.biencoder_trainer
+   primeqa.ir.dense.dpr_top.dpr.config
+   primeqa.ir.dense.dpr_top.dpr.dataloader_biencoder
+   primeqa.ir.dense.dpr_top.dpr.dpr_util
+   primeqa.ir.dense.dpr_top.dpr.faiss_index
+   primeqa.ir.dense.dpr_top.dpr.index_simple_corpus
+   primeqa.ir.dense.dpr_top.dpr.searcher
+   primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset
+

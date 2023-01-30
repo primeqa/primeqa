@@ -1,0 +1,43 @@
+faiss\_index
+============
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.faiss_index
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      build_index
+      l2_convert_indexed_vectors
+      l2_convert_query_vectors
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ANNIndex
+      IndexOptions
+   
+   
+
+   
+   
+   
+
+
+

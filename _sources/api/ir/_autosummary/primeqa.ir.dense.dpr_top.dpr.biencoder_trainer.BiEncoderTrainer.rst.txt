@@ -1,0 +1,28 @@
+primeqa.ir.dense.dpr\_top.dpr.biencoder\_trainer.BiEncoderTrainer
+=================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_trainer
+
+.. autoclass:: BiEncoderTrainer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BiEncoderTrainer.load_checkpoint
+      ~BiEncoderTrainer.save_checkpoint
+      ~BiEncoderTrainer.save_tokenizers
+      ~BiEncoderTrainer.train
+   
+   
+
+   
+   
+   

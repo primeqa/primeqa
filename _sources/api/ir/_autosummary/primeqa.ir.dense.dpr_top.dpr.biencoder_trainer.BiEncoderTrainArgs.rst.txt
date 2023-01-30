@@ -1,0 +1,31 @@
+primeqa.ir.dense.dpr\_top.dpr.biencoder\_trainer.BiEncoderTrainArgs
+===================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_trainer
+
+.. autoclass:: BiEncoderTrainArgs
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BiEncoderTrainArgs.fill_from_args
+      ~BiEncoderTrainArgs.fill_from_config
+      ~BiEncoderTrainArgs.from_dict
+      ~BiEncoderTrainArgs.jsonl_instances
+      ~BiEncoderTrainArgs.set_gradient_accumulation_steps
+      ~BiEncoderTrainArgs.set_seed
+      ~BiEncoderTrainArgs.to_dict
+   
+   
+
+   
+   
+   

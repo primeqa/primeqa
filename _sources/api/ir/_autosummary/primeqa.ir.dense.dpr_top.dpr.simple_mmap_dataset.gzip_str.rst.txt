@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.dpr.simple\_mmap\_dataset.gzip\_str
+=============================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset
+
+.. autofunction:: gzip_str

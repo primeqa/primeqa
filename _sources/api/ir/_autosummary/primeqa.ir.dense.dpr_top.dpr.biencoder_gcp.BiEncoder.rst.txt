@@ -1,0 +1,77 @@
+primeqa.ir.dense.dpr\_top.dpr.biencoder\_gcp.BiEncoder
+======================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_gcp
+
+.. autoclass:: BiEncoder
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BiEncoder.add_module
+      ~BiEncoder.apply
+      ~BiEncoder.bfloat16
+      ~BiEncoder.buffers
+      ~BiEncoder.children
+      ~BiEncoder.cpu
+      ~BiEncoder.cuda
+      ~BiEncoder.double
+      ~BiEncoder.encode
+      ~BiEncoder.eval
+      ~BiEncoder.extra_repr
+      ~BiEncoder.float
+      ~BiEncoder.forward
+      ~BiEncoder.gather
+      ~BiEncoder.get_buffer
+      ~BiEncoder.get_extra_state
+      ~BiEncoder.get_parameter
+      ~BiEncoder.get_submodule
+      ~BiEncoder.half
+      ~BiEncoder.load_state_dict
+      ~BiEncoder.modules
+      ~BiEncoder.named_buffers
+      ~BiEncoder.named_children
+      ~BiEncoder.named_modules
+      ~BiEncoder.named_parameters
+      ~BiEncoder.parameters
+      ~BiEncoder.register_backward_hook
+      ~BiEncoder.register_buffer
+      ~BiEncoder.register_forward_hook
+      ~BiEncoder.register_forward_pre_hook
+      ~BiEncoder.register_full_backward_hook
+      ~BiEncoder.register_module
+      ~BiEncoder.register_parameter
+      ~BiEncoder.requires_grad_
+      ~BiEncoder.save
+      ~BiEncoder.save_for_debug
+      ~BiEncoder.set_extra_state
+      ~BiEncoder.share_memory
+      ~BiEncoder.state_dict
+      ~BiEncoder.to
+      ~BiEncoder.to_empty
+      ~BiEncoder.train
+      ~BiEncoder.type
+      ~BiEncoder.xpu
+      ~BiEncoder.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~BiEncoder.T_destination
+      ~BiEncoder.dump_patches
+      ~BiEncoder.training
+   
+   

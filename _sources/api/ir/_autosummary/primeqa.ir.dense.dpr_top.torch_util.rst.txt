@@ -1,0 +1,31 @@
+torch\_util
+===========
+
+.. automodule:: primeqa.ir.dense.dpr_top.torch_util
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primeqa.ir.dense.dpr_top.torch_util.hypers_base
+   primeqa.ir.dense.dpr_top.torch_util.transformer_optimize
+

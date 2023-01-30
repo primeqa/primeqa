@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.dpr.simple\_mmap\_dataset.gunzip\_str
+===============================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset
+
+.. autofunction:: gunzip_str

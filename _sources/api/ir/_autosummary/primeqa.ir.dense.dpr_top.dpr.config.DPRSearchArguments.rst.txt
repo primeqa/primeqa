@@ -1,0 +1,36 @@
+primeqa.ir.dense.dpr\_top.dpr.config.DPRSearchArguments
+=======================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.config
+
+.. autoclass:: DPRSearchArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DPRSearchArguments.bsize
+      ~DPRSearchArguments.index_location
+      ~DPRSearchArguments.model_name_or_path
+      ~DPRSearchArguments.output_dir
+      ~DPRSearchArguments.qry_encoder_name_or_path
+      ~DPRSearchArguments.queries
+      ~DPRSearchArguments.top_k
+   
+   

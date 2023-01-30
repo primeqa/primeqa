@@ -1,0 +1,33 @@
+searcher
+========
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.searcher
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DPRSearcher
+      Options
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,35 @@
+primeqa.ir.dense.dpr\_top.dpr.config.DPRIndexingArguments
+=========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.config
+
+.. autoclass:: DPRIndexingArguments
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DPRIndexingArguments.bsize
+      ~DPRIndexingArguments.collection
+      ~DPRIndexingArguments.ctx_encoder_name_or_path
+      ~DPRIndexingArguments.embed
+      ~DPRIndexingArguments.sharded_index
+      ~DPRIndexingArguments.output_dir
+   
+   

@@ -1,0 +1,26 @@
+primeqa.ir.dense.dpr\_top.util.line\_corpus.ShuffledWriter
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.line_corpus
+
+.. autoclass:: ShuffledWriter
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ShuffledWriter.close
+      ~ShuffledWriter.write
+   
+   
+
+   
+   
+   

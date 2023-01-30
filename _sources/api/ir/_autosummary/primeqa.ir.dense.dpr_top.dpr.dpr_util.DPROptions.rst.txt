@@ -1,0 +1,31 @@
+primeqa.ir.dense.dpr\_top.dpr.dpr\_util.DPROptions
+==================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.dpr_util
+
+.. autoclass:: DPROptions
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DPROptions.fill_from_args
+      ~DPROptions.fill_from_config
+      ~DPROptions.from_dict
+      ~DPROptions.jsonl_instances
+      ~DPROptions.set_gradient_accumulation_steps
+      ~DPROptions.set_seed
+      ~DPROptions.to_dict
+   
+   
+
+   
+   
+   

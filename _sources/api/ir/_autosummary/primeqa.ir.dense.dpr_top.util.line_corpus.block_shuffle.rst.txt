@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.util.line\_corpus.block\_shuffle
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.line_corpus
+
+.. autofunction:: block_shuffle

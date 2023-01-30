@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.dpr.biencoder\_trainer.main
+=====================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_trainer
+
+.. autofunction:: main

@@ -1,0 +1,41 @@
+dpr\_util
+=========
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.dpr_util
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      queries_to_vectors
+      tokenize_queries
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DPROptions
+   
+   
+
+   
+   
+   
+
+
+

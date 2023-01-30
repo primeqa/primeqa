@@ -1,0 +1,31 @@
+primeqa.ir.dense.dpr\_top.dpr.biencoder\_hypers.BiEncoderHypers
+===============================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_hypers
+
+.. autoclass:: BiEncoderHypers
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BiEncoderHypers.fill_from_args
+      ~BiEncoderHypers.fill_from_config
+      ~BiEncoderHypers.from_dict
+      ~BiEncoderHypers.jsonl_instances
+      ~BiEncoderHypers.set_gradient_accumulation_steps
+      ~BiEncoderHypers.set_seed
+      ~BiEncoderHypers.to_dict
+   
+   
+
+   
+   
+   

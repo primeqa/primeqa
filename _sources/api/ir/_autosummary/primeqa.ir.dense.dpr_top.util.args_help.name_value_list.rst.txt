@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.util.args\_help.name\_value\_list
+===========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.args_help
+
+.. autofunction:: name_value_list

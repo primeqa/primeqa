@@ -1,0 +1,41 @@
+reporting
+=========
+
+.. automodule:: primeqa.ir.dense.dpr_top.util.reporting
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      time_str
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      Distribution
+      Reporting
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.util.reporting.time\_str
+==================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.reporting
+
+.. autofunction:: time_str

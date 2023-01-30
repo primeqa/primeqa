@@ -1,0 +1,27 @@
+primeqa.ir.dense.dpr\_top.dpr.dataloader\_biencoder.BiEncoderBatches
+====================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.dataloader_biencoder
+
+.. autoclass:: BiEncoderBatches
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~BiEncoderBatches.create_conflict_free_batches
+      ~BiEncoderBatches.make_batch
+      ~BiEncoderBatches.post_init
+   
+   
+
+   
+   
+   

@@ -1,0 +1,52 @@
+line\_corpus
+============
+
+.. automodule:: primeqa.ir.dense.dpr_top.util.line_corpus
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      block_shuffle
+      expand_files
+      gunzip_str
+      gzip_str
+      jsonl_files
+      jsonl_lines
+      jsonl_records
+      np2str
+      read_lines
+      read_open
+      read_records
+      str2np
+      write_open
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ShuffledWriter
+   
+   
+
+   
+   
+   
+
+
+

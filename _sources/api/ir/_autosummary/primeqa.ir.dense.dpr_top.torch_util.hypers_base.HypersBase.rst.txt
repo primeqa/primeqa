@@ -1,0 +1,31 @@
+primeqa.ir.dense.dpr\_top.torch\_util.hypers\_base.HypersBase
+=============================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.torch_util.hypers_base
+
+.. autoclass:: HypersBase
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HypersBase.fill_from_args
+      ~HypersBase.fill_from_config
+      ~HypersBase.from_dict
+      ~HypersBase.jsonl_instances
+      ~HypersBase.set_gradient_accumulation_steps
+      ~HypersBase.set_seed
+      ~HypersBase.to_dict
+   
+   
+
+   
+   
+   

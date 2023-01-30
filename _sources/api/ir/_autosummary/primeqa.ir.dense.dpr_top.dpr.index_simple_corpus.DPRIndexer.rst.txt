@@ -1,0 +1,27 @@
+primeqa.ir.dense.dpr\_top.dpr.index\_simple\_corpus.DPRIndexer
+==============================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dpr.index_simple_corpus
+
+.. autoclass:: DPRIndexer
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DPRIndexer.embed
+      ~DPRIndexer.index
+      ~DPRIndexer.write
+   
+   
+
+   
+   
+   

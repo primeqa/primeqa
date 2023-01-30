@@ -1,0 +1,41 @@
+biencoder\_trainer
+==================
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.biencoder_trainer
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      BiEncoderTrainArgs
+      BiEncoderTrainer
+   
+   
+
+   
+   
+   
+
+
+

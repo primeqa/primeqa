@@ -1,0 +1,26 @@
+primeqa.ir.dense.dpr\_top.dataloader.distloader\_base.DistBatchesBase
+=====================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.dataloader.distloader_base
+
+.. autoclass:: DistBatchesBase
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DistBatchesBase.make_batch
+      ~DistBatchesBase.post_init
+   
+   
+
+   
+   
+   

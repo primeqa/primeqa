@@ -1,0 +1,34 @@
+config
+======
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.config
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DPRIndexingArguments
+      DPRSearchArguments
+      DPRTrainingArguments
+   
+   
+
+   
+   
+   
+
+
+

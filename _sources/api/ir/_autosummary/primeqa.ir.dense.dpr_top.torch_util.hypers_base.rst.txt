@@ -1,0 +1,40 @@
+hypers\_base
+============
+
+.. automodule:: primeqa.ir.dense.dpr_top.torch_util.hypers_base
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      dist_initialize
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      HypersBase
+   
+   
+
+   
+   
+   
+
+
+

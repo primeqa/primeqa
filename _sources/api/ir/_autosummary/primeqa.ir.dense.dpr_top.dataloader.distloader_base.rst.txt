@@ -1,0 +1,33 @@
+distloader\_base
+================
+
+.. automodule:: primeqa.ir.dense.dpr_top.dataloader.distloader_base
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DistBatchesBase
+      MultiFileLoader
+   
+   
+
+   
+   
+   
+
+
+

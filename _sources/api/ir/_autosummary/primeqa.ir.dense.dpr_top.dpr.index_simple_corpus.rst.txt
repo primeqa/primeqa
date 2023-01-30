@@ -1,0 +1,33 @@
+index\_simple\_corpus
+=====================
+
+.. automodule:: primeqa.ir.dense.dpr_top.dpr.index_simple_corpus
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      DPRIndexer
+      Options
+   
+   
+
+   
+   
+   
+
+
+

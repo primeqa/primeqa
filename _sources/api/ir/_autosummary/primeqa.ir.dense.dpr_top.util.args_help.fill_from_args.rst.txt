@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.util.args\_help.fill\_from\_args
+==========================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.util.args_help
+
+.. autofunction:: fill_from_args

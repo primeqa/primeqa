@@ -1,0 +1,6 @@
+primeqa.ir.dense.dpr\_top.torch\_util.hypers\_base.dist\_initialize
+===================================================================
+
+.. currentmodule:: primeqa.ir.dense.dpr_top.torch_util.hypers_base
+
+.. autofunction:: dist_initialize
