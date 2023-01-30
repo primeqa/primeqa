@@ -68,12 +68,6 @@ class GenerativeReader(BaseReader):
     ):
         pass
 
-    def eval(self, *args, **kwargs):
-        pass
-
-    def train(self, *args, **kwargs):
-        pass
-
 
 @dataclass
 class GenerativeFiDReader(GenerativeReader):
@@ -186,12 +180,6 @@ class GenerativeFiDReader(GenerativeReader):
     def train(self, *args, **kwargs):
         pass
 
-    def train(self, *args, **kwargs):
-        pass
-
-    def eval(self, *args, **kwargs):
-        pass
-
     def predict(
         self,
         questions: List[str],
@@ -225,9 +213,3 @@ class GenerativeFiDReader(GenerativeReader):
             predictions[raw_prediction["id"]] = processed_prediction
 
         return predictions
-
-    def eval(self, *args, **kwargs):
-        pass
-
-    def train(self, *args, **kwargs):
-        pass
