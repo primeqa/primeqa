@@ -48,7 +48,7 @@ class AdapterExtractiveWithBooleanReader(BaseReader):
     """
 
     boolean_config: str = field(
-        default="/store/models/tydi_boolqa_config_adapters1.json",
+        default="/store/models/tydi_boolqa_config_adapters2.json",
         metadata={"name": "aggregate configuration", "api_support": True},
     )
     # model: str = field(
@@ -121,6 +121,7 @@ class AdapterExtractiveWithBooleanReader(BaseReader):
         metadata={
             "name": "score normalization style",
             "options": [
+                "cternary",
                 "ternary",
                 "tydi"
             ],
@@ -280,19 +281,30 @@ class AdapterExtractiveWithBooleanReader(BaseReader):
                     "span_answer_text"
                 ]
                 processed_prediction["span_answer"] = raw_prediction["span_answer"]
+
+
+                qtcp=per_query_predictions[example_id]['question_type_pred']
+                is_boolean=(qtcp=="boolean")
+                score_norm=self._handle_boolean_score_normalizer( raw_prediction, is_boolean )
+                bas=per_query_predictions[example_id]["boolean_answer_scores"]
+
+                if "no_answer" in bas:
+                    basa=np.array([bas["yes"],bas["no"], bas["no_answer"]])
+                else:
+                    basa=np.array([bas["yes"],bas["no"], 0.0])
+                sbasa=softmax(basa)
+                
                 if self.normalization=="tydi":
-                    qtcp=per_query_predictions[example_id]['question_type_pred']
-                    processed_prediction["confidence_score"] = self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")
+                    processed_prediction["confidence_score"] = score_norm
                 elif self.normalization=="ternary":
-                    bas=per_query_predictions[example_id]["boolean_answer_scores"]
-                    self._logger.info("boolean_answer_scores: " + str(bas))
-                    if "no_answer" in bas:
-                        basa=np.array([bas["yes"],bas["no"], bas["no_answer"]])
+                    processed_prediction["confidence_score"] = (sbasa[0]+sbasa[1]) * score_norm
+                elif self.normalization=="cternary":
+                    if is_boolean:
+                        processed_prediction["confidence_score"] = (sbasa[0]+sbasa[1]) * score_norm
                     else:
-                        basa=np.array([bas["yes"],bas["no"], 0.0])
-                    sbasa=softmax(basa)
-                    qtcp=per_query_predictions[example_id]['question_type_pred']
-                    processed_prediction["confidence_score"] = (sbasa[0]+sbasa[1]) * self._handle_boolean_score_normalizer( raw_prediction, qtcp=="boolean")                
+                        processed_prediction["confidence_score"] = score_norm
+
+
 
                 predictions[example_id].append(processed_prediction)
 

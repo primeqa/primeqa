@@ -13,7 +13,7 @@ if sys.platform == "win32" and sys.maxsize.bit_length() == 31:
 
 
 python_min_version = (3, 7, 0)
-python_max_version = (3, 10, 0)
+python_max_version = (3, 11, 0)
 
 if python_min_version >= sys.version_info or python_max_version < sys.version_info:
     print(
@@ -48,6 +48,7 @@ include_packages = list(
 )
 
 _deps = {
+    "adapter-transformers~=3.0.1": ["install", "gpu"],
     "docutils>=0.14,<0.18": ["tests"],
     "bitarray~=2.3.7": ["install", "gpu"],
     "bump2version~=1.0.1": ["dev"],
@@ -60,7 +61,7 @@ _deps = {
     "ipywidgets~=7.7.0": ["notebooks"],
     "jsonlines~=3.0.0": ["install", "gpu"],
     "ninja~=1.10.2.3": ["install", "gpu"],
-    "nltk~=3.7": ["install", "gpu"],
+    "numpy~=1.21.5": ["install", "gpu"],
     "packaging~=21.3": ["install", "gpu"],
     "pandas~=1.3.5": ["install", "gpu"],
     "psutil~=5.9.0": ["install", "gpu"],
@@ -72,11 +73,10 @@ _deps = {
     "pytest-rerunfailures~=10.2": ["tests"],
     "scikit-learn~=1.0.2": ["install", "gpu"],
     "signals~=0.0.2": ["install", "gpu"],
-    "spacy~=3.2.2": ["install", "gpu"],
     "stanza~=1.4.0": ["install", "gpu"],
     "torch~=1.11.0": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
-    "transformers~=4.17.0": ["install", "gpu"],
+#    "transformers~=4.24.0": ["install", "gpu"],
     "sentencepiece~=0.1.96": ["install", "gpu"],
     "ujson~=5.1.0": ["install"],
     "tqdm~=4.64.0": ["install", "gpu"],
@@ -131,7 +131,7 @@ setup(
     packages=find_packages(".", include=include_packages),
     include_package_data=True,
     package_data={"": ["*.cpp", "*.cu"]},
-    python_requires=">=3.7.0, <3.10.0",
+    python_requires=">=3.7.0, <3.11.0",
     install_requires=install_requires,
     extras_require=extras,
     classifiers=[
