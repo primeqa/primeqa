@@ -93,7 +93,7 @@ class GenerativeFiDReader(GenerativeReader):
         metadata={"name": "The number of beams for generation", "range": [1, 5, 1]},
     )
     num_contexts: int = field(
-        default=1,
+        default=3,
         metadata={"name": "The number of passages in the input", "range": [1, 10, 1]},
     )
 
@@ -195,10 +195,7 @@ class GenerativeFiDReader(GenerativeReader):
             processed_prediction = {}
             processed_prediction["example_id"] = raw_prediction["id"]
             processed_prediction["span_answer_text"] = raw_prediction["prediction_text"]
-            processed_prediction["passage_index"] = 0
-            processed_prediction["span_answer_score"] = 1
             processed_prediction["confidence_score"] = 1
-            processed_prediction["span_answer"] = {"start_position" : 0, "end_position" : -1}
             predictions[raw_prediction["id"]] = [processed_prediction]
 
         return predictions
