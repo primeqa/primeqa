@@ -3,7 +3,10 @@ This directory contains an implementation of multi-source domain generalization 
 ```
 Not to Overfit or Underfit the Source Domains? An Empirical Study of Domain Generalization in Question Answering
 Md Arafat Sultan, Avirup Sil and Radu Florian
+https://aclanthology.org/2022.emnlp-main.247/
 ```
+
+Knowledge distillation is a model supervision technique where the model we want to train -- the 'student' -- learns a task (text-based reading comprehension in this case) from a different, typically larger and higher-accuracy model, called the 'teacher'. See https://arxiv.org/abs/1503.02531 for more details.
 
 To train and validate a model with simple joint training over multiple source domains (no distillation), run the following command:
 ```
@@ -32,13 +35,13 @@ python primeqa/mrc/run_mrc.py \
 ```
 This basic joint training functionality is offered through this source file so that one can train a teacher model first before distillation.
 
-The argument for `train_fof` in the command is a text file; each line in this file contains a path to a training json file. All training files must conform to the Hugging Face format for custom data files. The `eval_fof` argument works similarly. Below is an example of the content of such a file:
+The argument for `train_fof` in the command is a text file; each line in this file contains a path to a training json file. All training files must conform to the Hugging Face Datasets format for SQuAD-style data files. The `eval_fof` argument works similarly. Below is an example of the content of such a file:
 ```
 <path-to-train-data-dir>/SQuAD-hf.json
 <path-to-train-data-dir>/NaturalQuestions-hf.json
 <path-to-train-data-dir>/NewsQA-hf.json
 ```
-It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face format for custom datasets.
+It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face Datasets SQuAD format.
 
 The BERT-large QA model that the above command trains can then be used as a teacher in a distillation experiment to train a BERT-base student, as follows:
 ```
@@ -69,7 +72,8 @@ python primeqa/mrc/run_mrc.py \
        --overwrite_cache       
 ```
 
-We also provide a script for the conversion of MRQA 2019-style datasets (https://github.com/mrqa/MRQA-Shared-Task-2019) to the Hugging Face format:
+We also provide a script for the conversion of MRQA 2019-style datasets (https://github.com/mrqa/MRQA-Shared-Task-2019) to the Hugging Face Datasets SQuAD format:
 ```
-python src/convert_to_hf_format.py <path-to-input-mrqa-style-file> <path-to-output-hf-style-file>
+python utils/convert_to_hf_format.py <path-to-input-mrqa-style-file> <path-to-output-hf-style-file>
 ```
+The first argument is the path to the input input file (in MRQA format) and the second argument is the output file path which will contain the data in HF Datasets SQuAD-style format.
