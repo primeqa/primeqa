@@ -218,7 +218,7 @@ class MSKD_MRCTrainer(MRCTrainer):
         _, teacher_logits, _ = self.prediction_step(
             self.kd_teacher, inputs, prediction_loss_only=False
         )
-        _, teacher_start_logits, teacher_end_logits, _ = teacher_logits
+        teacher_start_logits, teacher_end_logits, _ = teacher_logits
 
         loss_fct = nn.MSELoss()
         start_loss = loss_fct(
