@@ -14,7 +14,7 @@ class QAPipeline:
                 self.corpus_passages.append(text)
 
     def run(self, input_texts: List[str]):
-        search_results = self.retriever.retrieve(input_texts = input_texts)
+        search_results = self.retriever.predict(input_texts = input_texts)
         contexts = []
         for result in search_results:
             context = [self.corpus_passages[int(p[0])] for p in result]

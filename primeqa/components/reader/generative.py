@@ -93,7 +93,7 @@ class GenerativeFiDReader(GenerativeReader):
         metadata={"name": "The number of beams for generation", "range": [1, 5, 1]},
     )
     num_contexts: int = field(
-        default=1,
+        default=3,
         metadata={"name": "The number of passages in the input", "range": [1, 10, 1]},
     )
 
@@ -188,17 +188,28 @@ class GenerativeFiDReader(GenerativeReader):
         )
 
         # Run predict
-        predictions = []
+        predictions = {}
         for raw_prediction in self._trainer.predict(
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):
             processed_prediction = {}
             processed_prediction["example_id"] = raw_prediction["id"]
             processed_prediction["span_answer_text"] = raw_prediction["prediction_text"]
-            processed_prediction["passage_index"] = -1
-            processed_prediction["span_answer_score"] = 1
             processed_prediction["confidence_score"] = 1
-            processed_prediction["span_answer"] = {"start_position" : -1, "end_position" : -1}
-            predictions.append(processed_prediction)
+            predictions[raw_prediction["id"]] = [processed_prediction]
 
         return predictions
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
