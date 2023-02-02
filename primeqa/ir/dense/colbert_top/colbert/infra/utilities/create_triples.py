@@ -29,7 +29,7 @@ class Triples:
 
             if processing_idx % (10_000) == 0:
                 print_message(f"#> Done with {processing_idx+1} questions!\t\t "
-                              f"{str(len(Triples) / 1000)}k triples for {NonEmptyQIDs} unqiue QIDs.")
+                              f"{str(len(Triples) / 1000)}k triples for {NonEmptyQIDs} unique QIDs.")
 
         print_message(f"#> Sub-sample the triples (if > {MAX_NUM_TRIPLES})..")
         print_message(f"#> len(Triples) = {len(Triples)}")
