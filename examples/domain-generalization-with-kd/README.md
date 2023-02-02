@@ -3,8 +3,8 @@ This directory contains an implementation of multi-source domain generalization 
 ```
 Not to Overfit or Underfit the Source Domains? An Empirical Study of Domain Generalization in Question Answering
 Md Arafat Sultan, Avirup Sil and Radu Florian
-https://aclanthology.org/2022.emnlp-main.247/
 ```
+https://aclanthology.org/2022.emnlp-main.247/
 
 Knowledge distillation is a model supervision technique where the model we want to train -- the 'student' -- learns a task (text-based reading comprehension in this case) from a different, typically larger and higher-accuracy model, called the 'teacher'. See https://arxiv.org/abs/1503.02531 for more details.
 
