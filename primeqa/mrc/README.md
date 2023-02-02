@@ -26,8 +26,8 @@ The following shows how to use the MRC component within PrimeQA to extract an an
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+from primeqa.components.reader.extractive import ExtractiveReader
+reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
 reader.load()
 ```
 - Step 2: Execute the reader in inference mode:
@@ -37,41 +37,47 @@ context = [["""Canberra is the capital city of Australia.
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
 largest inland city"""]]
-answers = reader.apply(question,context)  
+answers = reader.predict(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 The above statements will generate an output in the form of a dictionary:
 ```shell
-[
-    [
-       {
+"0": [
+        {
             "example_id": "0",
+            "passage_index": 0,
             "span_answer_text": "Australia",
             "span_answer": {
                 "start_position": 32,
                 "end_position": 41
             },
-            "confidence_score": 0.7988516960240685
-       },
-       {
+            "span_answer_score": 14.109326839447021,
+            "confidence_score": 0.6732346778531001
+        },
+        {
             "example_id": "0",
-            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
-            "span_answer": {
-                "start_position": 32,
-                "end_position": 168
-            },
-            "confidence_score": 0.10721889035823319
-       },
-       {
-            "example_id": "0",
+            "passage_index": 0,
             "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
             "span_answer": {
                 "start_position": 32,
                 "end_position": 105
             },
-            "confidence_score": 0.09392941361769835
-       }
-]
+            "span_answer_score": 12.882871329784393,
+            "confidence_score": 0.1974802270822016
+        },
+        {
+            "example_id": "0",
+            "passage_index": 0,
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 168
+            },
+            "span_answer_score": 12.459252871572971,
+            "confidence_score": 0.12928509506469837
+        }
+    ]
+}
 ```
 
 Additional inference examples can be found in the python [notebook](../../notebooks/mrc/mrc_usage_predict_mode.ipynb).
