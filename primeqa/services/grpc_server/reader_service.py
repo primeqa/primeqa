@@ -170,18 +170,18 @@ class ReaderService(ReadingServiceServicer):
                                         answers=[
                                             Answer(
                                                 text=prediction["span_answer_text"],
-                                                start_char_offset=prediction[
-                                                    "span_answer"
-                                                ]["start_position"],
-                                                end_char_offset=prediction[
-                                                    "span_answer"
-                                                ]["end_position"],
                                                 confidence_score=prediction[
                                                     "confidence_score"
                                                 ],
                                                 context_index=int(
                                                     prediction["example_id"]
                                                 ),
+                                                start_char_offset=prediction[
+                                                    "span_answer"
+                                                ]["start_position"],
+                                                end_char_offset=prediction[
+                                                    "span_answer"
+                                                ]["end_position"],
                                             )
                                             for prediction in predictions_for_context
                                         ]
