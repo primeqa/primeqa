@@ -35,11 +35,12 @@ class PromptReader(BaseReader):
     
     def create_prompt(self, 
                     question: str,
-                    contexts: List[str]) -> str:
+                    contexts: List[str],
+                    prefix: str) -> str:
         
         # Use the question and contexts to create a prompt
-        
-        return f"Answer the question: {question}"
+        passages = ", ".join(contexts)
+        return f"{prefix} Question: {question}, Text: {passages}"
 
 
 @dataclass
@@ -86,14 +87,14 @@ class PromptGPTReader(PromptReader):
         self,
         questions: List[str],
         contexts: List[List[str]],
-        *args,
         example_ids: List[str] = None,
+        *args,
         **kwargs,
     ):
         predictions = []
         for i,q in enumerate(questions):
-            prompt = self.create_prompt(q,contexts[i])
-            print(prompt)
+            prompt = self.create_prompt(q,contexts[i],**kwargs)
+            #print(prompt)
             response = openai.Completion.create(
                 model=self.model,
                 prompt=prompt,
