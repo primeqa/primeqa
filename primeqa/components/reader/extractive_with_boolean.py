@@ -16,6 +16,7 @@ from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.components.reader.text_classifier_reader import TextClassifierReader
 from primeqa.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.text_classifier_utils import make_context_for_evc
 from primeqa.boolqa.score_normalizer.score_normalizer import ScoreNormalizer
 
 
@@ -87,7 +88,7 @@ class ExtractiveWithBooleanReader(BaseReader):
         },
     )
     max_num_answers: int = field(
-        default=3,
+        default=1,
         metadata={
             "name": "Maximum number of answers",
             "range": [1, 5, 1],
@@ -104,6 +105,15 @@ class ExtractiveWithBooleanReader(BaseReader):
             "exclude_from_hash": True,
         },
     )
+    extra_evc_context: int = field(
+        default=100,
+        metadata={
+            "name": "extra context for yes/no classifier",
+            "range": [0, 1000, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
+        }
+    )    
     scorer_type: str = field(
         default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
         metadata={
@@ -197,7 +207,8 @@ class ExtractiveWithBooleanReader(BaseReader):
         predict_output=self._extractiveReader._predict(questions, contexts, args, example_ids, kwargs)
         print('predict_output='+str(predict_output))
         qtc_prediction_output=self._booleanQTCReader._predict(questions, contexts, args, example_ids, kwargs)
-        evc_prediction_output=self._booleanEVCReader._predict(questions, contexts, args, example_ids, kwargs)
+        contexts_for_evc=make_context_for_evc(contexts, predict_output, self.extra_evc_context, self.extra_evc_context)
+        evc_prediction_output=self._booleanEVCReader._predict(questions, contexts_for_evc, args, example_ids, kwargs)
 
         qtc_pred_key=self._booleanQTCReader.output_label_prefix+"_pred"
         evc_pred_key=self._booleanEVCReader.output_label_prefix+"_pred"
