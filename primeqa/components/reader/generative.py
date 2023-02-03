@@ -181,3 +181,9 @@ class GenerativeFiDReader(GenerativeReader):
             predictions.append(processed_prediction)
 
         return predictions
+
+    def eval(self, *args, **kwargs):
+        pass
+    
+    def train(self, *args, **kwargs):
+        pass
