@@ -35,13 +35,13 @@ python primeqa/mrc/run_mrc.py \
 ```
 This basic joint training functionality is offered through this source file so that one can train a teacher model first before distillation.
 
-The argument for `train_fof` in the command is a text file; each line in this file contains a path to a training json file. All training files must conform to the Hugging Face Datasets format for SQuAD-style data files. The `eval_fof` argument works similarly. Below is an example of the content of such a file:
+The argument for `train_fof` in the command is a text file; each line in this file contains a path to a training json file. All training files must conform to the Hugging Face Datasets format for SQuAD-style data files (https://huggingface.co/datasets/squad). The `eval_fof` argument works similarly. Below is an example of the content of such a file:
 ```
 <path-to-train-data-dir>/SQuAD-hf.json
 <path-to-train-data-dir>/NaturalQuestions-hf.json
 <path-to-train-data-dir>/NewsQA-hf.json
 ```
-It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face Datasets SQuAD format.
+It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face Datasets SQuAD format (which is different than the original SQuAD format).
 
 The BERT-large QA model that the above command trains can then be used as a teacher in a distillation experiment to train a BERT-base student, as follows:
 ```
