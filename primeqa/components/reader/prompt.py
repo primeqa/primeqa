@@ -4,7 +4,8 @@ import json
 import openai
     
 from primeqa.components.base import Reader as BaseReader
-    
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
 @dataclass
 class PromptReader(BaseReader):
     
@@ -40,7 +41,7 @@ class PromptReader(BaseReader):
         
         # Use the question and contexts to create a prompt
         passages = ", ".join(contexts)
-        return f"{prefix} Question: {question}, Text: {passages}"
+        return f"{prefix} Question: {question} Text: {passages}"
 
 
 @dataclass
@@ -109,4 +110,45 @@ class PromptGPTReader(PromptReader):
             else:
                 text = "Something went wrong with the GPT service"
             predictions.append({'example_id':i, 'text':text})
+        return predictions
+
+
+class FlanT5Reader(PromptReader):
+    model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large")
+    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def load(self, *args, **kwargs):
+        openai.api_key = self.api_key
+
+    def predict(
+            self,
+            questions: List[str],
+            contexts: List[List[str]],
+            example_ids: List[str] = None,
+            *args,
+            **kwargs,
+    ):
+        predictions = []
+        for i, q in enumerate(questions):
+            prompt = self.create_prompt(q, contexts[i], **kwargs)
+            len_prompt = len(prompt)
+            #adjust for max sequence of Flan T5
+            if len_prompt > 512:
+                prompt = prompt[:len_prompt-507]
+            prompt = prompt + " Answer: "
+            #print("The prompt is: ", prompt)
+            inputs = self.tokenizer(prompt, return_tensors="pt")
+            # print("the input is : ", input)
+            outputs = self.model.generate(**inputs)
+            tokenized_outputs = self.tokenizer.batch_decode(outputs,
+                                              skip_special_tokens=True)
+            # print("Printing! ", tokenized_outputs)
+            # print("Outputs: ", tokenized_outputs)
+            predictions.append({'example_id': i, 'text': tokenized_outputs})
         return predictions
