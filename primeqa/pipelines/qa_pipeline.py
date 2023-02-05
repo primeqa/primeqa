@@ -13,12 +13,14 @@ class QAPipeline:
                 id,text,title = line.split('\t')
                 self.corpus_passages.append(text)
 
-    def run(self, input_texts: List[str]):
+    def run(self, input_texts: List[str], prefix="Answer the question"):
         search_results = self.retriever.predict(input_texts = input_texts)
         contexts = []
         for result in search_results:
             context = [self.corpus_passages[int(p[0])] for p in result]
             contexts.append(context)
         
-        answers = self.reader.predict(input_texts,contexts)  
+        answers = self.reader.predict(input_texts,contexts,prefix=prefix)  
+        for i, answer in enumerate(answers):
+            answer['passages'] = contexts[i]
         return answers

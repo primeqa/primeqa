@@ -2,6 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 from .LLMService import LLMService
+import openai
     
 from primeqa.components.base import Reader as BaseReader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
@@ -35,12 +36,13 @@ class PromptReader(BaseReader):
         pass
     
     def create_prompt(self, 
-                    questions: str,
-                    contexts: List[str]) -> str:
+                    question: str,
+                    contexts: List[str],
+                    prefix: str) -> str:
         
         # Use the question and contexts to create a prompt
-        
-        return "We do not currently have a prompt"
+        passages = ", ".join(contexts)
+        return f"{prefix} Question: {question}, Text: {passages}"
 
 
 @dataclass
@@ -81,20 +83,34 @@ class PromptGPTReader(PromptReader):
         pass
     
     def load(self, *args, **kwargs):
-        pass
+        openai.api_key = self.api_key
     
     def predict(
         self,
         questions: List[str],
         contexts: List[List[str]],
-        *args,
         example_ids: List[str] = None,
+        *args,
         **kwargs,
     ):
         predictions = []
         for i,q in enumerate(questions):
-            print(self.create_prompt(q,contexts[i]))
-            predictions.append({'example_id':i, 'text':'This is a placeholder and we do not call the API'})
+            prompt = self.create_prompt(q,contexts[i],**kwargs)
+            #print(prompt)
+            response = openai.Completion.create(
+                model=self.model,
+                prompt=prompt,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty
+            )
+            if 'choices' in response and response['choices']:
+                text = response.choices[0]['text']
+            else:
+                text = "Something went wrong with the GPT service"
+            predictions.append({'example_id':i, 'text':text})
         return predictions
 
 @dataclass
@@ -167,3 +183,4 @@ class PromptFLANReader(PromptReader):
         return predictions
 
 
+            
