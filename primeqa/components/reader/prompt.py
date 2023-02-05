@@ -42,7 +42,7 @@ class PromptReader(BaseReader):
         
         # Use the question and contexts to create a prompt
         passages = ", ".join(contexts)
-        return f"{prefix} Question: {question}, Text: {passages}"
+        return f"{prefix} Question: {question} Text: {passages}"
 
 
 @dataclass
@@ -114,9 +114,10 @@ class PromptGPTReader(PromptReader):
         return predictions
 
 @dataclass
-class PromptFLANReader(PromptReader):
+class PromptFLANT5Reader(PromptReader):
     api_key: str = field(
-        metadata={"name": "The API key for BAM"},
+        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
+        default = None
     )
     model_name: str = field(
         default="flan-t5-xxl",
@@ -144,7 +145,7 @@ class PromptFLANReader(PromptReader):
         metadata={"name": "presence_penalty"},
     )
     use_bam: bool = field(
-        default=True, metadata={"name": "if true, use bam to run FLAN-T5"}
+        default=False, metadata={"name": "if true, use bam to run FLAN-T5"}
     )
 
     model = None
@@ -158,7 +159,7 @@ class PromptFLANReader(PromptReader):
     
     def load(self, *args, **kwargs):
         if self.use_bam:
-            self.model = LLMService(token='pak-EsKayQ0iw6gj8Bw8JYbg3G3Ye_iMIqwop9aJlzRoz40', model_id="google/" + self.model_name)
+            self.model = LLMService(token=self.api_key, model_id="google/" + self.model_name)
         else:
             self.model = AutoModelForSeq2SeqLM.from_pretrained("google/" + self.model_name)
             self.tokenizer = AutoTokenizer.from_pretrained("google/" + self.model_name)
@@ -172,12 +173,20 @@ class PromptFLANReader(PromptReader):
         **kwargs,
     ):
         predictions = []
-        for i,q in enumerate(questions):
+        
+        for i, q in enumerate(questions):
+            prompt = self.create_prompt(q, contexts[i], **kwargs)
+            len_prompt = len(prompt)
+            #adjust for max sequence of Flan T5
+            if len_prompt > 512:
+                prompt = prompt[:len_prompt-507]
+            prompt = prompt + " Answer: "
+
             if self.use_bam:
-                r = self.model.generate([q], 256, 100)
+                r = self.model.generate([prompt], 256, 100)
                 predictions.append({'example_id':i, 'text': r['results'][0]['generated_text']})
             else:
-                inputs = self.tokenizer([q], return_tensors="pt")
+                inputs = self.tokenizer(prompt, return_tensors="pt")
                 outputs = self.model.generate(**inputs)
                 predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)})
         return predictions
