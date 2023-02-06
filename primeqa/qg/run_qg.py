@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+import glob
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -30,15 +31,14 @@ class ModelArguments:
     model_name_or_path: str = field(
         default="t5-base",
         metadata={
-            "help": "Path to pretrained model or model identifier from huggingface.co/models",
-            "choices": ["t5-base", "t5-small", "google/mt5-small", "google/mt5-base"],
+            "help": "Path to pretrained model or model identifier from huggingface.co/models such as t5-base, google/mt5-base"
         },
     )
     modality: str = field(
         default="table",
         metadata={
-            "help": "Whether to generate questions from tables or passages",
-            "choices": ["table", "passage"],
+            "help": "Whether to generate questions from tables, passages, or hybrid (tables plus passages)",
+            "choices": ["table", "passage", "hybrid"],
         },
     )
     tokenizer_name: Optional[str] = field(
@@ -74,13 +74,13 @@ class DataTrainingArguments:
             "help": "Config of the dataset loaded, e.g. 'secondary_task' for TyDiQA"
         },
     )
-    train_file_path: Optional[str] = field(
-        default="train_data.pt",
-        metadata={"help": "Path for cached train dataset"},
+    train_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "local file(s) in .jsonl to train on."},
     )
-    valid_file_path: Optional[str] = field(
-        default="valid_data.pt",
-        metadata={"help": "Path for cached valid dataset"},
+    eval_file: Optional[str] = field(
+        default=None,
+        metadata={"help": "local file(s) in .jsonl to evaluate on."},
     )
     max_len: Optional[int] = field(
         default=512,
@@ -184,6 +184,8 @@ def main(raw_args):
 
     qg_model = QGModel(model_args.model_name_or_path, modality=model_args.modality)
 
+
+
     qgdl = QGDataLoader(
         tokenizer=qg_model.tokenizer,
         dataset_name=data_args.dataset_name,
@@ -191,16 +193,37 @@ def main(raw_args):
         input_max_len=data_args.max_len,
         target_max_len=data_args.target_max_len,
     )
+
+    train_dataset = None
+    valid_dataset = None
+    data_files={}
+    
+    if data_args.train_file is not None: 
+        data_files['train'] = glob.glob(data_args.train_file)
+    if data_args.eval_file is not None: 
+        data_files['validation'] = glob.glob(data_args.eval_file)
+    
+    dataset = load_dataset("json", data_files=data_files)
+    
+    if training_args.do_train:
+        if data_args.train_file is not None:
+            train_dataset = qgdl.create(dataset_split="train",dataset=dataset)
+        else:
+            train_dataset = qgdl.create(
+                dataset_split="train", dataset_config=data_args.dataset_config
+            )
+    
+    if training_args.do_eval:
+        if data_args.eval_file is not None:
+            valid_dataset = qgdl.create(dataset_split="validation",dataset=dataset)
+        else:
+            valid_dataset = qgdl.create(
+                dataset_split="validation", dataset_config=data_args.dataset_config
+            )
+
+    compute_metrics = rouge_metrics(qg_model.tokenizer)
+   
     if training_args.do_train or training_args.do_eval:
-        train_dataset = qgdl.create(
-            dataset_split="train", dataset_config=data_args.dataset_config
-        )
-        valid_dataset = qgdl.create(
-            dataset_split="validation", dataset_config=data_args.dataset_config
-        )
-
-        compute_metrics = rouge_metrics(qg_model.tokenizer)
-
         trainer = QGTrainer(
             model=qg_model.model,
             tokenizer=qg_model.tokenizer,
@@ -210,14 +233,15 @@ def main(raw_args):
             data_collator=T2TDataCollator(),
             compute_metrics=compute_metrics,
         )
+        compute_metrics = rouge_metrics(qg_model.tokenizer)
 
     if training_args.do_train:
-        trainer.train(
+        train_result =trainer.train(
             model_path=model_args.model_name_or_path
             if os.path.isdir(model_args.model_name_or_path)
             else None
         )
-        train_result = trainer.save_model()
+        trainer.save_model()
 
         metrics = train_result.metrics
         trainer.log_metrics("train", metrics)

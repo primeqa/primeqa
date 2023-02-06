@@ -14,12 +14,12 @@ from primeqa.services.grpc_server.utils import (
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.exceptions import ErrorMessages
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2_grpc import (
-    RetrieverServicer,
+    RetrievingServiceServicer,
 )
 from primeqa.services.grpc_server.grpc_generated.indexer_pb2 import Document
 from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
     GetRetrieversRequest,
-    RetrieverComponent,
+    Retriever,
     GetRetrieversResponse,
     RetrieveRequest,
     Hit,
@@ -28,7 +28,7 @@ from primeqa.services.grpc_server.grpc_generated.retriever_pb2 import (
 )
 
 
-class RetrieverService(RetrieverServicer):
+class RetrieverService(RetrievingServiceServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
         if logger is None:
             self._logger = logging.getLogger(self.__class__.__name__)
@@ -52,7 +52,7 @@ class RetrieverService(RetrieverServicer):
         """
         return GetRetrieversResponse(
             retrievers=[
-                RetrieverComponent(
+                Retriever(
                     retriever_id=retriever_id,
                     parameters=generate_parameters(
                         retriever, skip=["index_root", "index_name"]
@@ -89,7 +89,7 @@ class RetrieverService(RetrieverServicer):
 
         # Step 2: Load default retriever keyword arguments
         retriever_kwargs = {
-            k: v.default for k, v in retriever.__dataclass_fields__.items()
+            k: v.default for k, v in retriever.__dataclass_fields__.items() if v.init
         }
 
         # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
@@ -166,9 +166,28 @@ class RetrieverService(RetrieverServicer):
             return RetrieveResponse()
 
         # Step 6: Retrieve
+        instance_fields = [
+            k
+            for k, v in instance.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+        self._logger.info(
+            "Applying '%s' retriever with parameters = %s for queries = %s",
+            instance.__class__.__name__,
+            {
+                k: getattr(instance, k) if k in instance_fields else v
+                for k, v in retriever_kwargs.items()
+            },
+            request.queries,
+        )
         try:
-            results = instance.retrieve(
-                input_texts=request.queries,
+            results = instance.predict(input_texts=request.queries, **retriever_kwargs)
+            self._logger.info(
+                "Applying '%s' retriever for queries = %s returns results = %s",
+                instance.__class__.__name__,
+                request.queries,
+                results,
             )
         except TypeError:
             context.set_code(StatusCode.INTERNAL)

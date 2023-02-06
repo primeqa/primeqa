@@ -133,3 +133,18 @@ def fill_from_args(defaults):
     # CONSIDER: should there be general arguments to set log level?
     # CONSIDER: switch __required_args__ to just _required_args and same for __passed_args__
     return defaults
+
+def fill_from_config(defaults, config):
+    """
+    updates and returns the object 'defaults' based on 'config'
+    :param defaults: an object with source fields
+    :param config: an object with fields to be filled from command line arguments
+    :return:
+    """
+
+    for name in config.__dict__.keys():
+        #if not hasattr(defaults, name):
+        #    raise ValueError(f'Unknown argument "{name}"')
+        defaults.__dict__[name] = config.__getattribute__(name)
+
+    return defaults

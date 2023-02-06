@@ -200,10 +200,7 @@ class BiEncoderLoader(MultiFileLoader):
                 if len(negs) == 0:
                     logger.warning(f'bad instance! {len(negs)} negatives')
                     continue
-                if self.hypers.sample_negative_from_top_k > 0:
-                    neg_ndx = random.randint(0, min(len(negs), self.hypers.sample_negative_from_top_k)-1)
-                else:
-                    neg_ndx = 0
+                neg_ndx = random.randint(0, min(len(negs), self.hypers.sample_negative_from_top_k)-1)
                 hard_neg = negs[neg_ndx]['title'], negs[neg_ndx]['text']
                 ctx_pids = [jobj['positive']['pid'], negs[neg_ndx]['pid']]
                 pos_pids = self.id2pos_pids[jobj['id']]
@@ -238,7 +235,7 @@ class BiEncoderLoader(MultiFileLoader):
         elif self.hypers.training_data_type == 'num_triples':
             for line in lines:
                 [query_id, positive_id, negative_id] = json.loads(line)
-                qry = self.queries[query_id]
+                qry = self.queries[str(query_id)]
                 # because of title and text handling in colbert.evaluation.loaders.load_collection
                 positive_title, positive_text = re.split(r" \| ", self.collection[positive_id], maxsplit=1)
                 negative_title, negative_text = re.split(r" \| ", self.collection[negative_id], maxsplit=1)

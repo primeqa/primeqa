@@ -23,7 +23,7 @@ from primeqa.tableqa.metrics.answer_accuracy import compute_denotation_accuracy
 @pytest.mark.parametrize("model_name_path",["google/tapas-base"])
 def test_tableqa_model(model_name_path):
     config=None
-    tqam = TableQAModel("google/tapas-base",config=config)
+    tqam = TableQAModel(model_name_path,config=config)
     assert type(tqam.model)==TapasForQuestionAnswering
     assert type(tqam.tokenizer)==TapasTokenizer
 

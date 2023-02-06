@@ -38,7 +38,7 @@ class TyDiQAPreprocessor(BasePreProcessor):
             self._single_context_multiple_passages = True
 
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
-        self.validate_schema(dataset, is_train)
+        # self.validate_schema(dataset, is_train)
         dataset = dataset.rename_columns(self._rename_fields)
         dataset = dataset.map(self._rename_examples,
                               load_from_cache_file=self._load_from_cache_file,

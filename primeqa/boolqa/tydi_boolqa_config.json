@@ -1,26 +1,26 @@
 {
     "qtc": {
-        "id_key": "example_id",
+        "example_id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": null,
-        "label_list": ["short_answer","boolean"],
+        "label_list": ["boolean", "other"],
         "output_label_prefix": "question_type",
         "overwrite_cache": true,
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydiqa-boolean-question-classifier"
+        "model_name_or_path": "PrimeQA/tydi-boolean_question_classifier-xlmr_large-20221117"
     },
     "evc": {
-        "id_key": "example_id",
+        "example_id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": "passage_answer_text",
-        "label_list": ["no", "no_answer", "yes"],
+        "label_list": ["no", "yes"],
         "output_label_prefix": "boolean_answer",
         "overwrite_cache": true,
-        "drop_label": "no_answer",
         "use_auth_token": true,
-        "model_name_or_path": "PrimeQA/tydiqa-boolean-answer-classifier"
+        "model_name_or_path": "PrimeQA/tydi-boolean_answer_classifier-xlmr_large-20221117"
     },
     "sn": {
+	    "do_apply": true,
         "model_name_or_path": "tests/resources/boolqa/score_normalizer_model/sn.pickle",
         "qtc_is_boolean_label": "boolean",
         "evc_no_answer_class": "no_answer"

@@ -26,51 +26,58 @@ The following shows how to use the MRC component within PrimeQA to extract an an
  - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.pipelines.components.reader.extractive import ExtractiveReader
-reader = ExtractiveReader("PrimeQA/tydiqa-primary-task-xlm-roberta-large")
+from primeqa.components.reader.extractive import ExtractiveReader
+reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
+reader.load()
 ```
 - Step 2: Execute the reader in inference mode:
 ```python
 question = ["Which country is Canberra located in?"]
-context = ["""Canberra is the capital city of Australia. 
+context = [["""Canberra is the capital city of Australia. 
 Founded following the federation of the colonies of Australia 
 as the seat of government for the new nation, it is Australia's 
-largest inland city"""]
-answers = reader.apply(question,context)  
+largest inland city"""]]
+answers = reader.predict(question,context)  
 print(json.dumps(answers, indent=4))  
 ```
 The above statements will generate an output in the form of a dictionary:
 ```shell
-[
-    [
-       {
+"0": [
+        {
             "example_id": "0",
+            "passage_index": 0,
             "span_answer_text": "Australia",
             "span_answer": {
                 "start_position": 32,
                 "end_position": 41
             },
-            "confidence_score": 0.7988516960240685
-       },
-       {
+            "span_answer_score": 14.109326839447021,
+            "confidence_score": 0.6732346778531001
+        },
+        {
             "example_id": "0",
-            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
-            "span_answer": {
-                "start_position": 32,
-                "end_position": 168
-            },
-            "confidence_score": 0.10721889035823319
-       },
-       {
-            "example_id": "0",
+            "passage_index": 0,
             "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia",
             "span_answer": {
                 "start_position": 32,
                 "end_position": 105
             },
-            "confidence_score": 0.09392941361769835
-       }
-]
+            "span_answer_score": 12.882871329784393,
+            "confidence_score": 0.1974802270822016
+        },
+        {
+            "example_id": "0",
+            "passage_index": 0,
+            "span_answer_text": "Australia. \nFounded following the federation of the colonies of Australia \nas the seat of government for the new nation, it is Australia",
+            "span_answer": {
+                "start_position": 32,
+                "end_position": 168
+            },
+            "span_answer_score": 12.459252871572971,
+            "confidence_score": 0.12928509506469837
+        }
+    ]
+}
 ```
 
 Additional inference examples can be found in the python [notebook](../../notebooks/mrc/mrc_usage_predict_mode.ipynb).
@@ -248,21 +255,69 @@ Additionally, to specify a MRQA subset e.g. `SQuAD`, `NaturalQuestionsShort`, `T
        --dataset_filter_column_name subset
 ```
 
-Cross domain experiments can be run by running train and eval as separate processes. The
+Cross domain experiments can be run by running train and eval as separate processes.
 
  
 ### Custom Data
 
 Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
 
+
+### Training with Multiple Datasets
+
+PrimeQA supports the training of MRC model with combination of multiple datasets, which are specified in "--train_fof" argument. This argument points to a file of training files (fof). This fof can be in any of three supported formats: csv, jsonl, and json.
+
+In the csv format, each line of train_fof consists of four columns, separated by spaces:
+ - HuggingFace dataset name, or path of local data file, or path of dataset processing script (in python);
+ - Dataset config name or data file format;
+ - Sampling rate within range 0.0 to 1.0, e.g. 0.5 means 50% of the examples are randomly selected and used in MRC training;
+ - Preprocessor name.
+
+If column 2 to 4 are not given, default values from input arguments will be used, i.e.:
+ - Value of "--dataset_config_name" for HuggingFace dataset and processing script, or "--data_file_format" for local data file;
+ - 1.0 for sampling rate;
+ - Value of "--preprocessor" for preprocessor name.
+
+If in jsonl format, each line is a dictionary consisting of
+```
+{'dataset': dataset_name_or_path_of_data_file_or_processing_script,
+ 'config': dataset_config_or_data_file_format,
+ 'sampling_rate': sampling_rate,
+ 'preprocessor': preprocessor_name}
+```
+
+Fields 'config', 'sampling_rate', and 'preprocessor' are optional.
+
+If in json format, a list of dictionaries same to that in jsonl is expected.
+
+The following is an example of "--train_fof" in csv format which includes two HuggingFace datatsets: TyDiQA and SQuAD.
+```
+tydiqa primary_task 0.1 primeqa.mrc.processors.preprocessors.tydiqa.TyDiQAPreprocessor
+squad  plain_text   0.1 primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor
+```
+
+To evaluate the checkpoint models during training, the validation dataset needs be specified in "--eval_fof" which format is same to "--train_fof". Multiple datatsets can be included into "--eval_fof" if use the trainer 'MSKD_MRCTrainer', otherwise a single validation dataset is expected.
+
+Please note that, if "--train_fof" and "--eval_fof" are given in input arguments, other dataset related parameters, i.e. "--dataset_name", "--train_file", and "--eval_file" are ignored.
+
+The following additional command lines show how to train MRC model with TyDiQA+SQuAD, and evaluate on TyDiQA.
+```shell
+python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
+--train_fof ${train_fof_including_tydi_squad} \
+--eval_fof ${eval_fof_including_tydi} \
+--postprocessor primeqa.mrc.processors.postprocessors.extractive.ExtractivePostProcessor \
+--eval_metrics TyDiF1 \
+```
+
+
 ## Special MRC Features:
 
 PrimeQA also supports special features for MRC systems as follows:
 
 ### Boolean Questions
-Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI (currently in an inference-only setup). Please read the [details](https://primeqa.github.io/primeqa/api/boolqa/index.html)):
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI. Please read the details of [inference](https://primeqa.github.io/primeqa/api/boolqa/index.html) or [training](https://primeqa.github.io/primeqa/examples/boolqa/index.html):
 ```shell
-python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydiqa-primary-task-xlm-roberta-large \
+python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
        --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
