@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+import glob
 from dataclasses import dataclass, field
 from typing import List, Optional
 
@@ -30,15 +31,14 @@ class ModelArguments:
     model_name_or_path: str = field(
         default="t5-base",
         metadata={
-            "help": "Path to pretrained model or model identifier from huggingface.co/models",
-            "choices": ["t5-base", "t5-small", "google/mt5-small", "google/mt5-base"],
+            "help": "Path to pretrained model or model identifier from huggingface.co/models such as t5-base, google/mt5-base"
         },
     )
     modality: str = field(
         default="table",
         metadata={
-            "help": "Whether to generate questions from tables or passages",
-            "choices": ["table", "passage"],
+            "help": "Whether to generate questions from tables, passages, or hybrid (tables plus passages)",
+            "choices": ["table", "passage", "hybrid"],
         },
     )
     tokenizer_name: Optional[str] = field(
@@ -183,6 +183,8 @@ def main(raw_args):
     set_seed(training_args.seed)
 
     qg_model = QGModel(model_args.model_name_or_path, modality=model_args.modality)
+
+
 
     qgdl = QGDataLoader(
         tokenizer=qg_model.tokenizer,

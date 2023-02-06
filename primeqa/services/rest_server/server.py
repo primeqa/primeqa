@@ -8,7 +8,12 @@ from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from primeqa.services.configurations import Settings
-from primeqa.services.constants import ATTR_STATUS, ATTR_INDEX_ID, IndexStatus
+from primeqa.services.constants import (
+    ATTR_STATUS,
+    ATTR_INDEX_ID,
+    IndexStatus,
+    ATTR_ENGINE_TYPE,
+)
 from primeqa.services.factories import (
     READERS_REGISTRY,
     INDEXERS_REGISTRY,
@@ -89,10 +94,26 @@ class RestServer:
             tags=["Reader"],
         )
         def get_readers():
-            return [
-                {"reader_id": reader_id, "parameters": generate_parameters(reader)}
-                for reader_id, reader in READERS_REGISTRY.items()
-            ]
+            try:
+                return [
+                    {"reader_id": reader_id, "parameters": generate_parameters(reader)}
+                    for reader_id, reader in READERS_REGISTRY.items()
+                ]
+            except Error as err:
+                error_message = err.args[0]
+
+                # Identify error code
+                mobj = PATTERN_ERROR_MESSAGE.match(error_message)
+                if mobj:
+                    error_code = mobj.group(1).strip()
+                    error_message = mobj.group(2).strip()
+                else:
+                    error_code = 500
+
+                raise HTTPException(
+                    status_code=500,
+                    detail={"code": error_code, "message": error_message},
+                ) from None
 
         @app.post(
             "/answers",
@@ -122,7 +143,9 @@ class RestServer:
 
                 # Step 3: Load default reader keyword arguments
                 reader_kwargs = {
-                    k: v.default for k, v in reader.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in reader.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
@@ -143,14 +166,37 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 5: Run apply method
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
                 answers_response = []
                 try:
                     for idx, query in enumerate(request.queries):
                         # Step 5.a: Run "apply" per query
+                        self._logger.info(
+                            "Applying '%s' reader with parameters = %s for query = '%s' and contexts = %s",
+                            instance.__class__.__name__,
+                            {
+                                k: getattr(instance, k) if k in instance_fields else v
+                                for k, v in reader_kwargs.items()
+                            },
+                            query,
+                            request.contexts[idx].texts,
+                        )
                         try:
                             predictions = instance.apply(
                                 input_texts=[query] * len(request.contexts[idx]),
                                 context=[[text] for text in request.contexts[idx]],
+                                **reader_kwargs,
+                            )
+                            self._logger.info(
+                                "Applying '%s' reader for query = '%s' returns predictions = %s",
+                                instance.__class__.__name__,
+                                query,
+                                predictions,
                             )
 
                             # Step 5.b: Add answers for current query into response object
@@ -273,7 +319,9 @@ class RestServer:
 
                 # Step 4: Load default retriever keyword arguments
                 indexer_kwargs = {
-                    k: v.default for k, v in indexer.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in indexer.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 5: If parameters are provided in request then update keyword arguments used to instantiate indexer instance
@@ -309,6 +357,7 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 8: Save index information
+                index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
                 self._store.save_index_information(
                     index_id=index_information[ATTR_INDEX_ID],
                     information=index_information,
@@ -433,7 +482,9 @@ class RestServer:
 
                 # Step 2: Load default retriever keyword arguments
                 retriever_kwargs = {
-                    k: v.default for k, v in retriever.__dataclass_fields__.items()
+                    k: v.default
+                    for k, v in retriever.__dataclass_fields__.items()
+                    if v.init
                 }
 
                 # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
@@ -485,9 +536,30 @@ class RestServer:
                     raise Error(err.args[0]) from err
 
                 # Step 6: Retrieve
+                instance_fields = [
+                    k
+                    for k, v in instance.__class__.__dataclass_fields__.items()
+                    if not "exclude_from_hash" in v.metadata
+                    or not v.metadata["exclude_from_hash"]
+                ]
+                self._logger.info(
+                    "Applying '%s' retriever with parameters = %s for queries = %s",
+                    instance.__class__.__name__,
+                    {
+                        k: getattr(instance, k) if k in instance_fields else v
+                        for k, v in retriever_kwargs.items()
+                    },
+                    request.queries,
+                )
                 try:
-                    results = instance.retrieve(
-                        input_texts=request.queries,
+                    results = instance.predict(
+                        input_texts=request.queries, **retriever_kwargs
+                    )
+                    self._logger.info(
+                        "Applying '%s' retriever for queries = %s returns results = %s",
+                        instance.__class__.__name__,
+                        request.queries,
+                        results,
                     )
                 except TypeError as err:
                     raise Error(

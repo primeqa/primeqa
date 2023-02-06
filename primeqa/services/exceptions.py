@@ -13,13 +13,17 @@ class ErrorMessages(str, Enum):
     INVALID_REQUEST = "E1001: Missing mandatory field: {} from request"
 
     # PARAMETER
+    INVALID_PARAMETER_DEFINITION = (
+        "E3001: Invalid {} parameter definition. Please contact us."
+    )
     INVALID_PARAMETER = (
-        "E3001: Invalid {} parameter: {}. Only pre-defined parameters can be modified."
+        "E3002: Invalid {} parameter: {}. Only pre-defined parameters can be modified."
     )
 
     # READER
     INVALID_READER = "E4001: Invalid reader: {}. Please select one of the following pre-defined readers: {}"
     MISSING_CONTEXT = "E4005: If contexts are provided, number of contexts({}) must match number of queries({})"
+    INVALID_READER_INPUT = "E4006: Mismatched number of questions and contexts."
 
     # RETRIEVER
     INVALID_RETRIEVER = "E5001: Invalid retriever: {}. Please select one of the following pre-defined retrievers: {}"

@@ -58,8 +58,8 @@ python primeqa/examples/QVE/run_qve.py \
 --qve_model_name_or_path prajjwal1/bert-mini \
 --marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
 --do_lower_case \
---train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.json \
---dev_file data/TriviaQA-web.sample.dev.json \
+--train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.jsonl \
+--dev_file data/TriviaQA-web.sample.dev.jsonl \
 --do_train \
 --do_estimation \
 --per_gpu_train_qve_batch_size 64 \
@@ -85,7 +85,7 @@ python primeqa/examples/QVE/run_qve.py \
 --marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
 --do_lower_case \
 --train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.json \
---dev_file data/TriviaQA-web.sample.dev.json \
+--dev_file data/TriviaQA-web.sample.dev.jsonl \
 --do_train \
 --per_gpu_train_qve_batch_size 80 \
 --per_gpu_train_qa_batch_size 4 \
@@ -125,7 +125,7 @@ python primeqa/examples/QVE/run_qve.py \
 --qve_model_name_or_path checkpoints/TriviaQA-web_QVE_base \
 --marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
 --do_lower_case \
---train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.json \
+--train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.jsonl \
 --do_estimation \
 --max_seq_length 384 \
 --doc_stride 128 \

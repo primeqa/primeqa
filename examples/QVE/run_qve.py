@@ -500,7 +500,7 @@ def train(args, train_dataset, dev_dataset, qve_model, qa_model, tokenizer):
 
     return
 
-def get_train_examples(filename, train=True):
+def get_train_examples(filename):
     with open(filename) as f:
         lines = f.readlines()
     examples = []
@@ -530,11 +530,9 @@ def get_train_examples(filename, train=True):
                         is_impossible=is_impossible,
                         answers=answers)
         examples.append(example)
-        return examples
+    return examples
                    
     
-
-
 def load_and_cache_examples(args, tokenizer, qa_model_marginal=None, output_examples=False, dev=False):
 
     # Load data features from cache or dataset file
@@ -589,6 +587,25 @@ def load_and_cache_examples(args, tokenizer, qa_model_marginal=None, output_exam
     if output_examples:
         return dataset, examples, features
     return dataset
+
+def write_filtered_qa_examples(filtered_id_list, train_file, output_dir):
+    
+    examples = get_train_examples(train_file)
+    print(examples[0])
+    filtered_examples = []
+    with open(train_file,'r',encoding='utf-8') as f:
+        for line in f:
+            example = json.loads(line.strip())
+            if example['id'] in filtered_id_list:
+                filtered_examples.append(line.strip())
+                
+    out_file = os.path.join(output_dir, "filtered_qa.jsonl")
+    with open(out_file, 'w') as f:
+        f.writelines([f"{l}\n" for l in filtered_examples])
+    
+    print("Wrote", out_file)
+    
+    
 
 def estimation(args, tokenizer, qve_model, qa_model):
     dataset, examples, features = load_and_cache_examples(args, tokenizer, qa_model, output_examples=True, dev=False)
@@ -645,49 +662,51 @@ def estimation(args, tokenizer, qve_model, qa_model):
 
     filtered_id_list = list(dict(sorted(qid2qv.items(),key = lambda x: x[1], reverse=True)).keys())[:int(len(qid2qv)*args.selected_question_percentage)]
 
-    # filtered_id_list = [qid for qid,qv in qid2qv.items() if qv==1]
-    ##write to json
-    data_json = json.load(open(args.train_file, 'r'))
-    new_passages_train = []
+    write_filtered_qa_examples(filtered_id_list, args.train_file, args.output_dir)
 
-    for passages in data_json['data']:
-        new_paras_train = []
+    # # filtered_id_list = [qid for qid,qv in qid2qv.items() if qv==1]
+    # ##write to json
+    # data_json = json.load(open(args.train_file, 'r'))
+    # new_passages_train = []
 
-        for para in passages['paragraphs']:
-            context = para['context']
-            new_qas_train = []
+    # for passages in data_json['data']:
+    #     new_paras_train = []
 
-            for qa in para['qas']:
-                if qa['id'] in filtered_id_list:
-                    new_qas_train.append(qa)
+    #     for para in passages['paragraphs']:
+    #         context = para['context']
+    #         new_qas_train = []
 
-            if len(new_qas_train) > 0:
-                new_paras_train.append({'context': context, 'qas': new_qas_train})
+    #         for qa in para['qas']:
+    #             if qa['id'] in filtered_id_list:
+    #                 new_qas_train.append(qa)
 
-        if len(new_paras_train) > 0:
-            new_passages_train.append({'title': passages['title'], 'paragraphs': new_paras_train})
+    #         if len(new_qas_train) > 0:
+    #             new_paras_train.append({'context': context, 'qas': new_qas_train})
 
-    filtered_data_json = {'data': new_passages_train, 'version': data_json['version']}
+    #     if len(new_paras_train) > 0:
+    #         new_passages_train.append({'title': passages['title'], 'paragraphs': new_paras_train})
 
-    total = 0
-    context_num = 0
-    for paras in data_json['data']:
-        for para in paras['paragraphs']:
-            context_num += 1
-            qa_num = len(para['qas'])
-            total += qa_num
-    logger.info('Before filtering: Train QA Num: %d, Total Context: %d' % (total, context_num))
+    # filtered_data_json = {'data': new_passages_train, 'version': data_json['version']}
 
-    total = 0
-    context_num = 0
-    for paras in filtered_data_json['data']:
-        for para in paras['paragraphs']:
-            context_num += 1
-            qa_num = len(para['qas'])
-            total += qa_num
-    logger.info('After filtering: Train QA Num: %d, Total Context: %d' % (total, context_num))
+    # total = 0
+    # context_num = 0
+    # for paras in data_json['data']:
+    #     for para in paras['paragraphs']:
+    #         context_num += 1
+    #         qa_num = len(para['qas'])
+    #         total += qa_num
+    # logger.info('Before filtering: Train QA Num: %d, Total Context: %d' % (total, context_num))
 
-    json.dump(filtered_data_json, open(os.path.join(args.output_dir, "filtered_qa.json"), 'w'))
+    # total = 0
+    # context_num = 0
+    # for paras in filtered_data_json['data']:
+    #     for para in paras['paragraphs']:
+    #         context_num += 1
+    #         qa_num = len(para['qas'])
+    #         total += qa_num
+    # logger.info('After filtering: Train QA Num: %d, Total Context: %d' % (total, context_num))
+
+    # json.dump(filtered_data_json, open(os.path.join(args.output_dir, "filtered_qa.json"), 'w'))
 
     return
 
@@ -1013,4 +1032,22 @@ def main():
         estimation(args, tokenizer, qve_model, qa_model)
 
 if __name__ == "__main__":
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #         "/dccstor/bsiyer6/public/qve/primeqa/examples/QVE/checkpoints/TriviaQA-web_QVE_base/checkpoint-500/",
+    #         do_lower_case=False,
+    #         cache_dir=None,
+    #         use_fast=False,
+    #     )
+    # examples = get_train_examples("/dccstor/bsiyer6/public/qve/primeqa/examples/QVE/data/Trivia-web_QG/TriviaQA-web.train.targetfinetuned.gen.jsonl")
+    # features, dataset = squad_convert_examples_to_features(
+    #         examples=examples,
+    #         tokenizer=tokenizer,
+    #         max_seq_length=384,
+    #         doc_stride=128,
+    #         max_query_length=64,
+    #         is_training=True,
+    #         return_dataset="pt",
+    #         threads=24,
+    #     )
+
     main()

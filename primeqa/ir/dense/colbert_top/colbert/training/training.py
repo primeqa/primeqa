@@ -124,40 +124,9 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         if config.init_from_lm is not None and config.checkpoint is None:
             # checkpoint should override init_from_lm since it continues an already init'd run
             print_message(f"#> Load init from lm {config.init_from_lm}")
-            if DEVICE == torch.device("cuda"):
-                lmweights = torch.load(config.init_from_lm)
-            else:    # expect path to pytorch_model.bin
-                lmweights = torch.load(config.init_from_lm, map_location=torch.device('cpu'))  # expect path to pytorch_model.bin
-
-
-            lmweights['model.linear.weight'] = colbert.linear.weight
-            # we don't need the keys in the lm head
-            keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
-                            'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.decoder.bias', 'lm_head.bias']
-            if config.model_type == 'xlm-roberta-base':
-                # TODO other model types may have a few extra keys to handle also ...
-
-                # resolve conflict between bert and roberta
-                lmweights_new = OrderedDict([(re.sub(r'^roberta\.', 'model.bert.', key), value) for key, value in lmweights.items()])
-
-                lmweights_new['model.bert.pooler.dense.weight'] = colbert.bert.pooler.dense.weight
-                lmweights_new['model.bert.pooler.dense.bias'] = colbert.bert.pooler.dense.bias
-
-                # I don't know what roberta.embeddings.position_ids is but it doesn't seem to be part of the model ...
-                # keys_to_drop += ['roberta.embeddings.position_ids']
-            elif config.model_type == 'tinybert':
-                keys_to_drop = ["cls.predictions.bias", "cls.predictions.transform.dense.weight",
-                                "cls.predictions.transform.dense.bias", "cls.predictions.transform.LayerNorm.weight",
-                                "cls.predictions.transform.LayerNorm.bias", "cls.predictions.decoder.weight",
-                                "cls.seq_relationship.weight", "cls.seq_relationship.bias", "fit_denses.0.weight",
-                                "fit_denses.0.bias", "fit_denses.1.weight", "fit_denses.1.bias", "fit_denses.2.weight",
-                                "fit_denses.2.bias", "fit_denses.3.weight", "fit_denses.3.bias", "fit_denses.4.weight",
-                                "fit_denses.4.bias"]
-
-            for k in keys_to_drop:
-                lmweights_new.pop(k)
-
-            colbert.load_state_dict(lmweights_new,False)
+            checkpoint = torch.load(config.init_from_lm, map_location='cpu')
+            checkpoint = OrderedDict([('model.' + key, value) for key, value in checkpoint.items()])
+            colbert.load_state_dict(checkpoint)
 
         # load from checkpoint if checkpoint is an actual model
         if config.checkpoint is not None:

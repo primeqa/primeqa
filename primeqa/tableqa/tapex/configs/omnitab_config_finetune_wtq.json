@@ -1,0 +1,20 @@
+{
+"model_name_or_path": "neulab/omnitab-large",
+"dataset_name":"wikitablequestions",
+"max_source_length":1024,
+"max_target_length":128,
+"val_max_target_length":128,
+"num_train_epochs":50.0,
+"warmup_ratio":0.1,
+"per_device_train_batch_size":6,
+"gradient_accumulation_steps":2,
+"per_device_eval_batch_size":6,
+"learning_rate":2e-5,
+"logging_steps": 10,
+"eval_steps": 1000,
+"save_steps": 1000,
+"evaluation_strategy":"steps", 
+"num_beams": 5,
+"generation_max_length":128,
+"output_dir": "omnitab_wtq"
+}
