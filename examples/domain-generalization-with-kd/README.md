@@ -41,7 +41,7 @@ The argument for `train_fof` in the command is a text file; each line in this fi
 <path-to-train-data-dir>/NaturalQuestions-hf.json
 <path-to-train-data-dir>/NewsQA-hf.json
 ```
-It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face Datasets SQuAD format (which is different than the original SQuAD format).
+It points to three training files to be used in the experiment. The `-hf` suffix is there as a reminder that the files must be in the Hugging Face Datasets SQuAD format (which is different than the original SQuAD format). A script for conversion from the MRQA-2019 format to the above Hugging Face format is described later in this README.
 
 The BERT-large QA model that the above command trains can then be used as a teacher in a distillation experiment to train a BERT-base student, as follows:
 ```
