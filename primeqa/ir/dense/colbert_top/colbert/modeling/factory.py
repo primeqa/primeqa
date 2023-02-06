@@ -74,10 +74,10 @@ def get_colbert_from_pretrained(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
-
-
+    model_dir = None
     # if it is a directory, load json file to get the model type
     if os.path.isdir(model_type):
+        model_dir = model_type
         json_file = model_type + '/config.json'
         print_message(f"json file (get_query_tokenizer): {json_file}")
         with open(json_file) as file:
@@ -95,22 +95,24 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
     elif model_type=='roberta-base' or model_type=='roberta-large':
         return QueryTokenizerRoberta(maxlen, model_type)
     elif model_type=='custom_v6':
-        return QueryTokenizerCustomV6(maxlen, model_type)
+        if model_dir is not None:
+            return QueryTokenizerCustomV6(maxlen, model_dir)
+        else:
+            return QueryTokenizerCustomV6(maxlen, model_type)
     else:
         raise NotImplementedError
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(model_type, maxlen):
-
-
+    model_dir = None
     # if it is a directory, load json file to get the model type
     if os.path.isdir(model_type):
+        model_dir = model_type
         json_file = model_type + '/config.json'
         print_message(f"json file (get_doc_tokenizer): {json_file}")
         with open(json_file) as file:
             data = json.load(file)
         model_type = data["_name_or_path"]
-
 
     print_message(f"get doc model type: {model_type}")
 
@@ -123,6 +125,9 @@ def get_doc_tokenizer(model_type, maxlen):
     elif model_type=='roberta-base' or model_type=='roberta-large':
         return DocTokenizerRoberta(maxlen, model_type)
     elif model_type=='custom_v6':
-        return DocTokenizerCustomV6(maxlen, model_type)
+        if model_dir is not None:
+            return DocTokenizerCustomV6(maxlen, model_dir)
+        else:
+            return DocTokenizerCustomV6(maxlen, model_type)
     else:
         raise NotImplementedError

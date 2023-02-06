@@ -1,29 +1,17 @@
 import torch
 
-from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom import HF_ColBERT_custom
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom_v6 import HF_ColBERT_custom_v6
 from transformers import XLMRobertaTokenizer # there's no Fast version
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
-# only the following official escape sequences are available
-# 0            0     <s>
-# 1            1   <pad>
-# 2            2    </s>
-# 3            3   <unk>
-# 250001  250001  <mask>
-#
-# we will use the following unofficial escape sequences:
-# 246260,246260,?,9748 '\u2614' Umbrella with Rain Drops
-# 245281,245281,?,9749 '\u2615' Hot Beverage
-
 
 class QueryTokenizerCustomV6():
     def __init__(self, query_maxlen, model_type):
-        # self.tok = XLMRobertaTokenizer.from_pretrained(model_type)
-        self.tok = HF_ColBERT_custom.raw_tokenizer_from_pretrained(model_type)
+        self.tok = HF_ColBERT_custom_v6.raw_tokenizer_from_pretrained(model_type)
         self.query_maxlen = query_maxlen
 
-        self.Q_marker_token, self.Q_marker_token_id = '?', 9748  # Umbrellawith Rain Drops
+        self.Q_marker_token, self.Q_marker_token_id = '?', 9748
         self.mask_token, self.mask_token_id = self.tok.pad_token, self.tok.pad_token_id
 
 #        assert self.Q_marker_token_id == 1 and self.mask_token_id == 103

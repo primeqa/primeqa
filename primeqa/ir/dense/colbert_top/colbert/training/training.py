@@ -124,40 +124,9 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         if config.init_from_lm is not None and config.checkpoint is None:
             # checkpoint should override init_from_lm since it continues an already init'd run
             print_message(f"#> Load init from lm {config.init_from_lm}")
-            if DEVICE == torch.device("cuda"):
-                lmweights = torch.load(config.init_from_lm)
-            else:    # expect path to pytorch_model.bin
-                lmweights = torch.load(config.init_from_lm, map_location=torch.device('cpu'))  # expect path to pytorch_model.bin
-
-
-            lmweights['model.linear.weight'] = colbert.linear.weight
-            # we don't need the keys in the lm head
-            keys_to_drop = ['lm_head.dense.weight', 'lm_head.dense.bias', 'lm_head.layer_norm.weight',
-                            'lm_head.layer_norm.bias', 'lm_head.decoder.weight', 'lm_head.decoder.bias', 'lm_head.bias']
-            if config.model_type == 'xlm-roberta-base' or config.model_type == 'roberta-base' or config.model_type == 'roberta-large' or config.model_type == 'custom_v6':
-                # TODO other model types may have a few extra keys to handle also ...
-
-                # resolve conflict between bert and roberta
-                lmweights_new = OrderedDict([(re.sub(r'^roberta\.', 'model.bert.', key), value) for key, value in lmweights.items()])
-
-                lmweights_new['model.bert.pooler.dense.weight'] = colbert.bert.pooler.dense.weight
-                lmweights_new['model.bert.pooler.dense.bias'] = colbert.bert.pooler.dense.bias
-
-                # I don't know what roberta.embeddings.position_ids is but it doesn't seem to be part of the model ...
-                # keys_to_drop += ['roberta.embeddings.position_ids']
-            elif config.model_type == 'tinybert':
-                keys_to_drop = ["cls.predictions.bias", "cls.predictions.transform.dense.weight",
-                                "cls.predictions.transform.dense.bias", "cls.predictions.transform.LayerNorm.weight",
-                                "cls.predictions.transform.LayerNorm.bias", "cls.predictions.decoder.weight",
-                                "cls.seq_relationship.weight", "cls.seq_relationship.bias", "fit_denses.0.weight",
-                                "fit_denses.0.bias", "fit_denses.1.weight", "fit_denses.1.bias", "fit_denses.2.weight",
-                                "fit_denses.2.bias", "fit_denses.3.weight", "fit_denses.3.bias", "fit_denses.4.weight",
-                                "fit_denses.4.bias"]
-
-            for k in keys_to_drop:
-                lmweights_new.pop(k)
-
-            colbert.load_state_dict(lmweights_new,False)
+            checkpoint = torch.load(config.init_from_lm, map_location='cpu')
+            checkpoint = OrderedDict([('model.' + key, value) for key, value in checkpoint.items()])
+            colbert.load_state_dict(checkpoint)
 
         # load from checkpoint if checkpoint is an actual model
         if config.checkpoint is not None:
@@ -225,11 +194,13 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
+    maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
+
     scheduler = None
     if config.warmup is not None:
-        print_message(f"#> LR will use {config.warmup} warmup steps and linear decay over {config.maxsteps} steps.")
+        print_message(f"#> LR will use {config.warmup} warmup steps and linear decay over {maxsteps} steps.")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=config.warmup,
-                                                    num_training_steps=config.maxsteps)
+                                                    num_training_steps=maxsteps)
     
     warmup_bert = config.warmup_bert
     if warmup_bert is not None:
@@ -257,17 +228,13 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
          if config.teacher_checkpoint is not None:
             teacher_reader.skip_to_batch(start_batch_idx, config.bsize)
 
-    maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
-
     path = os.path.join(Run().path_, 'checkpoints')
     if not os.path.exists(path):
         os.makedirs(path)
 
     name = os.path.join(path, "colbert-EXIT.dnn")
-    # arguments = config.input_arguments.__dict__
     exit_queue = signals.checkpoint_on_exit(config.rank)
 
-    print_message(f"maxsteps: {config.maxsteps}")
     print_message(f"{config.epochs} epochs of {len(reader)} examples")
     print_message(f"batch size: {config.bsize}")
     print_message(f"maxsteps set to {maxsteps}")
@@ -380,7 +347,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                     manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
     else:
-        for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
+        for batch_idx, BatchSteps in zip(range(start_batch_idx, maxsteps), reader):
             if (warmup_bert is not None) and warmup_bert <= batch_idx:
                 set_bert_grad(colbert, True)
                 warmup_bert = None

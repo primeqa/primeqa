@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import os
 
 from transformers import BertPreTrainedModel, BertModel, AutoTokenizer
 from transformers import AutoModel, AutoConfig
@@ -27,27 +28,16 @@ class HF_ColBERT_custom_v6(RobertaModel):
         super().__init__(config)
 
         self.dim = colbert_config.dim
-        # resolve conflict between bert and roberta
-        # self.roberta = XLMRobertaModel(config)
-        # self.bert = self.roberta
         self.encoder = None
         self.embeddings = None
         self.pooler = None
 
         self.roberta = RobertaModel(config)
         self.bert = self.roberta
-        #self.bert = XLMRobertaModel(config)
-
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
-
-        # if colbert_config.relu:
-        #     self.score_scaler = nn.Linear(1, 1)
 
         self.init_weights()
 
-        # if colbert_config.relu:
-        #     self.score_scaler.weight.data.fill_(1.0)
-        #     self.score_scaler.bias.data.fill_(-8.0)
 
     @classmethod
     def from_pretrained(cls, name_or_path, colbert_config):
@@ -60,55 +50,41 @@ class HF_ColBERT_custom_v6(RobertaModel):
             import re
             state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
 
-            config = RobertaConfig()
-            # from nasa/model/nasa_demo_hf.ipynb
-            # config.vocab_size = 50261
-            # based on reading /dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22/vocab.json
-            config.vocab_size = 65536
-            config.bos_token_id = 0
-            # config.pad_token_id = 1
-            config.eos_token_id = 2
-            config.pad_token_id = 0
+            config_dir = os.environ.get('CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY')
+            assert config_dir, f"Please specify the custom model tokenizer directory in CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY environment variable"
+            config = RobertaConfig.from_pretrained(config_dir)
             obj = super().from_pretrained(base, config=config, state_dict=state_dict, colbert_config=colbert_config)
             #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
             obj.base = base
 
             return obj
+        elif os.path.isdir(name_or_path):
+            obj = super().from_pretrained(name_or_path, colbert_config=colbert_config)  # <<<< HERE
+            obj.base = name_or_path
+            return obj
+        else:
+            state_dict_fn = os.environ.get('CUSTOM_MODEL_INITIAL_STATE_DICTIONARY')
+            assert state_dict_fn, f"Please specify the custom model tokenizer directory in CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY environment variable"
+            state_dict = torch.load(state_dict_fn)
+            base = 'roberta-base'
 
-        # this is only used the first time a "bare" model state dictionary is loaded, subsequent fine-tuned models use the checkpoint
-        state_dict_fn = '/dccstor/colbert-ir/franzm/nasa/model/v6/v6_nasawiki_nopad.pth'
-        state_dict = torch.load(state_dict_fn)
-        base = 'roberta-base'
-        config = RobertaConfig()
-        # was from nasa/model/nasa_demo_hf.ipynb
-        # config.vocab_size = 50261
-        # based on reading /dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22/vocab.json
-        config.vocab_size = 65536
-        config.bos_token_id = 0
-        # config.pad_token_id = 1
-        config.eos_token_id = 2
-        config.pad_token_id = 0
-        #config1 = AutoConfig.from_pretrained('/dccstor/bsiyer6/public/nasa/model')
-        obj = super().from_pretrained(base, config=config, state_dict=state_dict, colbert_config=colbert_config)
-        #hf_model.load_state_dict(state_dict, strict=False)
+            config_dir = os.environ.get('CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY')
+            assert config_dir, f"Please specify the custom model tokenizer directory in CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY environment variable"
+            config = RobertaConfig.from_pretrained(config_dir)
+            obj = super().from_pretrained(base, config=config, state_dict=state_dict, colbert_config=colbert_config)
 
-        obj.base = base
-
-        return obj
-
-    @staticmethod
-    def raw_tokenizer_from_pretrained(name_or_path):
-        '''if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
-            dnn = torch_load_dnn(name_or_path)
-            base = dnn.get('arguments', {}).get('model',  'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
-
-            obj = AutoTokenizer.from_pretrained(base)
             obj.base = base
 
             return obj
-        '''
 
-        tokenizer_dir = '/dccstor/colbert-ir/franzm/nasa/model/v6/nasa-wiki-weighted-tokenizer-10-3-22'
+    @staticmethod
+    def raw_tokenizer_from_pretrained(name_or_path):
+        if os.path.isdir(name_or_path):
+            tokenizer_dir = name_or_path
+        else:
+            tokenizer_dir = os.environ.get('CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY')
+            assert tokenizer_dir, f"Please specify the custom model tokenizer directory in CUSTOM_TOKENIZER_AND_MODEL_DIRECTORY environment variable"
+
         obj = AutoTokenizer.from_pretrained(tokenizer_dir)
         obj.base = 'roberta-base'
 
