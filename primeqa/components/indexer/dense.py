@@ -2,13 +2,13 @@ from typing import Union, List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import IndexerComponent
+from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
 
 @dataclass
-class ColBERTIndexer(IndexerComponent):
+class ColBERTIndexer(BaseIndexer):
     """_summary_
 
     Args:
@@ -17,7 +17,7 @@ class ColBERTIndexer(IndexerComponent):
         checkpoint (str): Model to load.
         similarity (str, optional): Similarity. Defaults to "cosine"
         dim (int, optional): Dimension. Defaults to 128
-        query_maxlen (int, optional): Maxium query length. Defaults to 32.
+        query_maxlen (int, optional): Maximum query length. Defaults to 32.
         doc_maxlen (int, optional): Maximum document length. Defaults to 180.
         mask_punctuation (bool, optional): If set to "True", will mask punctuation. Defaults to True.
         bsize (int, optional): Batch size. Defaults to 128.
@@ -60,7 +60,7 @@ class ColBERTIndexer(IndexerComponent):
     query_maxlen: int = field(
         default=32,
         metadata={
-            "name": "Maxium query length",
+            "name": "Maximum query length",
             "range": [8, 64, 8],
             "api_support": True,
         },
@@ -68,7 +68,7 @@ class ColBERTIndexer(IndexerComponent):
     doc_maxlen: int = field(
         default=180,
         metadata={
-            "name": "Maxium document length",
+            "name": "Maximum document length",
             "range": [32, 256, 4],
             "api_support": True,
         },
@@ -129,6 +129,9 @@ class ColBERTIndexer(IndexerComponent):
     def load(self, *args, **kwargs):
         self._indexer = Indexer(self.checkpoint, config=self._config)
 
+    def get_engine_type(self):
+        return "ColBERT"
+
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         if not isinstance(collection, str):
             raise TypeError(
@@ -139,6 +142,3 @@ class ColBERTIndexer(IndexerComponent):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
-    
-    def get_engine_type(self):
-        return "ColBERT"

@@ -1,6 +1,6 @@
 {
     "qtc": {
-        "id_key": "example_id",
+        "example_id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": null,
         "label_list": ["boolean", "other"],
@@ -10,7 +10,7 @@
         "model_name_or_path": "PrimeQA/tydi-boolean_question_classifier-xlmr_large-20221117"
     },
     "evc": {
-        "id_key": "example_id",
+        "example_id_key": "example_id",
         "sentence1_key": "question",
         "sentence2_key": "passage_answer_text",
         "label_list": ["no", "yes"],

@@ -1,3 +1,19 @@
+/**
+ Copyright 2022-2023 PrimeQA Team
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 syntax = "proto3";
 import "parameter.proto";
 
@@ -6,12 +22,12 @@ package reader;
 /**
    The service for getting readers and answer(s) to a question usign readers
 */
-service Reader {
+service ReadingService {
     rpc GetReaders (GetReadersRequest) returns (GetReadersResponse);
     rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
 }
 
-message ReaderComponent {
+message Reader {
     string reader_id = 1;
     repeated parameter.Parameter parameters = 2;
 }
@@ -20,7 +36,7 @@ message GetReadersRequest {
 }
 
 message GetReadersResponse {
-    repeated ReaderComponent readers = 1;
+    repeated Reader readers = 1;
 }
 
 /**
@@ -28,7 +44,7 @@ message GetReadersResponse {
     for each context text.
 */
 message GetAnswersRequest {
-    ReaderComponent reader = 1;
+    Reader reader = 1;
     repeated string queries = 2;
     repeated Contexts contexts = 3;
 }
@@ -60,4 +76,3 @@ message AnswersForQuery {
 message GetAnswersResponse {
     repeated AnswersForQuery query_answers = 1;
 }
-

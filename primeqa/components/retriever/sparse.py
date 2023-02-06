@@ -2,12 +2,12 @@ from typing import List
 from dataclasses import dataclass, field
 import json
 
-from primeqa.pipelines.components.base import RetrieverComponent
+from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 
 
 @dataclass
-class BM25Retriever(RetrieverComponent):
+class BM25Retriever(BaseRetriever):
     """_summary_
 
     Args:
@@ -31,6 +31,11 @@ class BM25Retriever(RetrieverComponent):
             "description": "Path to root directory where index is stored",
         },
     )
+    index_name: str = field(
+        metadata={
+            "name": "Index name",
+        },
+    )
 
     max_num_documents: int = field(
         default=5,
@@ -41,7 +46,7 @@ class BM25Retriever(RetrieverComponent):
             "exclude_from_hash": True,
         },
     )
-    
+
     num_workers: int = field(
         default=1,
         metadata={
@@ -53,9 +58,9 @@ class BM25Retriever(RetrieverComponent):
 
     def __post_init__(self):
         # Placeholder variables
-        self._index_path=f"{self.index_root}/{self.index_name}"
+        self._index_path = f"{self.index_root}/{self.index_name}"
         self._searcher = None
-        
+
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
         hashable_fields = [
@@ -73,13 +78,28 @@ class BM25Retriever(RetrieverComponent):
     def load(self, *args, **kwargs):
         self._searcher = PyseriniRetriever(self._index_path)
 
-    def retrieve(self, input_texts: List[str], *args, **kwargs):
-        qids = [str(idx) for  idx, query in enumerate(input_texts) ]
-        hits = self._searcher.batch_retrieve(input_texts, qids, topK=self.max_num_documents, threads=self.num_workers)
-        return [
-            [(result['doc_id'], result['score']) for result in results_per_query]
-            for results_per_query in hits.values()
-        ]
-    
     def get_engine_type(self):
         return "BM25"
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, input_texts: List[str], *args, **kwargs):
+        # Step 1: Locally update object variable values, if provided
+        max_num_documents = (
+            kwargs["max_num_documents"]
+            if "max_num_documents" in kwargs
+            else self.max_num_documents
+        )
+
+        qids = [str(idx) for idx, query in enumerate(input_texts)]
+        hits = self._searcher.batch_retrieve(
+            input_texts, qids, topK=max_num_documents, threads=self.num_workers
+        )
+        return [
+            [(result["doc_id"], result["score"]) for result in results_per_query]
+            for results_per_query in hits.values()
+        ]

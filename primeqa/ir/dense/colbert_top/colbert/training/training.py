@@ -194,11 +194,13 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
+    maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
+
     scheduler = None
     if config.warmup is not None:
-        print_message(f"#> LR will use {config.warmup} warmup steps and linear decay over {config.maxsteps} steps.")
+        print_message(f"#> LR will use {config.warmup} warmup steps and linear decay over {maxsteps} steps.")
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=config.warmup,
-                                                    num_training_steps=config.maxsteps)
+                                                    num_training_steps=maxsteps)
     
     warmup_bert = config.warmup_bert
     if warmup_bert is not None:
@@ -226,17 +228,13 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
          if config.teacher_checkpoint is not None:
             teacher_reader.skip_to_batch(start_batch_idx, config.bsize)
 
-    maxsteps = min(config.maxsteps, math.ceil((config.epochs * len(reader)) / (config.bsize * config.nranks)))
-
     path = os.path.join(Run().path_, 'checkpoints')
     if not os.path.exists(path):
         os.makedirs(path)
 
     name = os.path.join(path, "colbert-EXIT.dnn")
-    # arguments = config.input_arguments.__dict__
     exit_queue = signals.checkpoint_on_exit(config.rank)
 
-    print_message(f"maxsteps: {config.maxsteps}")
     print_message(f"{config.epochs} epochs of {len(reader)} examples")
     print_message(f"batch size: {config.bsize}")
     print_message(f"maxsteps set to {maxsteps}")
@@ -349,7 +347,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                     manage_checkpoints_with_path_save(config, colbert, optimizer, amp, batch_idx + 1, num_per_epoch, epoch_idx, train_loss)
 
     else:
-        for batch_idx, BatchSteps in zip(range(start_batch_idx, config.maxsteps), reader):
+        for batch_idx, BatchSteps in zip(range(start_batch_idx, maxsteps), reader):
             if (warmup_bert is not None) and warmup_bert <= batch_idx:
                 set_bert_grad(colbert, True)
                 warmup_bert = None

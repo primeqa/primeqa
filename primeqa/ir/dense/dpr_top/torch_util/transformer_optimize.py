@@ -44,11 +44,11 @@ class TransformerOptimize:
         self.global_step = 0
         self.hypers = hypers
         self.model = model
-        instances_per_step = hypers.full_train_batch_size // hypers.gradient_accumulation_steps
+        instances_per_step = hypers.bsize // hypers.gradient_accumulation_steps
         self.reporting = Reporting(recency_weight=0.0001 * instances_per_step)
         args = self.hypers
 
-        self.t_total = num_instances_to_train_over // args.full_train_batch_size
+        self.t_total = num_instances_to_train_over // args.bsize
 
         # Prepare optimizer and schedule (linear warmup and decay)
         no_decay = ["bias", "LayerNorm.weight"]
@@ -69,7 +69,7 @@ class TransformerOptimize:
 
         self.optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
         self.scheduler = get_linear_schedule_with_warmup(
-            self.optimizer, num_warmup_steps=warmup_instances // args.full_train_batch_size,
+            self.optimizer, num_warmup_steps=warmup_instances // args.bsize,
             num_training_steps=self.t_total
         )
 
@@ -88,10 +88,10 @@ class TransformerOptimize:
             )
         # set_seed(args)
         assert args.per_gpu_train_batch_size * (args.n_gpu if args.n_gpu > 0 else 1) * \
-               args.world_size * args.gradient_accumulation_steps == args.full_train_batch_size
+               args.world_size * args.gradient_accumulation_steps == args.bsize
         logger.info("***** Running training *****")
         logger.info("  Instantaneous batch size per GPU = %d", args.per_gpu_train_batch_size)
-        logger.info("  Total train batch size (w. parallel, distributed & accumulation) = %d", args.full_train_batch_size)
+        logger.info("  Total train batch size (w. parallel, distributed & accumulation) = %d", args.bsize)
         logger.info("  Gradient Accumulation steps = %d", args.gradient_accumulation_steps)
         logger.info("  Total optimization steps = %d", self.t_total)
 
