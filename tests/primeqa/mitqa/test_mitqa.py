@@ -4,7 +4,7 @@ from transformers import (
 )
 from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
 import json
-
+from primeqa.mitqa.utils.hybridqa_utils import tokenize
 from primeqa.mitqa.utils.model_utils.row_retriever_MITQA import RowRetriever
 from primeqa.mitqa.utils.model_utils.reranker import re_rank_ae_output
 from primeqa.mitqa.utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,preprocess_data_using_row_retrieval_scores_ottqa,create_dataset_for_answer_extractor
@@ -14,7 +14,9 @@ import logging
 import torch
 import os
 import sys
+import pytest
 from primeqa.mitqa.utils.ottqa_utils  import assign_ids
+
 
 from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
 from primeqa.mitqa.utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
@@ -79,17 +81,22 @@ def test_hybirdqa():
     assert ae_output_path != None and ae_output_path_nbest != None
     re_ranked_output = re_rank_ae_output(qid_scores_dict,ae_output_path_nbest,ae_args.pred_ans_file) 
     assert re_ranked_output!= None
-        
 
-def test_link_predictor():
-    hqa_parser = HfArgumentParser(LinkPredictorArguments)
-    lg_config = {
+lg_config = {
         "model":"gpt2",
         "learning_rate_lg":5e-5,
         "dataset":"tests/resources/mitqa/ottqa/train_dev_tables.json",
-    }
+    }     
+@pytest.mark.parametrize("lg_config",[lg_config])
+def test_link_predictor(lg_config):
+    hqa_parser = HfArgumentParser(LinkPredictorArguments)
     args = hqa_parser.parse_dict(lg_config)
     loss = train_link_generator(args)
     assert loss!=None
         
+@pytest.mark.parametrize("test_string",["United %States %America"])
+def test_hybridqa_utils_tokenize(test_string):
+    tokenized = tokenize(test_string)
+    assert tokenized=="United% States% America"
     
+

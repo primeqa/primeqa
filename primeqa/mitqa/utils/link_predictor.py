@@ -146,8 +146,11 @@ def train_link_generator(args):
         args: Pass in the parameters like batch_size, learning rate etc
     
     """
-    args.device_lg = torch.device("cuda")
-    args.n_gpu = torch.cuda.device_count()
+    if torch.cuda.is_available():
+        args.device_lg = torch.device("cuda")
+        args.n_gpu = torch.cuda.device_count()
+    else:
+        args.device_lg= torch.device("cpu")
 
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)
     tokenizer.add_tokens(['[SEP]', '[EOS]', '[START]', '[ENT]'])
