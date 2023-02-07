@@ -81,15 +81,15 @@ def test_hybirdqa():
     assert re_ranked_output!= None
         
 
-# def test_link_predictor():
-#     hqa_parser = HfArgumentParser(LinkPredictorArguments)
-#     lg_config = {
-#         "model":"gpt2",
-#         "learning_rate_lg":5e-5,
-#         "dataset":"tests/resources/mitqa/ottqa/train_dev_tables.json",
-#     }
-#     args = hqa_parser.parse_dict(lg_config)
-#     loss = train_link_generator(args)
-#     assert loss!=None
+def test_link_predictor():
+    hqa_parser = HfArgumentParser(LinkPredictorArguments)
+    lg_config = {
+        "model":"gpt2",
+        "learning_rate_lg":5e-5,
+        "dataset":"tests/resources/mitqa/ottqa/train_dev_tables.json",
+    }
+    args = hqa_parser.parse_dict(lg_config)
+    loss = train_link_generator(args)
+    assert loss!=None
         
     
