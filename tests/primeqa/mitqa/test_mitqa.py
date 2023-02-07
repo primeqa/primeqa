@@ -20,7 +20,6 @@ from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorA
 from primeqa.mitqa.utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
 from primeqa.mitqa.utils.link_predictor import predict_link_for_tables,train_link_generator
 
-
 hybridqa_config = {
     "per_device_train_batch_size_rr":8,
     "per_device_eval_batch_size_rr":8,
@@ -82,7 +81,15 @@ def test_hybirdqa():
     assert re_ranked_output!= None
         
 
-
+# def test_link_predictor():
+#     hqa_parser = HfArgumentParser(LinkPredictorArguments)
+#     lg_config = {
+#         "model":"gpt2",
+#         "learning_rate_lg":5e-5,
+#         "dataset":"tests/resources/mitqa/ottqa/train_dev_tables.json",
+#     }
+#     args = hqa_parser.parse_dict(lg_config)
+#     loss = train_link_generator(args)
+#     assert loss!=None
         
     
-        

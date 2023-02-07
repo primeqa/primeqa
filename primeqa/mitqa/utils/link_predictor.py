@@ -224,7 +224,7 @@ def train_link_generator(args):
                 avg_loss = 0
 
         torch.save(model.module.state_dict(), 'link_generator/model-ep{}.pt'.format(epoch))
-     
+    return avg_loss
 
 def predict_link_for_tables(args,retrieved_data,doc_retriever):
     tokenizer = GPT2Tokenizer.from_pretrained(args.model)

@@ -2,7 +2,6 @@ from torch.utils.data import Dataset,DataLoader
 import random
 import pandas as pd
 import torch
-# from blingfire import text_to_sentences
 from nltk.tokenize import sent_tokenize
 import numpy as  np
 
@@ -93,9 +92,6 @@ class TableQADatasetQRSconcat(Dataset):
                     self.positive_count+=1
                 else:
                     self.negative_count+=1
-            #self.row_inputs.append(row_input)
-        #table_pd = pd.DataFrame(table_row_list)
-        #print(table_pd)
         self.q_r_inputs = self.bert_tokenizer(q_r_list,add_special_tokens=False, truncation=True, padding=True, return_tensors='pt', max_length = 512)
 
 

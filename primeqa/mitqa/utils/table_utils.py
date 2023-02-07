@@ -11,11 +11,6 @@ def load_data(table_id):
         table = json.load(f)
     return table,requested_documents
 
-
-    
-    
-
-
 def load_passages(data_path_root):
     passages_dict = json.load(open(os.path.join(data_path_root, 'all_passages.json')))
     return passages_dict
