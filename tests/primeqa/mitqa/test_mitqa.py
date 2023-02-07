@@ -4,7 +4,10 @@ from transformers import (
 )
 from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
 import json
+from primeqa.mitqa.utils.partial_label_utils import vec_mat_multiplication,retrieval_accuracy
 from primeqa.mitqa.utils.hybridqa_utils import tokenize
+from primeqa.mitqa.utils.ottqa_utils import assign_ids
+from primeqa.mitqa.utils.json_utils import read_data
 from primeqa.mitqa.utils.model_utils.row_retriever_MITQA import RowRetriever
 from primeqa.mitqa.utils.model_utils.reranker import re_rank_ae_output
 from primeqa.mitqa.utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,preprocess_data_using_row_retrieval_scores_ottqa,create_dataset_for_answer_extractor
@@ -16,8 +19,12 @@ import os
 import sys
 import pytest
 from primeqa.mitqa.utils.ottqa_utils  import assign_ids
+from primeqa.mitqa.metrics.evaluate import normalize_answer,get_tokens,compute_exact,compute_f1
+from primeqa.mitqa.metrics.evaluate import normalize_answer,get_tokens,compute_exact,compute_f1
 
-
+import numpy as np
+from primeqa.mitqa.mitqa_component import MITQAReader
+from primeqa.mitqa.utils.create_table_retriever_training_data import linearize_row
 from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
 from primeqa.mitqa.utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
 from primeqa.mitqa.utils.link_predictor import predict_link_for_tables,train_link_generator
@@ -86,17 +93,63 @@ lg_config = {
         "model":"gpt2",
         "learning_rate_lg":5e-5,
         "dataset":"tests/resources/mitqa/ottqa/train_dev_tables.json",
+        "device_lg":torch.device("cpu"),
     }     
 @pytest.mark.parametrize("lg_config",[lg_config])
 def test_link_predictor(lg_config):
     hqa_parser = HfArgumentParser(LinkPredictorArguments)
-    args = hqa_parser.parse_dict(lg_config)
-    loss = train_link_generator(args)
+    args= hqa_parser.parse_dict(lg_config)
+    loss = train_link_generator(args[0])
     assert loss!=None
         
 @pytest.mark.parametrize("test_string",["United %States %America"])
 def test_hybridqa_utils_tokenize(test_string):
     tokenized = tokenize(test_string)
     assert tokenized=="United% States% America"
+
+list1 = [0.5,0.3,1.1]
+vec = torch.tensor(list1)
+list2 = [[1, 4, 5, 12], 
+    [-5, 8, 9, 0],
+    [-6, 7, 11, 19]]
+mat = torch.tensor(list2)
+exp = torch.tensor([[ 0.5000,  2.0000,  2.5000,  6.0000],
+        [-1.5000,  2.4000,  2.7000,  0.0000],
+        [-6.6000,  7.7000, 12.1000, 20.9000]])
+def test_partial_label_utils():
+    res = vec_mat_multiplication(vec,mat)
+    assert res!=None
+    
+data = [{"question_id":"abcd123"},{"question_id":"abcd123"},{"question_id":"abcd1234"}]
+exp_res = [{"question_id":"abcd123_0"},{"question_id":"abcd123_1"},{"question_id":"abcd1234_0"}]
+def test_ottqa_utils():
+    res = assign_ids(data)
+    assert res==exp_res
+   
+@pytest.mark.parametrize("filename",["tests/resources/mitqa/hybridqa/toy.json"])
+def test_json_utils(filename):
+    data = read_data(filename)
+    assert data!=None
+
+row_str = {"player_name":"sachin","score":100}
+exp = "player_name is sachin . score is 100 . "
+def test_create_table_retriever_training_data():
+    res = linearize_row(row_str)
+    assert res==exp
+
+def test_evaluate():
+    pred = [10,"Joe_Biden",0.78]
+    gold = [20,"Joe_Biden",0.78]
+    res = normalize_answer(pred[1])
+    assert res=="joebiden"
+    assert get_tokens(pred[1])==['joebiden']
+    assert compute_exact(pred[1],gold[1])==1
+    assert compute_f1(pred[1],gold[1])==1.0
+    
+    
+    
     
 
+    
+
+    

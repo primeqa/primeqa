@@ -19,7 +19,7 @@ class RRArguments():
        default='bert-base-uncased', metadata={"help": "Which model to use for RR training/testing"}
     )
    row_retriever_model_name_path: str = field(
-       default='data/hybridqa/pretrained_models/rr.bin', metadata={"help": "Row retriever configuration file"}
+       default=None, metadata={"help": "Row retriever configuration file"}
     )
    pos_frac_per_epoch: List[float] = field(
       default_factory=lambda: [0.3, 0.3, 0.1, 0.0001, 0.0001], metadata={"help": "Positive fraction per epoch"}
@@ -141,6 +141,9 @@ class LinkPredictorArguments:
     )
    seed_lg: int = field(
        default=42, metadata={"help": "random seed"}
+    )
+   num_epoch_lg: int = field(
+       default=2, metadata={"help": "number of epochs"}
     )
    dataset: str = field(
        default=None, metadata={"help": "which dataset to use"}

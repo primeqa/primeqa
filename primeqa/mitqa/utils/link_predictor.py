@@ -172,7 +172,7 @@ def train_link_generator(args):
     
     avg_loss = 0
     global_step = 0
-    for epoch in trange(10):
+    for epoch in trange(args.num_epoch_lg):
         epoch_iterator = tqdm(train_dataloader, desc="Iteration")
         for step, indexed_batch in enumerate(epoch_iterator):
             model.train()

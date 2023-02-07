@@ -155,7 +155,6 @@ def retrieval_accuracy(predictions, qa_data):
 			qa_dict[qid] = [d['label']]
 		else:
 			qa_dict[qid].append(d['label'])
-	
 	label_match_list = []
 	for qid in predictions:
 		max_score_row = np.argmax(predictions[qid])

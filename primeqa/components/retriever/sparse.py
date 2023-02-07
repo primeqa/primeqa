@@ -4,7 +4,6 @@ import json
 
 from primeqa.components.base import Retriever as BaseRetriever
 from primeqa.ir.sparse.retriever import PyseriniRetriever
-from primeqa.components.base import Retriever
 
 
 @dataclass
@@ -35,6 +34,16 @@ class BM25Retriever(BaseRetriever):
     index_name: str = field(
         metadata={
             "name": "Index name",
+        },
+    )
+
+    max_num_documents: int = field(
+        default=5,
+        metadata={
+            "name": "Maximum number of retrieved documents",
+            "range": [1, 100, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
         },
     )
 
@@ -79,9 +88,16 @@ class BM25Retriever(BaseRetriever):
         pass
 
     def predict(self, input_texts: List[str], *args, **kwargs):
+        # Step 1: Locally update object variable values, if provided
+        max_num_documents = (
+            kwargs["max_num_documents"]
+            if "max_num_documents" in kwargs
+            else self.max_num_documents
+        )
+
         qids = [str(idx) for idx, query in enumerate(input_texts)]
         hits = self._searcher.batch_retrieve(
-            input_texts, qids, topK=self.max_num_documents, threads=self.num_workers
+            input_texts, qids, topK=max_num_documents, threads=self.num_workers
         )
         return [
             [(result["doc_id"], result["score"]) for result in results_per_query]

@@ -3,19 +3,19 @@ from transformers import (
     HfArgumentParser,
     TrainingArguments,
 )
-from utils.model_utils.row_retriever_MITQA import RowRetriever
-from utils.model_utils.reranker import re_rank_ae_output
-from utils.link_predictor import predict_link_for_tables,train_link_generator
-from utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
-from utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
-from utils.model_utils.answer_extractor_multi_Answer import train_ae,predict_ae
-from processors.preprocessors.preprocess_raw_data import preprocess_data,load_st_model
+from primeqa.mitqa.utils.model_utils.row_retriever_MITQA import RowRetriever
+from primeqa.mitqa.utils.model_utils.reranker import re_rank_ae_output
+from primeqa.mitqa.utils.link_predictor import predict_link_for_tables,train_link_generator
+from primeqa.mitqa.utils.model_utils.table_retriever import train_table_retriever,predict_table_retriever
+from primeqa.mitqa.utils.model_utils.process_row_retriever_output import preprocess_data_using_row_retrieval_scores,create_dataset_for_answer_extractor
+from primeqa.mitqa.utils.model_utils.answer_extractor_multi_Answer import train_ae,predict_ae
+from primeqa.mitqa.processors.preprocessors.preprocess_raw_data import preprocess_data,load_st_model
 import logging
 import torch
 import os
 import sys
-from utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
-from primeqa.components import Component
+from primeqa.mitqa.utils.arguments_utils import HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments
+from primeqa.components.base import Component
 from primeqa.mitqa.metrics.evaluate_ottqa import get_em_and_f1_ottqa
 from primeqa.mitqa.metrics.evaluate import get_em_and_f1_hybridqa
 
@@ -29,13 +29,15 @@ class MITQAReader(Component):
       self.doc_retriever = load_st_model()
 
       hqa_parser = HfArgumentParser((HybridQAArguments,LinkPredictorArguments, RRArguments,AEArguments))
-      self.hqa_args,self.lp_args,self.rr_args,self.ae_args,= hqa_parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+      self.hqa_args,self.lp_args,self.rr_args,self.ae_args,= hqa_parser.parse_json_file(self._config_file)
 
+   def eval(self):
+      pass
    def predict(self):
       """
          Get predictions on the dev/test set of OTTQA/HYBRIDQA datasets.
       """
-      self.load(self._config_file)
+      self.load()
       raw_test_data = json.load(open(self.hqa_args.test_data_path))
       test=True
       self.ae_args.do_predict_ae = True
@@ -63,6 +65,7 @@ class MITQAReader(Component):
          self.logger.info(get_em_and_f1_ottqa(re_ranked_output_file,"data/ottqa/released_data/dev_reference.json"))
       else:
          self.logger.info(get_em_and_f1_hybridqa(re_ranked_output_file,"data/ottqa/dev_reference.json"))
+      return re_ranked_output_file
    
    def train(self):
       """
