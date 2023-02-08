@@ -21,7 +21,7 @@
 Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.  
 The interfaces for the retrieval, indexing and reader components are defined [here](./components/base.py)
 
-## Retrieval components
+## Retrieval Components
 
 ### ColBERT Engine
 
@@ -76,7 +76,7 @@ results = retriever.retrieve(input_texts = ['Who is Michael Wigge'])
 ```
 The `max_num_document` variable contains document_id and scores of the retrieved documents.
 
-## Reader components
+## Reader Components
 
 ### Extractive Reader
 

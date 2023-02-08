@@ -5,7 +5,6 @@ from primeqa.components.base import Reader, Retriever
 
 class QAPipeline:
     def __init__(self, retriever: Retriever, reader: Reader) -> None:
-    def __init__(self, retriever: Retriever, reader: Reader) -> None:
         self.retriever = retriever
         self.reader = reader
         self.corpus_passages = []
