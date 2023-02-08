@@ -2,6 +2,9 @@ import requests
 import time
 # adapted from: https://github.ibm.com/hendrik-strobelt/bloom_service
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 class LLMService:
     def __init__(self, token: str, base_url='https://bam-api.res.ibm.com/v0/generate', model_id="bigscience/bloom"):
         self.token = token

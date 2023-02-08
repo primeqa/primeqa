@@ -91,7 +91,7 @@ def metric_max_over_ground_truths(prediction, ground_truths):
     return max(scores_for_ground_truths)
 
 def load_jsonl(file_name):
-    logging.info("Load file: " + file_name)
+    print("Load file: " + file_name)
     json_lines = []
     with open (file_name, 'r') as f:
         data_lines = f.readlines()
@@ -147,9 +147,9 @@ def main():
     if args.subset_end == -1 or int(args.subset_end) > len(reference_data):
         args.subset_end = len(reference_data)
 
-    # if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
-    #     logging.error(args.output_dir + "/" + model_dir + " exists and is not empty")
-    #     sys.exit(0)
+    if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
+        logging.error(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
+        sys.exit(0)
     fp = open(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
     
     for instance in reference_data[args.subset_start:args.subset_end]:
@@ -164,9 +164,9 @@ def main():
         avg_rougeL += rouge
         count += 1
         if count % 10 == 0:
-            logging.info(count, flush=True)
+            print(count, flush=True)
     fp.close()   
-    logging.info("RougeL: " + str(avg_rougeL/count))
+    print("RougeL: " + str(avg_rougeL/count))
 
 if __name__ == '__main__':
    main()
