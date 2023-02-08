@@ -980,8 +980,11 @@ def predict_ae(args,ae_data):
 
     assert(args.local_rank == -1)
     # Setup CUDA, GPU & distributed training
-    device = torch.device("cuda")
-    args.n_gpu = torch.cuda.device_count()
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        args.n_gpu = torch.cuda.device_count()
+    else:
+        device = torch.device("cpu")
 
     args.device = device
     # Setup logging
