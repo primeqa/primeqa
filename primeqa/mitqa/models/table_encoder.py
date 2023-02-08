@@ -1,12 +1,9 @@
-#from transformers import TapasTokenizer, TapasModel
 from transformers import BertTokenizer, BertModel
 from transformers import LongformerModel, LongformerTokenizer
 from transformers import RobertaTokenizer,RobertaModel
 from torch import nn
 import torch
 
-
-#from transformers import TapasTokenizer, TapasModel
 from transformers import BertForSequenceClassification
 from transformers import LongformerModel, LongformerTokenizer
 from transformers import RobertaTokenizer,RobertaModel

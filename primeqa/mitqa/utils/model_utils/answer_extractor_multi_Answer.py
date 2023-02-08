@@ -61,17 +61,8 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# ALL_MODELS = sum(
-#     (
-#         tuple(conf.pretrained_config_archive_map.keys())
-#         for conf in (BertConfig, )
-#     ),
-#     (),
-# )
-
 
 MODEL_CLASSES = {"bert": (BertConfig, BertForQuestionAnswering, BertTokenizer)}
-#MODEL_CLASSES = {"bert": (BertConfig, LongformerForQuestionAnswering, LongformerTokenizer),"longformer":(LongformerConfig,LongformerForQuestionAnswering, LongformerTokenizer)}
 
 def get_multiple_answer_spans(ans_text,context):
     return [m.start() for m in re.finditer(ans_text, context)]
@@ -81,12 +72,6 @@ def calculate_loss(outputs, st_post_list, end_pos_list):
     end_logits = outputs.end_logits.squeeze(-1)
     loss = None
     if st_post_list is not [] and end_pos_list is not []:
-        # If we are on multi-GPU, split add a dimension
-        # if len(start_positions.size()) > 1:
-        #     start_positions = start_positions.squeeze(-1)
-        # if len(end_positions.size()) > 1:
-        #     end_positions = end_positions.squeeze(-1)
-        # sometimes the start/end positions are outside our model inputs, we ignore these terms
         ignored_index = start_logits.size(1)
         loss_fct = CrossEntropyLoss(ignore_index=ignored_index)
         losses =[]
@@ -100,7 +85,6 @@ def calculate_loss(outputs, st_post_list, end_pos_list):
             for j in range(stp.size(0)):
                 total_losses.append((loss_fct(st_logit,stp.unsqueeze(-1)[j,:])+loss_fct(end_logit,endp.unsqueeze(-1)[j,:]))/2)
             final_loss = min(total_losses)
-            #print("final loss",final_loss)
             losses.append(final_loss)
         loss = sum(losses)/len(losses)
     return loss
@@ -124,8 +108,6 @@ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer, orig_ans
 
 def _new_check_is_max_context(doc_spans, cur_span_index, position):
     """Check if this is the 'max context' doc span for the token."""
-    # if len(doc_spans) == 1:
-    # return True
     best_score = None
     best_span_index = None
     for (span_index, doc_span) in enumerate(doc_spans):
@@ -310,8 +292,7 @@ def squad_convert_example_to_features(example, max_seq_length, doc_stride, max_q
     for span in spans:
         # Identify the position of the CLS token
         cls_index = span["input_ids"].index(tokenizer.cls_token_id)
-        # p_mask: mask with 1 for token than cannot be in the answer (0 for token which can be in an answer)
-        # Original TF implem also keep the classification token (set to 0) (not sure why...)
+       
         p_mask = np.array(span["token_type_ids"])
 
         p_mask = np.minimum(p_mask, 1)
@@ -393,9 +374,6 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
                 desc="convert squad examples to features",
             )
         )
-    #features = []
-    #for e in examples:
-    #    features.append(squad_convert_example_to_features(tokenizer, e, max_seq_length, doc_stride, max_query_length, is_training))
 
     new_features = []
     unique_id = 1000000000
@@ -426,7 +404,6 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
             all_input_ids, all_attention_masks, all_token_type_ids, all_example_index, all_cls_index, all_p_mask
         )
     else:
-        #print([f.start_positions for f in features])
         all_start_positions = torch.tensor([f.start_position for f in features], dtype=torch.long)
         st_positions = [f.start_positions for f in features]
         st_pos_tensors_list = [torch.tensor(d,dtype= torch.long) for d in st_positions]
@@ -436,7 +413,6 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
 
         all_st_pos_list = data
 
-        #all_st_pos_list = torch.cat([torch.tensor(d,dtype=torch.long) for d in f.start_positions for f in features], dim=0)
         all_end_positions = torch.tensor([f.end_position for f in features], dtype=torch.long)
         end_positions = [f.end_positions for f in features]
         end_pos_tensors_list = [torch.tensor(d,dtype= torch.long) for d in end_positions]
@@ -444,7 +420,6 @@ def squad_convert_examples_to_features(examples, tokenizer, max_seq_length, doc_
         data = [torch.nn.functional.pad(x, pad=(0, max_len - x.numel()), mode='constant', value=0) for x in end_pos_tensors_list]
         data = torch.stack(data)
         all_end_pos_list = data
-        #all_end_pos_list = torch.tensor([f.end_positions for f in features], dtype=torch.long)
 
         dataset = TensorDataset(
             all_input_ids,
@@ -589,7 +564,6 @@ def train(args, train_dataset, model, tokenizer):
 
             outputs = model(**inputs)
             # model outputs are always tuple in transformers (see doc)
-            #loss = outputs[0]
             loss = calculate_loss(outputs, st_pos_list,end_pos_list)
 
             if args.n_gpu > 1:
@@ -693,19 +667,11 @@ def evaluate_simplified(inputs, args, model, tokenizer, prefix=""):
             eval_feature = features[example_index.item()]
             unique_id = int(eval_feature.unique_id)
 
-            #output = [to_list(output[i]) for output in outputs]
-            # print(outputs)
-            # print("length", len(outputs))
-            # print(outputs.start_logits.shape)
-            # print(outputs.end_logits.shape)
-            #end_logits = [to_list(out[i]) for out in outputs.end_logits]
-            #start_logits, end_logits = output
             result = SquadResult(unique_id, outputs.start_logits[i,:].tolist(), outputs.end_logits[i,:].tolist())
 
             all_results.append(result)
 
     evalTime = timeit.default_timer() - start_time
-    #logger.info("  Evaluation done in total %f secs (%f sec per example) for %d examples", evalTime, evalTime / len(dataset), len(all_results))
 
     # Compute predictions
     
@@ -833,7 +799,6 @@ class SquadProcessor(DataProcessor):
                     answer = entry["answers"][0]
                     answer_text = answer["text"]
                     start_position_character = answer["answer_start"]
-                    #added by vk for multi_answer
                     start_position_characters = [i['answer_start'] for i in entry["answers"]]
                 else:
                     answers = entry["answers"]

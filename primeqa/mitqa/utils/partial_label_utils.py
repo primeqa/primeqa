@@ -138,7 +138,6 @@ def pl_min_group_loss(logits, targets, label_matrix, criterion):
 	loss_mat = vec_mat_multiplication(loss_vec, label_matrix)
 	return loss_mat.min(axis=0).values.mean()
 
-# def pl_softmax_loss(logits, targets)
 
 def vec_mat_multiplication(vec, mat, axis=0):
 	mat = mat.transpose(axis, -1)
