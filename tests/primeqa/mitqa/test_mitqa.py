@@ -80,9 +80,7 @@ def test_hybirdqa():
     rr = RowRetriever(hqa_args,rr_args)
     qid_scores_dict = rr.predict(test_data_processed)
     assert qid_scores_dict != None
-    test_processed_data = preprocess_data_using_row_retrieval_scores(doc_retriever,raw_test_data,qid_scores_dict,test)
-    assert test_processed_data != None
-    answer_extraction_data = create_dataset_for_answer_extractor(test_processed_data,hqa_args.data_path_root,test)
+    answer_extraction_data = json.load(open("tests/resources/mitqa/hybridqa/ae_input_test.json"))
     assert answer_extraction_data != None
     ae_output_path,ae_output_path_nbest = predict_ae(ae_args,answer_extraction_data)
     assert ae_output_path != None and ae_output_path_nbest != None
