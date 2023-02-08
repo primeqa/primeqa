@@ -21,7 +21,7 @@
 Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.  
 The interfaces for the retrieval, indexing and reader components are defined [here](./components/base.py)
 
-## Retrieval Components
+## Retrieval components
 
 ### ColBERT Engine
 
@@ -33,7 +33,7 @@ There is a corresponding Jupyter notebook [here](https://github.com/primeqa/prim
 
 - **Initializing Indexer**
 ```python
-from primeqa.Components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.dense import ColBERTIndexer
 
 indexer = ColBERTIndexer(checkpoint = checkpoint_fn, index_root = index_root, index_name = index_name, num_partitions_max = 2)
 indexer.load()
@@ -60,7 +60,7 @@ This table shows the three lines from the file, with _text_ fields truncated:
 - **Initializing Retriever**
 
 ```python
-from primeqa.Components.retriever.dense import ColBERTRetriever
+from primeqa.components.retriever.dense import ColBERTRetriever
 
 retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, max_num_documents = 1)
 retriever.load()
@@ -76,7 +76,7 @@ results = retriever.retrieve(input_texts = ['Who is Michael Wigge'])
 ```
 The `max_num_document` variable contains document_id and scores of the retrieved documents.
 
-## Reader Components
+## Reader components
 
 ### Extractive Reader
 
@@ -86,7 +86,7 @@ Follow the steps below to use the extractive reader:
 - Step 1:  Initialize the reader. You can choose any of the MRC models we currently have [here](https://huggingface.co/PrimeQA).
 ```python
 import json
-from primeqa.Components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive import ExtractiveReader
 
 reader = ExtractiveReader("PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110")
 reader.load()
@@ -115,7 +115,7 @@ Follow the steps below to use the `GenerativeFiDReader`:
 - Step 1:  Initialize the reader.
 ```python
 import json
-from primeqa.Components.reader.generative import GenerativeFiDReader
+from primeqa.components.reader.generative import GenerativeFiDReader
 fid_reader = GenerativeFiDReader()
 fid_reader.load()
 ```
