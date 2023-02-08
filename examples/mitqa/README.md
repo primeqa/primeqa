@@ -1,4 +1,4 @@
-## Training and infernce of hybridqa dataset
+## Training and inference on hybridqa dataset
 
 ### Training on hybridQA dataset
 - Create data root folder named `data/hybridqa`
