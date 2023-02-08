@@ -1,5 +1,6 @@
 import requests
 import time
+# adapted from: https://github.ibm.com/hendrik-strobelt/bloom_service
 
 class LLMService:
     def __init__(self, token: str, base_url='https://bam-api.res.ibm.com/v0/generate', model_id="bigscience/bloom"):
@@ -19,14 +20,8 @@ class LLMService:
             'temperature':temperature,
             'min_new_tokens':min_new_tokens,
             'top_k':top_k,
-            'top_p':top_p,
-#            'typical_p':typical_p
+            'top_p':top_p
         }
-        # remove params that are used explicitly:
-        # parameters.pop('self')
-        # parameters.pop('inputs')
-        # parameters.pop('model_id')
-
         headers = {
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {self.token}'
