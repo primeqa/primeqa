@@ -2,6 +2,7 @@ import os
 import ujson
 import torch
 import random
+import csv
 
 from collections import defaultdict, OrderedDict
 
@@ -18,11 +19,10 @@ def load_queries(queries_path):
     print_message("#> Loading the queries from", queries_path, "...")
 
     with open(queries_path) as f:
-        for line in f:
-            qid, query, *_ = line.strip().split('\t')
-
-            # removing (") at query
-            # query = remove_first_and_last_quote(query)
+        csv_reader = csv.DictReader(f, fieldnames=["qid", "query"], delimiter="\t")
+        for row in csv_reader:
+            qid = row["qid"]
+            query = row["query"]
 
             assert (qid not in queries), ("Query QID", qid, "is repeated!")
             queries[qid] = query
@@ -160,27 +160,18 @@ def load_collection(collection_path):
     collection = []
 
     with open(collection_path) as f:
-        for line_idx, line in enumerate(f):
+        csv_reader = csv.DictReader(f, fieldnames=["pid", "passage", "title"], delimiter="\t")
+        for line_idx, row in enumerate(csv_reader):
             if line_idx % (1000*1000) == 0:
                 print(f'{line_idx // 1000 // 1000}M', end=' ', flush=True)
 
-            pid, passage, *rest = line.strip('\n\r ').split('\t')
-            # pid, passage, *rest = line.strip().split('\t')
+            pid = row["pid"]
             assert pid == 'id' or int(pid) == line_idx
 
-            # if pid == 'id':
-            #     continue
-
-            if len(rest) >= 1:
-                title = rest[0]
-                passage = title + ' | ' + passage
-                # Don't add | between title and passage
-                # remove (") at passage and add with space
-                # passage = remove_first_and_last_quote(passage)
-                # passage = remove_first_and_last_quote(title) + ' | ' + passage
-
+            passage = row["passage"]
+            if row["title"] is not None:
+                passage = row["title"] + ' | ' + passage
             collection.append(passage)
-
     print()
 
     return collection
