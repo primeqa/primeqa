@@ -9,9 +9,12 @@ import numpy as np
 import logging
 from transformers import HfArgumentParser
 
+
 # BAM docsL https://bam.res.ibm.com/docs/api-reference
 
 # read in ELI5 dev data and run through LLM service.
+rouge = Rouge()
+sys.setrecursionlimit(20000)
 
 @dataclass
 class LLMAnalyzeArguments:
@@ -75,11 +78,10 @@ class LLMAnalyzeArguments:
     )
 
 def rougel_score(prediction, ground_truth):
-    rouge = Rouge()
     # no normalization
     try:
         scores = rouge.get_scores(prediction, ground_truth, avg=True)
-    except ValueError:  # "Hypothesis is empty."
+    except ValueError or RecursionError:  # "Hypothesis is empty or as some issue"
         return 0.0
     return scores["rouge-l"]["f"]
 
