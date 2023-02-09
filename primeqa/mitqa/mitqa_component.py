@@ -71,7 +71,7 @@ class MITQAReader(Component):
       """
          Train the model on OTTQA/HYBRIDQA train set and evaluate on dev set and repot EM and F1 scores on dev set.
       """
-      self.load(self._config_file)
+      self.load()
       test =False
       raw_train_data = json.load(open(self.hqa_args.train_data_path))
       raw_dev_data = json.load(open(self.hqa_args.dev_data_path))
