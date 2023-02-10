@@ -1,6 +1,10 @@
 import requests
 import time
+import json
 # adapted from: https://github.ibm.com/hendrik-strobelt/bloom_service
+
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class LLMService:
     def __init__(self, token: str, base_url='https://bam-api.res.ibm.com/v0/generate', model_id="bigscience/bloom"):
@@ -40,7 +44,10 @@ class LLMService:
             r["request"] = json_data
             return r
         elif response.status_code == 429:
-            print("Rate limited for: " + str(response.extensions.state.expires_in_ms * .001) + " seconds")
-            time.sleep(response.extensions.state.expires_in_ms * .001)
+            print(str(response.content))
+            dict_error = json.loads(response.content)
+            print("Rate limited for: " + str(dict_error['extensions']['state']['expires_in_ms'] * .001) + " seconds")
+            time.sleep(dict_error['extensions']['state']['expires_in_ms'] * .001)
         else:
+            print(str(response.content))
             return {"error": response.reason, "status": response.status_code}
