@@ -51,7 +51,7 @@ class LLMAnalyzeArguments:
     temperature: float = field(
         default=0, metadata={"help": "The temperature parameter used for generation"}
     )
-    top_p: int = field(
+    top_p: float = field(
         default=1, metadata={"help": "The top_p parameter used for generation"}
     )
     top_k: int = field(
@@ -67,10 +67,17 @@ class LLMAnalyzeArguments:
     )
     output_dir: str= field(
         default='/output/loc/here/jsonl', 
-        metadata={"help": "directory to output file(s) in tydi google format. (jsonl)"}
+        metadata={"help": "directory to output file(s) in ELI5 format. (jsonl)"}
+    )
+    input_file: str= field(
+        default='/input/loc/here/jsonl', 
+        metadata={"help": "directory of input file(s) in ELI5 format. (jsonl)"}
     )
     use_passages: bool = field(
         default=False, metadata={"help": "If true input passages to the LLM (up to 3)"}
+    )
+    save_passages: bool = field(
+        default=False, metadata={"help": "If true save input passages to the LLM to file"}
     )
     n_shot: int = field(
         default = 0,
@@ -113,7 +120,7 @@ def get_answer(service, instance, args, n_doc=3):
                 break
     r = service.predict([instance['input']], [passages], **asdict(args))
 
-    return metric_max_over_ground_truths(r[0]['text'], instance['output']), r[0]['text']
+    return metric_max_over_ground_truths(r[0]['text'], instance['output']), r[0]['text'], passages
 
 def get_examples(n_shot=1):
    return None
@@ -129,8 +136,7 @@ def main():
     reader = BAMReader(args)
     reader.load(model=args.model_name)
 
-    dev_file = "/dccstor/srosent2/primeqa-mengxia/data/dpr-100passages_withkg_best_all/eli5-dev-kilt-dpr-kg-00.json"
-    reference_data = load_jsonl(dev_file)
+    reference_data = load_jsonl(args.input_file)
 
     model_dir = args.model_name.replace("/","-") + "/prefix_" + args.prefix_name + "-passages_" + str(args.use_passages) + "-" + \
         str(args.n_shot) + "shot-pktemp" + str(args.top_p) + "_" + str(args.top_k) + "_" + str(args.temperature) \
@@ -149,20 +155,26 @@ def main():
     if args.subset_end == -1 or int(args.subset_end) > len(reference_data):
         args.subset_end = len(reference_data)
 
-    if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
-        logging.error(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
+    if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
+        logging.error(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
         sys.exit(0)
-    fp = open(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
+    fp = open(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
+    fpass = None
+    if args.save_passages:
+        fpass = open(args.output_dir + "/" + model_dir + "/" + 'passages-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
     
     for instance in reference_data[args.subset_start:args.subset_end]:
         answer = {}
-        rouge, text = get_answer(reader, instance, args)
+        rouge, text, passages = get_answer(reader, instance, args)
         answer['rouge'] = rouge
         answer['text'] = text
         answer['id'] = instance['id']
         answer['question'] = instance['input']
         json.dump(answer, fp)
         fp.write("\n")
+        if args.save_passages:
+            json.dump({'id': instance['id'], 'question': instance['input'], 'passages': passages}, fpass)
+            fpass.write("\n")
         avg_rougeL += rouge
         count += 1
         if count % 10 == 0:
