@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import json
 from .LLMService import LLMService
 import openai
+import sys
     
 from primeqa.components.base import Reader as BaseReader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
@@ -276,6 +277,10 @@ class BAMReader(PromptReader):
                 temperature=kwargs['temperature'], 
                 top_k=kwargs['top_k'], 
                 top_p=kwargs['top_p'])
+            if "error" in r:
+                print("Error running BAM service: ")
+                print(r)
+                sys.exit(0)
             predictions.append({'example_id':i, 'text': r['results'][0]['generated_text']})
            
         return predictions
