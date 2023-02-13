@@ -58,9 +58,12 @@ class Corpus:
         self.mms = []
         self.files = []
         for file_pair in files:
-            file = open(os.path.join(dir, file_pair[0]), "r+b")
+            # file = open(os.path.join(dir, file_pair[0]), "r+b")
+            # self.files.append(file)
+            # self.mms.append(mmap.mmap(file.fileno(), 0))
+            file = open(os.path.join(dir, file_pair[0]), "rb")
             self.files.append(file)
-            self.mms.append(mmap.mmap(file.fileno(), 0))
+            self.mms.append(mmap.mmap(file.fileno(), 0, prot=mmap.PROT_READ))
         self.pid2ndx = dict()
         self.lock = threading.Lock()
 

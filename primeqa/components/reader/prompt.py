@@ -98,8 +98,11 @@ class PromptGPTReader(PromptReader):
     ):
         predictions = []
         for i,q in enumerate(questions):
-            prompt = self.create_prompt(q,contexts[i],**kwargs)
-            #print(prompt)
+            passages = None
+            if contexts: 
+                passages = contexts[i]
+            prompt = self.create_prompt(q,passages,**kwargs)
+            # print(prompt)
             response = openai.Completion.create(
                 model=self.model,
                 prompt=prompt,
@@ -185,7 +188,10 @@ class PromptFLANT5Reader(PromptReader):
         predictions = []
         
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], **kwargs)
+            passages = None
+            if contexts: 
+                passages = contexts[i]
+            prompt = self.create_prompt(q,passages,**kwargs)
             len_prompt = len(prompt)
             
             #adjust for max sequence of Flan T5
@@ -263,7 +269,10 @@ class BAMReader(PromptReader):
         predictions = []
         
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], prefix=kwargs['prefix'])
+            passages = None
+            if contexts: 
+                passages = contexts[i]
+            prompt = self.create_prompt(q,passages,**kwargs)
             len_prompt = len(prompt)
             #adjust for max sequence of Flan T5
             prompt = prompt + " Answer: "
