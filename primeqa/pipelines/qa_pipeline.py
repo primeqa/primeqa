@@ -11,7 +11,7 @@ class QAPipeline:
         with open(self.retriever.collection, 'r') as infile:
             for line in tqdm(infile):
                 id,text,title = line.split('\t')
-                self.corpus_passages.append(text)
+                self.corpus_passages.append(title+" "+text)
 
     def run(self, input_texts: List[str], prefix="", use_retriever=True):
         contexts = []
