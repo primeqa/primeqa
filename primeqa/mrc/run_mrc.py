@@ -23,8 +23,10 @@ from primeqa.mrc.metrics.squad.squad import SQUAD
 from primeqa.mrc.metrics.nq_f1.nq_f1 import NQF1
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.heads.orqa_head import EXTRACTIVE_OPENNQ_HEAD, EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD
+from primeqa.mrc.models.heads.orqa_contrastive_head import EXTRACTIVE_OPENNQ_CONTRASTIVE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.models.orqa_model import ModelForORQATasks
+from primeqa.mrc.models.orqa_contrastive_model import ModelForORQAContrastiveTasks
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.boolqa.processors.postprocessors.extractive import ExtractivePipelinePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
@@ -37,6 +39,7 @@ from primeqa.mrc.processors.postprocessors.natural_questions import NaturalQuest
 from primeqa.mrc.processors.preprocessors.tydiqa_google import TyDiQAGooglePreprocessor
 from primeqa.mrc.processors.preprocessors.mrqa import MRQAPreprocessor
 from primeqa.mrc.processors.preprocessors.open_nq import OpenNQPreProcessor
+from primeqa.mrc.processors.preprocessors.open_nq_contrastive import OpenNQContrastivePreProcessor
 from primeqa.mrc.processors.postprocessors.open_nq import OpenNQPostProcessor
 from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.boolqa.run_boolqa_classifier import main as cls_main
@@ -253,14 +256,17 @@ class TaskArguments:
     task_heads: object_reference = field(
         default=None,
         metadata={"help": "The name of the task head to use.",
-                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD, EXTRACTIVE_OPENNQ_HEAD, EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD]
+                  "choices": [EXTRACTIVE_HEAD, EXTRACTIVE_WITH_CONFIDENCE_HEAD, 
+                              EXTRACTIVE_OPENNQ_HEAD, EXTRACTIVE_OPENNQ_WITH_CONFIDENCE_HEAD,
+                              EXTRACTIVE_OPENNQ_CONTRASTIVE_HEAD]
                   }
     )
     preprocessor: object_reference = field(
         default=TyDiQAPreprocessor,
         metadata={"help": "The name of the preprocessor to use.",
                   "choices": [MRQAPreprocessor, BasePreProcessor, TyDiQAPreprocessor,SQUADPreprocessor,
-                              TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor, OpenNQPreProcessor]
+                              TyDiQAGooglePreprocessor,NaturalQuestionsPreProcessor, OpenNQPreProcessor,
+                              OpenNQContrastivePreProcessor]
                   }
     )
     postprocessor: object_reference = field(
