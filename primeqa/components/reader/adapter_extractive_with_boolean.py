@@ -108,12 +108,12 @@ class AdapterExtractiveWithBooleanReader(BaseReader):
         },
     )
     extra_evc_context: int = field(
-        default=100,
+        default=10,
         metadata={
             "name": "extra context for yes/no classifier",
-            "range": [0, 100, 1],
-            "api_support": True,
-            "exclude_from_hash": True,
+            "options": [1, 10, 25, 100],
+            "api_support": True
+            #"exclude_from_hash": True,
         }
     )
     scorer_type: str = field(
