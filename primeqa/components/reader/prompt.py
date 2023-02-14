@@ -185,22 +185,21 @@ class PromptFLANT5Reader(PromptReader):
         predictions = []
         
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], **kwargs)
+            prompt = self.create_prompt(q, contexts[i], prefix=kwargs['prefix'])
             len_prompt = len(prompt)
             
             #adjust for max sequence of Flan T5
-            prompt = prompt + " Answer: "
-
             if len_prompt > 512:
-                prompt = prompt[:len_prompt-507]
+                prompt = prompt[:512-len(" Answer: ")]
+            prompt += " Answer: "
 
             if self.use_bam:
-                r = self.model.generate([prompt], self.max_tokens, self.min_tokens)
+                r = self.model.generate([prompt], self.max_tokens, self.min_tokens, temperature=self.temperature, top_p=self.top_p)
                 predictions.append({'example_id':i, 'text': r['results'][0]['generated_text']})
             else:
                 inputs = self.tokenizer(prompt, return_tensors="pt")
-                outputs = self.model.generate(**inputs)
-                predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)})
+                outputs = self.model.generate(**inputs, max_new_tokens=self.max_tokens, min_length=self.min_tokens, temperature=self.temperature, top_p=self.top_p)
+                predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]})
         return predictions
 
 
@@ -266,10 +265,9 @@ class BAMReader(PromptReader):
             prompt = self.create_prompt(q, contexts[i], prefix=kwargs['prefix'])
             len_prompt = len(prompt)
             #adjust for max sequence of Flan T5
-            prompt = prompt + " Answer: "
-
             if len_prompt > 1024:
-                prompt = prompt[:1024]
+                prompt = prompt[:1024-len(" Answer: ")]
+            prompt += " Answer: "
  
             r = self.model.generate([prompt], 
                 max_new_tokens=kwargs['max_tokens'], 

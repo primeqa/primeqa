@@ -1,5 +1,6 @@
 from primeqa.components.reader.LLMService import LLMService
 from primeqa.components.reader.prompt import BAMReader
+from primeqa.components.reader.prompt import PromptFLANT5Reader
 import json
 import sys
 import os
@@ -23,6 +24,7 @@ class LLMAnalyzeArguments:
     """
     api_key: str = field(
         metadata={"help": "The API key for BAM https://bam.res.ibm.com/"},
+        default=None
     )
     model_name: str = field(
         default="google/flan-t5-xxl",
@@ -83,6 +85,12 @@ class LLMAnalyzeArguments:
         default = 0,
         metadata={'help': 'number of examples *with* answers to provide to the LLM (0, 1, 2)'}
     )
+    reader: str = field(
+        default="BAMReader",
+        metadata={"help": "The name of the prompt reader to use.",
+                  "choices": ["BAMReader", "PromptFLANT5Reader"]
+                }
+    )
 
 def rougel_score(prediction, ground_truth):
     # no normalization
@@ -95,8 +103,9 @@ def rougel_score(prediction, ground_truth):
 def metric_max_over_ground_truths(prediction, ground_truths):
     scores_for_ground_truths = []
     for ground_truth in ground_truths:
-        score = rougel_score(prediction, ground_truth['answer'])
-        scores_for_ground_truths.append(score)
+        if 'answer' in ground_truth:
+            score = rougel_score(prediction, ground_truth['answer'])
+            scores_for_ground_truths.append(score)
     return max(scores_for_ground_truths)
 
 def load_jsonl(file_name):
@@ -133,7 +142,12 @@ def main():
     parser = HfArgumentParser(LLMAnalyzeArguments)
     args = parser.parse_args_into_dataclasses()[0]
     
-    reader = BAMReader(args)
+    if args.reader == "PromptFLANT5Reader":
+        reader = PromptFLANT5Reader
+    else:
+        reader = BAMReader
+
+    reader = reader(args)
     reader.load(model=args.model_name)
 
     reference_data = load_jsonl(args.input_file)
