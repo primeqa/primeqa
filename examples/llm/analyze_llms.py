@@ -1,5 +1,5 @@
 from primeqa.components.reader.LLMService import LLMService
-from primeqa.components.reader.prompt import BAMReader
+from primeqa.components.reader.prompt import BAMReader, PromptFLANT5Reader
 import json
 import sys
 import os
@@ -8,6 +8,7 @@ from rouge import Rouge
 import numpy as np
 import logging
 from transformers import HfArgumentParser
+from tqdm import tqdm
 
 # BAM docsL https://bam.res.ibm.com/docs/api-reference
 
@@ -48,7 +49,7 @@ class LLMAnalyzeArguments:
     temperature: float = field(
         default=0, metadata={"help": "The temperature parameter used for generation"}
     )
-    top_p: int = field(
+    top_p: float = field(
         default=1, metadata={"help": "The top_p parameter used for generation"}
     )
     top_k: int = field(
@@ -73,6 +74,9 @@ class LLMAnalyzeArguments:
         default = 0,
         metadata={'help': 'number of examples *with* answers to provide to the LLM (0, 1, 2)'}
     )
+    use_bam: bool = field(
+        default=False, metadata={"help": "If true use BAM to query LLM else load LLM locally and query"}
+    )
 
 def rougel_score(prediction, ground_truth):
     rouge = Rouge()
@@ -95,23 +99,37 @@ def load_jsonl(file_name):
     json_lines = []
     with open (file_name, 'r') as f:
         data_lines = f.readlines()
-        for line in data_lines:
+        for line in tqdm(data_lines, desc='Reading every example'):
            json_lines.append(json.loads(line))
     return json_lines
 
 def get_answer(service, instance, args, n_doc=3):
-    passages = []
 
-    if args.use_passages:
-        i = 0
-        for t in instance["passages"]:
-            i += 1
-            passages.append(t["text"])
-            if i >= n_doc:
-                break
-    r = service.predict([instance['input']], [passages], **asdict(args))
+    passages_per_batch = []
+    for every_index in range(len(instance)):
+        passages = []
+        if args.use_passages:
+            i = 0
+            for t in instance[every_index]["passages"]:
+                i += 1
+                passages.append(t["text"])
+                if i >= n_doc:
+                    break
+        passages_per_batch.append(passages)
 
-    return metric_max_over_ground_truths(r[0]['text'], instance['output']), r[0]['text']
+    input_per_batch = []
+    for every_index in range(len(instance)):
+        input_per_batch.append(instance[every_index]['input'])
+
+    r = service.predict(input_per_batch, passages_per_batch, **asdict(args))
+
+    metrics = []
+    text_generated = []
+    for every_index in range(len(instance)):
+        metrics.append( metric_max_over_ground_truths(r[every_index]['text'], instance[every_index]['output']) )
+        text_generated.append( r[every_index]['text'] )
+
+    return metrics, text_generated
 
 def get_examples(n_shot=1):
    return None
@@ -123,15 +141,20 @@ def main():
     
     parser = HfArgumentParser(LLMAnalyzeArguments)
     args = parser.parse_args_into_dataclasses()[0]
+
+    sys.setrecursionlimit(10000 * 10000)
     
-    reader = BAMReader(args)
+    if args.use_bam:
+        reader = BAMReader(args)
+    else:
+        reader = PromptFLANT5Reader(args)
     reader.load(model=args.model_name)
 
     dev_file = "/dccstor/srosent2/primeqa-mengxia/data/dpr-100passages_withkg_best_all/eli5-dev-kilt-dpr-kg-00.json"
     reference_data = load_jsonl(dev_file)
 
     model_dir = args.model_name.replace("/","-") + "/prefix_" + args.prefix_name + "-passages_" + str(args.use_passages) + "-" + \
-        str(args.n_shot) + "shot-pktemp" + str(args.top_p) + "_" + str(args.top_k) + "_" + str(args.temperature) \
+        str(args.n_shot) + "shot_pktemp-" + str(args.top_p) + "_" + str(args.top_k) + "_" + str(args.temperature) \
         + "-minmaxtok_" + str(args.min_tokens) + "_" + str(args.max_tokens)
 
     # generate a unique name for this directory so that we can identify based on the dir
@@ -152,19 +175,22 @@ def main():
         sys.exit(0)
     fp = open(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
     
-    for instance in reference_data[args.subset_start:args.subset_end]:
+    selected_data = reference_data[args.subset_start:args.subset_end]
+
+    for instance_id in tqdm(range(0, len(selected_data), 5), desc='Generating answer for every instance'):
         answer = {}
-        rouge, text = get_answer(reader, instance, args)
-        answer['rouge'] = rouge
-        answer['text'] = text
-        answer['id'] = instance['id']
-        answer['question'] = instance['input']
-        json.dump(answer, fp)
-        fp.write("\n")
-        avg_rougeL += rouge
-        count += 1
-        if count % 10 == 0:
-            print(count, flush=True)
+
+        rouge_metrics, text_generated = get_answer(reader, selected_data[instance_id * 5 : (instance_id + 1) * 5 ], args)
+
+        for index in range(len(rouge_metrics)):
+            answer['rouge'] = rouge_metrics[index]
+            answer['text'] = text_generated[index]
+            answer['id'] = selected_data[instance_id * 5 + index]['id']
+            answer['question'] = selected_data[instance_id * 5 + index]['input']
+            json.dump(answer, fp)
+            fp.write("\n")
+            avg_rougeL += rouge_metrics[index]
+            count += 1
     fp.close()   
     print("RougeL: " + str(avg_rougeL/count))
 
