@@ -1,4 +1,3 @@
-from primeqa.components.reader.LLMService import LLMService
 from primeqa.components.reader.prompt import BAMReader, PromptFLANT5Reader
 import json
 import sys

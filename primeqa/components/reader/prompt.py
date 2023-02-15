@@ -37,7 +37,7 @@ class PromptReader(BaseReader):
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix: str, suffix="", max_length=1024) -> str:
+    def create_prompt(self, question: str, contexts: List[str], prefix: str) -> str:
         prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
@@ -45,11 +45,6 @@ class PromptReader(BaseReader):
         else:
             passages = ", ".join(contexts)
             prompt = f"{prefix} Question: {question} Text: {passages}"
-
-        len_prompt = len(prompt)
-        if len_prompt > max_length:
-                prompt = prompt[:max_length-len(suffix)]
-        prompt += suffix
         return prompt
 
 
@@ -200,21 +195,24 @@ class PromptFLANT5Reader(PromptReader):
         **kwargs,
     ):
         predictions = []
-        kwargs.pop("api_key")
-        kwargs.pop("model_name")
+        print(kwargs)
 
         for i, q in enumerate(questions):
             passages = None
             if contexts: 
                 passages = contexts[i]
-            self.min_new_tokens = kwargs.pop("min_new_tokens")
-            self.max_new_tokens = kwargs.pop("max_new_tokens")
-            self.prefix_name = kwargs.pop("prefix_name")
-            self.temperature = kwargs.pop("temperature")
-            self.top_p = kwargs.pop("top_p")
-            self.top_k = kwargs.pop("top_k")
+            self.min_new_tokens = kwargs["min_new_tokens"]
+            self.max_new_tokens = kwargs["max_new_tokens"]
+            self.temperature = kwargs["temperature"]
+            self.top_p = kwargs["top_p"]
+            self.top_k = kwargs["top_k"]
 
-            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"], max_length=1024)
+            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"])
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            
+            if len(inputs['input_ids'][0]) > 512:
+                prompt = self.tokenizer.decode(self.tokenizer(prompt, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
+                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
             if self.use_bam:
                 r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
@@ -222,7 +220,7 @@ class PromptFLANT5Reader(PromptReader):
                     {"example_id": i, "text": r["results"][0]["generated_text"]}
                 )
             else:
-                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+                
                 outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
                 predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]})
         return predictions
