@@ -1,5 +1,6 @@
 import requests
 import time
+import json
 # adapted from: https://github.ibm.com/hendrik-strobelt/bloom_service
 
 import urllib3
@@ -43,7 +44,10 @@ class LLMService:
             r["request"] = json_data
             return r
         elif response.status_code == 429:
-            print("Rate limited for: " + str(response.extensions.state.expires_in_ms * .001) + " seconds")
-            time.sleep(response.extensions.state.expires_in_ms * .001)
+            print(str(response.content))
+            dict_error = json.loads(response.content)
+            print("Rate limited for: " + str(dict_error['extensions']['state']['expires_in_ms'] * .001) + " seconds")
+            time.sleep(dict_error['extensions']['state']['expires_in_ms'] * .001)
         else:
+            print(str(response.content))
             return {"error": response.reason, "status": response.status_code}

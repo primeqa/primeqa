@@ -3,13 +3,15 @@ from dataclasses import dataclass, field
 import json
 from .LLMService import LLMService
 import openai
-
+import sys
+    
 from primeqa.components.base import Reader as BaseReader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-
+import torch
 
 @dataclass
 class PromptReader(BaseReader):
+    
     def __post_init__(self):
         # Placeholder variables
         self._preprocessor = None
@@ -35,14 +37,21 @@ class PromptReader(BaseReader):
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix: str) -> str:
-
+    def create_prompt(self, question: str, contexts: List[str], prefix: str, suffix="", max_length=1024) -> str:
+        prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
-            return f"{prefix} Question: {question}"
+            prompt = f"{prefix} Question: {question}"
         else:
             passages = ", ".join(contexts)
-            return f"{prefix} Question: {question} Text: {passages}"
+            prompt = f"{prefix} Question: {question} Text: {passages}"
+
+        len_prompt = len(prompt)
+        if len_prompt > max_length:
+                prompt = prompt[:max_length-len(suffix)]
+        prompt += suffix
+        return prompt
+
 
 
 @dataclass
@@ -54,7 +63,7 @@ class PromptGPTReader(PromptReader):
         default="text-davinci-003",
         metadata={"name": "Model"},
     )
-    max_tokens: int = field(
+    max_new_tokens: int = field(
         default=256,
         metadata={
             "name": "Maximum sequence length",
@@ -95,13 +104,16 @@ class PromptGPTReader(PromptReader):
     ):
         predictions = []
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], **kwargs)
+            passages = None
+            if contexts: 
+                passages = contexts[i]
+            prompt = self.create_prompt(q, passages, **kwargs)
             # print(prompt)
             response = openai.Completion.create(
                 model=self.model,
                 prompt=prompt,
                 temperature=self.temperature,
-                max_tokens=self.max_tokens,
+                max_tokens=self.max_new_tokens,
                 top_p=self.top_p,
                 frequency_penalty=self.frequency_penalty,
                 presence_penalty=self.presence_penalty,
@@ -117,20 +129,21 @@ class PromptGPTReader(PromptReader):
 @dataclass
 class PromptFLANT5Reader(PromptReader):
     api_key: str = field(
-        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"}, default=None
+        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
+        default = None
     )
     model_name: str = field(
         default="flan-t5-xxl",
         metadata={"name": "Model"},
     )
-    max_tokens: int = field(
+    max_new_tokens: int = field(
         default=256,
         metadata={
             "name": "Maximum sequence length",
             "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
         },
     )
-    min_tokens: int = field(
+    min_new_tokens: int = field(
         default=100,
         metadata={
             "name": "Min sequence length",
@@ -157,6 +170,7 @@ class PromptFLANT5Reader(PromptReader):
 
     model = None
     tokenizer = None
+    device = None
 
     def eval(self, *args, **kwargs):
         pass
@@ -170,9 +184,11 @@ class PromptFLANT5Reader(PromptReader):
                 token=self.api_key, model_id="google/" + self.model_name
             )
         else:
+            self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
                 "google/" + self.model_name
             )
+            self.model = self.model.to(self.device)
             self.tokenizer = AutoTokenizer.from_pretrained("google/" + self.model_name)
 
     def predict(
@@ -188,46 +204,27 @@ class PromptFLANT5Reader(PromptReader):
         kwargs.pop("model_name")
 
         for i, q in enumerate(questions):
-            min_tokens = kwargs.pop("min_tokens")
-            max_tokens = kwargs.pop("max_tokens")
-            prefix_name = kwargs.pop("prefix_name")
-            temperature = kwargs.pop("temperature")
-            top_p = kwargs.pop("top_p")
-            top_k = kwargs.pop("top_k")
+            passages = None
+            if contexts: 
+                passages = contexts[i]
+            self.min_new_tokens = kwargs.pop("min_new_tokens")
+            self.max_new_tokens = kwargs.pop("max_new_tokens")
+            self.prefix_name = kwargs.pop("prefix_name")
+            self.temperature = kwargs.pop("temperature")
+            self.top_p = kwargs.pop("top_p")
+            self.top_k = kwargs.pop("top_k")
 
-            prompt = self.create_prompt(q, contexts[i], prefix=kwargs["prefix"])
-            len_prompt = len(prompt)
-
-            # adjust for max sequence of Flan T5
-            prompt = prompt + " Answer: "
-
-            if len_prompt > 1024:
-                prompt = prompt[:1024]
+            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"], max_length=1024)
 
             if self.use_bam:
-                r = self.model.generate([prompt], self.max_tokens, self.min_tokens)
+                r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
                 predictions.append(
                     {"example_id": i, "text": r["results"][0]["generated_text"]}
                 )
             else:
-                inputs = self.tokenizer(prompt, return_tensors="pt")
-                outputs = self.model.generate(
-                    **inputs,
-                    max_length=max_tokens,
-                    min_length=min_tokens,
-                    temperature=temperature,
-                    top_k=top_k,
-                    top_p=top_p,
-                    remove_invalid_values=True,
-                )
-                predictions.append(
-                    {
-                        "example_id": i,
-                        "text": self.tokenizer.batch_decode(
-                            outputs, skip_special_tokens=True
-                        ),
-                    }
-                )
+                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+                outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
+                predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]})
         return predictions
 
 
@@ -237,17 +234,17 @@ class BAMReader(PromptReader):
         metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
     )
     model_name: str = field(
-        default="flan-t5-xxl",
+        default="google/flan-t5-xxl",
         metadata={"name": "Model"},
     )
-    max_tokens: int = field(
-        default=1024,
+    max_new_tokens: int = field(
+        default=256,
         metadata={
             "name": "Maximum sequence length",
             "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
         },
     )
-    min_tokens: int = field(
+    min_new_tokens: int = field(
         default=100,
         metadata={
             "name": "Min sequence length",
@@ -289,31 +286,25 @@ class BAMReader(PromptReader):
     ):
         predictions = []
 
-        for index in range(0, len(questions), 5):
-            prompt = []
-            for each_example_index in range(5):
-                temp_prompt = self.create_prompt(questions[index * 5 + each_example_index], contexts[index * 5 + each_example_index], prefix=kwargs["prefix"]) 
-                len_prompt = len(temp_prompt)
-                
-                if len_prompt > 1024 - len(" Answer: "):
-                    temp_prompt = temp_prompt[:1024 - len(" Answer: ")]
+        if contexts == None:
+            contexts = [None]
+            
+        prompt = self.create_prompt(questions[0], contexts[0], prefix=kwargs["prefix"], suffix=kwargs["suffix"], max_length=1024)
 
-                # adjust for max sequence of Flan T5
-                temp_prompt = temp_prompt + " Answer: "
-                prompt.append(temp_prompt)
-
-            r = self.model.generate(
-                prompt,
-                max_new_tokens=kwargs["max_tokens"],
-                min_new_tokens=kwargs["min_tokens"],
-                temperature=kwargs["temperature"],
-                top_k=kwargs["top_k"],
-                top_p=kwargs["top_p"],
-            )
-
-            for each_example_index in range(5):
-                predictions.append(
-                    {"example_id": index * 5 + each_example_index, "text": r["results"][each_example_index]["generated_text"]}
-                )
+        r = self.model.generate(
+            [prompt],
+            max_new_tokens=kwargs["max_new_tokens"],
+            min_new_tokens=kwargs["min_new_tokens"],
+            temperature=kwargs["temperature"],
+            top_k=kwargs["top_k"],
+            top_p=kwargs["top_p"],
+        )
+        if "error" in r:
+            print("Error running BAM service: ")
+            print(r)
+            sys.exit(0)
+        predictions.append(
+            {"example_id": 0, "text": r["results"][0]["generated_text"]}
+        )
 
         return predictions
