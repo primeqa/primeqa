@@ -103,8 +103,8 @@ def convert_data(input_data_path, output_data_path):
     print("Matches: ", m_counts)
     print("Sub counts: ", subj_counts)
     print("Subject matches: ", subj_matches)
-
-    json.dump(output_data, open(output_data_path, "w"))
+    
+    output_writer.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Parser')
