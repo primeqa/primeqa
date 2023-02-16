@@ -1,4 +1,3 @@
-from primeqa.components.reader.LLMService import LLMService
 from primeqa.components.reader.prompt import BAMReader, PromptFLANT5Reader
 import json
 import sys
@@ -8,11 +7,7 @@ from rouge import Rouge
 import numpy as np
 import logging
 from transformers import HfArgumentParser
-from tqdm import tqdm, trange
-
-import logging
-
-logger = logging.getLogger(__name__)
+from tqdm import tqdm
 
 # BAM docsL https://bam.res.ibm.com/docs/api-reference
 
@@ -98,10 +93,6 @@ class LLMAnalyzeArguments:
                   "choices": ["BAMReader", "PromptFLANT5Reader"]
                 }
     )
-    batch_size: int = field(
-        default = 4,
-        metadata={'help': 'number of batches per request'}
-    )
 
 def rougel_score(prediction, ground_truth):
     # no normalization
@@ -120,7 +111,6 @@ def metric_max_over_ground_truths(prediction, ground_truths):
     return max(scores_for_ground_truths)
 
 def load_jsonl(file_name):
-    logger.info("Load file: " + file_name)
     json_lines = []
     with open (file_name, 'r') as f:
         data_lines = f.readlines()
@@ -138,10 +128,13 @@ def get_answer(service, instance, args, n_doc=3):
             passages.append(t["text"])
             if i >= n_doc:
                 break
-    
-    r = service.predict([instance['input']], [passages], **asdict(args))
 
-    return metric_max_over_ground_truths(r[0]['text'], instance['output']), r[0]['text'], passages
+    r = service.predict([instance["input"]], [passages], **asdict(args))
+
+    metric = metric_max_over_ground_truths(r[0]['text'], instance['output'])
+    text_generated = r[0]['text']
+    
+    return metric, text_generated, passages
 
 def get_examples(n_shot=1):
    return None
@@ -160,7 +153,6 @@ def main():
         reader = BAMReader
 
     reader = reader(args)
-    logger.info('Loading Reader for model {0}'.format(args.model_name))
     reader.load(model=args.model_name)
 
     reference_data = load_jsonl(args.input_file)
@@ -190,36 +182,25 @@ def main():
     if args.save_passages:
         fpass = open(args.output_dir + "/" + model_dir + "/" + 'passages-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
 
-    logger.info('Saving output to {0}'.format(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'))
-    
     selected_data = reference_data[args.subset_start:args.subset_end]
 
-    with tqdm(total = len(selected_data), desc='Generating answer for 0th instance out of {0} instances'.format(len(selected_data))) as pbar:
-        for instance_id in range(0, len(selected_data)):
+    for instance_id in tqdm(range(0, len(selected_data)), desc='Generating answer for every instance'):
+        answer = {}
 
-            rouge_metrics, text_generated, passages = get_answer(reader, selected_data[instance_id], args)
-            
-            answer = {}
-            answer['rouge'] = rouge_metrics
-            answer['text'] = text_generated
-            answer['id'] = selected_data[instance_id]['id']
-            answer['question'] = selected_data[instance_id]['input']
-
-            if args.save_passages:
-                json.dump({'id': answer['id'], 'question': answer['question'], 'passages': passages}, fpass)
-                fpass.write("\n")
-
-            json.dump(answer, fp)
-            fp.write("\n")
-            fp.flush()
-            
-            avg_rougeL += rouge_metrics
-            count += 1
-
-            pbar.set_description('Generating answer for {1}th instance out of {0} instances'.format(len(selected_data), instance_id))
-            pbar.update(1)
+        rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args)
+        answer['rouge'] = rouge_metric
+        answer['text'] = text_generated
+        answer['id'] = selected_data[instance_id]['id']
+        answer['question'] = selected_data[instance_id]['input']
+        if args.save_passages:
+            json.dump({'id': answer['id'], 'question': answer['question'], 'passages': passages}, fpass)
+            fpass.write("\n")
+        json.dump(answer, fp)
+        fp.write("\n")
+        avg_rougeL += rouge_metric
+        count += 1
     fp.close()   
-    logger.info("RougeL: " + str(avg_rougeL/count))
+    print("RougeL: " + str(avg_rougeL/count))
 
 if __name__ == '__main__':
    main()
