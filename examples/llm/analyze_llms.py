@@ -160,6 +160,7 @@ def main():
         reader = BAMReader
 
     reader = reader(args)
+    logger.info('Loading Reader for model {0}'.format(args.model_name))
     reader.load(model=args.model_name)
 
     reference_data = load_jsonl(args.input_file)

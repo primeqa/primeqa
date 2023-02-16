@@ -48,7 +48,7 @@ class PromptReader(BaseReader):
 
         len_prompt = len(prompt)
         if len_prompt > max_length:
-                prompt = prompt[:max_length-len(suffix)]
+            prompt = prompt[:max_length-len(suffix)]
         prompt += suffix
         return prompt
 
@@ -275,6 +275,26 @@ class BAMReader(PromptReader):
         if kwargs["model"] is not None:
             self.model_name = kwargs["model"]
         self.model = LLMService(token=self.api_key, model_id=self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+
+    def create_prompt(self, question: str, contexts: List[str], prefix: str, suffix="", max_length=1024) -> str:
+        prompt = ""
+        # Use the question and contexts to create a prompt
+        if contexts == None or len(contexts) == 0:
+            prompt = f"{prefix} Question: {question}"
+        else:
+            passages = ", ".join(contexts)
+            prompt = f"{prefix} Question: {question} Text: {passages}"
+
+        tokenized_prompt = self.tokenizer.encode( prompt )
+        tokenized_suffix = self.tokenizer.encode( suffix )
+
+        if len(tokenized_prompt) > max_length:
+            tokenized_prompt = tokenized_prompt[:max_length - len(tokenized_suffix)]
+            prompt = self.tokenizer.decode( tokenized_prompt ) 
+
+        prompt += suffix
+        return prompt
 
     def predict(
         self,
