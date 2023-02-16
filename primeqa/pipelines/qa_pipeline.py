@@ -21,8 +21,13 @@ class QAPipeline:
                 context = [self.corpus_passages[int(p[0])] for p in result]
                 contexts.append(context)
         
-        answers = self.reader.predict(input_texts,contexts,prefix=prefix)  
+        reader_answers = self.reader.predict(input_texts,contexts,prefix=prefix)  
+        result = {}
         if use_retriever:
-            for i, answer in enumerate(answers):
-                answer['passages'] = contexts[i]
-        return answers
+            for i, answers_i in reader_answers.items():
+                i_result = {}
+                i_result['answers'] = answers_i
+                i_result['passages'] = contexts[int(i)]
+                result[i] = i_result
+            
+        return result
