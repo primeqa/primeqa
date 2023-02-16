@@ -37,7 +37,7 @@ class PromptReader(BaseReader):
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix: str) -> str:
+    def create_prompt(self, question: str, contexts: List[str], prefix: str, suffix: str) -> str:
         prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
@@ -45,6 +45,8 @@ class PromptReader(BaseReader):
         else:
             passages = ", ".join(contexts)
             prompt = f"{prefix} Question: {question} Text: {passages}"
+        if suffix:
+            prompt += " " + suffix + ":"
         return prompt
 
 
@@ -174,6 +176,8 @@ class PromptFLANT5Reader(PromptReader):
         pass
 
     def load(self, *args, **kwargs):
+        if kwargs["model"] is not None:
+            self.model_name = kwargs['model']
         if self.use_bam:
             self.model = LLMService(
                 token=self.api_key, model_id="google/" + self.model_name
@@ -195,7 +199,6 @@ class PromptFLANT5Reader(PromptReader):
         **kwargs,
     ):
         predictions = []
-        print(kwargs)
 
         for i, q in enumerate(questions):
             passages = None
@@ -207,7 +210,7 @@ class PromptFLANT5Reader(PromptReader):
             self.top_p = kwargs["top_p"]
             self.top_k = kwargs["top_k"]
 
-            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"])
+            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"])
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             
             if len(inputs['input_ids'][0]) > 512:
@@ -284,16 +287,11 @@ class BAMReader(PromptReader):
     ):
         predictions = []
 
-        for index in range(0, len(questions), 5):
-            prompt = []
-            for each_example_index in range(5):
-                if contexts == None: 
-                    contexts = [None]*5
-                temp_prompt = self.create_prompt(questions[index * 5 + each_example_index], contexts[index * 5 + each_example_index], prefix=kwargs["prefix"], suffix=kwargs["suffix"], max_length=1024)
-                prompt.append(temp_prompt)
-
+        for i, q in enumerate(questions):
+            prompt = self.create_prompt(q, contexts[i], prefix=kwargs["prefix"], suffix=kwargs["suffix"])
+            
             r = self.model.generate(
-                prompt,
+                [prompt],
                 max_new_tokens=kwargs["max_new_tokens"],
                 min_new_tokens=kwargs["min_new_tokens"],
                 temperature=kwargs["temperature"],
@@ -304,9 +302,6 @@ class BAMReader(PromptReader):
                 print("Error running BAM service: ")
                 print(r)
                 sys.exit(0)
-            for each_example_index in range(5):
-                predictions.append(
-                    {"example_id": index * 5 + each_example_index, "text": r["results"][each_example_index]["generated_text"]}
-                )
+            predictions.append({"example_id": i, "text": r["results"][0]["generated_text"]})
 
         return predictions

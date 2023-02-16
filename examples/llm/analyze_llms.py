@@ -121,33 +121,21 @@ def load_jsonl(file_name):
 
 def get_answer(service, instance, args, n_doc=3):
 
-    passages_per_batch = []
-    for every_index in range(len(instance)):
-        passages = []
-        if args.use_passages:
-            i = 0
-            for t in instance[every_index]["passages"]:
-                i += 1
-                passages.append(t["text"])
-                if i >= n_doc:
-                    break
-        passages_per_batch.append(passages)
+    passages = []
+    if args.use_passages:
+        i = 0
+        for t in instance["passages"]:
+            i += 1
+            passages.append(t["text"])
+            if i >= n_doc:
+                break
 
-    input_per_batch = []
-    for every_index in range(len(instance)):
-        input_per_batch.append(instance[every_index]['input'])
+    r = service.predict([instance["input"]], [passages], **asdict(args))
 
-    r = service.predict(input_per_batch, passages_per_batch, **asdict(args))
-
-    metrics = []
-    text_generated = []
-    batch_passages = []
-    for every_index in range(len(instance)):
-        metrics.append( metric_max_over_ground_truths(r[every_index]['text'], instance[every_index]['output']) )
-        text_generated.append( r[every_index]['text'] )
-        batch_passages.append(passages_per_batch[every_index])
-
-    return metrics, text_generated, batch_passages
+    metric = metric_max_over_ground_truths(r[0]['text'], instance['output'])
+    text_generated = r[0]['text']
+    
+    return metric, text_generated, passages
 
 def get_examples(n_shot=1):
    return None
@@ -197,23 +185,21 @@ def main():
 
     selected_data = reference_data[args.subset_start:args.subset_end]
 
-    for instance_id in tqdm(range(0, len(selected_data), 5), desc='Generating answer for every instance'):
+    for instance_id in tqdm(range(0, len(selected_data)), desc='Generating answer for every instance'):
         answer = {}
 
-        rouge_metrics, text_generated, passages = get_answer(reader, selected_data[instance_id * 5 : (instance_id + 1) * 5 ], args)
-
-        for index in range(len(rouge_metrics)):
-            answer['rouge'] = rouge_metrics[index]
-            answer['text'] = text_generated[index]
-            answer['id'] = selected_data[instance_id * 5 + index]['id']
-            answer['question'] = selected_data[instance_id * 5 + index]['input']
-            if args.save_passages:
-                json.dump({'id': answer['id'], 'question': answer['question'], 'passages': passages[index]}, fpass)
-                fpass.write("\n")
-            json.dump(answer, fp)
-            fp.write("\n")
-            avg_rougeL += rouge_metrics[index]
-            count += 1
+        rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args)
+        answer['rouge'] = rouge_metric
+        answer['text'] = text_generated
+        answer['id'] = selected_data[instance_id]['id']
+        answer['question'] = selected_data[instance_id]['input']
+        if args.save_passages:
+            json.dump({'id': answer['id'], 'question': answer['question'], 'passages': passages}, fpass)
+            fpass.write("\n")
+        json.dump(answer, fp)
+        fp.write("\n")
+        avg_rougeL += rouge_metric
+        count += 1
     fp.close()   
     print("RougeL: " + str(avg_rougeL/count))
 
