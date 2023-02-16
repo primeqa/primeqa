@@ -214,7 +214,7 @@ class PromptFLANT5Reader(PromptReader):
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             
             if len(inputs['input_ids'][0]) > 512:
-                prompt = self.tokenizer.decode(self.tokenizer(prompt, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
+                prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
                 inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
             if self.use_bam:
@@ -291,10 +291,10 @@ class BAMReader(PromptReader):
 
         for i, q in enumerate(questions):
             prompt = self.create_prompt(q, contexts[i], prefix=kwargs["prefix"], suffix=kwargs["suffix"])
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            inputs = self.tokenizer(prompt, return_tensors="pt")
 
             if len(inputs['input_ids'][0]) > max_sequence_length:
-                prompt = self.tokenizer.decode(self.tokenizer(prompt, max_length=max_sequence_length-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
+                prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=max_sequence_length-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
             
             r = self.model.generate(
                 [prompt],
