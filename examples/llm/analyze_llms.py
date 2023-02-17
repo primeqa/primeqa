@@ -93,6 +93,10 @@ class LLMAnalyzeArguments:
                   "choices": ["BAMReader", "PromptFLANT5Reader"]
                 }
     )
+    num_context: int = field(
+        default = 3,
+        metadata={'help': 'number of passages to provide per question.'}
+    )
 
 def rougel_score(prediction, ground_truth):
     # no normalization
@@ -174,9 +178,9 @@ def main():
     if args.subset_end == -1 or int(args.subset_end) > len(reference_data):
         args.subset_end = len(reference_data)
 
-    # if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
-    #     logging.error(args.output_dir + "/" + model_dir + "/" + 'results-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
-    #     sys.exit(0)
+    if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
+         logging.error(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
+         sys.exit(0)
     fp = open(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
     fpass = None
     if args.save_passages:
@@ -187,7 +191,7 @@ def main():
     for instance_id in tqdm(range(0, len(selected_data)), desc='Generating answer for every instance'):
         answer = {}
 
-        rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args)
+        rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args, n_doc=args.num_context)
         answer['rouge'] = rouge_metric
         answer['text'] = text_generated
         answer['id'] = selected_data[instance_id]['id']
