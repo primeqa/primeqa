@@ -1,25 +1,7 @@
-<!-- START sphinx doc instructions - DO NOT MODIFY next code, please -->
-<details>
-<summary>API Reference</summary>    
-
-```{eval-rst}
-
-.. autosummary::
-    :toctree: _autosummary
-    :template: custom-module-template.rst
-    :recursive:
-   
-    primeqa.pipelines
-
-```
-</details>          
-<br>
-<!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
-
 # PrimeQA Components
 
-Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.  
-The interfaces for the retrieval, indexing and reader components are defined [here](./components/base.py)
+We provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.
+The interfaces for the retrieval, indexing and reader components are defined [here](./base.py)
 
 ## Retrieval Components
 
@@ -103,10 +85,32 @@ answers = reader.predict(question,context)
 print(json.dumps(answers, indent=4))  
 ```
 
-
-### Generative FiD Reader
+### Generative Reader
 
 A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.
+
+#### Large Language Model Reader
+
+We provide reader components for multiple LLMs. We currently support [GPT](https://arxiv.org/pdf/2203.02155.pdf) and [FLAN T5](https://huggingface.co/docs/transformers/model_doc/flan-t5). 
+
+- Step 1:  Initialize the reader.
+```python
+from primeqa.components.reader.prompt import PromptFLANT5Reader
+reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
+reader.load()
+```
+- Step 2: Execute the reader in inference mode:
+```python
+questions = ["Does smoking marijuana impair driving ?"]
+prompt_prefix = "Answer the following question."
+answers = reader.predict(questions,prefix=prompt_prefix)
+print(json.dumps(answers, indent=4))
+```
+
+A notebook with additional examples that use retrieval for prompting is available [here](/notebooks/lfqa/prompt_reader_LLM.ipynb)
+
+
+#### FiD Reader
 
 PrimeQA implements a [Fusion In Decoder(FiD)](https://arxiv.org/abs/2007.01282) generative reader. 
 
