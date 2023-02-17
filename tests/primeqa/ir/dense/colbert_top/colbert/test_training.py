@@ -25,7 +25,6 @@ class TestTraining(UnitTest):
         if torch.cuda.is_available():
             import time
             import random
-            import os
 
             rank = 0
             nranks = 1
