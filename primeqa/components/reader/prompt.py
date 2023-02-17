@@ -99,7 +99,7 @@ class PromptGPTReader(PromptReader):
         *args,
         **kwargs,
     ):
-        predictions = []
+        predictions = {}
         for i, q in enumerate(questions):
             passages = None
             if contexts: 
@@ -119,7 +119,7 @@ class PromptGPTReader(PromptReader):
                 text = response.choices[0]["text"]
             else:
                 text = "Something went wrong with the GPT service"
-            predictions.append({"example_id": i, "text": text})
+            predictions[i] = {"text": text}
         return predictions
 
 
@@ -130,7 +130,7 @@ class PromptFLANT5Reader(PromptReader):
         default = None
     )
     model_name: str = field(
-        default="flan-t5-xxl",
+        default="google/flan-t5-xxl",
         metadata={"name": "Model"},
     )
     max_new_tokens: int = field(
@@ -165,10 +165,6 @@ class PromptFLANT5Reader(PromptReader):
         default=False, metadata={"name": "if true, use bam to run FLAN-T5"}
     )
 
-    model = None
-    tokenizer = None
-    device = None
-
     def eval(self, *args, **kwargs):
         pass
 
@@ -176,19 +172,17 @@ class PromptFLANT5Reader(PromptReader):
         pass
 
     def load(self, *args, **kwargs):
-        if kwargs["model"] is not None:
-            self.model_name = kwargs['model']
         if self.use_bam:
             self.model = LLMService(
-                token=self.api_key, model_id="google/" + self.model_name
+                token=self.api_key, model_id=self.model_name
             )
         else:
             self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                "google/" + self.model_name
+                self.model_name
             )
             self.model = self.model.to(self.device)
-            self.tokenizer = AutoTokenizer.from_pretrained("google/" + self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
     def predict(
         self,
@@ -198,17 +192,12 @@ class PromptFLANT5Reader(PromptReader):
         example_ids: List[str] = None,
         **kwargs,
     ):
-        predictions = []
+        predictions = {}
 
         for i, q in enumerate(questions):
             passages = None
             if contexts: 
                 passages = contexts[i]
-            self.min_new_tokens = kwargs["min_new_tokens"]
-            self.max_new_tokens = kwargs["max_new_tokens"]
-            self.temperature = kwargs["temperature"]
-            self.top_p = kwargs["top_p"]
-            self.top_k = kwargs["top_k"]
 
             prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"])
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
@@ -219,16 +208,15 @@ class PromptFLANT5Reader(PromptReader):
 
             if self.use_bam:
                 r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
-                predictions.append(
-                    {"example_id": i, "text": r["results"][0]["generated_text"]}
-                )
+                predictions[i] = {"text": r["results"][0]["generated_text"]}
+                
             else:
                 
                 outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
-                predictions.append({'example_id':i, 'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]})
+                predictions[i] = {'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]}
         return predictions
 
-
+@dataclass
 class BAMReader(PromptReader):
 
     api_key: str = field(
@@ -262,10 +250,6 @@ class BAMReader(PromptReader):
         default=5, metadata={"name": "The top_p parameter used for generation"}
     )
 
-    def __init__(self, args, **kwargs):
-        self.model = None
-        self.api_key = args.api_key
-
     def eval(self, *args, **kwargs):
         pass
 
@@ -273,8 +257,6 @@ class BAMReader(PromptReader):
         pass
 
     def load(self, *args, **kwargs):
-        if kwargs["model"] is not None:
-            self.model_name = kwargs["model"]
         self.model = LLMService(token=self.api_key, model_id=self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
@@ -286,7 +268,7 @@ class BAMReader(PromptReader):
         example_ids: List[str] = None,
         **kwargs,
     ):
-        predictions = []
+        predictions = {}
         max_sequence_length = 1024
 
         for i, q in enumerate(questions):
@@ -298,16 +280,16 @@ class BAMReader(PromptReader):
             
             r = self.model.generate(
                 [prompt],
-                max_new_tokens=kwargs["max_new_tokens"],
-                min_new_tokens=kwargs["min_new_tokens"],
-                temperature=kwargs["temperature"],
-                top_k=kwargs["top_k"],
-                top_p=kwargs["top_p"],
+                max_new_tokens=self.max_new_tokens,
+                min_new_tokens=self.min_new_tokens,
+                temperature=self.temperature,
+                top_k=self.top_k,
+                top_p=self.top_p
             )
             if "error" in r:
                 print("Error running BAM service: ")
                 print(r)
                 sys.exit(0)
-            predictions.append({"example_id": i, "text": r["results"][0]["generated_text"]})
+            predictions[i] = {"text": r["results"][0]["generated_text"]}
 
         return predictions

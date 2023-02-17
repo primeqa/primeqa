@@ -171,14 +171,13 @@ class GenerativeFiDReader(GenerativeReader):
         )
 
         # Run predict
-        predictions = []
+        predictions = {}
         for raw_prediction in self._trainer.predict(
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):
             processed_prediction = {}
-            processed_prediction["example_id"] = raw_prediction["id"]
             processed_prediction["text"] = raw_prediction["prediction_text"]
-            predictions.append(processed_prediction)
+            predictions[raw_prediction["id"]] = processed_prediction
 
         return predictions
 

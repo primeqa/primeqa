@@ -13,7 +13,7 @@ class QAPipeline:
                 id,text,title = line.split('\t')
                 self.corpus_passages.append(title+" "+text)
 
-    def run(self, input_texts: List[str], prefix="", use_retriever=True):
+    def run(self, input_texts: List[str], prefix="", suffix="", use_retriever=True):
         contexts = []
         if use_retriever:
             search_results = self.retriever.predict(input_texts = input_texts)
@@ -21,13 +21,13 @@ class QAPipeline:
                 context = [self.corpus_passages[int(p[0])] for p in result]
                 contexts.append(context)
         
-        reader_answers = self.reader.predict(input_texts,contexts,prefix=prefix)  
+        reader_answers = self.reader.predict(input_texts,contexts,prefix=prefix,suffix=suffix)  
         result = {}
-        if use_retriever:
-            for i, answers_i in reader_answers.items():
-                i_result = {}
-                i_result['answers'] = answers_i
+        for i, answers_i in reader_answers.items():
+            i_result = {}
+            i_result['answers'] = answers_i
+            if use_retriever:
                 i_result['passages'] = contexts[int(i)]
-                result[i] = i_result
+            result[i] = i_result
             
         return result
