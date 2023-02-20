@@ -1,6 +1,6 @@
 #! /bin/bash
 
-dataset_name=TriviaQA-web
+dataset_name=HotpotQA
 SOURCE_QA_CKPT_DIR=checkpoints/QA_source_only/
 
 echo "##########################################################################"

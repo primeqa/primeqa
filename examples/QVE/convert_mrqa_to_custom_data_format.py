@@ -7,8 +7,8 @@ import argparse
 def handle_args():
     usage='Convert from MRQA to PrimeQA custom format for QG train/eval'	
     parser=argparse.ArgumentParser(usage)
-    parser.add_argument('--input_file', type=str, required=True, help="path to MRQA gzip file") 
-    parser.add_argument('--output_file', type = str, required=True, help="path to output jsonl file")  
+    parser.add_argument('--input_file', type=str, required=True, help="path to MRQA gzip file")
+    parser.add_argument('--output_file', type = str, required=True, help="path to output jsonl file")
 
     args=parser.parse_args()
     return args

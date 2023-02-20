@@ -1,5 +1,12 @@
+# Question Value Estimation (QVE)
+
+## Introduction
+This is an re-implementation of the ACL2022 paper "[Synthetic Question Value Estimation for Domain Adaptation of Question Answering](https://arxiv.org/abs/2203.08926)" based on primeqa.
+
+Please also check out the [official repo](https://github.com/xiangyue9607/QVE) to exactly replicate the numbers in the paper.
+
 ## Preparing Data
-We use "SQuAD" as the source dataset and "NewsQA" "NaturalQuestionsShort" "HotpotQA" "TriviaQA-web" as target datasets. All the datasets can be downloaded from [MRQA](https://github.com/mrqa/MRQA-Shared-Task-2019). We use the original dev set as the test set and sample a limited number (by default: 1000) of QA pairs from the training as the dev set.
+We use "SQuAD" as the source dataset and "NewsQA" "NaturalQuestionsShort" "HotpotQA" "HotpotQA-web" as target datasets. All the datasets can be downloaded from [MRQA](https://github.com/mrqa/MRQA-Shared-Task-2019). We use the original dev set as the test set and sample a limited number (by default: 1000) of QA pairs from the training as the dev set.
 Since there is no test set available for each dataset, we use the original dev set as the test set and sample 1,000 QA pairs from each target domain as the dev set (which we deem them as *target annotations* in the paper).
 After preprocessing, you will have train/dev/test json files under ```data``` dir (by default) with the same format as [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/).
 ```shell script
@@ -56,10 +63,10 @@ It can be either source+target dev trained QA model or source trained QA model.
 python primeqa/examples/QVE/run_qve.py \
 --qa_model_name_or_path checkpoints/QA_source_only \
 --qve_model_name_or_path prajjwal1/bert-mini \
---marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
+--marginal_model_name_or_path checkpoints/QA_HotpotQA-web_Source_TargetDev/ \
 --do_lower_case \
---train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.jsonl \
---dev_file data/TriviaQA-web.sample.dev.jsonl \
+--train_file data/HotpotQA-web_QG/HotpotQA-web.train.targetfinedtuned.gen.jsonl \
+--dev_file data/HotpotQA-web.sample.dev.jsonl \
 --do_train \
 --do_estimation \
 --per_gpu_train_qve_batch_size 64 \
@@ -68,7 +75,7 @@ python primeqa/examples/QVE/run_qve.py \
 --qve_learning_rate 3e-5 \
 --max_seq_length 384 \
 --doc_stride 128 \
---output_dir checkpoints/TriviaQA-web_QVE_mini/ \
+--output_dir checkpoints/HotpotQA-web_QVE_mini/ \
 --overwrite_output_dir \
 --logging_steps 5 \
 --reward_type exact \
@@ -82,10 +89,10 @@ python primeqa/examples/QVE/run_qve.py \
 python primeqa/examples/QVE/run_qve.py \
 --qa_model_name_or_path checkpoints/QA_source_only \
 --qve_model_name_or_path bert-base-uncased \
---marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
+--marginal_model_name_or_path checkpoints/QA_HotpotQA-web_Source_TargetDev/ \
 --do_lower_case \
---train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.json \
---dev_file data/TriviaQA-web.sample.dev.jsonl \
+--train_file data/HotpotQA-web_QG/HotpotQA-web.train.targetfinedtuned.gen.json \
+--dev_file data/HotpotQA-web.sample.dev.jsonl \
 --do_train \
 --per_gpu_train_qve_batch_size 80 \
 --per_gpu_train_qa_batch_size 4 \
@@ -93,7 +100,7 @@ python primeqa/examples/QVE/run_qve.py \
 --qve_learning_rate 3e-5 \
 --max_seq_length 384 \
 --doc_stride 128 \
---output_dir checkpoints/TriviaQA-web_QVE_base/ \
+--output_dir checkpoints/HotpotQA-web_QVE_base/ \
 --overwrite_output_dir \
 --logging_steps 5 \
 --max_steps 1500 \
@@ -116,20 +123,20 @@ or the best checkpoint saved during training.
 There is no dominating model selection strategy. Based on our observation, 
 strategy (1) usually works better on NaturalQuestions;
 strategy (2) usually works better on the HotpotQA and NewsQA datasets; 
-the final trained model usually works better on the TriviaQA dataset. 
+the final trained model usually works better on the HotpotQA dataset. 
 
 By default, we use the final trained model to do the selection:
 ```shell script
 python primeqa/examples/QVE/run_qve.py \
 --qa_model_name_or_path checkpoints/QA_source_only \
---qve_model_name_or_path checkpoints/TriviaQA-web_QVE_base \
---marginal_model_name_or_path checkpoints/QA_TriviaQA-web_Source_TargetDev/ \
+--qve_model_name_or_path checkpoints/HotpotQA-web_QVE_base \
+--marginal_model_name_or_path checkpoints/QA_HotpotQA-web_Source_TargetDev/ \
 --do_lower_case \
---train_file data/TriviaQA-web_QG/TriviaQA-web.train.targetfinedtuned.gen.jsonl \
+--train_file data/HotpotQA-web_QG/HotpotQA-web.train.targetfinedtuned.gen.jsonl \
 --do_estimation \
 --max_seq_length 384 \
 --doc_stride 128 \
---output_dir checkpoints/TriviaQA-web_QVE_base/ \
+--output_dir checkpoints/HotpotQA-web_QVE_base/ \
 --overwrite_output_dir \
 --add_marginal_info \
 --selected_question_percentage 0.6
@@ -140,13 +147,13 @@ Finally, we train the QA model on the selected QA data:
 
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path $SOURCE_QA_CKPT_DIR \
-      --train_file checkpoints/TriviaQA-web_QVE_base/filtered_qa.jsonl \
-      --eval_file data/TriviaQA-web.test.jsonl \
+      --train_file checkpoints/HotpotQA-web_QVE_base/filtered_qa.jsonl \
+      --eval_file data/HotpotQA-web.test.jsonl \
       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
       --eval_metrics SQUAD \
       --max_seq_length 384 \
-      --output_dir checkpoints/QA_TriviaQA-web_Source_Sythetic_QVEFiltering \
+      --output_dir checkpoints/QA_HotpotQA-web_Source_Sythetic_QVEFiltering \
       --learning_rate 3e-5 \
       --do_train --do_eval --per_device_train_batch_size 12 \
       --per_device_eval_batch_size 64 \
