@@ -87,3 +87,43 @@ lfqa_pipeline = QAPipeline(retriever, reader)
 queries=["What causes the trail behind jets at high altitude?"]
 answers = lfqa_pipeline.run(query)
 ```
+
+## Generative QA with LLM 
+
+We prompt pre-trained LLM (e.g. InstructGPT, FLAN-T5) to asnwer questions conditioned on the retrieved passages.
+Examples can be found in [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb).
+
+- Step 1:  Initialize the retriever.
+
+```python
+retriever = ColBERTRetriever(index_root = index_root, index_name = index_name, collection = collection, max_num_documents = 3)
+retriever.load()
+```
+
+- Step 2:  Initialize the reader model. 
+
+```python
+reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
+reader.load()
+```
+
+Alternatively we can use a reader based on InstructGPT.
+
+```python
+reader = PromptGPTReader(api_key='API KEY HERE', model_name="text-davinci-003")
+reader.load()
+```
+
+- Step 3:  Initialize the QA pipeline. 
+
+```python
+llm_pipeline = QAPipeline(retriever, reader)
+```
+
+- Step 4:  Execute the LFQA pipeline in inference mode. 
+
+```python
+queries=["What causes the trail behind jets at high altitude?"]
+prompt_prefix = "Answer the following question after looking at the text."
+answers = llm_pipeline.run(query, prefix=prompt_prefix)
+```

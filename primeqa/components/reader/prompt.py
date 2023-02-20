@@ -58,7 +58,7 @@ class PromptGPTReader(PromptReader):
     api_key: str = field(
         metadata={"name": "The API key for OPENAI"},
     )
-    model: str = field(
+    model_name: str = field(
         default="text-davinci-003",
         metadata={"name": "Model"},
     )
@@ -109,7 +109,7 @@ class PromptGPTReader(PromptReader):
             prompt = self.create_prompt(q, passages, **kwargs)
             
             response = openai.Completion.create(
-                model=self.model,
+                model=self.model_name,
                 prompt=prompt,
                 temperature=self.temperature,
                 max_tokens=self.max_new_tokens,
