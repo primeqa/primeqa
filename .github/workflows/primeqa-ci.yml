@@ -54,6 +54,6 @@ jobs:
           du -h /home/runner/.cache/huggingface/datasets/
           rm -rf /home/runner/.cache/huggingface/datasets/
           echo "Run all except IR and MRC and tableqa tests"
-          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=14 --ignore tests/primeqa/qg --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
+          pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=14 --ignore tests/primeqa/qg/processors/test_hybridqg_data_processor.py --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
           echo "******* Finished running tests *******"
       - run: echo "🍏 This job's status is ${{ job.status }}."
