@@ -4,10 +4,12 @@ import json
 from .LLMService import LLMService
 import openai
 import sys
-    
+import logging    
 from primeqa.components.base import Reader as BaseReader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 import torch
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class PromptReader(BaseReader):
@@ -105,7 +107,7 @@ class PromptGPTReader(PromptReader):
             if contexts: 
                 passages = contexts[i]
             prompt = self.create_prompt(q, passages, **kwargs)
-            # print(prompt)
+            
             response = openai.Completion.create(
                 model=self.model,
                 prompt=prompt,
@@ -202,6 +204,7 @@ class PromptFLANT5Reader(PromptReader):
             prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"])
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             
+            # if the length is greater than the max sequence length for T5, truncate and add the suffix (e.g. "Answer: ") at the end.
             if len(inputs['input_ids'][0]) > 512:
                 prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
                 inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
@@ -287,8 +290,8 @@ class BAMReader(PromptReader):
                 top_p=self.top_p
             )
             if "error" in r:
-                print("Error running BAM service: ")
-                print(r)
+                logger.error("Error running BAM service: ")
+                logger.error(r)
                 sys.exit(0)
             predictions[i] = {"text": r["results"][0]["generated_text"]}
 
