@@ -113,7 +113,8 @@ class ColBERTRetriever(BaseRetriever):
             config=self._config,
         )
 
-    def get_engine_type(self):
+    @classmethod
+    def get_engine_type(cls):
         return "ColBERT"
 
     def train(self, *args, **kwargs):
@@ -224,7 +225,8 @@ class DPRRetriever(BaseRetriever):
             self._config,
         )
 
-    def get_engine_type(self):
+    @classmethod
+    def get_engine_type(cls):
         return "DPR"
 
     def train(self, *args, **kwargs):

@@ -78,7 +78,8 @@ class BM25Retriever(BaseRetriever):
     def load(self, *args, **kwargs):
         self._searcher = PyseriniRetriever(self._index_path)
 
-    def get_engine_type(self):
+    @classmethod
+    def get_engine_type(cls):
         return "BM25"
 
     def train(self, *args, **kwargs):
