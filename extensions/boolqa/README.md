@@ -46,7 +46,7 @@ This procedure yielded `eval_avg_minimal_f1=0.7006`.
 First we subset the tydi data so that the QTC trainer only sees the answerable questions and the EVC trainer only sees the answerable boolean questions:
 
 ```
-python examples/boolqa/bool_tydi2csv.py --output_dir ${DATA_DIR}
+python extensions/boolqa/bool_tydi2csv.py --output_dir ${DATA_DIR}
 ```
 
 There is also the option to save all text in lower case using the `--lower_case` argument.
@@ -134,7 +134,7 @@ This yielded f-measures of 0.6 on the NO questions, and 0.93 on the YES question
 Before training the score normalizer, the TyDiQA dev set (downloaded from [here](https://github.com/google-research-datasets/tydiqa#download-the-dataset)) must be split in two halves using the following script:
 
 ```
-python examples/boolqa/split_tydi_dev_for_score_normalizer.py --original_tydi_dir <location of original_tydi_dev> --output_dir <output_dir>
+python extensions/boolqa/split_tydi_dev_for_score_normalizer.py --original_tydi_dir <location of original_tydi_dev> --output_dir <output_dir>
 ```
 
 The following script will use the two halves of the dev data generated above to train and evaluate the score normalizer. It will run `run_mrc.py` on the first half to get the scores produced from `run_mrc.py` and `run_nway_classifier.py` with the QTC data to get the question type labels (`boolean`, `other`). You must supply the following arguments in the script: 
@@ -148,7 +148,7 @@ data_dir="<location of TyDiQA dev split in two files"
 Run the script using the following command:
 
 ```
-bash examples/boolqa/train_score_normalizer_for_tydi_leaderboard.sh
+bash extensions/boolqa/train_score_normalizer_for_tydi_leaderboard.sh
 ```
 
 ### Run Boolean MRC:

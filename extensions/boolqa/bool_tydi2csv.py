@@ -19,7 +19,7 @@ class BoolTyDiCSVArguments:
     """
     Arguments pertaining to processing TyDi for Boolean.
     """
-    output_dir: str= field(default='./examples/boolqa/', metadata={"help": "directory to output file(s) in csv format"}
+    output_dir: str= field(default='./extensions/boolqa/', metadata={"help": "directory to output file(s) in csv format"}
     )
     cache_dir: Optional[str] = field(
         default=None,

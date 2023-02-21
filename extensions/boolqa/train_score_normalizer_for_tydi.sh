@@ -4,7 +4,7 @@ output_dir="score_normalizer_train_output/"
 # This script reads the tydi data from HF and splits the train file:
 # 10% of tydi train becomes train_dev, output at ${output_dir}/tydi_train_dev.json
 # 90% of tydi train becomes train_train, output at ${output_dir}/tydi_train_train.json
-python examples/boolqa/score_normalizer_data_for_tydi.py --output_dir $output_dir
+python extensions/boolqa/score_normalizer_data_for_tydi.py --output_dir $output_dir
 
 # Run mrc: train on ${output_dir}/tydi_train_train.json
 #          decode on ${output_dir}/tydi_train_dev.json

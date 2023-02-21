@@ -260,7 +260,7 @@ Cross domain experiments can be run by running train and eval as separate proces
  
 ### Custom Data
 
-Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../examples/custom_mrc/README.md).
+Users can also train (fine-tune) and evaluate the MRC model on custom data by providing their own train_file and eval_file. Instructions for getting started are available [here](../../extensions/custom_mrc/README.md).
 
 
 ### Training with Multiple Datasets
@@ -315,12 +315,12 @@ python primeqa/mrc/run_mrc.py --model_name_or_path xlm-roberta-large \
 PrimeQA also supports special features for MRC systems as follows:
 
 ### Boolean Questions
-Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI. Please read the details of [inference](https://primeqa.github.io/primeqa/api/boolqa/index.html) or [training](https://primeqa.github.io/primeqa/examples/boolqa/index.html):
+Answering [Boolean Questions](https://arxiv.org/abs/1905.10044) for TyDI. Please read the details of [inference](https://primeqa.github.io/primeqa/api/boolqa/index.html) or [training](https://primeqa.github.io/primeqa/extensions/boolqa/index.html):
 ```shell
 python primeqa/mrc/run_mrc.py --model_name_or_path PrimeQA/tydi-reader_bpes-xlmr_large-20221117 \
        --output_dir ${OUTPUT_DIR} --fp16 --overwrite_cache \
        --per_device_eval_batch_size 128 --overwrite_output_dir \
-       --do_boolean --boolean_config  examples/boolqa/tydi_boolqa_config.json
+       --do_boolean --boolean_config  extensions/boolqa/tydi_boolqa_config.json
 ```
 The corresponding model files are available as part of these: [Question classifier](https://huggingface.co/PrimeQA/tydiqa-boolean-question-classifier), [Answer classifier](https://huggingface.co/PrimeQA/tydiqa-boolean-answer-classifier), [MRC system](https://huggingface.co/PrimeQA/tydiqa-primary-task-xlm-roberta-large). This setup is based on the top submission to the minimal answer leaderboard (hidden blind test) for TyDI (as of 7/2/2022).
 
@@ -352,7 +352,7 @@ To run [confidence calibration](https://arxiv.org/abs/2101.07942) on your fine-t
 
 PrimeQA also supports answering questions to which answers are collective e.g. lists.
 
-For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [examples/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/examples/listqa/README.md) for more information and a use case using NQ list data:
+For Training/Evaluating questions with lists as answers it is important to include the following argument parameters and values. The answer length must be longer and there are less annotations so the non-null threshold must be 1 (There are no null answers). See [extensions/listqa/README.md](https://github.com/primeqa/primeqa/blob/main/extensions/listqa/README.md) for more information and a use case using NQ list data:
 ```
        --max_seq_length 512 \
        --learning_rate 5e-05 \
@@ -361,7 +361,7 @@ For Training/Evaluating questions with lists as answers it is important to inclu
        --minimal_non_null_threshold 1 \
 ```
 
-This yields the following results on English only using the TyDi evaluation script with two training strategies. Please note the ListQA models use the NQ list data by using the long answers offsets as the short answer. Further details can be found in `examples/listqa/README.md`:
+This yields the following results on English only using the TyDi evaluation script with two training strategies. Please note the ListQA models use the NQ list data by using the long answers offsets as the short answer. Further details can be found in `extensions/listqa/README.md`:
 
 ```
 xlm-roberta-large -> NQ Lists: Minimal F1 = 47.88

@@ -213,7 +213,6 @@ class GenerativeFiDReader(GenerativeReader):
             predictions[raw_prediction["id"]] = processed_prediction
 
         return predictions
-
     def eval(self, *args, **kwargs):
         pass
     

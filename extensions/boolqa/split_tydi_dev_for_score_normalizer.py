@@ -62,7 +62,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    split_dir = "examples/boolqa"
+    split_dir = "extensions/boolqa"
     # set this to the location of the original tydi downloaded from google:
     original = args.original_tydi_dir + "/tydiqa-v1.0-dev.jsonl.gz"
     # set this to the location to save the new split
