@@ -90,8 +90,8 @@ class Retriever(Component):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def get_engine_type(self) -> str:
+    @classmethod
+    def get_engine_type(cls) -> str:
         """
         Return this retriever engine type. Must match with the indexer used to generate the index.
 
