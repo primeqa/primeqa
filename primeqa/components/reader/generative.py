@@ -52,7 +52,20 @@ class GenerativeReader(BaseReader):
     def load(self, *args, **kwargs):
         pass
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs,
+    ):
         pass
 
 
@@ -90,6 +103,20 @@ class GenerativeFiDReader(GenerativeReader):
         # Placeholder variables
         self._preprocessor = None
         self._trainer = None
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         task_heads = FID_HEAD
@@ -146,6 +173,12 @@ class GenerativeFiDReader(GenerativeReader):
             data_collator=data_collator,
             post_process_function=postprocessor.process,
         )
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
 
     def predict(
         self,
