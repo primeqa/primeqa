@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Pipelines &#8212; PrimeQA  documentation</title>
+    <title>QA Pipelines &#8212; PrimeQA  documentation</title>
 <link rel="stylesheet" href="../../_static/plex.css" type="text/css">
 
 <script>
@@ -284,49 +284,18 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#retrieval-components">
-   Retrieval Components
+  <a class="reference internal nav-link" href="#open-retrieval-with-extractive-reader">
+   Open Retrieval with Extractive Reader
   </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#colbert-engine">
-     ColBERT Engine
-    </a>
-    <ul class="nav section-nav flex-column">
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#indexing-with-colbert-engine">
-       Indexing with ColBERT Engine
-      </a>
-     </li>
-     <li class="toc-h4 nav-item toc-entry">
-      <a class="reference internal nav-link" href="#search-with-colbert-engine">
-       Search with ColBERT Engine
-      </a>
-     </li>
-    </ul>
-   </li>
-  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#reader-components">
-   Reader Components
+  <a class="reference internal nav-link" href="#long-form-question-answering-lfqa">
+   Long Form Question Answering (LFQA)
   </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#extractive-reader">
-     Extractive Reader
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#generative-fid-reader">
-     Generative FiD Reader
-    </a>
-   </li>
-  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#qa-pipeline">
-   QA Pipeline
+  <a class="reference internal nav-link" href="#generative-qa-with-llm">
+   Generative QA with LLM
   </a>
  </li>
 </ul>
@@ -361,162 +330,44 @@
 </details>          
 <br>
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
-<section id="pipelines">
-<h1>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">#</a></h1>
-<p>Here we provide some simple to use interfaces that perform processing steps such as indexing, searching and answer extraction from text.  This allows the components to be used as building blocks and allows switching out alternative implementations.<br />
-The interfaces for the retrieval, indexing and reader components are defined <span class="xref myst">here</span></p>
-<section id="retrieval-components">
-<h2>Retrieval Components<a class="headerlink" href="#retrieval-components" title="Permalink to this headline">#</a></h2>
-<section id="colbert-engine">
-<h3>ColBERT Engine<a class="headerlink" href="#colbert-engine" title="Permalink to this headline">#</a></h3>
-<p>The following examples show how to use the <em>Component</em> interface to index and search using the ColBERT Engine.</p>
-<p>There is a corresponding Jupyter notebook <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir_pipeline.ipynb">here</a>.  The notebook also shows examples of data files and their formats.</p>
-<section id="indexing-with-colbert-engine">
-<h4>Indexing with ColBERT Engine<a class="headerlink" href="#indexing-with-colbert-engine" title="Permalink to this headline">#</a></h4>
+<section id="qa-pipelines">
+<h1>QA Pipelines<a class="headerlink" href="#qa-pipelines" title="Permalink to this headline">#</a></h1>
+<p>The pipeline allows the components to be used as building blocks and allows switching out alternative implementations.</p>
+<p>We show some pipeline examples for the Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. These passages are used by the reader to produce the answer.</p>
+<section id="open-retrieval-with-extractive-reader">
+<h2>Open Retrieval with Extractive Reader<a class="headerlink" href="#open-retrieval-with-extractive-reader" title="Permalink to this headline">#</a></h2>
+<p>The pipeline uses a ColBERT retriever to obtain supporting passages. The reader extracts the best answers from the passages and provides evidence for its predictions.</p>
 <ul class="simple">
-<li><p><strong>Initializing Indexer</strong></p></li>
+<li><p>Step 1:  Initialize the retriever.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.components.indexer.dense</span> <span class="kn">import</span> <span class="n">ColBERTIndexer</span>
-
-<span class="n">indexer</span> <span class="o">=</span> <span class="n">ColBERTIndexer</span><span class="p">(</span><span class="n">checkpoint</span> <span class="o">=</span> <span class="n">checkpoint_fn</span><span class="p">,</span> <span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">num_partitions_max</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">indexer</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">checkpoint_fn</span></code> variable points to an existing model (checkpoint), more details on model training are in the Jupyter notebook <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/ir/dense/dense_ir.ipynb">here</a>.</p>
-<ul class="simple">
-<li><p><strong>Indexing data collection</strong></p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">indexer</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">collection</span> <span class="o">=</span> <span class="n">collection_fn</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">collection_fn</span></code> variable points to a data collection to be indexed. It is a <em>.tsv</em> file, containing records in the form of <em>[ID, text, title]</em> triples.
-An example of a collection file is <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/tests/resources/ir_dense/xorqa.train_ir_001pct_at_0_pct_collection_fornum.tsv">here</a>.</p>
-<p>This table shows the three lines from the file, with <em>text</em> fields truncated:</p>
-<table class="colwidths-auto table">
-<thead>
-<tr class="row-odd"><th class="head"><p>id</p></th>
-<th class="head"><p>text</p></th>
-<th class="head"><p>title</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>1</p></td>
-<td><p>“The Kangxi Emperor’s reign of 61 years …</p></td>
-<td><p>Kangxi Emperor</p></td>
-</tr>
-<tr class="row-odd"><td><p>2</p></td>
-<td><p>Yao. The Bamboo Annals says that when Emperor Zhuanxu died …</p></td>
-<td><p>Emperor Zhi</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="search-with-colbert-engine">
-<h4>Search with ColBERT Engine<a class="headerlink" href="#search-with-colbert-engine" title="Permalink to this headline">#</a></h4>
-<ul class="simple">
-<li><p><strong>Initializing Retriever</strong></p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">primeqa.components.retriever.dense</span> <span class="kn">import</span> <span class="n">ColBERTRetriever</span>
-
-<span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">index_root</span></code> and <code class="docutils literal notranslate"><span class="pre">index_name</span></code> varibles are the same is in the indexing step.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">max_num_documents</span></code> variable specifies the number of documents retrieved.</p>
 <ul class="simple">
-<li><p><strong>Searching with Retriever</strong></p></li>
+<li><p>Step 2:  Initialize the reader model.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">retriever</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">input_texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Who is Michael Wigge&#39;</span><span class="p">])</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">max_num_document</span></code> variable contains document_id and scores of the retrieved documents.</p>
-</section>
-</section>
-</section>
-<section id="reader-components">
-<h2>Reader Components<a class="headerlink" href="#reader-components" title="Permalink to this headline">#</a></h2>
-<section id="extractive-reader">
-<h3>Extractive Reader<a class="headerlink" href="#extractive-reader" title="Permalink to this headline">#</a></h3>
-<p>The Extractive Reader takes a question and a set of passages and returns an answer by extracting a span of text in the passages.
-Follow the steps below to use the extractive reader:</p>
-<ul class="simple">
-<li><p>Step 1:  Initialize the reader. You can choose any of the MRC models we currently have <a class="reference external" href="https://huggingface.co/PrimeQA">here</a>.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.components.reader.extractive</span> <span class="kn">import</span> <span class="n">ExtractiveReader</span>
-
-<span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="s2">&quot;PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">ExtractiveReader</span><span class="p">(</span><span class="n">model_name_or_path</span> <span class="o">=</span> <span class="n">model</span><span class="p">)</span>
 <span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Step 2: Execute the reader in inference mode:</p></li>
+<li><p>Step 3:  Initialize the QA pipeline.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Which country is Canberra located in?&quot;</span><span class="p">]</span>
-<span class="n">context</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;&quot;&quot;Canberra is the capital city of Australia. </span>
-<span class="s2">Founded following the federation of the colonies of Australia </span>
-<span class="s2">as the seat of government for the new nation, it is Australia&#39;s </span>
-<span class="s2">largest inland city&quot;&quot;&quot;</span><span class="p">]]</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
-<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>  
-</pre></div>
-</div>
-</section>
-<section id="generative-fid-reader">
-<h3>Generative FiD Reader<a class="headerlink" href="#generative-fid-reader" title="Permalink to this headline">#</a></h3>
-<p>A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.</p>
-<p>PrimeQA implements a <a class="reference external" href="https://arxiv.org/abs/2007.01282">Fusion In Decoder(FiD)</a> generative reader.</p>
-<p>Follow the steps below to use the <code class="docutils literal notranslate"><span class="pre">GenerativeFiDReader</span></code>:</p>
-<ul class="simple">
-<li><p>Step 1:  Initialize the reader.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">primeqa.components.reader.generative</span> <span class="kn">import</span> <span class="n">GenerativeFiDReader</span>
-<span class="n">fid_reader</span> <span class="o">=</span> <span class="n">GenerativeFiDReader</span><span class="p">()</span>
-<span class="n">fid_reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">extractive_pipeline</span> <span class="o">=</span> <span class="n">QAPipeline</span><span class="p">(</span><span class="n">retriever</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Step 2: Execute the reader in inference mode:</p></li>
+<li><p>Step 4:  Execute the pipeline in inference mode.</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">question</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
-<span class="n">context</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;&quot;&quot;Chemtrail conspiracy theory The chemtrail conspiracy theory is based </span>
-<span class="s2">            on the erroneous belief that long-lasting condensation trails are </span>
-<span class="s2">            </span><span class="se">\&quot;</span><span class="s2">chemtrails</span><span class="se">\&quot;</span><span class="s2"> consisting of chemical or biological agents left in the </span>
-<span class="s2">            sky by high-flying aircraft, sprayed for nefarious purposes undisclosed </span>
-<span class="s2">            to the general public. Believers in this conspiracy theory say that while </span>
-<span class="s2">            normal contrails dissipate relatively quickly, contrails that linger must </span>
-<span class="s2">            contain additional substances. Those who subscribe to the theory speculate </span>
-<span class="s2">            that the purpose of the chemical release may be solar radiation management,</span>
-<span class="s2">            weather modification, psychological manipulation, human population control, </span>
-<span class="s2">            or biological or chemical warfare, and that the trails are causing </span>
-<span class="s2">            respiratory illnesses&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Associated with jet streams is a phenomenon known as clear-air turbulence </span>
-<span class="sd">            (CAT), caused by vertical and horizontal wind shear caused by jet streams. </span>
-<span class="sd">            The CAT is strongest on the cold air side of the jet, next to and just under </span>
-<span class="sd">            the axis of the jet. Clear-air turbulence can cause aircraft to plunge and so </span>
-<span class="sd">            present a passenger safety hazard that has caused fatal accidents, such as the </span>
-<span class="sd">            death of one passenger on United Airlines Flight 826. </span>
-<span class="sd">            Section: Uses.:Possible future power generation.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Contrails are a manmade type of cirrus cloud formed when water vapor from </span>
-<span class="sd">            the exhaust of a jet engine condenses on particles, which come from either the </span>
-<span class="sd">            surrounding air or the exhaust itself, and freezes, leaving behind a visible trail. </span>
-<span class="sd">            The exhaust can also trigger the formation of cirrus by providing ice nuclei </span>
-<span class="sd">            when there is an insufficient naturally-occurring supply in the atmosphere. </span>
-<span class="sd">            One of the environmental impacts of aviation is that persistent contrails can </span>
-<span class="sd">            form into large mats of cirrus, and increased air traffic has been implicated </span>
-<span class="sd">            as one possible cause of the increasing frequency and amount of cirrus&quot;&quot;&quot;</span><span class="p">]]</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">fid_reader</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">context</span><span class="p">)</span>  
-<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">answers</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span> 
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Which country is Canberra located in?&quot;</span><span class="p">]</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-</section>
-<section id="qa-pipeline">
-<h2>QA Pipeline<a class="headerlink" href="#qa-pipeline" title="Permalink to this headline">#</a></h2>
-<p>The QA pipeline is used for Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. Long Form Question Answering (LFQA) is a generative task where the retrieved passages are used to generate a complex multi-sentence answer.</p>
+<section id="long-form-question-answering-lfqa">
+<h2>Long Form Question Answering (LFQA)<a class="headerlink" href="#long-form-question-answering-lfqa" title="Permalink to this headline">#</a></h2>
+<p>LFQA is a generative task where the retrieved passages are used to generate a complex multi-sentence answer.</p>
 <p>In this example we show a QA Pipeline using a ColBERT retriever and a Fusion in Decoder (FID) generator.</p>
 <p>Instructions to create a ColBERT index and an FiD model for KILT-ELI5 can be found <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/examples/lfqa/README.md">here</a></p>
 <ul class="simple">
@@ -544,6 +395,44 @@ Follow the steps below to use the extractive reader:</p>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
 <span class="n">answers</span> <span class="o">=</span> <span class="n">lfqa_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="generative-qa-with-llm">
+<h2>Generative QA with LLM<a class="headerlink" href="#generative-qa-with-llm" title="Permalink to this headline">#</a></h2>
+<p>We prompt pre-trained LLM (e.g. InstructGPT, FLAN-T5) to asnwer questions conditioned on the retrieved passages.
+Examples can be found in <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb">notebook</a>.</p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the retriever.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2:  Initialize the reader model.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptFLANT5Reader</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;google/flan-t5-xxl&quot;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Alternatively we can use a reader based on InstructGPT.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptGPTReader</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s1">&#39;API KEY HERE&#39;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;text-davinci-003&quot;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 3:  Initialize the QA pipeline.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">llm_pipeline</span> <span class="o">=</span> <span class="n">QAPipeline</span><span class="p">(</span><span class="n">retriever</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 4:  Execute the LFQA pipeline in inference mode.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
+<span class="n">prompt_prefix</span> <span class="o">=</span> <span class="s2">&quot;Answer the following question after looking at the text.&quot;</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">llm_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prompt_prefix</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
