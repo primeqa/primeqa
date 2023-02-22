@@ -57,6 +57,7 @@ class RetrieverService(RetrievingServiceServicer):
                     parameters=generate_parameters(
                         retriever, skip=["index_root", "index_name"]
                     ),
+                    engine_type=retriever.get_engine_type(),
                 )
                 for retriever_id, retriever in RETRIEVERS_REGISTRY.items()
             ]

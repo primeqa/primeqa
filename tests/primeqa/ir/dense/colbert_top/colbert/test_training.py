@@ -5,6 +5,7 @@ import tempfile
 import json
 from typing import Tuple
 
+
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import create_directory, print_message
 from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -17,6 +18,28 @@ from primeqa.ir.dense.colbert_top.colbert.indexing.collection_indexer import enc
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 class TestTraining(UnitTest):
+    @classmethod
+    def setup_class(cls):
+        import torch
+
+        if torch.cuda.is_available():
+            import time
+            import random
+
+            rank = 0
+            nranks = 1
+
+            rng = random.Random(time.time())
+            port = str(12355 + rng.randint(0, 1000))
+
+            os.environ["MASTER_PORT"] = port
+            os.environ["MASTER_ADDR"] = "localhost"
+            os.environ["WORLD_SIZE"] = str(nranks)
+            os.environ["RANK"] = str(rank)
+
+            torch.cuda.set_device(0)
+            torch.distributed.init_process_group(backend='nccl', init_method='env://')
+
     def test_batchers(self):
         test_files_location = 'tests/resources/ir_dense'
         if 'DATA_FILES_FOR_DENSE_IR_TESTS_PATH' in os.environ:

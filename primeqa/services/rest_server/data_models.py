@@ -1,4 +1,4 @@
-from typing import List, Literal, Union
+from typing import List, Literal, Union, Dict, Any
 from pydantic import BaseModel
 
 from primeqa.services.constants import IndexStatus
@@ -93,6 +93,7 @@ class GenerateIndexRequest(BaseModel):
     indexer: Indexer
     documents: List[Document]
     index_id: Union[str, None] = None
+    metadata: Union[str, Dict[str, Any]] = None
 
 
 #############################################################################################
@@ -106,3 +107,4 @@ class IndexInformation(BaseModel):
         IndexStatus.DOES_NOT_EXISTS,
         IndexStatus.CORRUPT,
     ]
+    metadata: Union[Dict[str, Any], None] = None

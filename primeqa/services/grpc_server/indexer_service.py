@@ -11,6 +11,7 @@ from primeqa.services.constants import (
     ATTR_STATUS,
     IndexStatus,
     ATTR_ENGINE_TYPE,
+    ATTR_METADATA,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
@@ -228,22 +229,40 @@ class IndexerService(IndexingServiceServicer):
     ) -> GetIndexesResponse:
         resp = GetIndexesResponse()
         for index_id in self._store.get_index_ids():
-            index_information = IndexInformation(index_id=index_id)
+            index_information_return_obj = IndexInformation(index_id=index_id)
             try:
-                status = self._store.get_index_information(index_id=index_id)[
-                    ATTR_STATUS
-                ]
-                if status == IndexStatus.READY.value:
-                    index_information.status = READY
-                elif status == IndexStatus.INDEXING.value:
-                    index_information.status = INDEXING
-                else:
-                    index_information.status = CORRUPT
-            except KeyError:
-                index_information.status = CORRUPT
-            except FileNotFoundError:
-                index_information.status = DOES_NOT_EXISTS
+                index_information = self._store.get_index_information(index_id=index_id)
+                status = index_information[ATTR_STATUS]
+                # Step 1: Check if particular engine type indices are requested
+                if request.engine_type:
+                    # Step 1.a: If requested engine type doesn't match current index's engine type, skip processing
+                    if (
+                        ATTR_ENGINE_TYPE not in index_information
+                        or request.engine_type != index_information[ATTR_ENGINE_TYPE]
+                    ):
+                        continue
 
-            resp.indexes.append(index_information)
+                # Add status information
+                if status == IndexStatus.READY.value:
+                    index_information_return_obj.status = READY
+                elif status == IndexStatus.INDEXING.value:
+                    index_information_return_obj.status = INDEXING
+                else:
+                    index_information_return_obj.status = CORRUPT
+
+                # Add metadata information
+                if (
+                    ATTR_METADATA in index_information
+                    and index_information[ATTR_METADATA]
+                ):
+                    index_information_return_obj.metadata.update(
+                        index_information[ATTR_METADATA]
+                    )
+            except KeyError:
+                index_information_return_obj.status = CORRUPT
+            except FileNotFoundError:
+                index_information_return_obj.status = DOES_NOT_EXISTS
+
+            resp.indexes.append(index_information_return_obj)
 
         return resp

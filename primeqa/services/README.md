@@ -156,27 +156,25 @@ Create a directory under `models` and copy `pytorch_model.bin`, `config.json` an
 
     ```
     from sqlitedict import SqliteDict
-
+    import csv
+    
     documents_tsv_file_path = "documents.tsv"
     documents_sqlite_file_path = "documents.sqlite"
 
     with open(documents_tsv_file_path, "r", encoding="utf-8") as documents_file, SqliteDict(
       documents_sqlite_file_path, tablename="documents"
     ) as documents_db:
-      next(documents_file)
-      for line in documents_file:
-          if len(line.rstrip("\n").split("\t")):
-            document_idx, text, title = line.rstrip("\n").split("\t")
-          else:
-            document_idx, text = line.rstrip("\n").split("\t")
-            title = None
-          documents_db[document_idx] = {
-            "document_id": document_idx,
-            "text": text,
-            "title": title,
-          }
-      #  Commit to save documents_db
-      documents_db.commit()
+        csv_reader = csv.DictReader(documents_file, fieldnames=["id", "text", "title"], delimiter="\t")
+        next(csv_reader)
+        for row in csv_reader:
+            assert len(row) == 3 or len(row) == 2, f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
+            documents_db[row["id"]] = {
+                "document_id": row["id"],
+                "text": row["text"],
+                "title": row["title"] if len(row) == 3 else None
+            }
+        # Commit to save documents_db
+        documents_db.commit()
     ```
 
   - Create file `information.json` and copy the following into the file:
