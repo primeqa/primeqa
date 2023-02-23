@@ -55,10 +55,10 @@ message Contexts {
 
 message Answer {
     string text = 1;
-    uint32 start_char_offset = 2;
-    uint32 end_char_offset = 3;
-    double confidence_score = 4;
-    uint32 context_index = 5;
+    double confidence_score = 2;
+    optional uint32 context_index = 3;
+    optional uint32 start_char_offset = 4;
+    optional uint32 end_char_offset = 5;
 };
 
 message AnswersForContext {
