@@ -6,8 +6,21 @@
 - Create sub folders for row retriever and answer extractor models as `data/hybridqa/models/row_retriever` and `data/hybridqa/models/answer_extractor`
 - Clone the this (https://github.com/wenhuchen/WikiTables-WithLinks) repository inside `data/hybridqa` to get the tables with the links to passages.
 - After creating the folder structure and getting the raw data and linked tables create/check and update the training config file available at `primeqa/hybridq/config/train_hybridqa.json`.
+- Check if your folder structure look like this:
+    - data
+        - hybridqa
+            - models/answer_extractor
+            - models/row_retriever
+            - predictions
+            - WikiTables-WithLinks
+            - train.json
+            - test.json
+            - dev.json
 - After checking/updating the config file run the following command to train the model on Hybridqadataset:
+
 `python primeqa/mitqa/run_mitqa.py <config_file_path>`, this command will train a model on HybridQA dataset and store models inside these (`data/hybridqa/models/row_retriever` and `data/hybridqa/models/answer_extractor`) directories. This command will also run evaluation on the dev set and report the final prediction accuracy on the dev set.
+
+
 
 #### Replicating leaderboard results for hybridqa
 - Download trained `row retriever` model from [here](https://huggingface.co/PrimeQA/MITQA_hybridqa_row_retriever/resolve/main/row_retriever.bin) and copy it into the `data/hybridqa/models/row_retriever/`.
