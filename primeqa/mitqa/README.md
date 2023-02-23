@@ -1,4 +1,4 @@
-### PrimeQA support trainining and inference of question answering models for table and text.
+### PrimeQA support training and inference of question answering models for table and text.
 
 #### To train model on hybridqa dataset
 ```shell
