@@ -11,7 +11,6 @@ class TableQADataset(Dataset):
         self.max_seq_len = max_seq_length
         self.passage_tokenizer = passage_tokenizer
         self.bert_tokenizer = bert_tokenizer
-        #self.shuffle = shuffle
         self.ret_labels = ret_labels
         self.row_inputs = []
         labels = []
@@ -22,19 +21,12 @@ class TableQADataset(Dataset):
         for d in self.data:
             question_str = d['question']
             question_id = d['question_id']
-            #question = [d['question']]
             question_list.append(question_str)
-            #q_input = self.tokenizer(question,add_special_tokens=True, truncation=True,padding=True, return_tensors='pt', max_length = self.max_seq_len)
             table_row_list.append(str(d['table_row']))
-            #tablepd = pd.DataFrame(d['table_row'],index=[0])
             self.question_ids_list.append(question_id)
-            #row_input = self.tapas_tokenizer(table=tablepd, queries=question, padding="max_length", return_tensors="pt")
             passages.append(d['table_passage_row'])
             if self.ret_labels:
                 labels.append(d['label'])
-            #self.row_inputs.append(row_input)
-        #table_pd = pd.DataFrame(table_row_list)
-        #print(table_pd)
         self.question_inputs = self.bert_tokenizer(question_list,add_special_tokens=True, truncation=True, padding=True, return_tensors='pt', max_length = 256)
 
         self.row_inputs = self.bert_tokenizer(table_row_list,add_special_tokens=True, truncation=True, padding=True, return_tensors='pt', max_length = 256)
@@ -57,7 +49,6 @@ class TableQADatasetQRSconcat(Dataset):
         self.data = data
         self.max_seq_len = max_seq_length
         self.bert_tokenizer = bert_tokenizer
-        #self.shuffle = shuffle
         self.ret_labels = ret_labels
         self.row_inputs = []
         self.sep_token = "[SEP]"
@@ -74,7 +65,6 @@ class TableQADatasetQRSconcat(Dataset):
             question_str = d['question']
             question_id = d['question_id']
             table_row = d['table_row']
-            #evidence_sent = d['evidence_sent']
             gold_sentences = []
             if use_st_out:
                 gold_sentences = d['table_passage_row']
@@ -104,7 +94,6 @@ class TableQADatasetQRSconcat(Dataset):
         for c,r in table_row.items():
             table_str+=str(c)+" is "+str(r)+" . "
         question_str = question_str+table_str+" "+self.sep_token+" "+gold_sentences
-        #print("question Annotated",question_str)
         return question_str
     def get_sentence_containing_answer_text(self,table_passage_row,answer_text,st_out_text):
         sentences = []
