@@ -73,7 +73,6 @@ def add_passage_to_cell(table,requested_documents):
     for h in table['header']:
         new_header.append(h[0])
     p_table['header'] = new_header
-
     table_data = table['data']
     new_table_data_list =[]
     for row_idx, row in enumerate(table_data):

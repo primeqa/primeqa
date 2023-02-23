@@ -1,14 +1,15 @@
 import json
-from sentence_transformers import SentenceTransformer, CrossEncoder, util
 import time
 import gzip
 import os
 import torch
-from tqdm import tqdm
-
-import json
-from primeqa.mitqa.utils.table_utils import fetch_table,fetch_ottqa_passages,load_passages
 import sys
+import json
+from tqdm import tqdm
+from primeqa.mitqa.utils.table_utils import fetch_table,fetch_ottqa_passages,load_passages
+from sentence_transformers import SentenceTransformer, CrossEncoder, util
+
+
 
 if not torch.cuda.is_available():
   print("Warning: No GPU found. Please add GPU to your notebook")
