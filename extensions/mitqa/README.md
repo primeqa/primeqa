@@ -48,7 +48,7 @@
 
 #### To train the table retriever model for OTTQA dataset
 - Make sure to set the flag `train_tr` in the config file `primeqa/mitqa/config/train_ottqa.json` and also check and update all other hyperparameter values if required.
-#### To fix the table retriever and train all other modules for OTTQA dataset
+#### To Train all other models using the table retriever without further updates for OTTQA dataset
 - run the following command:
 `python primeqa/mitqa/run_mitqa.py <ottqa_train_config_file>`
 
