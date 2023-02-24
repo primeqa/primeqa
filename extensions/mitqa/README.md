@@ -1,6 +1,6 @@
-## Training and inference on Hybridqadataset
+## Training and inference on HybridQA dataset
 
-### Training on Hybridqadataset
+### Training on HybridQA dataset
 - Create data root folder named `data/hybridqa`
 - Get data from this (https://github.com/wenhuchen/HybridQA/tree/master/released_data) repo and copy to the data root folder.
 - Create sub folders for row retriever and answer extractor models as `data/hybridqa/models/row_retriever` and `data/hybridqa/models/answer_extractor`
@@ -16,13 +16,13 @@
             - train.json
             - test.json
             - dev.json
-- After checking/updating the config file run the following command to train the model on Hybridqadataset:
+- After checking/updating the config file run the following command to train the model on HybridQA dataset:
 
 `python primeqa/mitqa/run_mitqa.py <config_file_path>`, this command will train a model on HybridQA dataset and store models inside these (`data/hybridqa/models/row_retriever` and `data/hybridqa/models/answer_extractor`) directories. This command will also run evaluation on the dev set and report the final prediction accuracy on the dev set.
 
 
 
-#### Replicating leaderboard results for hybridqa
+#### Replicating leaderboard results for HybridQA
 - Download trained `row retriever` model from [here](https://huggingface.co/PrimeQA/MITQA_hybridqa_row_retriever/resolve/main/row_retriever.bin) and copy it into the `data/hybridqa/models/row_retriever/`.
 - Check the config file to make sure the `model_name_path_ae` hyperparameter is set correctly to `PrimeQA/MITQA_hybridqa_multi_answer_answer_extractor`
 - Run `python primeqa/mitqa/run_mitqa.py <inference_config_file_path>`
