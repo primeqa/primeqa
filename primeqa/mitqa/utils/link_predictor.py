@@ -273,10 +273,8 @@ def predict_link_for_tables(args,retrieved_data,doc_retriever):
             continue
 
     for k, v in dataset.mapping.items():
-        if k not in mapping:
-            mapping[k] = v
-        else:
-            mapping[k].extend(v)
+        mapping[k] = v if k not in mapping else  mapping[k].extend(v)
+
     
     new_data = []
     for d in retrieved_data:
