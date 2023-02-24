@@ -1,0 +1,144 @@
+[
+    {
+      "question_id": "00153f694413a536",
+      "question": "What is the middle name of the player with the second most National Football League career rushing yards ?",
+      "table_id": "List_of_National_Football_League_rushing_yards_leaders_0",
+      "answer-text": "Jerry",
+      "question_postag": "WP VBZ DT JJ NN IN DT NN IN DT JJ RBS NNP NNP NNP NN VBG NNS ."
+    },
+    {
+      "question_id": "001a9923f31d6a91",
+      "question": "What was the nickname of the gold medal winner in the men 's heavyweight greco-roman wrestling event of the 1932 Summer Olympics ?",
+      "table_id": "Sweden_at_the_1932_Summer_Olympics_0",
+      "answer-text": "Starke Rudolf",
+      "question_postag": "WP VBD DT NN IN DT NN NN NN IN DT NNS POS JJ JJ NN NN IN DT CD NNP NNP ."
+    },
+    {
+      "question_id": "0035c791af3d9666",
+      "question": "The driver who finished in position 4 in the 2004 United States Grand Prix was of what nationality ?",
+      "table_id": "2004_United_States_Grand_Prix_0",
+      "answer-text": "British",
+      "question_postag": "DT NN WP VBD IN NN CD IN DT CD NNP NNPS NNP NNP VBD IN WP NN ."
+    },
+    {
+      "question_id": "005eb7c003961d8c",
+      "question": "What is that address of the museum located in a Victorian House in an area whose Architectural styles within the district include Craftsman Bungalow , Queen Anne , Stick style , Folk Victorian , Colonial Revival , American Foursquare and Neoclassical Revival ?",
+      "table_id": "List_of_museums_in_Atlanta_0",
+      "answer-text": "503 Peeples Street SW",
+      "question_postag": "WP VBZ DT NN IN DT NN VBN IN DT JJ NNP IN DT NN WP$ JJ NNS IN DT NN VBP NNP NNP , NNP NNP , NNP NN , NNP NNP , NNP NNP , NNP NNP CC NNP NNP ."
+    },
+    {
+      "question_id": "006f88e5b2adf06c",
+      "question": "What place was achieved by the person who finished the Berlin marathon in 2:13.32 in 2011 the first time he competed in a marathon ?",
+      "table_id": "2011_Berlin_Marathon_0",
+      "answer-text": "sixth",
+      "question_postag": "WP NN VBD VBN IN DT NN WP VBD DT NNP NN IN CD IN CD DT JJ NN PRP VBD IN DT NN ."
+    },
+    {
+      "question_id": "0070e6a224260f56",
+      "question": "How many Primera Divisi\u00f3n titles has the team that plays in the biggest arena won ?",
+      "table_id": "List_of_football_stadiums_in_Paraguay_0",
+      "answer-text": "32",
+      "question_postag": "WRB JJ NNP NNP VBZ VBZ DT NN WDT VBZ IN DT JJS NN VBD ."
+    },
+    {
+      "question_id": "00975ac1f229684b",
+      "question": "How many years was the Mexican billionaire Slim ranked as the richest person in the world by the Forbes business magazine ?",
+      "table_id": "List_of_wealthiest_non-inflated_historical_figures_13",
+      "answer-text": "3",
+      "question_postag": "WRB JJ NNS VBD DT NNP NN NNP VBD IN DT JJS NN IN DT NN IN DT NNP NN NN ."
+    },
+    {
+      "question_id": "00a85279869ca866",
+      "question": "What is the difference in time between Jos\u00e9 Reliegos of Spain and the person born 5 September 1892 who competed at the 1928 Olympics ?",
+      "table_id": "1929_International_Cross_Country_Championships_0",
+      "answer-text": "0:06",
+      "question_postag": "WP VBZ DT NN IN NN IN NNP NNP IN NNP CC DT NN VBD CD NNP CD WP VBD IN DT CD NNPS ."
+    },
+    {
+      "question_id": "00ad8c3df9fa9da0",
+      "question": "Which gulf is north of the Somalian city with 550,000 residents ?",
+      "table_id": "List_of_Somali_cities_by_population_0",
+      "answer-text": "Gulf of Aden",
+      "question_postag": "NNP NN VBZ JJ IN DT JJ NN IN CD NNS ."
+    },
+    {
+        "question_id": "00c4fbc89bffe739",
+        "question": "What is the nationality of the manager who was born on 15 February 1968 ?",
+        "table_id": "List_of_Mohun_Bagan_A.C._managers_0",
+        "answer-text": "Morocco",
+        "question_postag": "WP VBZ DT NN IN DT NN WP VBD VBN IN CD NNP CD ."
+      },
+      {
+        "question_id": "00c882d1bfbc8aa3",
+        "question": "What is the description if the dish that is a localised version of Indian Achaar ?",
+        "table_id": "List_of_Indonesian_dishes_3",
+        "answer-text": "Various chopped vegetables in vinegar",
+        "question_postag": "WP VBZ DT NN IN DT NN WDT VBZ DT JJ NN IN JJ NNP ."
+      },
+      {
+        "question_id": "0101cac31f98bd1d",
+        "question": "Who translated the German book published in 1979 that sold 16 million copies into English ?",
+        "table_id": "List_of_best-selling_books_4",
+        "answer-text": "Ralph Manheim",
+        "question_postag": "WP VBD DT JJ NN VBN IN CD WDT VBD CD CD NNS IN NNP ."
+      },
+      {
+        "question_id": "011e8cb7de5d5cdf",
+        "question": "What is the use of the building whose location is the second-most populous county in Maryland ?",
+        "table_id": "List_of_the_oldest_buildings_in_Maryland_0",
+        "answer-text": "Spring house",
+        "question_postag": "WP VBZ DT NN IN DT NN WP$ NN VBZ DT JJ JJ NN IN NNP ."
+      },
+      {
+        "question_id": "0130a31694fda105",
+        "question": "Who was the husband of the mother of Ottoman sultan Suleiman I ?",
+        "table_id": "List_of_the_mothers_of_the_Ottoman_Sultans_0",
+        "answer-text": "Selim I",
+        "question_postag": "WP VBD DT NN IN DT NN IN NNP VBP NNP PRP ."
+      },
+      {
+        "question_id": "013a6efae39d468f",
+        "question": "What are the symptoms of the titular syndrome in his 2009 movie ?",
+        "table_id": "Ben_Foster_(actor)_0",
+        "answer-text": "severe paranoia , delirium , and nosebleeding",
+        "question_postag": "WP VBP DT NNS IN DT JJ NN IN PRP$ CD NN ."
+      },
+      {
+        "question_id": "0187a50391979e38",
+        "question": "Mario Kart Advance was released by a company who had a market value of more than what , in 2018 ?",
+        "table_id": "List_of_Virtual_Console_games_for_Nintendo_3DS_(Japan)_10",
+        "answer-text": "$ 37 billion",
+        "question_postag": "NNP NNP NNP VBD VBN IN DT NN WP VBD DT NN NN IN JJR IN WP , IN CD ."
+      },
+      {
+        "question_id": "018c2df00229d160",
+        "question": "Which team of the Cornwall League 1 comes from a town that is known for its tin mining ?",
+        "table_id": "Cornwall_League_1_4",
+        "answer-text": "Veor",
+        "question_postag": "NNP NN IN DT NNP NNP CD VBZ IN DT NN WDT VBZ VBN IN PRP$ NN NN ."
+      },
+      {
+        "question_id": "019987cf5cda18be",
+        "question": "What was the English title of the sixth highest grossing Indian film ?",
+        "table_id": "Bollywood_highest_grossing_films_by_month_3",
+        "answer-text": "The outburst",
+        "question_postag": "WP VBD DT JJ NN IN DT JJ JJS VBG JJ NN ."
+      },
+      {
+        "question_id": "01a0c3f14151b9a1",
+        "question": "What year does Orson Scott Card 's 1986 novel take place ?",
+        "table_id": "Orson_Scott_Card_bibliography_0",
+        "answer-text": "5270",
+        "question_postag": "WP NN VBZ NNP NNP NNP POS CD JJ VB NN ."
+      },
+      {
+        "question_id": "01ee1bfecd753a7e",
+        "question": "How many people performed on the most recent song to win ?",
+        "table_id": "Grammy_Award_for_Best_Jazz_Vocal_Performance,_Male_0",
+        "answer-text": "five",
+        "question_postag": "WRB JJ NNS VBN IN DT RBS JJ NN TO VB ."
+      }
+
+
+]
