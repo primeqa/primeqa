@@ -5,7 +5,13 @@ import joblib
 from joblib import dump, load
 import sklearn
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LinearRegression
 from primeqa.mrc.data_models.target_type import TargetType
+import unicodedata
+import string
+import re
+from collections import Counter
+from math import floor
 
 
 class ConfidenceScorer(object):
@@ -26,8 +32,16 @@ class ConfidenceScorer(object):
                     self._confidence_model = joblib.load(confidence_model_path)
             except Exception as ex:
                 raise ValueError(f"Unable to load confidence model from {confidence_model_path}") from ex
+
+            regression_model_file = os.path.join(confidence_model_path, 'linear_regression_model.bin')
+            if os.path.isfile(regression_model_file):
+                try:
+                    self._regression_models = joblib.load(regression_model_file)
+                except Exception as ex:
+                    raise ValueError(f"Unable to load regression models from {regression_model_file}") from ex
         else:
             self._confidence_model = None
+            self._regression_models = None
 
     def model_exists(self) -> bool:
         """
@@ -61,6 +75,10 @@ class ConfidenceScorer(object):
                 'start_stdev',
                 'end_stdev',
                 'query_passage_similarity'
+                'ir_score',
+                'normalized_ir_score',
+                'normalized_span_answer_score_by_passage',
+                'minimum_risk_f1_by_passage',
 
         Returns:
             List of features used for confidence scoring.
@@ -127,8 +145,16 @@ class ConfidenceScorer(object):
                 pred["normalized_span_answer_score"] - average_norm_span_answer_score,
                 pred["start_stdev"],
                 pred["end_stdev"],
-                pred["query_passage_similarity"]
+                pred["query_passage_similarity"],
             ]
+            if 'normalized_span_answer_score_by_passage' in pred:
+                feat.append(pred['normalized_span_answer_score_by_passage'])
+            if 'minimum_risk_f1_by_passage' in pred:
+                feat.append(pred['minimum_risk_f1_by_passage'])
+            if "ir_score" in pred:
+                feat.append(pred["ir_score"])
+            if "normalized_ir_score" in pred:
+                feat.append(pred["normalized_ir_score"])
             features.append(feat)
         return features
 
@@ -157,7 +183,27 @@ class ConfidenceScorer(object):
             return [0.0] * len(example_predictions)
         scores = self._confidence_model.predict_proba(X)
         # scores[:,0] : scores for incorrect, scores[:, 1]: score for correct
-        return scores[:, 1]
+        scores = scores[:, 1]
+        if self._regression_models is None:
+            return scores
+
+        num_bins = len(self._regression_models)
+        min_score = 0.0
+        max_score = 1.0
+        bin_size = (max_score - min_score) / float(num_bins)
+        scores_with_regression = []
+        for s in scores:
+            bin_index = floor((s - min_score) / float(bin_size))
+            if bin_index >= num_bins:
+                bin_index = num_bins - 1
+            new_score = self._regression_models[bin_index].predict(np.asarray(s).reshape(-1, 1))[0]
+            if new_score > 1.0:
+                new_score = 1.0
+            if new_score < 0.0:
+                new_score = 0.0
+            scores_with_regression.append(new_score)
+        return scores_with_regression
+
 
     @classmethod
     def reference_prediction_overlap(cls, ground_truth, prediction) -> float:
@@ -198,8 +244,48 @@ class ConfidenceScorer(object):
                 max_overlap_score = overlap_score
         return max_overlap_score
 
+
     @classmethod
-    def make_training_data(cls, prediction_file: str, reference_file: str, overlap_threshold: float = 0.5) -> tuple:
+    def reference_prediction_overlap_by_offset(cls, ground_truth, prediction) -> float:
+        """
+        Calculate the F1-style overlap score between ground truth and prediction.
+
+        Args:
+            ground_truth: List of ground truth each containing "start_position" and "end_position".
+            prediction: Prediction containing "start_position" and "end_position".
+
+        Returns:
+            Overlap score between ground truth and prediction.
+
+        """
+
+        if not prediction or not ground_truth:
+            return 0.0
+        max_overlap_score = 0.0
+        for truth in ground_truth:
+            truth_start_position = truth["start_position"]
+            truth_end_position = truth["end_position"]
+            predicted_start_position = prediction["start_position"]
+            predicted_end_position = prediction["end_position"]
+
+            if truth_start_position == predicted_start_position and truth_end_position == predicted_end_position:
+                return 1.0
+            if truth_start_position < 0 or truth_end_position < 0:
+                continue
+            if predicted_start_position > truth_end_position or predicted_end_position < truth_start_position: # f1 = 0 since no overlap
+                continue
+            overlap_start_position = max(predicted_start_position, truth_start_position)
+            overlap_end_position = min(predicted_end_position, truth_end_position)
+
+            p = float(overlap_end_position - overlap_start_position + 1) / float(predicted_end_position - predicted_start_position + 1)
+            r = float(overlap_end_position - overlap_start_position + 1) / float(truth_end_position - truth_start_position + 1)
+            overlap_score= (2 * p * r) / (p + r)
+            if max_overlap_score < overlap_score:
+                max_overlap_score = overlap_score
+        return max_overlap_score
+
+    @classmethod
+    def make_training_data(cls, prediction_file: str, reference_file: str, overlap_threshold: float = 0.5, binary_label: bool = True) -> tuple:
         """
         Make training data from prediction file and reference file for confidence model training.
 
@@ -207,6 +293,7 @@ class ConfidenceScorer(object):
             prediction_file: File containing QA result generated by evaluate() of MRC trainer (i.e. eval_predictions.json).
             reference_file: File containing the ground truth generated by evaluate() of MRC trainer (i.e. eval_references.json).
             overlap_threshold: Threshold to determine if a prediction is accepted as correct answer.
+            binary_label: If target uses binary label.
 
         Returns:
             X: Array of features.
@@ -246,16 +333,61 @@ class ConfidenceScorer(object):
 
             overlap_score = cls.reference_prediction_overlap(references[example_id]["span_answer"],
                                                              top_k_predictions[0]["span_answer"])
-            if overlap_score >= overlap_threshold:
-                label_set[example_id] = 1
+            if binary_label:
+                if overlap_score >= overlap_threshold:
+                    label_set[example_id] = 1
+                else:
+                    label_set[example_id] = 0
             else:
-                label_set[example_id] = 0
+                label_set[example_id] = overlap_score
         for example_id in feature_set:
             number_features_per_example = len(feature_set[example_id])
             break
         X = np.zeros((len(feature_set), number_features_per_example), dtype=np.double)
-        Y = np.zeros((len(feature_set)), dtype=np.int)
+        if binary_label:
+            Y = np.zeros((len(feature_set)), dtype=np.int)
+        else:
+            Y = np.zeros((len(feature_set)), dtype=np.double)
         for i, example_id in enumerate(sorted(feature_set.keys())):
             X[i, :] = feature_set[example_id]
             Y[i] = label_set[example_id]
         return (X, Y)
+
+    @classmethod
+    def build_bin_based_linear_regression(cls, X, Y, confidence_model, num_bins=10):
+        """
+        Build linear regression model for each bin
+
+        Args:
+            X: Array of features.
+            Y: Array of F1 scores.
+            confidence_model: Confidence model.
+            num_bins: Number of bins.
+
+        Returns:
+            List of linear regression models
+        """
+
+        pred_scores = confidence_model.predict_proba(X)[:, 1]
+
+        min_score = 0.0
+        max_score = 1.0
+        bin_size = (max_score - min_score) / float(num_bins)
+
+        pred_scores_by_bins = {i: [] for i in range(num_bins)}
+        Y_score_by_bins = {i: [] for i in range(num_bins)}
+        for i in range(np.size(pred_scores)):
+            bin_index = floor((pred_scores[i] - min_score) / float(bin_size))
+            if bin_index >= num_bins:
+                bin_index = num_bins - 1
+            pred_scores_by_bins[bin_index].append(pred_scores[i])
+            Y_score_by_bins[bin_index].append(Y[i])
+
+        models = []
+        for i in range(num_bins):
+            if len(pred_scores_by_bins[i]) <= 1:
+                reg = LinearRegression().fit(np.asarray([0.0, 0.5, 1.0]).reshape(-1, 1), np.asarray([0.0, 0.5, 1.0]))
+            else:
+                reg = LinearRegression().fit(np.asarray(pred_scores_by_bins[i]).reshape(-1, 1), np.asarray(Y_score_by_bins[i]))
+            models.append(reg)
+        return models
