@@ -347,6 +347,11 @@ class TaskArguments:
         metadata={"help": "The relative size of linear regression train data split from confidence model set."}
     )
 
+    number_of_bins: int = field(
+        default=10,
+        metadata={"help": "The number of bins used to measure confidence level."}
+    )
+
 
     def __post_init__(self):
         if not self.task_heads:
@@ -661,7 +666,7 @@ def main():
                                                task_args.prediction_reference_overlap_threshold, binary_label=False)
     X = X[num_examples_for_confidence_model:]
     Z = Z[num_examples_for_confidence_model:]
-    linear_regression_models = ConfidenceScorer.build_bin_based_linear_regression(X, Z, confidence_model, num_bins=10)
+    linear_regression_models = ConfidenceScorer.build_bin_based_linear_regression(X, Z, confidence_model, num_bins=task_args.number_of_bins)
     regression_model_file = os.path.join(task_args.confidence_model_dir, 'linear_regression_model.bin')
     dump(linear_regression_models, regression_model_file)
     logging.info("Saved regression model to {}".format(regression_model_file))
