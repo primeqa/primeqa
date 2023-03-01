@@ -182,8 +182,14 @@ Create a directory under `models` and copy `pytorch_model.bin`, `config.json` an
   ```
     {
       "index_id": "<collection-name>",
-      "status": "READY"
+      "status": "READY",
+      "engine_type": "<engine_type>",  # select one of "BM25", "ColBERT" or "DPR"
+      "checkpoint": "<checkpoint>"     # Set this to the folder name where the checkpoint is stored.
     }
+  ```
+
+  NOTE: `engine_type` is a now required for all Retrievers.  If you have an existing information.json file, please add this field. `checkpoint` is required for DPR and ColBERT Retrievers.
+
   ```
   - The index is now available for search
 
