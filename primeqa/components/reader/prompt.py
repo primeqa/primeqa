@@ -39,7 +39,7 @@ class PromptReader(BaseReader):
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix: str, suffix: str) -> str:
+    def create_prompt(self, question: str, contexts: List[str], prefix="", suffix="") -> str:
         prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
@@ -96,7 +96,7 @@ class PromptGPTReader(PromptReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]],
+        contexts: List[List[str]] = None,
         example_ids: List[str] = None,
         *args,
         **kwargs,
@@ -189,9 +189,9 @@ class PromptFLANT5Reader(PromptReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]],
-        *args,
+        contexts: List[List[str]] = None,
         example_ids: List[str] = None,
+        *args,
         **kwargs,
     ):
         predictions = {}
@@ -201,7 +201,7 @@ class PromptFLANT5Reader(PromptReader):
             if contexts: 
                 passages = contexts[i]
 
-            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"])
+            prompt = self.create_prompt(q, passages, **kwargs)
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             
             # if the length is greater than the max sequence length for T5, truncate and add the suffix (e.g. "Answer: ") at the end.
@@ -266,16 +266,16 @@ class BAMReader(PromptReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]],
-        *args,
+        contexts: List[List[str]] = None,   
         example_ids: List[str] = None,
+        *args,
         **kwargs,
     ):
         predictions = {}
         max_sequence_length = 1024
 
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], prefix=kwargs["prefix"], suffix=kwargs["suffix"])
+            prompt = self.create_prompt(q, contexts[i], **kwargs)
             inputs = self.tokenizer(prompt, return_tensors="pt")
 
             if len(inputs['input_ids'][0]) > max_sequence_length:

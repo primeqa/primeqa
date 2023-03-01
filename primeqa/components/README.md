@@ -94,7 +94,16 @@ A Generative Reader takes a question and uses a set of supporting passages to ge
 We provide reader components for multiple LLMs. We currently support [GPT](https://arxiv.org/pdf/2203.02155.pdf) and [FLAN T5](https://huggingface.co/docs/transformers/model_doc/flan-t5). 
 
 - Step 1:  Initialize the reader.
+
 ```python
+# GPT Reader
+from primeqa.components.reader.prompt import PromptGPTReader
+reader = PromptGPTReader(model_name='text-davinci-003', api_key='API KEY HERE')
+reader.load()
+```
+
+```python
+# FLAN-T5 Reader
 from primeqa.components.reader.prompt import PromptFLANT5Reader
 reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
 reader.load()
@@ -107,7 +116,7 @@ answers = reader.predict(questions,prefix=prompt_prefix)
 print(json.dumps(answers, indent=4))
 ```
 
-A notebook with additional examples that use retrieval for prompting is available [here](/notebooks/lfqa/prompt_reader_LLM.ipynb)
+A notebook with additional examples that use retrieval for prompting is available [here](/notebooks/mrc/LLM_reader_predict_mode.ipynb)
 
 
 #### FiD Reader
