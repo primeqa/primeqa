@@ -76,6 +76,8 @@ _deps = {
     "torch~=1.11.0": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.24.0": ["install", "gpu"],
+    "sentence_transformers": ["install", "gpu"],
+    "tensorboard":["install", "gpu"],
     "sentencepiece~=0.1.96": ["install", "gpu"],
     "ujson~=5.1.0": ["install"],
     "tqdm~=4.64.0": ["install", "gpu"],

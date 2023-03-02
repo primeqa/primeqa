@@ -149,18 +149,23 @@ class ReaderService(ReadingServiceServicer):
                     request.contexts[idx].texts,
                 )
                 try:
-                    if isinstance(instance, ExtractiveReader):
-                        predictions = instance.predict(
-                            questions=[query] * len(request.contexts[idx].texts),
-                            contexts=[[text] for text in request.contexts[idx].texts],
-                            **reader_kwargs,
-                        )
-                        self._logger.info(
-                            "Applying '%s' reader for query = '%s' returns predictions = %s",
-                            instance.__class__.__name__,
-                            query,
-                            predictions,
-                        )
+                    predictions = instance.predict(
+                        questions=[query] * len(request.contexts[idx].texts),
+                        contexts=[[text] for text in request.contexts[idx].texts],
+                        example_ids=[
+                            str(example_id)
+                            for example_id in range(
+                                1, len(request.contexts[idx].texts) + 1
+                            )
+                        ],
+                        **reader_kwargs,
+                    )
+                    self._logger.info(
+                        "Applying '%s' reader for query = '%s' returns predictions = %s",
+                        instance.__class__.__name__,
+                        query,
+                        predictions,
+                    )
 
                         # Step 5.b: Add answers for current query into response object
                         answers_response.query_answers.append(
