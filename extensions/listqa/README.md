@@ -8,14 +8,14 @@ Instructions for running question answering when the answer is known to be a lis
 TRAIN_INPUT_FILE = /location/of/NQ/dev/set/file(s) use * to read multiple files
 TRAIN_OUTPUT_FILE = /location/to/save/output.jsonl
 
-PrimeQA/examples/listqa/list_nq2tydi.py
+PrimeQA/extensions/listqa/list_nq2tydi.py
         --input_file $TRAIN_INPUT_FILE
         --output_file $TRAIN_OUTPUT_FILE
 
 EVAL_INPUT_FILE = /location/of/NQ/train/set/file(s) use * to read multiple files
 EVAL_OUTPUT_FILE = /location/to/save/output.jsonl
 
-PrimeQA/examples/listqa/list_nq2tydi.py
+PrimeQA/extensions/listqa/list_nq2tydi.py
         --input_file $INPUT_FILE
         --output_file $OUTPUT_FILE
 ```
@@ -29,7 +29,7 @@ MODEL_DIR = xlm-roberta or roberta-large or fine-tuned QA model
 TRAIN_OUTPUT_FILE and EVAL_OUTPUT_FILE are OUTPUT_FILE(s) from previous step
 OUTPUT_DIR = /location/to/save/output
 
-PrimeQA/examples/mrc/run_mrc.py
+PrimeQA/extensions/mrc/run_mrc.py
        --model_name_or_path ${MODEL_DIR} \
        --train_file ${TRAIN_OUTPUT_FILE} \
        --eval_file  ${EVAL_OUTPUT_FILE}\

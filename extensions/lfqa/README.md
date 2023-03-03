@@ -26,7 +26,7 @@ The dev set of KILT-ELI5 can be downloaded from [eli5-dev-kilt.jsonl](http://dl.
 The KILT Knowledge source needs to be preprocessed into a tsv format that can be used by the retrieval component.
 
 ```
-python examples/lfqa/kilt_passage_corpus.py \
+python extensions/lfqa/kilt_passage_corpus.py \
     --kilt_corpus $KILT_ELI5/data/kilt_knowledgesource.json \
     --output_dir $KILT_ELI5/passages/ 
     --passage_ids $KILT_ELI5/kilt_passage_ids.txt
@@ -65,7 +65,7 @@ python primeqa/ir/run_ir.py \
 The query files are used by the retriever to search the index for supporting documents. Since the KILT-ELI5 dataset has a large number of examples, we recommend creating multiple query files that can be used to perform the search in parallel. 
 
 ```
-python examples/lfqa/create_ir_queries_from_dataset.py \
+python extensions/lfqa/create_ir_queries_from_dataset.py \
     --train_file $KILT_ELI5/data/eli5-train-kilt.jsonl \
     --eval_file $KILT_ELI5/data/eli5-dev-kilt.jsonl \
     --queries_per_file 50000 \
@@ -108,7 +108,7 @@ python primeqa/ir/run_ir.py \
 ### 5. Add the Supporting Passages for the KILT-ELI5 Dataset
 
 ```
-python examples/lfqa/add_passages_to_dataset.py \
+python extensions/lfqa/add_passages_to_dataset.py \
     --train_file $KILT_ELI5/data/eli5-train-kilt.jsonl \
     --eval_file $KILT_ELI5/data/eli5-dev-kilt.jsonl \
     --output_dir $KILT_ELI5/kilt-eli5-colbert-passages \
@@ -150,7 +150,7 @@ python primeqa/primeqa/mrc/run_mrc.py \
     --evaluation_strategy epoch \
     --save_strategy epoch \
     --load_best_model_at_end \
-    --metric_for_best_model rougeL \
+    --metric_for_best_model kilt_rougeL \
     --overwrite_output_dir \
     --overwrite_cache \
 ```
