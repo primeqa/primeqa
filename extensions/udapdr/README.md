@@ -27,6 +27,25 @@ For running the end-to-end domain adaptation approach, please use the `scripts/D
 
 Here is an example command for running `scripts/DSP_Multiple_Reranker.py`:
 
+````
+python scripts/DSP_Multiple_Reranker.py \
+       --chosen_LoTTE_split pooled \
+       --chosen_LoTTE_type forum \
+       --chosen_LoTTE_set dev \
+       --LoTTE_or_BEIR LoTTE \
+       --chosen_BEIR_set None \
+       --chosen_BEIR_type None \
+       --sample_count 20 \
+       --reranker_count 5 \
+       --devices ["cuda:0"] \
+       --query_count 1000000 \
+       --model_choice google/flan-t5-xxl \
+       --gpt3_model_choice text-davinci-002 \
+       --parallelization False \
+       --dsp_prompting False \
+       --use_FLAN_for_all_synthetic_query_generation False
+````
+
 ## Citing
 
 ````
