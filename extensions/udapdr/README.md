@@ -21,6 +21,8 @@ We include three sample synthetic query datasets for LoTTE, BEIR, and NQ. To gen
 - BEIR Scifact Synthetic Queries
 - NaturalQuestions Synthetic Queries
 
+To download the question and documents sets for LoTTE, BEIR, and NQ, please go to the following download site.
+
 ## Training and Inference
 
 For running the end-to-end domain adaptation approach, please use the `scripts/DSP_Multiple_Reranker.py`
