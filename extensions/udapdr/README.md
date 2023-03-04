@@ -25,6 +25,8 @@ We include three sample synthetic query datasets for LoTTE, BEIR, and NQ. To gen
 
 For running the end-to-end domain adaptation approach, please use the `scripts/DSP_Multiple_Reranker.py`
 
+Here is an example command for running `scripts/DSP_Multiple_Reranker.py`:
+
 ## Citing
 
 ````
