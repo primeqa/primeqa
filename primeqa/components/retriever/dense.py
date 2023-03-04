@@ -40,7 +40,6 @@ class ColBERTRetriever(BaseRetriever):
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
-            "api_support": True,
         },
     )
     collection: str = field(
@@ -177,7 +176,6 @@ class DPRRetriever(BaseRetriever):
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
-            "api_support": True,
         },
     )
     collection: str = field(

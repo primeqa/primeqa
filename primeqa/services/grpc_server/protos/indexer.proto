@@ -51,8 +51,8 @@ message Document {
 message GenerateIndexRequest {
     Indexer indexer = 1;
     repeated Document documents = 2;
-    string index_id = 3;
-    google.protobuf.Struct metadata = 4;
+    optional string index_id = 3;
+    optional google.protobuf.Struct metadata = 4;
 }
 
 enum IndexStatus {
@@ -82,7 +82,8 @@ message GetIndexesRequest {
 message IndexInformation {
     string index_id = 1;
     IndexStatus status = 2;
-    google.protobuf.Struct metadata = 3;
+    google.protobuf.Struct configuration = 3;
+    optional google.protobuf.Struct metadata = 4;
 }
 
 message GetIndexesResponse {

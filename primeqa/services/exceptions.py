@@ -28,6 +28,7 @@ class ErrorMessages(str, Enum):
     # RETRIEVER
     INVALID_RETRIEVER = "E5001: Invalid retriever: {}. Please select one of the following pre-defined retrievers: {}"
     INDEX_UNAVAILABLE_FOR_QUERYING = 'E5002: Cannot query index with "{}" status. Please make sure index has "READY" status before querying.'
+    MISMATCHED_ENGINE_TYPE = 'E5003: Cannot query index with "{}" engine_type with {} retriever of "{}" engine type.'
 
     # INDEXER
     INVALID_INDEXER = "E6001: Invalid indexer: {}. Please select one of the following pre-defined indexers: {}"
