@@ -21,7 +21,7 @@ We include three sample synthetic query datasets for LoTTE, BEIR, and NQ. To gen
 - BEIR Scifact Synthetic Queries
 - NaturalQuestions Synthetic Queries
 
-To download the question and documents sets for LoTTE, BEIR, and NQ, please go to the following download site.
+To download the question and documents sets, please go to the following download site.
 
 ## Training and Inference
 
