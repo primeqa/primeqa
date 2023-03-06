@@ -98,7 +98,7 @@ We provide reader components for multiple LLMs. We currently support [GPT](https
 ```python
 # GPT Reader
 from primeqa.components.reader.prompt import PromptGPTReader
-reader = PromptGPTReader(model_name='text-davinci-003', api_key='API KEY HERE')
+reader = PromptGPTReader(model_name='gpt-3.5-turbo', api_key='API KEY HERE')
 reader.load()
 ```
 

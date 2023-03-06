@@ -24,7 +24,7 @@ We show some pipeline examples for the Open Retrieval Question Answering. Open r
 
 ## Generative QA with LLM 
 
-We prompt pre-trained large language models (LLMs) to asnwer questions conditioned on the retrieved passages.
+We prompt pre-trained large language models (LLMs) to answer questions conditioned on the retrieved passages.
 We support integration with the OpenAI's ChatGPT(gpt-3.5-turbo) and InstructGPT(text-davinci-003), using an OpenAI API key (https://platform.openai.com/account/api-keys)
 Examples can be found in [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/retriever-reader-pipelines/prompt_reader_with_GPT.ipynb).
 
@@ -40,17 +40,19 @@ retriever.load()
 
 - Step 2:  Initialize the reader model. 
 
-```python
-reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
-reader.load()
-```
-
-Alternatively we can use a reader based on InstructGPT.
+Alternatively, we can use a reader based on ChatGPT.
 
 ```python
 reader = PromptGPTReader(api_key='API KEY HERE', model_name="gpt-3.5-turbo")
 reader.load()
 ```
+
+We can use a reader based on ChatGPT.```python
+reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
+reader.load()
+```
+
+
 
 - Step 3:  Initialize the QA pipeline. 
 
