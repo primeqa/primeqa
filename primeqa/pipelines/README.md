@@ -29,7 +29,7 @@ We support integration with the OpenAI's ChatGPT(gpt-3.5-turbo) and InstructGPT(
 Examples can be found in the [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/retriever-reader-pipelines/prompt_reader_with_GPT.ipynb).
 
 
-We also support the Flan-F5 LM and examples can be found in the [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb).
+We also support the Flan-T5 LM and examples can be found in the [notebook](https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb).
 
 - Step 1:  Initialize the retriever.
 
