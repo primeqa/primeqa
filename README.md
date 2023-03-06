@@ -133,6 +133,7 @@ For more information, see:
 | 📒 [Documentation](https://primeqa.github.io/primeqa) | Full API documentation and tutorials |
 | 🏁 [Quick tour: Entry Points for PrimeQA](https://github.com/primeqa/primeqa/tree/main/primeqa) | Different entry points for PrimeQA: Information Retrieval, Reading Comprehension, TableQA and Question Generation |
 | 📓 [Tutorials: Jupyter Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks) | Notebooks to get started on QA tasks |
+| 📓 [GPT-3/ChatGPT Reader Notebooks](https://github.com/primeqa/primeqa/tree/main/notebooks/mrc/LLM_reader_predict_mode.ipynb) | Notebooks to get started with the GPT-3/ChatGPT reader components|
 | 💻 [Examples: Applying PrimeQA on various QA tasks](https://github.com/primeqa/primeqa/tree/main/examples) | Example scripts for fine-tuning PrimeQA models on a range of QA tasks |
 | 🤗 [Model sharing and uploading](https://huggingface.co/docs/transformers/model_sharing) | Upload and share your fine-tuned models with the community |
 | ✅ [Pull Request](https://primeqa.github.io/primeqa/pull_request_template.html) | PrimeQA Pull Request |
