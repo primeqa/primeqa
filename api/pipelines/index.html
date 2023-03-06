@@ -284,6 +284,11 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#generative-qa-with-llm">
+   Generative QA with LLM
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#open-retrieval-with-extractive-reader">
    Open Retrieval with Extractive Reader
   </a>
@@ -291,11 +296,6 @@
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#long-form-question-answering-lfqa">
    Long Form Question Answering (LFQA)
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#generative-qa-with-llm">
-   Generative QA with LLM
   </a>
  </li>
 </ul>
@@ -332,8 +332,49 @@
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please --> 
 <section id="qa-pipelines">
 <h1>QA Pipelines<a class="headerlink" href="#qa-pipelines" title="Permalink to this headline">#</a></h1>
-<p>The pipeline allows the components to be used as building blocks and allows switching out alternative implementations.</p>
+<p>The pipeline allows the components to be used as building blocks and allows switching out alternative implementations for the retriever and reader.</p>
 <p>We show some pipeline examples for the Open Retrieval Question Answering. Open retrieval systems query large document stores for relevant passages. These passages are used by the reader to produce the answer.</p>
+<section id="generative-qa-with-llm">
+<h2>Generative QA with LLM<a class="headerlink" href="#generative-qa-with-llm" title="Permalink to this headline">#</a></h2>
+<p>We prompt pre-trained large language models (LLMs) to answer questions conditioned on the retrieved passages.
+We support integration with the OpenAI’s ChatGPT(gpt-3.5-turbo) and InstructGPT(text-davinci-003), using an OpenAI API key (https://platform.openai.com/account/api-keys).
+Examples can be found in the <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/retriever-reader-pipelines/prompt_reader_with_GPT.ipynb">notebook</a>.</p>
+<p>We also support the Flan-T5 LM and examples can be found in the <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb">notebook</a>.</p>
+<ul class="simple">
+<li><p>Step 1:  Initialize the retriever.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 2:  Initialize the reader model.</p></li>
+</ul>
+<p>We can use a reader based on ChatGPT.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptGPTReader</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s1">&#39;API KEY HERE&#39;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;gpt-3.5-turbo&quot;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Alternatively, we can use a reader based on Flan-T5.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptFLANT5Reader</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;google/flan-t5-xxl&quot;</span><span class="p">)</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 3:  Initialize the QA pipeline.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">llm_pipeline</span> <span class="o">=</span> <span class="n">QAPipeline</span><span class="p">(</span><span class="n">retriever</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Step 4:  Execute the QA pipeline in inference mode.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
+<span class="n">prompt_prefix</span> <span class="o">=</span> <span class="s2">&quot;Answer the following question after looking at the text.&quot;</span>
+<span class="n">answers</span> <span class="o">=</span> <span class="n">llm_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prompt_prefix</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="open-retrieval-with-extractive-reader">
 <h2>Open Retrieval with Extractive Reader<a class="headerlink" href="#open-retrieval-with-extractive-reader" title="Permalink to this headline">#</a></h2>
 <p>The pipeline uses a ColBERT retriever to obtain supporting passages. The reader extracts the best answers from the passages and provides evidence for its predictions.</p>
@@ -395,44 +436,6 @@
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
 <span class="n">answers</span> <span class="o">=</span> <span class="n">lfqa_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="generative-qa-with-llm">
-<h2>Generative QA with LLM<a class="headerlink" href="#generative-qa-with-llm" title="Permalink to this headline">#</a></h2>
-<p>We prompt pre-trained LLM (e.g. InstructGPT, FLAN-T5) to asnwer questions conditioned on the retrieved passages.
-Examples can be found in <a class="reference external" href="https://github.com/primeqa/primeqa/blob/main/notebooks/retrieval-reader-pipelines/prompt_reader_LLM.ipynb">notebook</a>.</p>
-<ul class="simple">
-<li><p>Step 1:  Initialize the retriever.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">retriever</span> <span class="o">=</span> <span class="n">ColBERTRetriever</span><span class="p">(</span><span class="n">index_root</span> <span class="o">=</span> <span class="n">index_root</span><span class="p">,</span> <span class="n">index_name</span> <span class="o">=</span> <span class="n">index_name</span><span class="p">,</span> <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="p">,</span> <span class="n">max_num_documents</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">retriever</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Step 2:  Initialize the reader model.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptFLANT5Reader</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;google/flan-t5-xxl&quot;</span><span class="p">)</span>
-<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>Alternatively we can use a reader based on InstructGPT.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reader</span> <span class="o">=</span> <span class="n">PromptGPTReader</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s1">&#39;API KEY HERE&#39;</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;text-davinci-003&quot;</span><span class="p">)</span>
-<span class="n">reader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Step 3:  Initialize the QA pipeline.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">llm_pipeline</span> <span class="o">=</span> <span class="n">QAPipeline</span><span class="p">(</span><span class="n">retriever</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span>
-</pre></div>
-</div>
-<ul class="simple">
-<li><p>Step 4:  Execute the LFQA pipeline in inference mode.</p></li>
-</ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;What causes the trail behind jets at high altitude?&quot;</span><span class="p">]</span>
-<span class="n">prompt_prefix</span> <span class="o">=</span> <span class="s2">&quot;Answer the following question after looking at the text.&quot;</span>
-<span class="n">answers</span> <span class="o">=</span> <span class="n">llm_pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prompt_prefix</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
