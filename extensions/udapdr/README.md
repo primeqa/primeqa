@@ -19,7 +19,6 @@ We include three sample synthetic query datasets for LoTTE and BEIR. To generate
 
 - LoTTE Pooled Synthetic Queries
 - BEIR Scifact Synthetic Queries
-- NaturalQuestions Synthetic Queries
 
 To download the question and documents sets for evaluation, please go to [the following download site](https://zenodo.org/record/7698919#.ZAOg5-zMKdY).
 
