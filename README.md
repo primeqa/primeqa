@@ -30,6 +30,7 @@ The models within PrimeQA supports End-to-end Question Answering. PrimeQA answer
 - [Information Retrieval](https://github.com/primeqa/primeqa/tree/main/primeqa/ir): Retrieving documents and passages using both traditional (e.g. BM25) and neural (e.g. ColBERT) models
 - [Multilingual Machine Reading Comprehension](https://huggingface.co/ibm/tydiqa-primary-task-xlm-roberta-large): Extract and/ or generate answers given the source document or passage.
 - [Multilingual Question Generation](https://huggingface.co/PrimeQA/mt5-base-tydi-question-generator): Supports generation of questions for effective domain adaptation over [tables](https://huggingface.co/PrimeQA/t5-base-table-question-generator) and [multilingual text](https://huggingface.co/PrimeQA/mt5-base-tydi-question-generator).
+- [Retrieval Augmented Generation](https://github.com/primeqa/primeqa/blob/main/notebooks/retriever-reader-pipelines/prompt_reader_with_GPT.ipynb): Generate answers using the GPT-3/ChatGPT pretrained models, conditioned on retrieved passages. 
 
 Some examples of models (applicable on benchmark datasets) supported are :
 - [Traditional IR with BM25](https://github.com/primeqa/primeqa/tree/main/primeqa/ir/) Pyserini
