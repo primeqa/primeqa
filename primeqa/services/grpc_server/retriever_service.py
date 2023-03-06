@@ -5,7 +5,13 @@ from grpc import ServicerContext, StatusCode
 
 from primeqa.services.configurations import Settings
 from primeqa.services.parameters import get_parameter_type
-from primeqa.services.constants import ATTR_STATUS, IndexStatus
+from primeqa.services.constants import (
+    ATTR_STATUS,
+    ATTR_CONFIGURATION,
+    ATTR_ENGINE_TYPE,
+    ATTR_CHECKPOINT,
+    IndexStatus,
+)
 from primeqa.services.factories import RETRIEVERS_REGISTRY, RetrieverFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -75,7 +81,36 @@ class RetrieverService(RetrievingServiceServicer):
         Returns:
             RetrieveResponse:
         """
-        # Step 1: Verify requested retriever
+        # Step 1: Load index information
+        if request.index_id:
+            index_root = self._store.get_index_directory_path(request.index_id)
+            # Step 1.a: Check if `index_root` exists
+            if not self._store.exists(index_root):
+                context.set_code(StatusCode.NOT_FOUND)
+                context.set_details(
+                    ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
+                )
+                return RetrieveResponse()
+
+            # Step 1.b: Load index information
+            index_information = self._store.get_index_information(
+                index_id=request.index_id
+            )
+            if index_information[ATTR_STATUS] != IndexStatus.READY.value:
+                context.set_code(StatusCode.INVALID_ARGUMENT)
+                context.set_details(
+                    ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
+                        index_information[ATTR_STATUS]
+                    )
+                )
+                return RetrieveResponse()
+
+        else:
+            context.set_code(StatusCode.INVALID_ARGUMENT)
+            context.set_details(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
+            return RetrieveResponse()
+
+        # Step 2: Verify requested retriever exists
         try:
             retriever = RETRIEVERS_REGISTRY[request.retriever.retriever_id]
         except KeyError:
@@ -88,12 +123,27 @@ class RetrieverService(RetrievingServiceServicer):
             )
             return RetrieveResponse()
 
-        # Step 2: Load default retriever keyword arguments
+        # Step 3: Match engine type of requested collection and retriever
+        if (
+            index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE]
+            != retriever.get_engine_type()
+        ):
+            context.set_code(StatusCode.INVALID_ARGUMENT)
+            context.set_details(
+                ErrorMessages.MISMATCHED_ENGINE_TYPE.value.format(
+                    index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE],
+                    request.retriever.retriever_id,
+                    retriever.get_engine_type(),
+                )
+            )
+            return RetrieveResponse()
+
+        # Step 3: Load default retriever keyword arguments
         retriever_kwargs = {
             k: v.default for k, v in retriever.__dataclass_fields__.items() if v.init
         }
 
-        # Step 3: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
+        # Step 4: If parameters are provided in request then update keyword arguments used to instantiate retriever instance
         if request.retriever.parameters:
             for parameter in request.retriever.parameters:
                 if parameter.parameter_id not in retriever_kwargs:
@@ -112,53 +162,20 @@ class RetrieverService(RetrievingServiceServicer):
                     ),
                 )
 
-                # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
-                if parameter.parameter_id == "checkpoint":
-                    retriever_kwargs["checkpoint"] = self._store.get_checkpoint_path(
-                        retriever_kwargs["checkpoint"]
-                    )
-
-        # Step 4: Load index information
-        if request.index_id:
-            index_root = self._store.get_index_directory_path(request.index_id)
-            # Step 4.a: Check if `index_root` exists
-            if not self._store.exists(index_root):
-                context.set_code(StatusCode.NOT_FOUND)
-                context.set_details(
-                    ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
-                )
-                return RetrieveResponse()
-
-            # Step 4.b: Load index information
-            index_information = self._store.get_index_information(
-                index_id=request.index_id
-            )
-            if index_information[ATTR_STATUS] != IndexStatus.READY.value:
-                context.set_code(StatusCode.INVALID_ARGUMENT)
-                context.set_details(
-                    ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
-                        index_information[ATTR_STATUS]
-                    )
-                )
-                return RetrieveResponse()
-
-            # Step 4.c: Update index specific arguments
-            retriever_kwargs["index_root"] = self._store.get_index_directory_path(
-                request.index_id
-            )
-            retriever_kwargs["index_name"] = DIR_NAME_INDEX
-
-            # Step 5: Set collection
-            retriever_kwargs["collection"] = self._store.get_index_documents_file_path(
-                index_id=request.index_id
+        # Step 5: Update index specific arguments
+        retriever_kwargs["index_root"] = self._store.get_index_directory_path(
+            request.index_id
+        )
+        retriever_kwargs["index_name"] = DIR_NAME_INDEX
+        retriever_kwargs["collection"] = self._store.get_index_documents_file_path(
+            index_id=request.index_id
+        )
+        if ATTR_CHECKPOINT in retriever_kwargs:
+            retriever_kwargs[ATTR_CHECKPOINT] = self._store.get_checkpoint_path(
+                index_information[ATTR_CONFIGURATION][ATTR_CHECKPOINT]
             )
 
-        else:
-            context.set_code(StatusCode.INVALID_ARGUMENT)
-            context.set_details(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
-            return RetrieveResponse()
-
-        # Step 5: Create retriever instance
+        # Step 6: Create retriever instance
         try:
             instance = RetrieverFactory.get(retriever, retriever_kwargs)
         except (ValueError, TypeError) as err:
@@ -166,7 +183,7 @@ class RetrieverService(RetrievingServiceServicer):
             context.set_details(err.args[0])
             return RetrieveResponse()
 
-        # Step 6: Retrieve
+        # Step 7: Retrieve
         instance_fields = [
             k
             for k, v in instance.__class__.__dataclass_fields__.items()

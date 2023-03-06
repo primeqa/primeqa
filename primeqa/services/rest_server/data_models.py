@@ -107,4 +107,5 @@ class IndexInformation(BaseModel):
         IndexStatus.DOES_NOT_EXISTS,
         IndexStatus.CORRUPT,
     ]
+    configuration: Dict[str, Any]
     metadata: Union[Dict[str, Any], None] = None
