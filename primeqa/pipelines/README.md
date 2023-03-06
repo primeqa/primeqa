@@ -40,14 +40,16 @@ retriever.load()
 
 - Step 2:  Initialize the reader model. 
 
-Alternatively, we can use a reader based on ChatGPT.
+We can use a reader based on ChatGPT.
 
 ```python
 reader = PromptGPTReader(api_key='API KEY HERE', model_name="gpt-3.5-turbo")
 reader.load()
 ```
 
-We can use a reader based on ChatGPT.```python
+Alternatively, we can use a reader based on Flan-T5.
+
+```python
 reader = PromptFLANT5Reader(model_name="google/flan-t5-xxl")
 reader.load()
 ```
