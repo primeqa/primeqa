@@ -15,7 +15,7 @@ conda activate udapdr
 
 ## Data
 
-We include three sample synthetic query datasets for LoTTE, BEIR, and NQ. To generate the datasets, we used our corpus-adapted prompting approach from [the paper](https://arxiv.org/abs/2303.00807), leveraging both GPT-3 and Flan-T5 XXL.
+We include three sample synthetic query datasets for LoTTE and BEIR. To generate the datasets, we used our corpus-adapted prompting approach from [the paper](https://arxiv.org/abs/2303.00807), leveraging both GPT-3 and Flan-T5 XXL.
 
 - LoTTE Pooled Synthetic Queries
 - BEIR Scifact Synthetic Queries
