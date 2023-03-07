@@ -33,7 +33,7 @@ class ColBERTRetriever(BaseRetriever):
     """
 
     checkpoint: str = field(
-        default=None,
+        default='/store/checkpoints/a/',
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",

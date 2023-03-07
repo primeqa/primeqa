@@ -38,7 +38,7 @@ class BM25Retriever(BaseRetriever):
     )
 
     max_num_documents: int = field(
-        default=5,
+        default=25,
         metadata={
             "name": "Maximum number of retrieved documents",
             "range": [1, 100, 1],

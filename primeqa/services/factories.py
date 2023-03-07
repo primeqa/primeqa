@@ -25,9 +25,9 @@ from primeqa.components.indexer.sparse import BM25Indexer
 
 
 READERS_REGISTRY = {
-    ExtractiveWithBooleanReader.__name__: ExtractiveWithBooleanReader,
     AdapterExtractiveWithBooleanReader.__name__: AdapterExtractiveWithBooleanReader,
     ExtractiveReader.__name__: ExtractiveReader,
+    ExtractiveWithBooleanReader.__name__: ExtractiveWithBooleanReader,
     BooleanQTCReader.__name__: BooleanQTCReader
 #    BooleanEVCReader.__name__: BooleanEVCReader
 }
