@@ -135,6 +135,13 @@ class ExtractiveReader(BaseReader):
             f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
         )
 
+    def init_from_dict(self, dict):
+        for k in ['model', 'use_fast', 'stride', 'max_seq_len', 'n_best_size', 'max_num_answers', 'max_answer_length',
+            'scorer_type', 'min_score_threshold']:
+            if k in dict:
+                setattr(self, k, dict[k])
+
+
     def load(self, *args, **kwargs):
         task_heads = EXTRACTIVE_HEAD
         # Load configuration for model
@@ -150,6 +157,7 @@ class ExtractiveReader(BaseReader):
         config.sep_token_id = self._tokenizer.convert_tokens_to_ids(
             self._tokenizer.sep_token
         )
+        print('extractive: ', self.model)
         self._loaded_model = ModelForDownstreamTasks.from_config(
             config,
             self.model,
@@ -188,7 +196,7 @@ class ExtractiveReader(BaseReader):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
-    def predict(
+    def _predict(
         self,
         questions: List[str],
         contexts: List[List[str]],
@@ -207,12 +215,6 @@ class ExtractiveReader(BaseReader):
             kwargs["max_answer_length"]
             if "max_answer_length" in kwargs
             else self.max_answer_length
-        )
-
-        min_score_threshold = (
-            kwargs["min_score_threshold"]
-            if "min_score_threshold" in kwargs
-            else self.min_score_threshold
         )
 
         # Step 2: Initialize post processor
@@ -248,10 +250,27 @@ class ExtractiveReader(BaseReader):
         )
 
         # Step 5: Run predict
+        predict_output=trainer.predict(eval_dataset=eval_dataset, eval_examples=eval_examples)
+        return predict_output
+
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
+        min_score_threshold = (
+            kwargs["min_score_threshold"]
+            if "min_score_threshold" in kwargs
+            else self.min_score_threshold
+        )
+
         predictions = {}
-        for example_id, raw_predictions in trainer.predict(
-            eval_dataset=eval_dataset, eval_examples=eval_examples
-        ).items():
+        predict_output=self._predict(questions, contexts, args, example_ids, kwargs)
+
+        for example_id, raw_predictions in predict_output.items():
             predictions[example_id] = []
             for raw_prediction in raw_predictions:
                 if (

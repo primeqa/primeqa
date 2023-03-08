@@ -65,8 +65,14 @@ message AnswersForContext {
     repeated Answer answers = 1;
 }
 
+message PerQueryResponse {
+    string question_type_prediction = 1;
+    string boolean_answer_prediction = 2;
+}
+
 message AnswersForQuery {
     repeated AnswersForContext context_answers = 1;
+    repeated PerQueryResponse per_query_response = 2;    
 }
 
 /**

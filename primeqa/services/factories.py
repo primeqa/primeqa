@@ -10,6 +10,7 @@ from primeqa.components.base import (
     Indexer,
 )
 from primeqa.components.reader.extractive import ExtractiveReader
+from primeqa.components.reader.extractive_with_boolean import ExtractiveWithBooleanReader
 
 from primeqa.components.retriever.dense import ColBERTRetriever, DPRRetriever
 from primeqa.components.retriever.sparse import BM25Retriever
@@ -20,6 +21,7 @@ from primeqa.components.indexer.sparse import BM25Indexer
 
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
+    ExtractiveWithBooleanReader.__name__: ExtractiveWithBooleanReader,
 }
 
 RETRIEVERS_REGISTRY = {
