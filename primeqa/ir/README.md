@@ -133,12 +133,12 @@ python primeqa/ir/run_ir.py \
     --engine_type ColBERT \
     --doc_maxlen <maximum_number_of_document_tokens> \
     --bsize <indexing_batch_size> \
-    --checkpoint <model_checkpoint> \
+    --model_name_or_path <model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \
     --index_name <index_label> \
-    --compression_level <number_of_bits_in_residual_representations>
+    --nbits <number_of_bits_in_residual_representations>
 ```
 
 The index is stored in `<experiments_root_directory>/<experiment_label>/indexes/<index_label>` directory.
