@@ -34,6 +34,7 @@ class TextClassifierReader(BaseReader):
         output_label_prefix (str, optional): identifies type of classifier in output
         sentence1_key (str, optional): identifies first sentence in input
         sentence2_key (str, optional): identifies second sentence in input
+        label_list_str (str, optional): space-separated list of output labels produced by the classifier.  Order matters
         max_num_answers (int, optional): Maximum number of answers. Defaults to 5.
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
