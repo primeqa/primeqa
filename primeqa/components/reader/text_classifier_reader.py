@@ -14,8 +14,6 @@ from transformers import (
 from datasets import Dataset
 
 from primeqa.components.base import Reader as BaseReader
-from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
-from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 from primeqa.text_classification.processors.postprocessors.text_classifier import TextClassifierPostProcessor
 from primeqa.text_classification.processors.preprocessors.text_classifier import TextClassifierPreProcessor
 from primeqa.text_classification.trainers.nway import NWayTrainer
@@ -32,9 +30,12 @@ class TextClassifierReader(BaseReader):
         stride (int, optional): Step size to move sliding window across context. Defaults to 128.
         max_seq_len (int, optional): Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.
         n_best_size (int, optional): Maximum number of start/end logits to consider (max values). Defaults to 20.
+        id_key (str, optional): unique identifier of example, typically "example_id"
+        output_label_prefix (str, optional): identifies type of classifier in output
+        sentence1_key (str, optional): identifies first sentence in input
+        sentence2_key (str, optional): identifies second sentence in input
         max_num_answers (int, optional): Maximum number of answers. Defaults to 5.
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
-        scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
 
     Important:
@@ -49,8 +50,7 @@ class TextClassifierReader(BaseReader):
     """
 
     model: str = field(
-        #default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
-        default='foo',
+        default='PrimeQA/tydi-tydi_boolean_question_classifier-xlmr_large-20221117',
         metadata={"name": "Model", "api_support": True},
     )
     use_fast: bool = field(

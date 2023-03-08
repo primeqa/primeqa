@@ -4,16 +4,9 @@ from dataclasses import dataclass, field
 import json
 import numpy as np
 
-from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
-from datasets import Dataset
 
 from primeqa.components.base import Reader as BaseReader
-from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
-from primeqa.mrc.models.task_model import ModelForDownstreamTasks
-from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
-from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
-from primeqa.mrc.trainers.mrc import MRCTrainer
 from primeqa.components.reader.text_classifier_reader import TextClassifierReader
 from primeqa.components.reader.extractive import ExtractiveReader
 from primeqa.components.reader.text_classifier_utils import make_context_for_evc
