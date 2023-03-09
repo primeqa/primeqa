@@ -23,8 +23,10 @@ from primeqa.services.exceptions import PATTERN_ERROR_MESSAGE, Error, ErrorMessa
 from primeqa.services.constants import (
     ATTR_STATUS,
     ATTR_INDEX_ID,
-    ATTR_ENGINE_TYPE,
     ATTR_METADATA,
+    ATTR_CONFIGURATION,
+    ATTR_ENGINE_TYPE,
+    ATTR_CHECKPOINT,
     IndexStatus,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
@@ -52,6 +54,7 @@ def generate_index(request: GenerateIndexRequest):
         index_information = {
             ATTR_INDEX_ID: STORE.generate_index_uuid(),
             ATTR_STATUS: IndexStatus.INDEXING.value,
+            ATTR_CONFIGURATION: {},
         }
 
         # Step 2: Verify requested indexer
@@ -87,8 +90,14 @@ def generate_index(request: GenerateIndexRequest):
 
                 indexer_kwargs[parameter.parameter_id] = parameter.value
 
-                # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                # Process `checkpoint` parameter
                 if parameter.parameter_id == "checkpoint":
+                    # Add `checkpoint` parameter value to index information
+                    index_information[ATTR_CONFIGURATION][
+                        ATTR_CHECKPOINT
+                    ] = indexer_kwargs["checkpoint"]
+
+                    # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
                     indexer_kwargs["checkpoint"] = STORE.get_checkpoint_path(
                         indexer_kwargs["checkpoint"]
                     )
@@ -107,7 +116,9 @@ def generate_index(request: GenerateIndexRequest):
 
         # Step 8: Save index information
         # Step 8.a: Add "engine_type"  to index information
-        index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
+        index_information[ATTR_CONFIGURATION][
+            ATTR_ENGINE_TYPE
+        ] = instance.get_engine_type()
 
         # Step 8.b: If "metadata" is provided, add to index information
         if request.metadata:
@@ -182,15 +193,20 @@ def get_indexes(engine_type: str = None):
 
             # Step 1.b: Skip index if engine type is provided in request and doesn't match with the one in current index's information
             if engine_type and (
-                ATTR_ENGINE_TYPE in index_information_dict
-                and index_information_dict[ATTR_ENGINE_TYPE] != engine_type
+                index_information_dict[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE]
+                != engine_type
             ):
                 continue
 
             # Step 2.c: Place index information response payload object
             index_information_rest_response_object = {ATTR_INDEX_ID: index_id}
 
-            # Step 2.d: Add "metadata" information if exists
+            # Step 2.d: Add "configuration" information
+            index_information_rest_response_object[
+                ATTR_CONFIGURATION
+            ] = index_information_dict[ATTR_CONFIGURATION]
+
+            # Step 2.e: Add "metadata" information if exists
             if (
                 ATTR_METADATA in index_information_dict
                 and index_information_dict[ATTR_METADATA]
@@ -199,7 +215,7 @@ def get_indexes(engine_type: str = None):
                     ATTR_METADATA
                 ] = index_information_dict[ATTR_METADATA]
 
-            # Step 2.e: Add "status" information
+            # Step 2.f: Add "status" information
             try:
                 index_information_rest_response_object[
                     ATTR_STATUS

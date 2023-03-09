@@ -150,42 +150,44 @@ Create a directory under `models` and copy `pytorch_model.bin`, `config.json` an
 - Create a directory under `checkpoints` and copy the checkpoint file, e.g. a ColBERT dnn or DPR model file,  here.  
 
 - Create a directory under indexes with a unique name for the collection `<collection-name>`. Place the following files in the directory:
-  - `documents.tsv` a tsv file contains the passages that were indexed. The format is `id\ttext\ttitle`.  
-  - `index` is a directory containing the index
-  - Create `documents.sqlite` by running the following python code from `indexes/<collection-name>` directory. This file is required to fetch the document text.
+  1. `documents.tsv` a tsv file contains the passages that were indexed. The format is `id\ttext\ttitle`.  
+  2. `index` is a directory containing the index
+  3. Create `documents.sqlite` by running the following python code from `indexes/<collection-name>` directory. This file is required to fetch the document text.
 
-    ```
-    from sqlitedict import SqliteDict
-    import csv
-    
-    documents_tsv_file_path = "documents.tsv"
-    documents_sqlite_file_path = "documents.sqlite"
+      ```
+      from sqlitedict import SqliteDict
+      import csv
+      
+      documents_tsv_file_path = "documents.tsv"
+      documents_sqlite_file_path = "documents.sqlite"
 
-    with open(documents_tsv_file_path, "r", encoding="utf-8") as documents_file, SqliteDict(
-      documents_sqlite_file_path, tablename="documents"
-    ) as documents_db:
-        csv_reader = csv.DictReader(documents_file, fieldnames=["id", "text", "title"], delimiter="\t")
-        next(csv_reader)
-        for row in csv_reader:
-            assert len(row) == 3 or len(row) == 2, f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-            documents_db[row["id"]] = {
-                "document_id": row["id"],
-                "text": row["text"],
-                "title": row["title"] if len(row) == 3 else None
-            }
-        # Commit to save documents_db
-        documents_db.commit()
-    ```
+      with open(documents_tsv_file_path, "r", encoding="utf-8") as documents_file, SqliteDict(
+        documents_sqlite_file_path, tablename="documents"
+      ) as documents_db:
+          csv_reader = csv.DictReader(documents_file, fieldnames=["id", "text", "title"], delimiter="\t")
+          next(csv_reader)
+          for row in csv_reader:
+              assert len(row) == 3 or len(row) == 2, f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
+              documents_db[row["id"]] = {
+                  "document_id": row["id"],
+                  "text": row["text"],
+                  "title": row["title"] if len(row) == 3 else None
+              }
+          # Commit to save documents_db
+          documents_db.commit()
+      ```
 
-  - Create file `information.json` and copy the following into the file:
+  4. Create the file `information.json` and add the following information into the file:
 
   ```
-    {
-      "index_id": "<collection-name>",
-      "status": "READY",
-      "engine_type": "<engine_type>",  # select one of "BM25", "ColBERT" or "DPR"
-      "checkpoint": "<checkpoint>"     # Set this to the folder name where the checkpoint is stored.
-    }
+      {
+        "index_id": "<collection-name>",
+        "status": "READY",
+        "configuration": {
+          "engine_type": "<engine_type>",  # select one of "BM25", "ColBERT" or "DPR"
+          "checkpoint": "<checkpoint>"     # Set this to the folder name where the checkpoint is stored.
+        }
+      }
   ```
 
   NOTE: `engine_type` is a now required for all Retrievers.  If you have an existing information.json file, please add this field. `checkpoint` is required for DPR and ColBERT Retrievers.

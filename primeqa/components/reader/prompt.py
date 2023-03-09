@@ -70,7 +70,7 @@ class PromptGPTReader(PromptReader):
         },
     )
     temperature: float = field(
-        default=0.7, metadata={"name": "The temperature parameter used for generation"}
+        default=1, metadata={"name": "The temperature parameter used for generation"}
     )
     top_p: int = field(
         default=1, metadata={"name": "The top_p parameter used for generation"}
@@ -83,6 +83,8 @@ class PromptGPTReader(PromptReader):
         default=0,
         metadata={"name": "presence_penalty"},
     )
+
+    chat_models = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
 
     def eval(self, *args, **kwargs):
         pass
@@ -108,20 +110,36 @@ class PromptGPTReader(PromptReader):
                 passages = contexts[i]
             prompt = self.create_prompt(q, passages, **kwargs)
             
-            response = openai.Completion.create(
-                model=self.model_name,
-                prompt=prompt,
-                temperature=self.temperature,
-                max_tokens=self.max_new_tokens,
-                top_p=self.top_p,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-            )
-            if "choices" in response and response["choices"]:
-                text = response.choices[0]["text"]
-            else:
-                text = "Something went wrong with the GPT service"
-            predictions[i] = {"text": text}
+            if self.model_name in self.chat_models:
+                response = openai.ChatCompletion.create(
+                    model=self.model_name,
+                    messages = [{"role": "user", "content": prompt}],
+                    # temperature=self.temperature,
+                    # max_tokens=self.max_new_tokens,
+                    # top_p=self.top_p,
+                    # frequency_penalty=self.frequency_penalty,
+                    # presence_penalty=self.presence_penalty,
+                )
+                if "choices" in response and response["choices"]:
+                    text = response.choices[0]["message"]["content"]
+                else:
+                    text = "Something went wrong with the GPT service"
+                predictions[i] = {"text": text}
+            else:  
+                response = openai.Completion.create(
+                    model=self.model_name,
+                    prompt=prompt,
+                    temperature=self.temperature,
+                    max_tokens=self.max_new_tokens,
+                    top_p=self.top_p,
+                    frequency_penalty=self.frequency_penalty,
+                    presence_penalty=self.presence_penalty,
+                )
+                if "choices" in response and response["choices"]:
+                    text = response.choices[0]["text"]
+                else:
+                    text = "Something went wrong with the GPT service"
+                predictions[i] = {"text": text}
         return predictions
 
 
