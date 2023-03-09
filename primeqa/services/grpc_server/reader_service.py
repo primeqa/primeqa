@@ -153,6 +153,12 @@ class ReaderService(ReadingServiceServicer):
                         predictions = instance.predict(
                             questions=[query] * len(request.contexts[idx].texts),
                             contexts=[[text] for text in request.contexts[idx].texts],
+                            example_ids=[
+                                str(example_id)
+                                for example_id in range(
+                                    1, len(request.contexts[idx].texts) + 1
+                                )
+                            ],
                             **reader_kwargs,
                         )
                         self._logger.info(
