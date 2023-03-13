@@ -94,6 +94,10 @@ class LLMAnalyzeArguments:
         default = 0,
         metadata={'help': 'number of examples *with* answers to provide to the LLM (0, 1, 2)'}
     )
+    n_shot_n_doc: int = field(
+        default = 3,
+        metadata={'help': 'number of contexts to provide for examples *with* answers to provide to the LLM '}
+    )
     reader: str = field(
         default="BAMReader",
         metadata={"help": "The name of the prompt reader to use.",
@@ -154,7 +158,7 @@ def get_answer(service, instance, args, n_doc=3, examples=None):
     
     return hf_metric, kilt_metric, text_generated, passages
 
-def get_examples(reader, data, n_shot=1):
+def get_examples(reader, data, n_shot=1, n_doc=3):
     text = ""
     keys = random.sample(data.keys(), n_shot)
   
@@ -165,7 +169,7 @@ def get_examples(reader, data, n_shot=1):
         for passage in example['passages']:
             contexts.append(passage['text'])
             psg_cnt += 1
-            if psg_cnt >= 3:
+            if psg_cnt >= n_doc:
                 break
         text += "Example: " + reader.create_prompt(question=example['input'],contexts=contexts,prefix="", suffix=None)
         text += " Answer: " + example['output'][0]['answer']
@@ -228,7 +232,7 @@ def main():
         examples = None
 
         if args.n_shot != 0:
-            examples = get_examples(reader, ELI5, args.n_shot)
+            examples = get_examples(reader, ELI5, args.n_shot, args.n_shot_n_doc)
         hf_rouge_metric, kilt_rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args, n_doc=args.num_context, examples=examples)
         answer['hf_rouge'] = hf_rouge_metric
         answer['kilt_rouge'] = kilt_rouge_metric
