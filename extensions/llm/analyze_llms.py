@@ -8,12 +8,19 @@ import numpy as np
 import logging
 from transformers import HfArgumentParser
 from tqdm import tqdm
+from primeqa.mrc.metrics.rouge.rouge import ROUGE
+import random
 
 # BAM docsL https://bam.res.ibm.com/docs/api-reference
 
 # read in ELI5 dev data and run through LLM service.
-rouge = Rouge()
-sys.setrecursionlimit(20000)
+# import evaluate
+# hf_rouge = evaluate.load('rouge')
+# rouge = Rouge()
+# sys.setrecursionlimit(20000)
+
+rouge = ROUGE()
+
 
 @dataclass
 class LLMAnalyzeArguments:
@@ -33,7 +40,7 @@ class LLMAnalyzeArguments:
         metadata={"help": "prefix for the LLM"},
     )
     suffix: str = field(
-        default=" Answer: ",
+        default=" Answer",
         metadata={"help": "suffix for the LLM"},
     )
     prefix_name: str = field(
@@ -98,21 +105,23 @@ class LLMAnalyzeArguments:
         metadata={'help': 'number of passages to provide per question.'}
     )
 
-def rougel_score(prediction, ground_truth):
-    # no normalization
-    try:
-        scores = rouge.get_scores(prediction, ground_truth, avg=True)
-    except ValueError:  # "Hypothesis is empty."
-        return 0.0
-    return scores["rouge-l"]["f"]
+# def rougel_score(prediction, ground_truth):
+#     # no normalization
+#     try:
+#         scores = hf_rouge.compute(predictions=[prediction], references=[ground_truth])
+#         # rouge.get_scores(prediction, ground_truth, avg=True)
+#     except ValueError:  # "Hypothesis is empty."
+#         return 0.0
+#     return scores['rougeLsum']
+#     #return scores["rouge-l"]["f"]
 
-def metric_max_over_ground_truths(prediction, ground_truths):
-    scores_for_ground_truths = []
-    for ground_truth in ground_truths:
-        if 'answer' in ground_truth:
-            score = rougel_score(prediction, ground_truth['answer'])
-            scores_for_ground_truths.append(score)
-    return max(scores_for_ground_truths)
+# def metric_max_over_ground_truths(prediction, ground_truths):
+#     scores_for_ground_truths = []
+#     for ground_truth in ground_truths:
+#         if 'answer' in ground_truth:
+#             score = rougel_score(prediction, ground_truth['answer'])
+#             scores_for_ground_truths.append(score)
+#     return max(scores_for_ground_truths)
 
 def load_jsonl(file_name):
     json_lines = []
@@ -122,7 +131,7 @@ def load_jsonl(file_name):
            json_lines.append(json.loads(line))
     return json_lines
 
-def get_answer(service, instance, args, n_doc=3):
+def get_answer(service, instance, args, n_doc=3, examples=None):
 
     passages = []
     if args.use_passages:
@@ -133,20 +142,39 @@ def get_answer(service, instance, args, n_doc=3):
             if i >= n_doc:
                 break
 
-    r = service.predict([instance["input"]], [passages], **asdict(args))
+    r = service.predict([instance["input"]], [passages], examples=examples, **asdict(args))
 
-    metric = metric_max_over_ground_truths(r[0]['text'], instance['output'])
+    refs = []
+    for item in instance['output']:
+        if 'answer' in item:
+            refs.append(item['answer'])
+
+    hf_metric, kilt_metric = rouge._metric_max_over_ground_truths(r[0]['text'], refs)
     text_generated = r[0]['text']
     
-    return metric, text_generated, passages
+    return hf_metric, kilt_metric, text_generated, passages
 
-def get_examples(n_shot=1):
-   return None
-
+def get_examples(reader, data, n_shot=1):
+    text = ""
+    keys = random.sample(data.keys(), n_shot)
+  
+    for key in keys:
+        example = data[key]
+        contexts = []
+        psg_cnt = 0
+        for passage in example['passages']:
+            contexts.append(passage['text'])
+            psg_cnt += 1
+            if psg_cnt >= 3:
+                break
+        text += "Example: " + reader.create_prompt(question=example['input'],contexts=contexts,prefix="", suffix=None)
+        text += " Answer: " + example['output'][0]['answer']
+    return text
 def main():
 
     count = 0
-    avg_rougeL = 0
+    hf_avg_rougeL = 0
+    kilt_avg_rougeL = 0
     
     parser = HfArgumentParser(LLMAnalyzeArguments)
     args = parser.parse_args_into_dataclasses()[0]
@@ -162,7 +190,7 @@ def main():
     reference_data = load_jsonl(args.input_file)
 
     model_dir = args.model_name.replace("/","-") + "/prefix_" + args.prefix_name + "-passages_" + str(args.use_passages) + "-" + \
-        str(args.n_shot) + "shot_pktemp-" + str(args.top_p) + "_" + str(args.top_k) + "_" + str(args.temperature) \
+        str(args.n_shot) + "shot_pktemp-" + str(args.top_p) + "_" + str(args.top_k) + "_" + str(args.temperature) + "-nctx_" + str(args.num_context) \
         + "-minmaxtok_" + str(args.min_new_tokens) + "_" + str(args.max_new_tokens)
 
     # generate a unique name for this directory so that we can identify based on the dir
@@ -178,9 +206,9 @@ def main():
     if args.subset_end == -1 or int(args.subset_end) > len(reference_data):
         args.subset_end = len(reference_data)
 
-    if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
-         logging.error(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
-         sys.exit(0)
+    # if os.path.exists(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json'):
+    #      logging.error(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + ".json exists and is not empty")
+    #      sys.exit(0)
     fp = open(args.output_dir + "/" + model_dir + "/" + 'predictions-' + str(args.subset_start) + "-" + str(args.subset_end) + '.json', 'w')
     fpass = None
     if args.save_passages:
@@ -188,11 +216,22 @@ def main():
 
     selected_data = reference_data[args.subset_start:args.subset_end]
 
+    # for n-shot
+    ELI5 = {}
+    with open("/dccstor/srosent2/generative/eli5-sample/5-ELI5-train-examples-for-evaluation.jsonl",'r') as f:
+        for line in f.readlines():
+            data = json.loads(line)
+            ELI5[data['id']] = data
+
     for instance_id in tqdm(range(0, len(selected_data)), desc='Generating answer for every instance'):
         answer = {}
+        examples = None
 
-        rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args, n_doc=args.num_context)
-        answer['rouge'] = rouge_metric
+        if args.n_shot != 0:
+            examples = get_examples(reader, ELI5, args.n_shot)
+        hf_rouge_metric, kilt_rouge_metric, text_generated, passages = get_answer(reader, selected_data[instance_id], args, n_doc=args.num_context, examples=examples)
+        answer['hf_rouge'] = hf_rouge_metric
+        answer['kilt_rouge'] = kilt_rouge_metric
         answer['text'] = text_generated
         answer['id'] = selected_data[instance_id]['id']
         answer['question'] = selected_data[instance_id]['input']
@@ -201,10 +240,12 @@ def main():
             fpass.write("\n")
         json.dump(answer, fp)
         fp.write("\n")
-        avg_rougeL += rouge_metric
+        hf_avg_rougeL += hf_rouge_metric
+        kilt_avg_rougeL += kilt_rouge_metric
         count += 1
     fp.close()   
-    print("RougeL: " + str(avg_rougeL/count))
+    print("HF RougeL: " + str(hf_avg_rougeL/count))
+    print("Kilt RougeL: " + str(kilt_avg_rougeL/count))
 
 if __name__ == '__main__':
    main()

@@ -176,12 +176,13 @@ class PromptFLANT5Reader(PromptReader):
     def load(self, *args, **kwargs):
         if kwargs["model"] is not None:
             self.model_name = kwargs['model']
+
         if self.use_bam:
             self.model = LLMService(
                 token=self.api_key, model_id=self.model_name
             )
         else:
-            self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
                 self.model_name
             )
@@ -203,22 +204,27 @@ class PromptFLANT5Reader(PromptReader):
             if contexts: 
                 passages = contexts[i]
 
-            prompt = self.create_prompt(q, passages, prefix=kwargs["prefix"], suffix=kwargs["suffix"])
+            prefix = kwargs["prefix"]
+            
+            if "examples" in kwargs and kwargs["examples"] is not None:
+                prefix += " " + kwargs["examples"]
+
+            prompt = self.create_prompt(q, passages, prefix=prefix, suffix=kwargs["suffix"])
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
             
             # if the length is greater than the max sequence length for T5, truncate and add the suffix (e.g. "Answer: ") at the end.
-            if len(inputs['input_ids'][0]) > 512:
-                prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
-                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            # if len(inputs['input_ids'][0]) > 512:
+            #     prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
+            #     inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
             if self.use_bam:
                 r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
                 predictions[i] = {"text": r["results"][0]["generated_text"]}
                 
             else:
-                
-                outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
-                predictions[i] = {'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]}
+                with torch.no_grad():
+                    outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
+                    predictions[i] = {'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]}
         return predictions
 
 @dataclass
@@ -277,7 +283,11 @@ class BAMReader(PromptReader):
         max_sequence_length = 1024
 
         for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], prefix=kwargs["prefix"], suffix=kwargs["suffix"])
+            prefix = kwargs["prefix"]
+            
+            if "examples" in kwargs:
+                prefix += " " + kwargs["examples"]
+            prompt = self.create_prompt(q, contexts[i], prefix=prefix, suffix=kwargs["suffix"])
             inputs = self.tokenizer(prompt, return_tensors="pt")
 
             if len(inputs['input_ids'][0]) > max_sequence_length:
