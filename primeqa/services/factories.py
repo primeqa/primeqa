@@ -11,6 +11,7 @@ from primeqa.components.base import (
 )
 from primeqa.components.reader.extractive import ExtractiveReader
 from primeqa.components.reader.generative import GenerativeReader, GenerativeFiDReader
+from primeqa.components.reader.prompt import PromptReader, PromptFLANT5Reader
 
 from primeqa.components.retriever.dense import ColBERTRetriever, DPRRetriever
 from primeqa.components.retriever.sparse import BM25Retriever
@@ -22,6 +23,7 @@ from primeqa.components.indexer.sparse import BM25Indexer
 READERS_REGISTRY = {
     ExtractiveReader.__name__: ExtractiveReader,
     GenerativeReader.__name__: GenerativeFiDReader,
+    PromptReader.__name__: PromptFLANT5Reader
 }
 
 RETRIEVERS_REGISTRY = {
