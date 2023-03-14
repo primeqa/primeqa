@@ -197,7 +197,7 @@ class PromptFLANT5Reader(PromptReader):
         default = None
     )
     model_name: str = field(
-        default="google/flan-t5-small",
+        default="google/flan-t5-large",
         metadata={"name": "Model"},
     )
     max_new_tokens: int = field(
