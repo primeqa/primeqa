@@ -1,5 +1,6 @@
 import datasets
 import pytest
+import pandas as pd
 from datasets import Dataset
 from transformers import AutoTokenizer
 
@@ -19,6 +20,44 @@ class TestSQUADQAPreprocessor(UnitTest):
     @pytest.fixture(scope='session')
     def eval_examples(self):
         examples = datasets.load_dataset("squad", "plain_text", split='validation[:100]')
+        return examples
+    
+    @pytest.fixture(scope='session')
+    def original_squad_examples(self):
+        examples = {
+            "data": [ [
+            {
+                "title": "Super_Bowl_50",
+                "paragraphs": [
+                    {
+                        "context": "Super Bowl 50 was an American football game to determine the champion of the National Football League (NFL) for the 2015 season. The American Football Conference (AFC) champion Denver Broncos defeated the National Football Conference (NFC) champion Carolina Panthers 24\u201310 to earn their third Super Bowl title. The game was played on February 7, 2016, at Levi's Stadium in the San Francisco Bay Area at Santa Clara, California. As this was the 50th Super Bowl, the league emphasized the \"golden anniversary\" with various gold-themed initiatives, as well as temporarily suspending the tradition of naming each Super Bowl game with Roman numerals (under which the game would have been known as \"Super Bowl L\"), so that the logo could prominently feature the Arabic numerals 50.",
+                        "qas": [
+                            {
+                                "answers": [
+                                {
+                                    "answer_start": 177,
+                                    "text": "Denver Broncos"
+                                },
+                                {
+                                    "answer_start": 177,
+                                    "text": "Denver Broncos"
+                                },
+                                {
+                                    "answer_start": 177,
+                                    "text": "Denver Broncos"
+                                }
+                            ],
+                            "question": "Which NFL team represented the AFC at Super Bowl 50?",
+                            "id": "56be4db0acb8001400a502ec"
+                            },
+                        ]
+                    }
+                ]
+            }
+            ]
+        ],
+        "version": "1.1"
+        }
         return examples
 
     @pytest.fixture(scope='class')
@@ -47,6 +86,16 @@ class TestSQUADQAPreprocessor(UnitTest):
         assert isinstance(eval_examples, Dataset)
         assert isinstance(eval_features, Dataset)
         for example in eval_examples:
+            assert min(example['target']['start_positions']) >= -1
+            assert min(example['target']['end_positions']) >= -1
+            assert min(example['target']['passage_indices']) >= -1
+            
+    def test_original_squad_format_runs_without_errors(self, original_squad_examples, squad_preprocessor):
+        raw_dataset = datasets.Dataset.from_pandas(pd.DataFrame(data=original_squad_examples))
+        examples,features = squad_preprocessor.process_eval(raw_dataset)
+        assert isinstance(examples, Dataset)
+        assert isinstance(features, Dataset)
+        for example in examples:
             assert min(example['target']['start_positions']) >= -1
             assert min(example['target']['end_positions']) >= -1
             assert min(example['target']['passage_indices']) >= -1
