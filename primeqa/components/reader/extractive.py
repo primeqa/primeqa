@@ -48,7 +48,7 @@ class ExtractiveReader(BaseReader):
     )
     confidence_model: str = field(
         default=None,
-        metadata={"name": "Confidence Calibrator Model", "api_support": True},
+        metadata={"name": "Confidence Calibrator Model"},
     )
     use_fast: bool = field(
         default=True,
