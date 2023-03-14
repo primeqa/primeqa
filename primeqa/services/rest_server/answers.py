@@ -67,7 +67,6 @@ def get_answers(request: GetAnswersRequest):
         )
         if os.path.exists(confidence_model):
             reader_kwargs["confidence_model"] = confidence_model
-            reader_kwargs["use_confidence_model"] = True 
 
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:

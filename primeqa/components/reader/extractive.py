@@ -29,7 +29,6 @@ class ExtractiveReader(BaseReader):
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
-        use_confidence_model: (bool,optional): Use confidence model in scoring. Requires confidence calibrator model
         confidence_model (str,optional)
 
     Important:
@@ -50,14 +49,6 @@ class ExtractiveReader(BaseReader):
     confidence_model: str = field(
         default=None,
         metadata={"name": "Confidence Calibrator Model", "api_support": True},
-    )
-    use_confidence_model: bool = field(
-        default=False,
-        metadata={
-            "name": "Use confidence model in scoring. Requires confidence calibrator model",
-            "options": [True, False],
-            "api_support": True
-        },
     )
     use_fast: bool = field(
         default=True,
@@ -153,7 +144,7 @@ class ExtractiveReader(BaseReader):
 
     def load(self, *args, **kwargs):
         
-        if self.use_confidence_model:
+        if self.confidence_model is not None:
             task_heads = EXTRACTIVE_WITH_CONFIDENCE_HEAD
         else:
             task_heads = EXTRACTIVE_HEAD
@@ -242,7 +233,7 @@ class ExtractiveReader(BaseReader):
             max_answer_length=max_answer_length,
             scorer_type=self._scorer_type_as_enum,
             confidence_model_path=self.confidence_model,
-            output_confidence_feature=self.use_confidence_model,
+            output_confidence_feature=True if self.confidence_model is not None else False,
         )
 
         # Step 3: Load trainer
