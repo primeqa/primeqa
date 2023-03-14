@@ -29,10 +29,6 @@ class ExtractiveReader(BaseReader):
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
-<<<<<<< HEAD
-=======
-        use_confidence_model: (bool,optional): Use confidence model in scoring. Requires confidence calibrator model
->>>>>>> 8bd3ea79 (add confidence model to extractive reader)
         confidence_model (str,optional)
 
     Important:
