@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from dataclasses import dataclass, field
 import json
 from .LLMService import LLMService
@@ -13,6 +13,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PromptReader(BaseReader):
+
+    prefix: str = field(
+        default="Answer the following question after looking at the text.",
+        metadata={"name": "The prompt prefix",             
+            "api_support": False,
+            "exclude_from_hash": True},
+    )
+    suffix: str = field(
+        default="Answer: ",
+        metadata={"name": "The prompt suffix",             
+            "api_support": False,
+            "exclude_from_hash": True,}
+    )
     
     def __post_init__(self):
         # Placeholder variables
@@ -39,7 +52,7 @@ class PromptReader(BaseReader):
     def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix="", suffix="") -> str:
+    def create_prompt(self, question: str, contexts: List[str], prefix="", suffix="", **kwargs) -> str:
         prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
@@ -51,11 +64,27 @@ class PromptReader(BaseReader):
             prompt += " " + suffix + ":"
         return prompt
 
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
+
+
 
 
 @dataclass
 class PromptGPTReader(PromptReader):
     api_key: str = field(
+        default=None,
         metadata={"name": "The API key for OPENAI"},
     )
     model_name: str = field(
@@ -94,6 +123,20 @@ class PromptGPTReader(PromptReader):
 
     def load(self, *args, **kwargs):
         openai.api_key = self.api_key
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
 
     def predict(
         self,
@@ -139,7 +182,11 @@ class PromptGPTReader(PromptReader):
                     text = response.choices[0]["text"]
                 else:
                     text = "Something went wrong with the GPT service"
-                predictions[i] = {"text": text}
+                processed_prediction = {}
+                processed_prediction["example_id"] = i
+                processed_prediction["span_answer_text"] = text
+                processed_prediction["confidence_score"] = 1
+                predictions[i] = [processed_prediction]
         return predictions
 
 
@@ -150,7 +197,7 @@ class PromptFLANT5Reader(PromptReader):
         default = None
     )
     model_name: str = field(
-        default="google/flan-t5-xxl",
+        default="google/flan-t5-small",
         metadata={"name": "Model"},
     )
     max_new_tokens: int = field(
@@ -211,7 +258,7 @@ class PromptFLANT5Reader(PromptReader):
         example_ids: List[str] = None,
         *args,
         **kwargs,
-    ):
+    ) -> Dict[str, List[Dict]]:
         predictions = {}
 
         for i, q in enumerate(questions):
@@ -221,26 +268,39 @@ class PromptFLANT5Reader(PromptReader):
 
             prompt = self.create_prompt(q, passages, **kwargs)
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-            
-            # if the length is greater than the max sequence length for T5, truncate and add the suffix (e.g. "Answer: ") at the end.
-            if len(inputs['input_ids'][0]) > 512:
-                prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=512-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
-                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-
+            span_answer_text = ""
             if self.use_bam:
                 r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
-                predictions[i] = {"text": r["results"][0]["generated_text"]}
-                
+                span_answer_text= r["results"][0]["generated_text"]
             else:
-                
                 outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
-                predictions[i] = {'text': self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]}
+                span_answer_text = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+            processed_prediction = {}
+            processed_prediction["example_id"] = i
+            processed_prediction["span_answer_text"] = span_answer_text
+            processed_prediction["confidence_score"] = 1
+            predictions[i] = [processed_prediction]
         return predictions
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
 
 @dataclass
 class BAMReader(PromptReader):
 
     api_key: str = field(
+        default=None,
         metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
     )
     model_name: str = field(
@@ -281,6 +341,20 @@ class BAMReader(PromptReader):
         self.model = LLMService(token=self.api_key, model_id=self.model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
+
     def predict(
         self,
         questions: List[str],
@@ -311,6 +385,10 @@ class BAMReader(PromptReader):
                 logger.error("Error running BAM service: ")
                 logger.error(r)
                 sys.exit(0)
-            predictions[i] = {"text": r["results"][0]["generated_text"]}
+            processed_prediction = {}
+            processed_prediction["example_id"] = i
+            processed_prediction["span_answer_text"] = r["results"][0]["generated_text"]
+            processed_prediction["confidence_score"] = 1
+            predictions[i] = [processed_prediction]
 
         return predictions
