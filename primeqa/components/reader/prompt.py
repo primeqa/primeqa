@@ -174,7 +174,7 @@ class PromptFLANT5Reader(PromptReader):
         pass
 
     def load(self, *args, **kwargs):
-        if kwargs["model"] is not None:
+        if "model" in kwargs and kwargs["model"] is not None:
             self.model_name = kwargs['model']
 
         if self.use_bam:
