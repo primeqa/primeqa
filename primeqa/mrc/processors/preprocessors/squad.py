@@ -19,6 +19,7 @@ class SQUADPreprocessor(BasePreProcessor):
             self._single_context_multiple_passages = True
 
     def _flatten_examples(self, example: Example):
+        """Convert examples from original SQUAD schema to Huggingface SQuAD schema."""
         contexts = []
         ids = []
         questions = []
@@ -45,7 +46,8 @@ class SQUADPreprocessor(BasePreProcessor):
     
     def adapt_dataset(self, dataset: Dataset, is_train: bool) -> Dataset:
         
-        # convert dataset in the original SQUAD format to HF format
+        """ Handles data in HF and original SQUAD format"""
+        
         if "data" in dataset.features:
             dataset = dataset.map(
                 self._flatten_examples, remove_columns=["data", "version"], batched=True
