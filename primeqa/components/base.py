@@ -155,3 +155,40 @@ class Indexer:
     @abstractmethod
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
+    
+@dataclass(init=False, repr=False, eq=False)
+class Reranker(Component):
+    
+    @abstractmethod
+    def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `Retriever`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def get_engine_type(cls) -> str:
+        """
+        Return this retriever engine type. Must match with the indexer used to generate the index.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            str: engine type
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def predict(self, queries: List[str], 
+                    doc_indexes:  List[List[int]],
+                    texts: List[List[str]],
+                    *args, 
+                    **kwargs):
+        pass
