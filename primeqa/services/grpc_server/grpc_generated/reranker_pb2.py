@@ -16,7 +16,7 @@ from . import parameter_pb2 as parameter__pb2
 from . import retriever_pb2 as retriever__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0ereranker.proto\x12\x06rerank\x1a\x0fparameter.proto\x1a\x0fretriever.proto\"I\n\x08Reranker\x12\x13\n\x0breranker_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x15\n\x13GetRerankersRequest\";\n\x14GetRerankersResponse\x12#\n\trerankers\x18\x01 \x03(\x0b\x32\x10.rerank.Reranker\"\x85\x01\n\rRerankRequest\x12\"\n\x08reranker\x18\x01 \x01(\x0b\x32\x10.rerank.Reranker\x12\x0f\n\x07queries\x18\x02 \x03(\t\x12\x1b\n\x04hits\x18\x03 \x03(\x0b\x32\r.retrieve.Hit\x12\x15\n\x08index_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_index_id\"5\n\x0eRerankResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2\x95\x01\n\x0fRerankerService\x12I\n\x0cGetRerankers\x12\x1b.rerank.GetRerankersRequest\x1a\x1c.rerank.GetRerankersResponse\x12\x37\n\x06Rerank\x12\x15.rerank.RerankRequest\x1a\x16.rerank.RerankResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0ereranker.proto\x12\x06rerank\x1a\x0fparameter.proto\x1a\x0fretriever.proto\"I\n\x08Reranker\x12\x13\n\x0breranker_id\x18\x01 \x01(\t\x12(\n\nparameters\x18\x02 \x03(\x0b\x32\x14.parameter.Parameter\"\x15\n\x13GetRerankersRequest\";\n\x14GetRerankersResponse\x12#\n\trerankers\x18\x01 \x03(\x0b\x32\x10.rerank.Reranker\"\x95\x01\n\rRerankRequest\x12\"\n\x08reranker\x18\x01 \x01(\x0b\x32\x10.rerank.Reranker\x12\x0f\n\x07queries\x18\x02 \x03(\t\x12+\n\x0chitsperquery\x18\x03 \x03(\x0b\x32\x15.retrieve.HitPerQuery\x12\x15\n\x08index_id\x18\x04 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_index_id\"5\n\x0eRerankResponse\x12#\n\x04hits\x18\x01 \x03(\x0b\x32\x15.retrieve.HitPerQuery2\x95\x01\n\x0fRerankerService\x12I\n\x0cGetRerankers\x12\x1b.rerank.GetRerankersRequest\x1a\x1c.rerank.GetRerankersResponse\x12\x37\n\x06Rerank\x12\x15.rerank.RerankRequest\x1a\x16.rerank.RerankResponseb\x06proto3')
 
 
 
@@ -71,9 +71,9 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _GETRERANKERSRESPONSE._serialized_start=158
   _GETRERANKERSRESPONSE._serialized_end=217
   _RERANKREQUEST._serialized_start=220
-  _RERANKREQUEST._serialized_end=353
-  _RERANKRESPONSE._serialized_start=355
-  _RERANKRESPONSE._serialized_end=408
-  _RERANKERSERVICE._serialized_start=411
-  _RERANKERSERVICE._serialized_end=560
+  _RERANKREQUEST._serialized_end=369
+  _RERANKRESPONSE._serialized_start=371
+  _RERANKRESPONSE._serialized_end=424
+  _RERANKERSERVICE._serialized_start=427
+  _RERANKERSERVICE._serialized_end=576
 # @@protoc_insertion_point(module_scope)

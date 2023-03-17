@@ -43,7 +43,7 @@ message GetRerankersResponse {
 message RerankRequest {
     Reranker reranker = 1;
     repeated string queries = 2;
-    repeated retrieve.Hit hits = 3;
+    repeated retrieve.HitPerQuery hitsperquery = 3;
     optional string index_id = 4; 
 }
 
