@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Dict
 import os
 from dataclasses import dataclass, field
 import json
@@ -10,11 +10,11 @@ from sentence_transformers import CrossEncoder
 
 
 @dataclass
-class CrossEncoderReranker(BaseReranker):
+class STCrossEncoderReranker(BaseReranker):
     """_summary_
 
     Args:
-        checkpoint (str, optional): Model to load. 
+        model (str, optional): Model to load. 
         collection (str, optional): collection to load. Defaults to collection in index configuration.
         max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to 5.
 
@@ -29,12 +29,12 @@ class CrossEncoderReranker(BaseReranker):
 
     """
 
-    checkpoint: str = field(
+    model: str = field(
         default="cross-encoder/ms-marco-TinyBERT-L-2",
         metadata={
-            "name": "Checkpoint",
+            "name": "Model",
             "api_support": True,
-            "description": "Path to checkpoint",
+            "description": "Path to model",
         },
     )
     max_num_documents: int = field(
@@ -44,6 +44,14 @@ class CrossEncoderReranker(BaseReranker):
             "range": [1, 100, 1],
             "api_support": True,
             "exclude_from_hash": True,
+        },
+    )
+    include_title: bool = field(
+        default=True,
+        metadata={
+            "name": "Include Title",
+            "description": "Whether to concate text and title",
+            "choices": "True|False"
         },
     )
 
@@ -66,7 +74,7 @@ class CrossEncoderReranker(BaseReranker):
         )
 
     def load(self, *args, **kwargs):
-        self._model =  CrossEncoder(self.checkpoint)
+        self._loaded_model =  CrossEncoder(self.model)
 
 
     def train(self, *args, **kwargs):
@@ -76,18 +84,26 @@ class CrossEncoderReranker(BaseReranker):
         pass
     
     def predict(self, queries: List[str], 
-                    doc_ids:  List[List[str]],
-                    texts: List[List[str]],
+                    documents:  List[List[Dict]],
                     *args, 
                     **kwargs):
         """
         Args:
             queries (List[str]): search queries
-            texts (List[List[str]]): For each query, a list of texts to rank
-            doc_ids:  List[List[str]]: For each query, the ids for each text
-
+            texts (List[List[Dict]]): For each query, a list of documents to rerank
+                where each document is a dictionary with the following structure:
+                {
+                    "document": {
+                        "text": "A man is eating food.",
+                        "document_id": "0",
+                        "title": "food"
+                    },
+                    "score": 1.4
+                }
+        
         Returns:
-            Any: List of tuples. Each tuple contains a document identifier  and relevancy score
+            List[List[Dict]] For each query a list of reranked documents in the same 
+            structure as the input documents with the score replace with the reranker score.
         """
         # Step 1: Locally update object variable values, if provided
         max_num_documents = (
@@ -96,15 +112,32 @@ class CrossEncoderReranker(BaseReranker):
             else self.max_num_documents
         )
         
+        
+        include_title = (
+            kwargs["include_title"]
+            if "include_title" in kwargs
+            else self.include_title
+        )
+        
         ranking_results = []
-        for query, passages, ids in zip(queries, texts, doc_ids):
-            model_inputs = [[query, passage] for passage in passages]
-            scores = self._model.predict(model_inputs).tolist()
+        for query, docs in zip(queries, documents):
+            texts = []                
+            for p in docs:
+                if include_title and 'title' in p['document'] and len(p['document']['title'].strip()) > 0:
+                    texts.append(p['document']['title'] + '\n\n' + p['document']['text'])
+                else:
+                    texts.append(p['document']['text'])
+                    
+            model_inputs = [[query, text] for text in texts]
+            
+            scores = self._loaded_model.predict(model_inputs).tolist()
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
             
             results = []
             for idx in ranked_passage_indexes:
-                results.append( (ids[idx], scores[idx]) )
+                docs[idx]['score'] = scores[idx]
+                results.append(docs[idx])
             ranking_results.append(results)
+            
         return ranking_results
     

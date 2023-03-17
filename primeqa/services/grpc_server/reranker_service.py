@@ -2,6 +2,7 @@ import logging
 from typing import Union
 
 from grpc import ServicerContext, StatusCode
+from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.configurations import Settings
 from primeqa.services.parameters import get_parameter_type
@@ -190,31 +191,12 @@ class RerankerService(RerankerServiceServicer):
         )
         try:
             
-            document_ids = []
-            texts = []
-            titles = []
-            docid_doc_mappings = []
-            for queryhits in request.hitsperquery:
-                q_doc_ids = []
-                q_texts = []
-                q_docid_to_doc = {}
-                for hit in queryhits.hits:
-                    q_texts.append(hit.document.text)
-                    q_doc_ids.append(hit.document.document_id)
-                    if hit.document.document_id in q_docid_to_doc:
-                        context.set_code(StatusCode.INTERNAL)
-                        context.set_details(
-                            ErrorMessages.FAILED_TO_INITIALIZE.value.format(
-                                f"{reranker.reranker_id} reranker"
-                            )
-                        )
-                        return RerankResponse()
-                    q_docid_to_doc[hit.document.document_id] =  hit.document
-                document_ids.append(q_doc_ids)
-                texts.append(q_texts)
-                docid_doc_mappings.append(q_docid_to_doc)
+            request_dict = MessageToDict(request, preserving_proto_field_name=True)
+            queries = request_dict["queries"]
+            documentsperquery = [queryhits["hits"] for queryhits in request_dict["hitsperquery"]]
+
+            results = instance.predict(queries=queries, documents=documentsperquery, **reranker_kwargs)
             
-            results = instance.predict(queries=request.queries, texts=texts, doc_ids=document_ids, **reranker_kwargs)
             self._logger.info(
                 "Applying '%s' reranker for queries = %s returns results = %s",
                 instance.__class__.__name__,
@@ -230,26 +212,6 @@ class RerankerService(RerankerServiceServicer):
             )
             return RerankResponse()
 
-        hits = []
-        for q, result_per_query in enumerate(results):
-            hits_per_query = []
-            docid_doc_mapping = docid_doc_mappings[q]
-            for hit in result_per_query:
-                docid = hit[0]
-                try:
-                    hits_per_query.append(
-                        Hit(
-                            document=Document(
-                                text=docid_doc_mapping[docid].text,
-                                document_id=docid,
-                                title=docid_doc_mapping[docid].title
-                            ),
-                            score=hit[1],
-                        )
-                    )
-                except (FileNotFoundError, KeyError):
-                    continue
+        reranked_results = [ HitPerQuery(hits=r) for r in results]
 
-            hits.append(HitPerQuery(hits=hits_per_query))
-
-        return RerankResponse(hits=hits)
+        return RerankResponse(hits=reranked_results)

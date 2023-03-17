@@ -18,7 +18,8 @@ from primeqa.components.retriever.sparse import BM25Retriever
 from primeqa.components.indexer.dense import ColBERTIndexer
 from primeqa.components.indexer.sparse import BM25Indexer
 
-from primeqa.components.reranker.cross_encoder_reranker import CrossEncoderReranker
+from primeqa.components.reranker.st_cross_encoder_reranker import STCrossEncoderReranker
+from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
 
 
 READERS_REGISTRY = {
@@ -37,7 +38,8 @@ INDEXERS_REGISTRY = {
 }
 
 RERANKERS_REGISTRY = {
-    CrossEncoderReranker.__name__: CrossEncoderReranker,
+    STCrossEncoderReranker.__name__: STCrossEncoderReranker,
+    SeqClassificationReranker.__name__: SeqClassificationReranker,
 }
 
 
