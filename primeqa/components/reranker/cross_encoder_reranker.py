@@ -30,17 +30,11 @@ class CrossEncoderReranker(BaseReranker):
     """
 
     checkpoint: str = field(
-        default=None,
+        default="cross-encoder/ms-marco-TinyBERT-L-2",
         metadata={
             "name": "Checkpoint",
+            "api_support": True,
             "description": "Path to checkpoint",
-        },
-    )
-    collection: str = field(
-        default=None,
-        metadata={
-            "name": "Collection",
-            "description": "Path to collection",
         },
     )
     max_num_documents: int = field(
