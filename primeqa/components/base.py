@@ -172,22 +172,9 @@ class Reranker(Component):
         """
         raise NotImplementedError
 
-    @classmethod
-    def get_engine_type(cls) -> str:
-        """
-        Return this retriever engine type. Must match with the indexer used to generate the index.
-
-        Raises:
-            NotImplementedError:
-
-        Returns:
-            str: engine type
-        """
-        raise NotImplementedError
-
     @abstractmethod
     def predict(self, queries: List[str], 
-                    doc_indexes:  List[List[int]],
+                    doc_ids:  List[List[str]],
                     texts: List[List[str]],
                     *args, 
                     **kwargs):

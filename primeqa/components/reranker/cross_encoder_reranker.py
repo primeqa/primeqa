@@ -68,9 +68,6 @@ class CrossEncoderReranker(BaseReranker):
     def load(self, *args, **kwargs):
         self._model =  CrossEncoder(self.checkpoint)
 
-    @classmethod
-    def get_engine_type(cls):
-        return "CrossEncoder"
 
     def train(self, *args, **kwargs):
         pass
@@ -79,15 +76,15 @@ class CrossEncoderReranker(BaseReranker):
         pass
     
     def predict(self, queries: List[str], 
-                    doc_indexes:  List[List[int]],
+                    doc_ids:  List[List[str]],
                     texts: List[List[str]],
                     *args, 
                     **kwargs):
         """
         Args:
             queries (List[str]): search queries
-            texts (List[List[str]]): list of texts to rerank per query
-            doc_indexes:  List[List[int]]
+            texts (List[List[str]]): For each query, a list of texts to rank
+            doc_ids:  List[List[str]]: For each query, the ids for each text
 
         Returns:
             Any: List of tuples. Each tuple contains a document identifier  and relevancy score
@@ -100,14 +97,14 @@ class CrossEncoderReranker(BaseReranker):
         )
         
         ranking_results = []
-        for query, passages in zip(queries, texts):
+        for query, passages, ids in zip(queries, texts, doc_ids):
             model_inputs = [[query, passage] for passage in passages]
             scores = self._model.predict(model_inputs).tolist()
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
             
             results = []
             for idx in ranked_passage_indexes:
-                results.append( (idx, scores[idx]) )
+                results.append( (ids[idx], scores[idx]) )
             ranking_results.append(results)
         return ranking_results
     
