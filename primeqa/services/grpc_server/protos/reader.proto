@@ -25,19 +25,19 @@ package reader;
 service ReadingService {
     rpc GetReaders (GetReadersRequest) returns (GetReadersResponse);
     rpc GetAnswers (GetAnswersRequest) returns (GetAnswersResponse);
-}
+};
 
 message Reader {
     string reader_id = 1;
     repeated parameter.Parameter parameters = 2;
-}
+};
 
 message GetReadersRequest {
-}
+};
 
 message GetReadersResponse {
     repeated Reader readers = 1;
-}
+};
 
 /**
     Given a pair of question and one or more context texts, returns up to max_num_answers answers
@@ -47,27 +47,36 @@ message GetAnswersRequest {
     Reader reader = 1;
     repeated string queries = 2;
     repeated Contexts contexts = 3;
-}
+};
 
 message Contexts {
     repeated string texts = 1;
-}
+};
+
+message Offset {
+    uint32 start = 1;
+    uint32 end = 2;
+};
+
+message Evidence {
+    optional uint32 context_index = 1;
+    optional string text = 2;
+    repeated Offset offsets = 3;
+};
 
 message Answer {
     string text = 1;
     double confidence_score = 2;
-    optional uint32 context_index = 3;
-    optional uint32 start_char_offset = 4;
-    optional uint32 end_char_offset = 5;
+    repeated Evidence evidences = 3;
 };
 
 message AnswersForContext {
     repeated Answer answers = 1;
-}
+};
 
 message AnswersForQuery {
     repeated AnswersForContext context_answers = 1;
-}
+};
 
 /**
     An answer or answers to a question containing the text,
@@ -75,4 +84,4 @@ message AnswersForQuery {
 */
 message GetAnswersResponse {
     repeated AnswersForQuery query_answers = 1;
-}
+};

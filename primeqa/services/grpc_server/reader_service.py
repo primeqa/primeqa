@@ -1,10 +1,9 @@
 import logging
 from typing import Union
 
-from primeqa.components.reader.extractive import ExtractiveReader
-
 from grpc import ServicerContext, StatusCode
 
+from primeqa.components.reader.extractive import ExtractiveReader
 from primeqa.services.exceptions import Error, ErrorMessages
 from primeqa.services.configurations import Settings
 from primeqa.services.grpc_server.utils import (
@@ -28,6 +27,8 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     AnswersForContext,
     AnswersForQuery,
     GetAnswersResponse,
+    Evidence,
+    Offset,
 )
 
 
@@ -179,15 +180,23 @@ class ReaderService(ReadingServiceServicer):
                                                 confidence_score=prediction[
                                                     "confidence_score"
                                                 ],
-                                                context_index=int(
-                                                    prediction["example_id"]
-                                                ),
-                                                start_char_offset=prediction[
-                                                    "span_answer"
-                                                ]["start_position"],
-                                                end_char_offset=prediction[
-                                                    "span_answer"
-                                                ]["end_position"],
+                                                evidences=[
+                                                    Evidence(
+                                                        context_index=int(
+                                                            prediction["example_id"]
+                                                        ),
+                                                        offsets=[
+                                                            Offset(
+                                                                start=prediction[
+                                                                    "span_answer"
+                                                                ]["start_position"],
+                                                                end=prediction[
+                                                                    "span_answer"
+                                                                ]["end_position"],
+                                                            )
+                                                        ],
+                                                    )
+                                                ],
                                             )
                                             for prediction in predictions_for_context
                                         ]

@@ -174,10 +174,10 @@ class GenerativeFiDReader(GenerativeReader):
             post_process_function=postprocessor.process,
         )
 
-    def eval(self, *args, **kwargs):
+    def train(self, *args, **kwargs):
         pass
 
-    def train(self, *args, **kwargs):
+    def eval(self, *args, **kwargs):
         pass
 
     def predict(
