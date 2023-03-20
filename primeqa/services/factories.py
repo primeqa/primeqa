@@ -38,7 +38,6 @@ INDEXERS_REGISTRY = {
 }
 
 RERANKERS_REGISTRY = {
-    STCrossEncoderReranker.__name__: STCrossEncoderReranker,
     SeqClassificationReranker.__name__: SeqClassificationReranker,
 }
 
