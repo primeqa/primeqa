@@ -6,12 +6,7 @@ from google.protobuf.json_format import MessageToDict
 
 from primeqa.services.configurations import Settings
 from primeqa.services.parameters import get_parameter_type
-from primeqa.services.constants import (
-    ATTR_STATUS,
-    ATTR_CONFIGURATION,
-    ATTR_CHECKPOINT,
-    IndexStatus,
-)
+
 from primeqa.services.factories import RERANKERS_REGISTRY, RerankerFactory
 from primeqa.services.grpc_server.utils import (
     parse_parameter_value,
@@ -84,35 +79,7 @@ class RerankerService(RerankerServiceServicer):
         Returns:
             RerankResponse:
         """
-        # # Step 1: Load index information
-        # if request.index_id:
-        #     index_root = self._store.get_index_directory_path(request.index_id)
-        #     # Step 1.a: Check if `index_root` exists
-        #     if not self._store.exists(index_root):
-        #         context.set_code(StatusCode.NOT_FOUND)
-        #         context.set_details(
-        #             ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
-        #         )
-        #         return RerankResponse()
-
-        #     # Step 1.b: Load index information
-        #     index_information = self._store.get_index_information(
-        #         index_id=request.index_id
-        #     )
-        #     if index_information[ATTR_STATUS] != IndexStatus.READY.value:
-        #         context.set_code(StatusCode.INVALID_ARGUMENT)
-        #         context.set_details(
-        #             ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
-        #                 index_information[ATTR_STATUS]
-        #             )
-        #         )
-        #         return RerankResponse()
-
-        # else:
-        #     context.set_code(StatusCode.INVALID_ARGUMENT)
-        #     context.set_details(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
-        #     return RerankResponse()
-
+        
         # Verify requested reranker exists
         try:
             reranker = RERANKERS_REGISTRY[request.reranker.reranker_id]
@@ -150,22 +117,7 @@ class RerankerService(RerankerServiceServicer):
                     ),
                 )
 
-        # # Step 5: Update index specific arguments
-        # if request.index_id:
-        #     reranker_kwargs["index_root"] = self._store.get_index_directory_path(
-        #         request.index_id
-        #     )
-        #     reranker_kwargs["index_name"] = DIR_NAME_INDEX
-        #     reranker_kwargs["collection"] = self._store.get_index_documents_file_path(
-        #         index_id=request.index_id
-        #     )
-            
-        # if ATTR_CHECKPOINT not in reranker_kwargs:
-        #     reranker_kwargs[ATTR_CHECKPOINT] = self._store.get_checkpoint_path(
-        #         index_information[ATTR_CONFIGURATION][ATTR_CHECKPOINT]
-        #     )
-
-        # Step 6: Create reranker instance
+        # Create reranker instance
         try:
             instance = RerankerFactory.get(reranker, reranker_kwargs)
         except (ValueError, TypeError) as err:
@@ -173,7 +125,7 @@ class RerankerService(RerankerServiceServicer):
             context.set_details(err.args[0])
             return RerankResponse()
 
-        # Step 7: Rerank
+        # Rerank
         instance_fields = [
             k
             for k, v in instance.__class__.__dataclass_fields__.items()

@@ -46,29 +46,8 @@ STORE = StoreFactory.get_store()
 )
 def rerank_documents(request: RerankRequest):
     try:
-        # Step 1: Load index information
-        # if request.index_id:
-        #     index_root = STORE.get_index_directory_path(request.index_id)
-        #     # Step 1.a: Check if `index_root` exists
-        #     if not STORE.exists(index_root):
-        #         raise Error(
-        #             ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
-        #         )
-
-        #     # Step 1.b: Load index information
-        #     index_information = STORE.get_index_information(index_id=request.index_id)
-        #     if index_information[ATTR_STATUS] != IndexStatus.READY.value:
-        #         raise Error(
-        #             ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
-        #                 index_information[ATTR_STATUS]
-        #             )
-        #         )
-        # else:
-        #     index_information = None
-        # else:
-        #     raise Error(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
-
-        # Step 2: Verify requested reranker exists
+        
+        # Step 1: Verify requested reranker exists
         try:
             reranker = RERANKERS_REGISTRY[request.reranker.reranker_id]
         except KeyError as err:
@@ -79,20 +58,7 @@ def rerank_documents(request: RerankRequest):
                 )
             ) from err
 
-        # # Step 3: Match engine type of requested collection and reranker
-        # if (
-        #     index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE]
-        #     != reranker.get_engine_type()
-        # ):
-        #     raise Error(
-        #         ErrorMessages.MISMATCHED_ENGINE_TYPE.value.format(
-        #             index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE],
-        #             request.reranker.reranker_id,
-        #             reranker.get_engine_type(),
-        #         )
-        #     )
-
-        # Step 4: Load default reranker keyword arguments
+        # Step 2: Load default reranker keyword arguments
         reranker_kwargs = {
             k: v.default for k, v in reranker.__dataclass_fields__.items() if v.init
         }
@@ -109,27 +75,13 @@ def rerank_documents(request: RerankRequest):
 
                 reranker_kwargs[parameter.parameter_id] = parameter.value
 
-        # if index_information is not None:
-        #     # Step 5: Update index specific arguments
-        #     reranker_kwargs["index_root"] = STORE.get_index_directory_path(
-        #         request.index_id
-        #     )
-        #     reranker_kwargs["index_name"] = DIR_NAME_INDEX
-        #     reranker_kwargs["collection"] = STORE.get_index_documents_file_path(
-        #         index_id=request.index_id
-        #     )
-        #     if ATTR_CHECKPOINT in reranker_kwargs:
-        #         reranker_kwargs[ATTR_CHECKPOINT] = STORE.get_checkpoint_path(
-        #             index_information[ATTR_CONFIGURATION][ATTR_CHECKPOINT]
-        #         )
-
-        # Step 6: Create reranker instance
+        # Step 4: Create reranker instance
         try:
             instance = RerankerFactory.get(reranker, reranker_kwargs)
         except (ValueError, TypeError) as err:
             raise Error(err.args[0]) from err
 
-        # Step 7: Retrieve
+        # Step 5: Rerank
         instance_fields = [
             k
             for k, v in instance.__class__.__dataclass_fields__.items()
