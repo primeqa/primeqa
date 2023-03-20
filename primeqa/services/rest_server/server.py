@@ -31,6 +31,8 @@ from primeqa.services.rest_server import (
     indexers,
     indexes,
     answers,
+    rerankers,
+    rerankeddocuments,
 )
 
 ############################################################################################
@@ -67,6 +69,12 @@ app.include_router(router=indexes.router)
 ############################################################################################
 app.include_router(router=retrievers.router)
 app.include_router(router=documents.router)
+
+############################################################################################
+#                           Reranking APIs
+############################################################################################
+app.include_router(router=rerankers.router)
+app.include_router(router=rerankeddocuments.router)
 
 
 class RestServer:
