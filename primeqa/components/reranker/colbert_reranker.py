@@ -149,7 +149,7 @@ class ColBERTReranker(BaseReranker):
                 else:
                     texts.append(p['document']['text'])
 
-            scores = self._loaded_model.rescore(query, texts)
+            scores = self._loaded_model.rescore(query, texts).tolist()
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
 
             results = []

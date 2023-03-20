@@ -19,6 +19,7 @@ from primeqa.components.indexer.dense import ColBERTIndexer
 from primeqa.components.indexer.sparse import BM25Indexer
 
 from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+from primeqa.components.reranker.colbert_reranker import ColBERTReranker
 
 
 READERS_REGISTRY = {
@@ -38,6 +39,7 @@ INDEXERS_REGISTRY = {
 
 RERANKERS_REGISTRY = {
     SeqClassificationReranker.__name__: SeqClassificationReranker,
+    ColBERTReranker.__name__: ColBERTReranker,
 }
 
 
