@@ -170,8 +170,9 @@ python primeqa/ir/run_ir.py \
     --do_index \
     --engine_type BM25 \
     --collection <document_collection> \
-    --index_path <index_dir>
+    --index_location <index_dir>
     --threads <num_threads>
+    --fieldnames # list of column headings e.g. id text title (only required if collection tsv does not have headings)
 ```
 
 ## Retrieval

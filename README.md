@@ -101,14 +101,10 @@ When installing from source these can be modified, however this is not officiall
 
 
 ### JAVA requirements
-Java 11 is required for BM25 retrieval. 
+Java 11 is required for BM25 retrieval. Install java as follows:
 
-Download Java 11 package from https://jdk.java.net/archive/ and uncompress
-
-Set JAVA_HOME:
 ```shell
-export JAVA_HOME=<jdk-dir>
-export PATH=$JAVA_HOME/bin:$PATH
+conda install -c conda-forge openjdk=11
 ```
 
 ## 🧪 Unit Tests

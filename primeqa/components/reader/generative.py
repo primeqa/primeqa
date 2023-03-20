@@ -222,22 +222,3 @@ class GenerativeFiDReader(GenerativeReader):
             predictions[raw_prediction["id"]] = [processed_prediction]
 
         return predictions
-    def eval(self, *args, **kwargs):
-        pass
-    
-    def train(self, *args, **kwargs):
-        pass
-
-    def __hash__(self) -> int:
-        # Step 1: Identify all fields to be included in the hash
-        hashable_fields = [
-            k
-            for k, v in self.__class__.__dataclass_fields__.items()
-            if not "exclude_from_hash" in v.metadata
-            or not v.metadata["exclude_from_hash"]
-        ]
-
-        # Step 2: Run
-        return hash(
-            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
-        )

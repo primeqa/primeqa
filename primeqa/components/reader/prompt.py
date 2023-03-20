@@ -1,55 +1,49 @@
 from typing import List, Dict
 from dataclasses import dataclass, field
-import json
-from .LLMService import LLMService
-import openai
 import sys
-import logging    
-from primeqa.components.base import Reader as BaseReader
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+import logging
+import json
+
+import openai
 import torch
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+from primeqa.components.base import Reader as BaseReader
+from primeqa.components.reader.LLMService import LLMService
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class PromptReader(BaseReader):
 
     prefix: str = field(
         default="Answer the following question after looking at the text.",
-        metadata={"name": "The prompt prefix",             
+        metadata={
+            "name": "The prompt prefix",
             "api_support": False,
-            "exclude_from_hash": True},
+            "exclude_from_hash": True,
+        },
     )
     suffix: str = field(
         default="Answer: ",
-        metadata={"name": "The prompt suffix",             
+        metadata={
+            "name": "The prompt suffix",
             "api_support": False,
-            "exclude_from_hash": True,}
+            "exclude_from_hash": True,
+        },
     )
-    
-    def __post_init__(self):
-        # Placeholder variables
-        self._preprocessor = None
-        self._trainer = None
 
     def __hash__(self) -> int:
-        # Step 1: Identify all fields to be included in the hash
-        hashable_fields = [
-            k
-            for k, v in self.__class__.__dataclass_fields__.items()
-            if not "exclude_from_hash" in v.metadata
-            or not v.metadata["exclude_from_hash"]
-        ]
-
-        # Step 2: Run
-        return hash(
-            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
-        )
+        pass
 
     def load(self, *args, **kwargs):
         pass
 
-    def apply(self, input_texts: List[str], context: List[List[str]], *args, **kwargs):
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
         pass
 
     def create_prompt(self, question: str, contexts: List[str], prefix="", suffix="", **kwargs) -> str:
@@ -64,20 +58,15 @@ class PromptReader(BaseReader):
             prompt += " " + suffix + ":"
         return prompt
 
-    def __hash__(self) -> int:
-        # Step 1: Identify all fields to be included in the hash
-        hashable_fields = [
-            k
-            for k, v in self.__class__.__dataclass_fields__.items()
-            if not "exclude_from_hash" in v.metadata
-            or not v.metadata["exclude_from_hash"]
-        ]
-
-        # Step 2: Run
-        return hash(
-            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
-        )
-
+    def predict(
+        self,
+        questions: List[str],
+        contexts: List[List[str]],
+        *args,
+        example_ids: List[str] = None,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
+        pass
 
 
 
@@ -113,16 +102,12 @@ class PromptGPTReader(PromptReader):
         metadata={"name": "presence_penalty"},
     )
 
-    chat_models = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
+    def __post_init__(self):
+        # Placeholder variables
+        self._model = None
 
-    def eval(self, *args, **kwargs):
-        pass
-
-    def train(self, *args, **kwargs):
-        pass
-
-    def load(self, *args, **kwargs):
-        openai.api_key = self.api_key
+        # Default variable
+        self._chat_models = ["gpt-3.5-turbo", "gpt-3.5-turbo-0301"]
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -138,25 +123,34 @@ class PromptGPTReader(PromptReader):
             f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
         )
 
+    def load(self, *args, **kwargs):
+        openai.api_key = self.api_key
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
     def predict(
         self,
         questions: List[str],
+        *args,
         contexts: List[List[str]] = None,
         example_ids: List[str] = None,
-        *args,
         **kwargs,
     ):
         predictions = {}
         for i, q in enumerate(questions):
             passages = None
-            if contexts: 
+            if contexts:
                 passages = contexts[i]
             prompt = self.create_prompt(q, passages, **kwargs)
-            
-            if self.model_name in self.chat_models:
+
+            if self.model_name in self._chat_models:
                 response = openai.ChatCompletion.create(
                     model=self.model_name,
-                    messages = [{"role": "user", "content": prompt}],
+                    messages=[{"role": "user", "content": prompt}],
                     # temperature=self.temperature,
                     # max_tokens=self.max_new_tokens,
                     # top_p=self.top_p,
@@ -168,7 +162,7 @@ class PromptGPTReader(PromptReader):
                 else:
                     text = "Something went wrong with the GPT service"
                 predictions[i] = {"text": text}
-            else:  
+            else:
                 response = openai.Completion.create(
                     model=self.model_name,
                     prompt=prompt,
@@ -193,8 +187,7 @@ class PromptGPTReader(PromptReader):
 @dataclass
 class PromptFLANT5Reader(PromptReader):
     api_key: str = field(
-        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
-        default = None
+        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"}, default=None
     )
     model_name: str = field(
         default="google/flan-t5-large",
@@ -232,55 +225,11 @@ class PromptFLANT5Reader(PromptReader):
         default=False, metadata={"name": "if true, use bam to run FLAN-T5"}
     )
 
-    def eval(self, *args, **kwargs):
-        pass
-
-    def train(self, *args, **kwargs):
-        pass
-
-    def load(self, *args, **kwargs):
-        if self.use_bam:
-            self.model = LLMService(
-                token=self.api_key, model_id=self.model_name
-            )
-        else:
-            self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(
-                self.model_name
-            )
-            self.model = self.model.to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-
-    def predict(
-        self,
-        questions: List[str],
-        contexts: List[List[str]] = None,
-        example_ids: List[str] = None,
-        *args,
-        **kwargs,
-    ) -> Dict[str, List[Dict]]:
-        predictions = {}
-
-        for i, q in enumerate(questions):
-            passages = None
-            if contexts: 
-                passages = contexts[i]
-
-            prompt = self.create_prompt(q, passages, **kwargs)
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-            span_answer_text = ""
-            if self.use_bam:
-                r = self.model.generate([prompt], self.max_new_tokens, self.min_new_tokens)
-                span_answer_text= r["results"][0]["generated_text"]
-            else:
-                outputs = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, min_length=self.min_new_tokens, temperature=self.temperature, top_p=self.top_p)
-                span_answer_text = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
-            processed_prediction = {}
-            processed_prediction["example_id"] = i
-            processed_prediction["span_answer_text"] = span_answer_text
-            processed_prediction["confidence_score"] = 1
-            predictions[i] = [processed_prediction]
-        return predictions
+    def __post_init__(self):
+        # Placeholder variables
+        self._model = None
+        self._device = None
+        self._tokenizer = None
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -295,6 +244,62 @@ class PromptFLANT5Reader(PromptReader):
         return hash(
             f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
         )
+
+    def load(self, *args, **kwargs):
+        if self.use_bam:
+            self._model = LLMService(token=self.api_key, model_id=self.model_name)
+        else:
+            self._device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            self._model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+            self._model = self._model.to(self._device)
+        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(
+        self,
+        questions: List[str],
+        *args,
+        contexts: List[List[str]] = None,
+        example_ids: List[str] = None,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
+        predictions = {}
+
+        for question_idx, question in enumerate(questions):
+            passages = None
+            if contexts:
+                passages = contexts[question_idx]
+
+            prompt = self.create_prompt(question, passages, **kwargs)
+            inputs = self._tokenizer(prompt, return_tensors="pt").to(self._device)
+            span_answer_text = ""
+            if self.use_bam:
+                resp = self._model.generate(
+                    [prompt], self.max_new_tokens, self.min_new_tokens
+                )
+                span_answer_text = resp["results"][0]["generated_text"]
+            else:
+                outputs = self._model.generate(
+                    **inputs,
+                    max_new_tokens=self.max_new_tokens,
+                    min_length=self.min_new_tokens,
+                    temperature=self.temperature,
+                    top_p=self.top_p,
+                )
+                span_answer_text = self._tokenizer.batch_decode(
+                    outputs, skip_special_tokens=True
+                )[0]
+            processed_prediction = {}
+            processed_prediction["example_id"] = question_idx
+            processed_prediction["span_answer_text"] = span_answer_text
+            processed_prediction["confidence_score"] = 1
+            predictions[question_idx] = [processed_prediction]
+        return predictions
 
 @dataclass
 class BAMReader(PromptReader):
@@ -331,15 +336,34 @@ class BAMReader(PromptReader):
         default=5, metadata={"name": "The top_p parameter used for generation"}
     )
 
-    def eval(self, *args, **kwargs):
-        pass
+    def __post_init__(self):
+        # Placeholder variables
+        self._model = None
+        self._tokenizer = None
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
+
+    def load(self, *args, **kwargs):
+        self._model = LLMService(token=self.api_key, model_id=self.model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
     def train(self, *args, **kwargs):
         pass
 
-    def load(self, *args, **kwargs):
-        self.model = LLMService(token=self.api_key, model_id=self.model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+    def eval(self, *args, **kwargs):
+        pass
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -358,37 +382,52 @@ class BAMReader(PromptReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]] = None,   
-        example_ids: List[str] = None,
         *args,
+        contexts: List[List[str]] = None,
+        example_ids: List[str] = None,
         **kwargs,
     ):
         predictions = {}
         max_sequence_length = 1024
 
-        for i, q in enumerate(questions):
-            prompt = self.create_prompt(q, contexts[i], **kwargs)
-            inputs = self.tokenizer(prompt, return_tensors="pt")
+        for question_idx, question in enumerate(questions):
+            prompt = self.create_prompt(
+                question=question, context=contexts[question_idx], **kwargs
+            )
+            inputs = self._tokenizer(prompt, return_tensors="pt")
 
-            if len(inputs['input_ids'][0]) > max_sequence_length:
-                prompt = self.tokenizer.decode(self.tokenizer(prompt, truncation=True, max_length=max_sequence_length-len(self.tokenizer(kwargs["suffix"])['input_ids']))['input_ids'], skip_special_tokens=True) + kwargs["suffix"]
-            
-            r = self.model.generate(
+            if len(inputs["input_ids"][0]) > max_sequence_length:
+                prompt = (
+                    self._tokenizer.decode(
+                        self._tokenizer(
+                            prompt,
+                            truncation=True,
+                            max_length=max_sequence_length
+                            - len(self._tokenizer(kwargs["suffix"])["input_ids"]),
+                        )["input_ids"],
+                        skip_special_tokens=True,
+                    )
+                    + kwargs["suffix"]
+                )
+
+            resp = self._model.generate(
                 [prompt],
                 max_new_tokens=self.max_new_tokens,
                 min_new_tokens=self.min_new_tokens,
                 temperature=self.temperature,
                 top_k=self.top_k,
-                top_p=self.top_p
+                top_p=self.top_p,
             )
-            if "error" in r:
+            if "error" in resp:
                 logger.error("Error running BAM service: ")
-                logger.error(r)
+                logger.error(resp)
                 sys.exit(0)
             processed_prediction = {}
-            processed_prediction["example_id"] = i
-            processed_prediction["span_answer_text"] = r["results"][0]["generated_text"]
+            processed_prediction["example_id"] = question_idx
+            processed_prediction["span_answer_text"] = resp["results"][0][
+                "generated_text"
+            ]
             processed_prediction["confidence_score"] = 1
-            predictions[i] = [processed_prediction]
+            predictions[question_idx] = [processed_prediction]
 
         return predictions

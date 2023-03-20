@@ -22,7 +22,9 @@ def test_get_readers(mock_client):
     )
     assert response.status_code == 200
     readers = response.json()
-    assert len(readers) == 1
-    assert ["ExtractiveReader"] == [
-        reader["reader_id"] for reader in readers
-    ]
+    assert len(readers) == 3
+    assert [
+        "ExtractiveReader",
+        "GenerativeReader",
+        "PromptReader",
+    ] == [reader["reader_id"] for reader in readers]
