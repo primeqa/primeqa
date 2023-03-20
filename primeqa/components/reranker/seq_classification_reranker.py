@@ -6,7 +6,6 @@ import numpy as np
 import torch.nn.functional as F
 
 from primeqa.components.base import Reranker as BaseReranker
-from sentence_transformers import CrossEncoder
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 
