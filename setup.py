@@ -98,6 +98,7 @@ _deps = {
     "uvicorn~=0.18.0": ["install", "gpu"],
     "cachetools~=5.2.0": ["install", "gpu"],
     "sqlitedict~=2.0.0": ["install", "gpu"],
+    "openai~=0.27.0": ["install", "gpu"],
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]
