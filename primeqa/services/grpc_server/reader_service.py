@@ -233,8 +233,13 @@ class ReaderService(ReadingServiceServicer):
                                                 ],
                                                 evidences=[
                                                     Evidence(
-                                                        context_index=int(
-                                                            prediction["example_id"]
+                                                        context_index=context_index + 1
+                                                    )
+                                                    for context_index in range(
+                                                        len(
+                                                            request.contexts[
+                                                                prediction["example_id"]
+                                                            ].texts
                                                         )
                                                     )
                                                 ],

@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PromptReader(BaseReader):
-
     prefix: str = field(
         default="Answer the following question after looking at the text.",
         metadata={
@@ -46,7 +45,9 @@ class PromptReader(BaseReader):
     def eval(self, *args, **kwargs):
         pass
 
-    def create_prompt(self, question: str, contexts: List[str], prefix="", suffix="", **kwargs) -> str:
+    def create_prompt(
+        self, question: str, contexts: List[str], prefix="", suffix="", **kwargs
+    ) -> str:
         prompt = ""
         # Use the question and contexts to create a prompt
         if contexts == None or len(contexts) == 0:
@@ -67,7 +68,6 @@ class PromptReader(BaseReader):
         **kwargs,
     ) -> Dict[str, List[Dict]]:
         pass
-
 
 
 @dataclass
@@ -301,9 +301,9 @@ class PromptFLANT5Reader(PromptReader):
             predictions[question_idx] = [processed_prediction]
         return predictions
 
+
 @dataclass
 class BAMReader(PromptReader):
-
     api_key: str = field(
         default=None,
         metadata={"name": "The API key for BAM https://bam.res.ibm.com/"},
