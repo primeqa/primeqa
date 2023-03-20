@@ -161,10 +161,9 @@ class SeqClassificationReranker(BaseReranker):
                     padding='longest',
                     truncation=True)
                 inputs = {n: t.to(self._loaded_model.device) for n, t in inputs.items()}
-                outputs = self._loaded_model(**inputs)[0].detach().cpu()
+                outputs = self._loaded_model(**inputs).logits.detach().cpu()
                 s = outputs.shape[1] - 1
                 probs = F.softmax(outputs, dim=s)[:,s].numpy().tolist()
-                #probs = F.softmax(self._loaded_model(**inputs)[0].detach().cpu(), dim=-1)[:, 1].numpy().tolist()
                 scores.extend(probs)
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
             results = []
