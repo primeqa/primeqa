@@ -41,7 +41,7 @@ class SeqClassificationReranker(BaseReranker):
         },
     )
     max_num_documents: int = field(
-        default=5,
+        default=-1,
         metadata={
             "name": "Maximum number of retrieved documents",
             "range": [1, 100, 1],
@@ -161,7 +161,10 @@ class SeqClassificationReranker(BaseReranker):
                     padding='longest',
                     truncation=True)
                 inputs = {n: t.to(self._loaded_model.device) for n, t in inputs.items()}
-                probs = F.softmax(self._loaded_model(**inputs)[0].detach().cpu(), dim=-1)[:, 1].numpy().tolist()
+                outputs = self._loaded_model(**inputs)[0].detach().cpu()
+                s = outputs.shape[1] - 1
+                probs = F.softmax(outputs, dim=s)[:,s].numpy().tolist()
+                #probs = F.softmax(self._loaded_model(**inputs)[0].detach().cpu(), dim=-1)[:, 1].numpy().tolist()
                 scores.extend(probs)
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
             results = []
