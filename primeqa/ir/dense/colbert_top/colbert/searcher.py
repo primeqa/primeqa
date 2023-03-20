@@ -16,13 +16,26 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.infra.launcher import print_memory_stats
 
 TextQueries = Union[str, List[str], Dict[int, str], Queries]
-
+TextDocuments = Union[List[str]]
 
 class Searcher:
-    def __init__(self, index, checkpoint=None, collection=None, config=None):
+    def __init__(self, index, checkpoint=None, collection=None, config=None, rescore_only=False):
         print_memory_stats()
-        
+
         initial_config = ColBERTConfig.from_existing(Run().config, config)
+        self.rescore_only = rescore_only
+
+        if self.rescore_only:
+            self.checkpoint = checkpoint
+            self.checkpoint_config = ColBERTConfig.load_from_checkpoint(self.checkpoint)
+            self.config = ColBERTConfig.from_existing(self.checkpoint_config, None, initial_config)
+
+            self.checkpoint = Checkpoint(self.checkpoint, colbert_config=self.config)
+            use_gpu = torch.cuda.is_available()
+            if use_gpu:
+                self.checkpoint = self.checkpoint.cuda()
+
+            return
 
         if initial_config.index_location is not None:
             self.index = initial_config.index_location
@@ -67,10 +80,29 @@ class Searcher:
 
         return Q
 
+    def encode_documents(self, docs: TextDocuments):
+        self.checkpoint.doc_tokenizer.doc_maxlen = self.config.doc_maxlen
+
+        input_ids, attention_mask = self.checkpoint.doc_tokenizer.tensorize(docs)        # as in colbert/modeling/checkpoint.py:112
+        D = self.checkpoint.doc(input_ids, attention_mask, keep_dims=True, to_cpu=False) # colbert/modeling/checkpoint.py:113
+
+        return D, attention_mask # .sum(1)   # mask contains doc lengths
+
+    def rescore(self, text_queries, text_documents):
+        from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed, colbert_score_reduce
+
+        Q = self.encode(text_queries)
+        D, attention_mask = self.encode_documents(text_documents)
+
+        scores = colbert_score(Q, D, attention_mask, self.config)
+        return scores
+
     def search(self, text: str, k=10):
+        assert not self.rescore_only,  f"It looks like the engine was initialized for rescoring only."
         return self.dense_search(self.encode(text), k)
 
     def search_all(self, queries: TextQueries, k=10):
+        assert not self.rescore_only,  f"It looks like the engine was initialized for rescoring only."
         queries = Queries.cast(queries)
         queries_ = list(queries.values())
 
