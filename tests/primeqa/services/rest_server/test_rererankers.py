@@ -16,7 +16,7 @@
 # limitations under the License.
 
 
-def test_get_reraankers(mock_client):
+def test_get_rerankers(mock_client):
     response = mock_client.get(
         "/rerankers",
     )
