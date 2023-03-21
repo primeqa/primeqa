@@ -74,7 +74,7 @@ class GrpcServer:
                 RetrieverService(config=self._config), server
             )
             
-            # Add retriever service
+            # Add reranker service
             reranker_pb2_grpc.add_RerankerServiceServicer_to_server(
                 RerankerService(config=self._config), server
             )
