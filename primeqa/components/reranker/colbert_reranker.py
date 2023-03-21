@@ -38,7 +38,7 @@ class ColBERTReranker(BaseReranker):
     '''
 
     model: str = field(
-        default="drdecr", #"cross-encoder/ms-marco-TinyBERT-L-2",
+        default="drdecr",
         metadata={
             "name": "Model",
             "api_support": True,
@@ -60,7 +60,7 @@ class ColBERTReranker(BaseReranker):
         default=True,
         metadata={
             "name": "Include Title",
-            "description": "Whether to concate text and title",
+            "description": "Whether to concatenate text and title",
             "choices": "True|False"
         },
     )
@@ -123,8 +123,8 @@ class ColBERTReranker(BaseReranker):
                 }
 
         Returns:
-            List[List[Dict]] For each query a list of reranked documents in the same
-            structure as the input documents with the score replace with the reranker score.
+            List[List[Dict]] A list of reranked documents in the same structure as the input documents
+             with the score replaced with the reranker score for each query.
         """
         # Step 1: Locally update object variable values, if provided
         max_num_documents = (
