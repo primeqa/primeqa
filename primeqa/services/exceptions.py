@@ -36,6 +36,9 @@ class ErrorMessages(str, Enum):
     FAILED_TO_LOCATE_INDEX_INFORMATION = (
         "E6003: Index information for index with id {} doesn't exist."
     )
+    
+    # RETRANKER
+    INVALID_RETRANKER = "E5001: Invalid reranker: {}. Please select one of the following pre-defined rerankers: {}"
 
     # INITIALIZATION
-    FAILED_TO_INITIALIZE = "E9001: Failed to initalize {}. Please contact us."
+    FAILED_TO_INITIALIZE = "E9001: Failed to initialize {}. Please contact us."

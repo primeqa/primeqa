@@ -9,10 +9,12 @@ from primeqa.services.cred_helpers import get_grpc_server_credentials
 from primeqa.services.grpc_server.grpc_generated import reader_pb2_grpc
 from primeqa.services.grpc_server.grpc_generated import retriever_pb2_grpc
 from primeqa.services.grpc_server.grpc_generated import indexer_pb2_grpc
+from primeqa.services.grpc_server.grpc_generated import reranker_pb2_grpc
 
 from primeqa.services.grpc_server.reader_service import ReaderService
 from primeqa.services.grpc_server.retriever_service import RetrieverService
 from primeqa.services.grpc_server.indexer_service import IndexerService
+from primeqa.services.grpc_server.reranker_service import RerankerService
 
 
 class GrpcServer:
@@ -70,6 +72,11 @@ class GrpcServer:
             # Add retriever service
             retriever_pb2_grpc.add_RetrievingServiceServicer_to_server(
                 RetrieverService(config=self._config), server
+            )
+            
+            # Add reranker service
+            reranker_pb2_grpc.add_RerankerServiceServicer_to_server(
+                RerankerService(config=self._config), server
             )
 
             if self._config.require_ssl:
