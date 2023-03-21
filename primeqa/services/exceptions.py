@@ -41,4 +41,4 @@ class ErrorMessages(str, Enum):
     INVALID_RETRANKER = "E5001: Invalid reranker: {}. Please select one of the following pre-defined rerankers: {}"
 
     # INITIALIZATION
-    FAILED_TO_INITIALIZE = "E9001: Failed to initalize {}. Please contact us."
+    FAILED_TO_INITIALIZE = "E9001: Failed to initialize {}. Please contact us."
