@@ -47,10 +47,10 @@ class ColBERTReranker(BaseReranker):
     )
 
     max_num_documents: int = field(
-        default=5,
+        default=-1,
         metadata={
             "name": "Maximum number of retrieved documents",
-            "range": [1, 100, 1],
+            "range": [-1, 100, 1],
             "api_support": True,
             "exclude_from_hash": True,
         },
