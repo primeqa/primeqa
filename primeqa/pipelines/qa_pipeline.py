@@ -10,7 +10,12 @@ class QAPipeline:
         self.corpus_passages = []
         with open(self.retriever.collection, 'r') as infile:
             for line in tqdm(infile):
-                id,text,title = line.split('\t')
+                data = line.split('\t')
+                # id = data[0]
+                text = data[1]
+                title = ""
+                if len(data) > 2:
+                    title = data[2]
                 self.corpus_passages.append(title+" "+text)
 
     def run(self, input_texts: List[str], prefix="", suffix="", use_retriever=True):
