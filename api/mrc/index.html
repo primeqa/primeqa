@@ -544,25 +544,12 @@ depending on your hardware configuration.</p>
 </section>
 <section id="squad">
 <h4><a class="reference external" href="https://rajpurkar.github.io/SQuAD-explorer/">SQuAD</a><a class="headerlink" href="#squad" title="Permalink to this headline">#</a></h4>
-<p>For the SQUAD 1.1 dataset from Huggingface use the folowing additional command line arguments for train + eval :</p>
+<p>For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="w">       </span>--dataset_name<span class="w"> </span>squad<span class="w"> </span><span class="se">\</span>
 <span class="w">       </span>--dataset_config_name<span class="w"> </span>plain_text<span class="w"> </span><span class="se">\</span>
 <span class="w">       </span>--preprocessor<span class="w"> </span>primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor<span class="w"> </span><span class="se">\</span>
 <span class="w">       </span>--postprocessor<span class="w"> </span>primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor<span class="w"> </span><span class="se">\</span>
 <span class="w">       </span>--eval_metrics<span class="w"> </span>SQUAD<span class="w"> </span>
-</pre></div>
-</div>
-<p>For the SQUAD 1.1 dataset in the original Stanford format, first download the train and dev files from here:</p>
-<ul class="simple">
-<li><p>https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json</p></li>
-<li><p>https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json</p></li>
-</ul>
-<p>Use the following additional command line arguments for train and eval:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       <span class="o">--</span><span class="n">train_file</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">train</span><span class="o">-</span><span class="n">v1</span><span class="mf">.1</span><span class="o">.</span><span class="n">json</span><span class="o">&gt;</span> \
-       <span class="o">--</span><span class="n">eval_file</span> <span class="o">&lt;</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">dev</span><span class="o">-</span><span class="n">v1</span><span class="mf">.1</span><span class="o">.</span><span class="n">json</span><span class="o">&gt;</span> \
-       <span class="o">--</span><span class="n">preprocessor</span> <span class="n">primeqa</span><span class="o">.</span><span class="n">mrc</span><span class="o">.</span><span class="n">processors</span><span class="o">.</span><span class="n">preprocessors</span><span class="o">.</span><span class="n">squad</span><span class="o">.</span><span class="n">SQUADPreprocessor</span> \
-       <span class="o">--</span><span class="n">postprocessor</span> <span class="n">primeqa</span><span class="o">.</span><span class="n">mrc</span><span class="o">.</span><span class="n">processors</span><span class="o">.</span><span class="n">postprocessors</span><span class="o">.</span><span class="n">squad</span><span class="o">.</span><span class="n">SQUADPostProcessor</span> \
-       <span class="o">--</span><span class="n">eval_metrics</span> <span class="n">SQUAD</span> 
 </pre></div>
 </div>
 <p>This yields the following results:</p>

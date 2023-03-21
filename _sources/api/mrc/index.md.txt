@@ -153,7 +153,7 @@ python primeqa/mrc/run_mrc.py --model_name_or_path ${TRAINING_OUTPUT_DIR} \
 
  #### [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/)
 
-For the SQUAD 1.1 dataset from Huggingface use the folowing additional command line arguments for train + eval :
+For the SQUAD 1.1 dataset use the folowing additional command line arguments for train + eval :
 ```shell
        --dataset_name squad \
        --dataset_config_name plain_text \
@@ -161,21 +161,6 @@ For the SQUAD 1.1 dataset from Huggingface use the folowing additional command l
        --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
        --eval_metrics SQUAD 
 ```
-For the SQUAD 1.1 dataset in the original Stanford format, first download the train and dev files from here:
-
-- https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json
-- https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json
-
-Use the following additional command line arguments for train and eval:
-
-```
-       --train_file <path-to-train-v1.1.json> \
-       --eval_file <path-to-dev-v1.1.json> \
-       --preprocessor primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor \
-       --postprocessor primeqa.mrc.processors.postprocessors.squad.SQUADPostProcessor \
-       --eval_metrics SQUAD 
-```
-
 This yields the following results:
 ```
 ***** eval metrics ***** 
