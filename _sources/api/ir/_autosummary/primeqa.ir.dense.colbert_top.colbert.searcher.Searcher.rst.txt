@@ -19,6 +19,8 @@ primeqa.ir.dense.colbert\_top.colbert.searcher.Searcher
       ~Searcher.configure
       ~Searcher.dense_search
       ~Searcher.encode
+      ~Searcher.encode_documents
+      ~Searcher.rescore
       ~Searcher.search
       ~Searcher.search_all
    
