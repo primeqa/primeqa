@@ -14,8 +14,8 @@ class ColBERTReranker(BaseReranker):
 
     Args:
         model (str, optional): Model to load.
-        collection (str, optional): collection to load. Defaults to collection in index configuration.
-        max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to 5.
+        max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to -1.
+        include_title (bool, optional): Whether to concate text and title. Defaults to True
 
     Important:
     1. Each field has the metadata property which can carry additional information for other downstream usages.
@@ -43,25 +43,6 @@ class ColBERTReranker(BaseReranker):
             "name": "Model",
             "api_support": True,
             "description": "Path to model",
-        },
-    )
-
-    max_num_documents: int = field(
-        default=-1,
-        metadata={
-            "name": "Maximum number of retrieved documents",
-            "range": [-1, 100, 1],
-            "api_support": True,
-            "exclude_from_hash": True,
-        },
-    )
-
-    include_title: bool = field(
-        default=True,
-        metadata={
-            "name": "Include Title",
-            "description": "Whether to concatenate text and title",
-            "choices": "True|False"
         },
     )
 

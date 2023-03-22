@@ -17,8 +17,11 @@ class SeqClassificationReranker(BaseReranker):
 
     Args:
         model (str, optional): Model to load. 
-        collection (str, optional): collection to load. Defaults to collection in index configuration.
-        max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to 5.
+        max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to -1.
+        include_title (bool, optional): Whether to concate text and title. Defaults to True
+        max_batch_size: (int, optional): Defaults to 128
+        max_seq_len: (int, optional): Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.
+        
 
     Important:
     1. Each field has the metadata property which can carry additional information for other downstream usages.
@@ -39,15 +42,7 @@ class SeqClassificationReranker(BaseReranker):
             "description": "Path to model",
         },
     )
-    max_num_documents: int = field(
-        default=-1,
-        metadata={
-            "name": "Maximum number of retrieved documents",
-            "range": [-1, 100, 1],
-            "api_support": True,
-            "exclude_from_hash": True,
-        },
-    )
+
     max_batch_size: int = field(
         default=128,
         metadata={
@@ -63,15 +58,6 @@ class SeqClassificationReranker(BaseReranker):
             "name": "Maximum sequence length",
             "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
             "range": [32, 512, 8],
-        },
-    )
-    
-    include_title: bool = field(
-        default=True,
-        metadata={
-            "name": "Include Title",
-            "description": "Whether to concate text and title",
-            "choices": "True|False"
         },
     )
 
