@@ -103,7 +103,7 @@ docker build -f Dockerfiles/Dockerfile.cpu -t primeqa:$(cat VERSION) --build-arg
 ```
 <h4> Run Container </h4>
 
-The container needs write access to a `cache` directory e.g. `$HOME/.cache/` for caching Huggingface model and datasets.  Additionally will need write access to a `store` directory, e.g. `$PWD/store/` for custom models and index creation. 
+The container needs write access to a `cache` directory e.g. `$HOME/.cache/` for caching Huggingface model and datasets.  Additionally, it will need write access to a `store` directory, e.g. `$PWD/store/` for custom models and index creation. 
 
 See [Store](./store)
 

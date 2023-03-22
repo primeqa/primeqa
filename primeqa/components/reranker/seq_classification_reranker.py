@@ -18,7 +18,7 @@ class SeqClassificationReranker(BaseReranker):
     Args:
         model (str, optional): Model to load. 
         max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to -1.
-        include_title (bool, optional): Whether to concate text and title. Defaults to True
+        include_title (bool, optional): Whether to concatenate text and title. Defaults to True
         max_batch_size: (int, optional): Defaults to 128
         max_seq_len: (int, optional): Maximum length of question and context inputs to the model (in word pieces/bpes). Defaults to 512.
         

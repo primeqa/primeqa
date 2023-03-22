@@ -15,7 +15,7 @@ class ColBERTReranker(BaseReranker):
     Args:
         model (str, optional): Model to load.
         max_num_documents (int, optional): Maximum number of reranked document to return. Defaults to -1.
-        include_title (bool, optional): Whether to concate text and title. Defaults to True
+        include_title (bool, optional): Whether to concatenate text and title. Defaults to True
 
     Important:
     1. Each field has the metadata property which can carry additional information for other downstream usages.
