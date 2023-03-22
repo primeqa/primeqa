@@ -1,0 +1,27 @@
+primeqa.ir.dense.colbert\_top.colbert.modeling.tokenization.query\_tokenization\_roberta.QueryTokenizerRoberta
+==============================================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta
+
+.. autoclass:: QueryTokenizerRoberta
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~QueryTokenizerRoberta.encode
+      ~QueryTokenizerRoberta.tensorize
+      ~QueryTokenizerRoberta.tokenize
+   
+   
+
+   
+   
+   

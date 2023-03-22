@@ -1,0 +1,32 @@
+query\_tokenization\_roberta
+============================
+
+.. automodule:: primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      QueryTokenizerRoberta
+   
+   
+
+   
+   
+   
+
+
+

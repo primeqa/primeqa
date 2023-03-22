@@ -31,6 +31,7 @@ modeling
    primeqa.ir.dense.colbert_top.colbert.modeling.colbert
    primeqa.ir.dense.colbert_top.colbert.modeling.factory
    primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert
+   primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_roberta
    primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr
    primeqa.ir.dense.colbert_top.colbert.modeling.reranker
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization

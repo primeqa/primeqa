@@ -27,8 +27,10 @@ tokenization
    :recursive:
 
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization
+   primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_roberta
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization
+   primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr
    primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils
 

@@ -1361,7 +1361,7 @@ override the value accordingly.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">adapt_dataset</span></code></a></p></td>
-<td><p>Convert dataset into standardized format accepted by the preprocessor.</p></td>
+<td><p>Handles data in HF and original SQUAD format</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling" title="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.label_features_for_subsampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label_features_for_subsampling</span></code></a></p></td>
 <td><p>Annotate each training feature with a 'subsample_type' of type <cite>SubsampleType</cite> for subsampling.</p></td>
@@ -1383,19 +1383,7 @@ override the value accordingly.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset">
 <span class="sig-name descname"><span class="pre">adapt_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datasets.arrow_dataset.Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datasets.arrow_dataset.Dataset</span></span></span><a class="headerlink" href="#primeqa.mrc.processors.preprocessors.squad.SQUADPreprocessor.adapt_dataset" title="Permalink to this definition">#</a></dt>
-<dd><p>Convert dataset into standardized format accepted by the preprocessor.
-This method will likely need to be overridden when subclassing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> – data to adapt.</p></li>
-<li><p><strong>is_train</strong> – whether the dataset is for training.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Adapted dataset.</p>
-</dd>
-</dl>
+<dd><p>Handles data in HF and original SQUAD format</p>
 </dd></dl>
 
 <dl class="py method">

@@ -1,0 +1,121 @@
+primeqa.ir.dense.colbert\_top.colbert.modeling.hf\_colbert\_roberta.HF\_ColBERT\_Roberta
+========================================================================================
+
+.. currentmodule:: primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_roberta
+
+.. autoclass:: HF_ColBERT_Roberta
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HF_ColBERT_Roberta.add_memory_hooks
+      ~HF_ColBERT_Roberta.add_module
+      ~HF_ColBERT_Roberta.adjust_logits_during_generation
+      ~HF_ColBERT_Roberta.apply
+      ~HF_ColBERT_Roberta.beam_sample
+      ~HF_ColBERT_Roberta.beam_search
+      ~HF_ColBERT_Roberta.bfloat16
+      ~HF_ColBERT_Roberta.buffers
+      ~HF_ColBERT_Roberta.children
+      ~HF_ColBERT_Roberta.compute_transition_beam_scores
+      ~HF_ColBERT_Roberta.constrained_beam_search
+      ~HF_ColBERT_Roberta.cpu
+      ~HF_ColBERT_Roberta.create_extended_attention_mask_for_decoder
+      ~HF_ColBERT_Roberta.cuda
+      ~HF_ColBERT_Roberta.double
+      ~HF_ColBERT_Roberta.estimate_tokens
+      ~HF_ColBERT_Roberta.eval
+      ~HF_ColBERT_Roberta.extra_repr
+      ~HF_ColBERT_Roberta.float
+      ~HF_ColBERT_Roberta.floating_point_ops
+      ~HF_ColBERT_Roberta.forward
+      ~HF_ColBERT_Roberta.from_pretrained
+      ~HF_ColBERT_Roberta.generate
+      ~HF_ColBERT_Roberta.get_buffer
+      ~HF_ColBERT_Roberta.get_extended_attention_mask
+      ~HF_ColBERT_Roberta.get_extra_state
+      ~HF_ColBERT_Roberta.get_head_mask
+      ~HF_ColBERT_Roberta.get_input_embeddings
+      ~HF_ColBERT_Roberta.get_output_embeddings
+      ~HF_ColBERT_Roberta.get_parameter
+      ~HF_ColBERT_Roberta.get_position_embeddings
+      ~HF_ColBERT_Roberta.get_submodule
+      ~HF_ColBERT_Roberta.gradient_checkpointing_disable
+      ~HF_ColBERT_Roberta.gradient_checkpointing_enable
+      ~HF_ColBERT_Roberta.greedy_search
+      ~HF_ColBERT_Roberta.group_beam_search
+      ~HF_ColBERT_Roberta.half
+      ~HF_ColBERT_Roberta.init_weights
+      ~HF_ColBERT_Roberta.invert_attention_mask
+      ~HF_ColBERT_Roberta.load_state_dict
+      ~HF_ColBERT_Roberta.modules
+      ~HF_ColBERT_Roberta.named_buffers
+      ~HF_ColBERT_Roberta.named_children
+      ~HF_ColBERT_Roberta.named_modules
+      ~HF_ColBERT_Roberta.named_parameters
+      ~HF_ColBERT_Roberta.num_parameters
+      ~HF_ColBERT_Roberta.parameters
+      ~HF_ColBERT_Roberta.post_init
+      ~HF_ColBERT_Roberta.prepare_inputs_for_generation
+      ~HF_ColBERT_Roberta.prune_heads
+      ~HF_ColBERT_Roberta.push_to_hub
+      ~HF_ColBERT_Roberta.raw_tokenizer_from_pretrained
+      ~HF_ColBERT_Roberta.register_backward_hook
+      ~HF_ColBERT_Roberta.register_buffer
+      ~HF_ColBERT_Roberta.register_for_auto_class
+      ~HF_ColBERT_Roberta.register_forward_hook
+      ~HF_ColBERT_Roberta.register_forward_pre_hook
+      ~HF_ColBERT_Roberta.register_full_backward_hook
+      ~HF_ColBERT_Roberta.register_module
+      ~HF_ColBERT_Roberta.register_parameter
+      ~HF_ColBERT_Roberta.requires_grad_
+      ~HF_ColBERT_Roberta.reset_memory_hooks_state
+      ~HF_ColBERT_Roberta.resize_position_embeddings
+      ~HF_ColBERT_Roberta.resize_token_embeddings
+      ~HF_ColBERT_Roberta.retrieve_modules_from_names
+      ~HF_ColBERT_Roberta.sample
+      ~HF_ColBERT_Roberta.save_pretrained
+      ~HF_ColBERT_Roberta.set_extra_state
+      ~HF_ColBERT_Roberta.set_input_embeddings
+      ~HF_ColBERT_Roberta.share_memory
+      ~HF_ColBERT_Roberta.state_dict
+      ~HF_ColBERT_Roberta.tie_weights
+      ~HF_ColBERT_Roberta.to
+      ~HF_ColBERT_Roberta.to_empty
+      ~HF_ColBERT_Roberta.train
+      ~HF_ColBERT_Roberta.type
+      ~HF_ColBERT_Roberta.update_keys_to_ignore
+      ~HF_ColBERT_Roberta.xpu
+      ~HF_ColBERT_Roberta.zero_grad
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HF_ColBERT_Roberta.T_destination
+      ~HF_ColBERT_Roberta.base_model
+      ~HF_ColBERT_Roberta.base_model_prefix
+      ~HF_ColBERT_Roberta.device
+      ~HF_ColBERT_Roberta.dtype
+      ~HF_ColBERT_Roberta.dummy_inputs
+      ~HF_ColBERT_Roberta.dump_patches
+      ~HF_ColBERT_Roberta.framework
+      ~HF_ColBERT_Roberta.is_gradient_checkpointing
+      ~HF_ColBERT_Roberta.is_parallelizable
+      ~HF_ColBERT_Roberta.main_input_name
+      ~HF_ColBERT_Roberta.supports_gradient_checkpointing
+      ~HF_ColBERT_Roberta.training
+   
+   
