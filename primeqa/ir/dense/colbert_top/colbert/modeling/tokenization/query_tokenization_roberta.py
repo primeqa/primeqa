@@ -29,7 +29,7 @@ class QueryTokenizerRoberta():
 #        assert self.Q_marker_token_id == 1 and self.mask_token_id == 103
         self.used = False
 
-    # tokenizer is not used colbert code base, but is implemented in QueryTokenizer
+    # tokenizer is not used in the colbert code base, but is implemented in QueryTokenizer
     def tokenize(self, batch_text, add_special_tokens=False):
         raise NotImplementedError()
 
