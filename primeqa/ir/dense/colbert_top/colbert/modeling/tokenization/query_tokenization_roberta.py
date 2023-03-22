@@ -33,7 +33,7 @@ class QueryTokenizerRoberta():
     def tokenize(self, batch_text, add_special_tokens=False):
         raise NotImplementedError()
 
-    # encode is not used colbert code base, but is implemented in QueryTokenizer
+    # encode is not used in the colbert code base, but is implemented in QueryTokenizer
     def encode(self, batch_text, add_special_tokens=False):
         raise NotImplementedError()
 
