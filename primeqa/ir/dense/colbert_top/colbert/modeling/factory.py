@@ -4,11 +4,15 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert import HF_ColBERT
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization import QueryTokenizer, DocTokenizer
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
-
 # xlmr imports
 from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_xlmr import HF_ColBERT_XLMR
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_xlmr import DocTokenizerXLMR
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_xlmr import QueryTokenizerXLMR
+
+# Roberta imports
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_roberta import HF_ColBERT_Roberta
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_roberta import DocTokenizerRoberta
+from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta import QueryTokenizerRoberta
 
 import os
 import json
@@ -53,6 +57,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         # e.g. from https://huggingface.co/huawei-noah/TinyBERT_General_4L_312D/tree/main
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         colbert = HF_ColBERT_XLMR.from_pretrained(name, colbert_config)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        colbert = HF_ColBERT_Roberta.from_pretrained(name, colbert_config)
     else:
         raise NotImplementedError
 
@@ -61,10 +67,11 @@ def get_colbert_from_pretrained(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
-
+    model_dir = None
 
     # if it is a directory, load json file to get the model type
     if os.path.isdir(model_type):
+        model_dir = model_type
         json_file = model_type + '/config.json'
         print_message(f"json file (get_query_tokenizer): {json_file}")
         with open(json_file) as file:
@@ -79,15 +86,18 @@ def get_query_tokenizer(model_type, maxlen, attend_to_mask_tokens):
         return QueryTokenizer(maxlen, 'bert-base-uncased',attend_to_mask_tokens)
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return QueryTokenizerXLMR(maxlen, model_type)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        return QueryTokenizerRoberta(maxlen, model_type)
     else:
         raise NotImplementedError
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(model_type, maxlen):
-
+    model_dir = None
 
     # if it is a directory, load json file to get the model type
     if os.path.isdir(model_type):
+        model_dir = model_type
         json_file = model_type + '/config.json'
         print_message(f"json file (get_doc_tokenizer): {json_file}")
         with open(json_file) as file:
@@ -103,5 +113,7 @@ def get_doc_tokenizer(model_type, maxlen):
         return DocTokenizer(maxlen, 'bert-base-uncased')
     elif model_type=='xlm-roberta-base' or model_type=='xlm-roberta-large':
         return DocTokenizerXLMR(maxlen, model_type)
+    elif model_type=='roberta-base' or model_type=='roberta-large':
+        return DocTokenizerRoberta(maxlen, model_type)
     else:
         raise NotImplementedError
