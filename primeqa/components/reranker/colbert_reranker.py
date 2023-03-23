@@ -46,11 +46,31 @@ class ColBERTReranker(BaseReranker):
         },
     )
 
+    doc_maxlen: int = field(
+        default=180,
+        metadata={
+            "name": "doc_maxlen",
+            "api_support": True,
+            "description": "maximum document length (sub-word units)",
+        },
+    )
+
+    query_maxlen: int = field(
+        default=32,
+        metadata={
+            "name": "query_maxlen",
+            "api_support": True,
+            "description": "maximum query length (sub-word units)",
+        },
+    )
+
     def __post_init__(self):
         self._config = ColBERTConfig(
             index_root=None,
             index_name=None,
             index_path=None,
+            doc_maxlen=self.doc_maxlen,
+            query_maxlen = self.query_maxlen
         )
 
         # Placeholder variables
