@@ -78,14 +78,17 @@ Please see the default values in [here](./config/config.ini). These can be overr
 - Update config [here](./config/config.ini).
 - Open [application.py](./application.py) and run/debug
 
-This will start a `ReaderService`, a `IndexerService` and a `RetrieverService` and the following lines will be displayed:
+This will start a `ReaderService`, a `IndexerService`, a `RetrieverService`, a `RerankerService` and the following lines will be displayed:
 
+gRPC service:
 ```
-{"time":"2022-10-20 12:14:01,814", "name": "ReaderService", "level": "INFO", "message": "ReaderService is successfully initialized."}
-{"time":"2022-10-20 12:14:01,815", "name": "IndexerService", "level": "INFO", "message": "IndexerService is successfully initialized."}
-{"time":"2022-10-20 12:14:01,815", "name": "RetrieverService", "level": "INFO", "message": "RetrieverService is successfully initialized."}
-I1020 12:14:01.815917763 2539136 socket_utils_common_posix.cc:353] TCP_USER_TIMEOUT is available. TCP_USER_TIMEOUT will be used thereafter
-{"time":"2022-10-20 12:14:01,817", "name": "GrpcServer", "level": "INFO", "message": "Server instance started on port 50055 - initialization took 0 seconds"}
+{"time":"2023-03-21 23:38:33,628", "name": "GrpcServer", "level": "INFO", "message": "Server instance started on port 50055 - initialization took 0 seconds"}
+```
+
+REST service:
+```
+INFO:     Uvicorn running on http://0.0.0.0:50056 (Press CTRL+C to quit)
+{"time":"2023-03-21 23:39:48,024", "name": "uvicorn.error", "level": "INFO", "message": "Uvicorn running on http://0.0.0.0:50056 (Press CTRL+C to quit)"}
 ```
 - Use one of the [Clients](#clients) to send requests to the service.
 
@@ -100,7 +103,9 @@ docker build -f Dockerfiles/Dockerfile.cpu -t primeqa:$(cat VERSION) --build-arg
 ```
 <h4> Run Container </h4>
 
-The container needs write access to a cache directory for caching Huggingface model and datasets.  Additionally will need write access to a store directory for custom models and index creation. See [Store](./store)
+The container needs write access to a `cache` directory e.g. `$HOME/.cache/` for caching Huggingface model and datasets.  Additionally, it will need write access to a `store` directory, e.g. `$PWD/store/` for custom models and index creation. 
+
+See [Store](./store)
 
 ```
 chmod -R 777 $HOME/.cache/
@@ -108,15 +113,16 @@ chmod -R 777 $PWD/store/
 ```
 
 To start a `gRPC` service, run the following command, replace `<host-port>` with a free port number:
-`
+
+```
 docker run --rm --name primeqa -it -p <host-port>:50051 --mount type=bind,source="$(pwd)"/store,target=/store --mount type=bind,source="$HOME"/.cache/huggingface/,target=/cache/huggingface/ -e STORE_DIR=/store -e mode=grpc -e require_ssl=false primeqa:$(cat VERSION)
-`
+```
 
 To start a `rest` service, run the following command, replace `<host-port>` with a free port number:
 
-`
+```
 docker run --rm --name primeqa -it -p <host-port>:50052 --mount type=bind,source="$(pwd)"/store,target=/store --mount type=bind,source="$HOME"/.cache/huggingface/,target=/cache/huggingface/ -e STORE_DIR=/store -e mode=rest -e require_ssl=false primeqa:$(cat VERSION)
-`
+```
 
 WARNING: The PrimeQA orchestrator and UI will only work with gRPC deployment without SSL. The parameter `require-ssl` must be set to `false`.
 
@@ -144,6 +150,11 @@ store
 ### Drop in a Reader model 
 
 Create a directory under `models` and copy `pytorch_model.bin`, `config.json` and `tokenizer.json` files into the direcotory.
+
+### Drop in a Reranker model 
+
+The [ColBERTReranker](../components/reranker/colbert_reranker.py) requires a ColBERT checkpoint/model file. 
+Create a subdirectory under `checkpoints` and copy the checkpoint/model file in that subdirectory.
 
 ### Drop in a Dense IR index and checkpoint 
 

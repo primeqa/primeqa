@@ -159,6 +159,37 @@ class Indexer:
 @dataclass(init=False, repr=False, eq=False)
 class Reranker(Component):
     
+    model: str = field(
+        metadata={
+            "name": "Model",
+            "api_support": True,
+            "description": "Path to model",
+        },
+    )
+
+    max_num_documents: int = field(
+        default=-1,
+        metadata={
+            "name": "Maximum number of retrieved documents",
+            "range": [-1, 100, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
+    )
+
+    include_title: bool = field(
+        default=True,
+        metadata={
+            "name": "Include Title",
+            "description": "Whether to concatenate text and title",
+            "choices": "True|False"
+        },
+    )
+
+    @abstractmethod
+    def load(self, *args, **kwargs):
+        pass
+    
     @abstractmethod
     def __hash__(self) -> int:
         """

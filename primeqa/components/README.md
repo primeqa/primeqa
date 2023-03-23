@@ -58,6 +58,83 @@ results = retriever.retrieve(input_texts = ['Who is Michael Wigge'])
 ```
 The `max_num_document` variable contains document_id and scores of the retrieved documents.
 
+## Reranker Components
+
+The `Reranker` component takes a question and a list of documents and return a rescored and reranked list of documents.
+
+The following is an example of question and list of documents formatted as input to the reranker:
+
+```
+    query = "what is the color of the horse?"
+
+    documents = [{'document': {'text': 'A man is eating food.', 'title': 'A', 'docid': '0'}, 'score': 0}, 
+    {'document': {'text': 'Someone in a gorilla costume is playing a set of drums.', 'title': 'in', 'docid': '1'}, 'score': 1}, 
+    {'document': {'text': 'A monkey is playing drums.', 'title': 'is', 'docid': '2'}, 'score': 2}, 
+    {'document': {'text': 'A man is riding a white horse on an enclosed ground.', 'title': 'riding', 'docid': '3'}, 'score': 3}, 
+    {'document': {'text': 'Two men pushed carts through the woods.', 'title': 'through', 'docid': '4'}, 'score': 4}]
+```
+
+The sections below show how to run a `Reranker` on the above question/documents input.
+
+### Sequence Classification Reranker
+
+The [SeqClassificationReranker](./reranker/seq_classification_reranker.py) is based on the sequence-pair classification reranker as implemented in [{R}e2{G}: Retrieve, Rerank, Generate](https://github.com/IBM/kgi-slot-filling/tree/re2g). The query and passage are input together to a BERT transformer and cross attention is applied over the tokens of both sequences jointly. 
+
+
+Usage:
+```
+    from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+
+    model_name_or_path="ibm/re2g-reranker-nq"
+    reranker = SeqClassificationReranker(model=model_name_or_path)
+    reranker.load()
+
+    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+```
+
+### ColBERT Reranker
+
+The [ColBERTReranker](./reranker/colbert_reranker.py) computes representations of the input query and documents and computes the relevance scores using the ColBERT MaxSim scoring function.
+The reranker requires a ColBERT checkpoint. A checkpoint can be downloaded from HuggingFace model hub as follows:
+```
+    wget https://huggingface.co/PrimeQA/DrDecr_XOR-TyDi_whitebox/resolve/main/DrDecr.dnn
+```
+
+Usage:
+```
+    from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+
+    reranker = ColBERTReranker(model=<path-to-colbert-checkpoint>)
+    reranker.load()
+
+    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+```
+This will output:
+
+```
+    [
+    [
+        {
+        "document": {
+            "text": "A man is riding a white horse on an enclosed ground.",
+            "title": "riding",
+            "docid": "3"
+        },
+        "score": 21.647380828857422
+        },
+        {
+        "document": {
+            "text": "A monkey is playing drums.",
+            "title": "is",
+            "docid": "2"
+        },
+        "score": 11.554206848144531
+        }
+    ]
+    ]
+```
+
+
 ## Reader Components
 
 ### Extractive Reader
