@@ -67,17 +67,16 @@ class GenerativeReader(BaseReader):
         **kwargs,
     ):
         pass
-    
+
     def eval(self, *args, **kwargs):
         pass
-    
+
     def train(self, *args, **kwargs):
         pass
 
 
 @dataclass
 class GenerativeFiDReader(GenerativeReader):
-
     model: str = field(
         default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
         metadata={"name": "Model"},
@@ -211,7 +210,7 @@ class GenerativeFiDReader(GenerativeReader):
 
         # Run predict
         predictions = {}
-        predictions = {}
+
         for raw_prediction in self._trainer.predict(
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):

@@ -34,7 +34,18 @@ class PromptReader(BaseReader):
     )
 
     def __hash__(self) -> int:
-        pass
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
 
     def load(self, *args, **kwargs):
         pass
@@ -365,20 +376,6 @@ class BAMReader(PromptReader):
     def eval(self, *args, **kwargs):
         pass
 
-    def __hash__(self) -> int:
-        # Step 1: Identify all fields to be included in the hash
-        hashable_fields = [
-            k
-            for k, v in self.__class__.__dataclass_fields__.items()
-            if not "exclude_from_hash" in v.metadata
-            or not v.metadata["exclude_from_hash"]
-        ]
-
-        # Step 2: Run
-        return hash(
-            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
-        )
-
     def predict(
         self,
         questions: List[str],
@@ -421,7 +418,7 @@ class BAMReader(PromptReader):
             if "error" in resp:
                 logger.error("Error running BAM service: ")
                 logger.error(resp)
-                sys.exit(0)
+                return None
             processed_prediction = {}
             processed_prediction["example_id"] = question_idx
             processed_prediction["span_answer_text"] = resp["results"][0][
