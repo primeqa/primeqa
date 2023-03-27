@@ -68,10 +68,15 @@ class GenerativeReader(BaseReader):
     ):
         pass
 
+    def eval(self, *args, **kwargs):
+        pass
+
+    def train(self, *args, **kwargs):
+        pass
+
 
 @dataclass
 class GenerativeFiDReader(GenerativeReader):
-
     model: str = field(
         default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
         metadata={"name": "Model"},
@@ -142,7 +147,7 @@ class GenerativeFiDReader(GenerativeReader):
             stride=0,
             max_seq_len=self.max_seq_len,
             tokenizer=tokenizer,
-            max_contexts=3,  # self.num_contexts,
+            max_contexts=self.num_contexts,
             max_answer_len=self.generation_max_length,
         )
 
@@ -199,22 +204,21 @@ class GenerativeFiDReader(GenerativeReader):
             )
         )
 
+        self._preprocessor.max_contexts = len(processed_context)
         predict_examples, predict_dataset = self._preprocessor.process_eval(
             predict_examples
         )
 
         # Run predict
         predictions = {}
+
         for raw_prediction in self._trainer.predict(
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):
             processed_prediction = {}
-            processed_prediction["text"] = raw_prediction["prediction_text"]
-            predictions[raw_prediction["id"]] = processed_prediction
+            processed_prediction["example_id"] = raw_prediction["id"]
+            processed_prediction["span_answer_text"] = raw_prediction["prediction_text"]
+            processed_prediction["confidence_score"] = 1
+            predictions[raw_prediction["id"]] = [processed_prediction]
 
         return predictions
-    def eval(self, *args, **kwargs):
-        pass
-    
-    def train(self, *args, **kwargs):
-        pass
