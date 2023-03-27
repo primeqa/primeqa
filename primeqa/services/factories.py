@@ -8,6 +8,7 @@ from primeqa.components.base import (
     Reader,
     Retriever,
     Indexer,
+    Reranker,
 )
 from primeqa.components.reader.extractive import ExtractiveReader
 
@@ -19,6 +20,9 @@ from primeqa.components.retriever.sparse import BM25Retriever
 
 from primeqa.components.indexer.dense import ColBERTIndexer
 from primeqa.components.indexer.sparse import BM25Indexer
+
+from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+from primeqa.components.reranker.colbert_reranker import ColBERTReranker
 
 
 READERS_REGISTRY = {
@@ -37,6 +41,12 @@ INDEXERS_REGISTRY = {
     ColBERTIndexer.__name__: ColBERTIndexer,
     BM25Indexer.__name__: BM25Indexer,
 }
+
+RERANKERS_REGISTRY = {
+    SeqClassificationReranker.__name__: SeqClassificationReranker,
+    ColBERTReranker.__name__: ColBERTReranker,
+}
+
 
 
 def validate(fields: dict):
@@ -286,5 +296,87 @@ class IndexerFactory:
             # Step 3.d: Remove from loading and add to available instances
             cls._instances[instance_id] = instance
             cls._loading.remove(instance_id)
+
+        return cls._instances[instance_id]
+    
+class RerankerFactory:
+    _instances = {}
+    _loading = []
+    _logger = logging.getLogger("RerankerFactory")
+
+    @classmethod
+    def get(
+        cls,
+        reranker: Reranker,
+        reranker_kwargs: dict,
+        *load_args,
+        **load_kwargs,
+    ):
+        # Step 1: Validate all required fields are specified
+        validate(reranker_kwargs)
+
+        # Step 2: Create instance
+        try:
+            instance = reranker(**reranker_kwargs)
+        except TypeError as err:
+            # Step 2.a: Log exception
+            cls._logger.warning(
+                "Failed to intialize %s with arguments: %s",
+                reranker.__name__,
+                reranker_kwargs,
+            )
+
+            # Step 2.b: Raise exception
+            raise err
+
+        # Step 3: Create hash based unique instance id
+        instance_id = hash(instance)
+
+        # Step 4: Load and persist instance
+        if instance_id not in cls._instances:
+            # Step 4.a: Check if class is currently loading
+            if instance_id in cls._loading:
+                raise ValueError(
+                    f"{reranker.__name__} is currently being loading. Please try again in a short while."
+                )
+
+            # Step 4.b: Add to loading
+            cls._loading.append(instance_id)
+
+            # Step 4.d: Start loading
+            try:
+                cls._logger.info(
+                    "Loading '%s' retriever with parameters = %s",
+                    reranker.__name__,
+                    reranker_kwargs,
+                )
+                start_t = time.time()
+                instance.load(load_args, load_kwargs)
+                cls._logger.info(
+                    "'%s' retriever - loading took %.2f seconds",
+                    reranker.__name__,
+                    time.time() - start_t,
+                )
+            except OSError as err:
+                # Step 3.d.i: Log exception
+                cls._logger.warning(
+                    "Failed to load %s with arguments: %s",
+                    reranker.__name__,
+                    reranker_kwargs,
+                )
+
+                # Step 3.d.ii: Remove reader from loading
+                cls._loading.remove(instance_id)
+
+                # Step 3.d.iii: Raise exception
+                raise ValueError(err.args[0]) from err
+
+            # Step 4.e: Remove from loading and add to available instances
+            cls._instances[instance_id] = instance
+            cls._loading.remove(instance_id)
+
+        else:
+            # Step 4.a: Instance with same instance_id already exists, clean up newly created instance
+            del instance
 
         return cls._instances[instance_id]

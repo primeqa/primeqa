@@ -155,3 +155,75 @@ class Indexer:
     @abstractmethod
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
+    
+@dataclass(init=False, repr=False, eq=False)
+class Reranker(Component):
+    
+    model: str = field(
+        metadata={
+            "name": "Model",
+            "api_support": True,
+            "description": "Path to model",
+        },
+    )
+
+    max_num_documents: int = field(
+        default=-1,
+        metadata={
+            "name": "Maximum number of retrieved documents",
+            "range": [-1, 100, 1],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
+    )
+
+    include_title: bool = field(
+        default=True,
+        metadata={
+            "name": "Include Title",
+            "description": "Whether to concatenate text and title",
+            "choices": "True|False"
+        },
+    )
+
+    @abstractmethod
+    def load(self, *args, **kwargs):
+        pass
+    
+    @abstractmethod
+    def __hash__(self) -> int:
+        """
+        Custom hashing function useful to compare instances of `Retriever`.
+
+        Raises:
+            NotImplementedError:
+
+        Returns:
+            int: hash value
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def predict(self, queries: List[str], 
+                    documents: List[List[Dict]],
+                    *args, 
+                    **kwargs):
+        """
+        Args:
+            queries (List[str]): search queries
+            texts (List[List[Dict]]): For each query, a list of documents to rerank
+                where each document is a dictionary with the following structure:
+                {
+                    "document": {
+                        "text": "A man is eating food.",
+                        "document_id": "0",
+                        "title": "food"
+                    },
+                    "score": 1.4
+                }
+        
+        Returns:
+            List[List[Dict]] For each query a list of reranked documents in the same 
+            structure as the input documents with the score replace with the reranker score.
+        """
+        pass
