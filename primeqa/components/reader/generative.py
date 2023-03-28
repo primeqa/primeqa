@@ -204,7 +204,7 @@ class GenerativeFiDReader(GenerativeReader):
             )
         )
 
-        self._preprocessor._max_contexts = len(processed_context)
+        self._preprocessor.set_max_contexts(len(processed_context))
         predict_examples, predict_dataset = self._preprocessor.process_eval(
             predict_examples
         )
