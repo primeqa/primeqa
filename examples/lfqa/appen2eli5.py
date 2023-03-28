@@ -48,7 +48,7 @@ def process_data(data, valid_annotators=None, answer_field=""):
         paragraph = ""   
 
         last_selected = -1
-
+        is_nonconsecutive = False
         i = 0
         num_sentences += len(row['data']['long_answer'])
         for sentence in row['data']['long_answer']:
@@ -56,6 +56,7 @@ def process_data(data, valid_annotators=None, answer_field=""):
                 selected += 1
                 if last_selected != -1 and last_selected != i-1:
                     non_consecutive += 1
+                    is_nonconsecutive = True
                 last_selected = i 
             i += 1
             paragraph += sentence + " "
@@ -77,7 +78,7 @@ def process_data(data, valid_annotators=None, answer_field=""):
             answer_type = judgement['data']['how_would_you_describe_the_questionanswer']
 
             output['answer'] = ""
-            output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']]], "has_minimal_answer": has_minimal_answer}
+            output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']]], "has_minimal_answer": has_minimal_answer, 'non_consecutive': is_nonconsecutive}
             
             if answer_type == 'complete' or answer_type == 'partial':
                 # error
@@ -195,7 +196,9 @@ def main():
     two_annotator_data = []
     with open(output_file,'wb') as writer:
         for data in fid_data:
-            if len(fid_data[data]['output']) > 1 or len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1:
+            if len(fid_data[data]['output']) > 1 or \
+                len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1 \
+                 or fid_data[data]['output'][0]["meta"]["non_consecutive"]:
                 two_annotator_data.append(fid_data[data])
                 continue
             writer.write((json.dumps(fid_data[data]) + "\n").encode())
