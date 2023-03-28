@@ -23,6 +23,7 @@ primeqa.mrc.processors.preprocessors.eli5\_fid.ELI5FiDPreprocessor
       ~ELI5FiDPreprocessor.preprocess_eli5_function_fid
       ~ELI5FiDPreprocessor.process_eval
       ~ELI5FiDPreprocessor.process_train
+      ~ELI5FiDPreprocessor.set_max_contexts
       ~ELI5FiDPreprocessor.subsample_features
       ~ELI5FiDPreprocessor.validate_schema
    
