@@ -145,3 +145,5 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
 
         return indices, inputs, targets # inputs is a list of a list of question+passage, targets is a list of answers
 
+    def set_max_contexts(self, new_max_contexts):
+        self._max_contexts = new_max_contexts
