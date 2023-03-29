@@ -17,9 +17,11 @@ conda activate udapdr
 
 We include [two sample synthetic query datasets](https://zenodo.org/record/7701883#.ZAXr6ezMKdY) for LoTTE and BEIR. To generate the datasets, we used our corpus-adapted prompting approach from [the paper](https://arxiv.org/abs/2303.00807), leveraging both GPT-3 and Flan-T5 XXL.
 
+To download the BEIR datasets directly, please go to [the official BEIR site](https://github.com/beir-cellar/beir).
+
 To download the question and documents sets for evaluation, please go to [the following download site](https://zenodo.org/record/7698919#.ZAOg5-zMKdY).
 
-To download the BEIR datasets directly, please go to [the official BEIR site](https://github.com/beir-cellar/beir).
+To download the ColBERTv2 retriever zeroshot results, please go to the [following download site](https://zenodo.org/record/7782210#.ZCRZeOzMKdY).
 
 ## Training and Inference
 
