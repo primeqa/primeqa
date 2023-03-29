@@ -19,6 +19,8 @@ We include [two sample synthetic query datasets](https://zenodo.org/record/77018
 
 To download the question and documents sets for evaluation, please go to [the following download site](https://zenodo.org/record/7698919#.ZAOg5-zMKdY).
 
+To download the BEIR datasets directly, please go to [the official BEIR site](https://github.com/beir-cellar/beir).
+
 ## Training and Inference
 
 For running the end-to-end domain adaptation approach, please use the `scripts/DSP_Multiple_Reranker.py`
