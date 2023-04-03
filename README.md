@@ -106,6 +106,12 @@ Java 11 is required for BM25 retrieval. Install java as follows:
 ```shell
 conda install -c conda-forge openjdk=11
 ```
+## :speech_balloon: Blog Posts
+There're several blog posts by members of the open source community on how they've been using PrimeQA for their needs. Read some of them:
+1. [PrimeQA and GPT 3](https://www.marktechpost.com/2023/03/03/with-just-20-lines-of-python-code-you-can-do-retrieval-augmented-gpt-based-qa-using-this-open-source-repository-called-primeqa/)
+2. [Enterprise search with PrimeQA](https://heidloff.net/article/introduction-neural-information-retrieval/)
+3. [A search engine for Trivia geeks](https://www.deleeuw.me.uk/posts/Using-PrimeQA-For-NLP-Question-Answering/)
+
 
 ## 🧪 Unit Tests
 [Testing doc](https://primeqa.github.io/primeqa/testing.html)       
