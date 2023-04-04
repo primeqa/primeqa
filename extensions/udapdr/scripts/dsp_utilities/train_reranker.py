@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import ast
 import datasets
-#from datasets import load_metric
 from transformers import TrainingArguments, Trainer
 
 import pyarrow as pa
@@ -64,7 +63,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	        ######################################################################
 
 	        self.first_classifier = nn.Sequential(
-	          											#nn.Linear(in_features=self.embedding_size, out_features=self.embedding_size),
 	          											nn.Linear(in_features=self.embedding_size, out_features=2)
 	          									   )
 
@@ -83,10 +81,7 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
     ######################################################################
 
 	def tokenize_function(examples):
-
 	    return tokenizer(examples["original"], padding="max_length", truncation=True)#.input_ids
-
-
 
     ############################################################
 
@@ -101,7 +96,7 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	selected_model = "Fewshot_FLAN"
 
 	chosen_k = 5
-	model_max_length = 384 #512 #384
+	model_max_length = 384
 	tokenizer = AutoTokenizer.from_pretrained(model_choice, model_max_length=model_max_length) #model_max_length=model_max_length
 	patience_value = 1
 	assigned_batch_size = 1
@@ -114,7 +109,7 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	use_original_retrieved_passage = False
 	inject_overlap_scores = True
 
-	dev_split_mark = 100 #200000 #44800 #9800 #185000 #179500 #39440
+	dev_split_mark = 1000000
 	re_ranking_count = 5
 	training_passages_selection_5_20_or_100 = 2
 
@@ -126,10 +121,10 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	###########################################################################
 
 	if LoTTE_or_BEIR == "LoTTE":
-		reranker_results_filename = '../ColBERT_FM/datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + chosen_set + '.tsv'
+		reranker_results_filename = '../datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + chosen_set + '.tsv'
 		checkpoint_path = "checkpoints/" + str(given_process_number) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + str(model_choice.replace("/", "-")) + "_" + str(num_epochs) + "_" + str(include_gpt_3_query) + "_" + str(chosen_learning_rate) + "_" + str(device) + "_" + str(dev_split_mark) + ".pt"
 	elif LoTTE_or_BEIR == "BEIR":
-		reranker_results_filename = '../ColBERT_FM/datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + chosen_BEIR_type + '.tsv'
+		reranker_results_filename = '../datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + chosen_BEIR_type + '.tsv'
 		checkpoint_path = "checkpoints/" + str(given_process_number) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + str(model_choice.replace("/", "-")) + "_" + str(num_epochs) + "_" + str(include_gpt_3_query) + "_" + str(chosen_learning_rate) + "_" + str(device) + "_" + str(dev_split_mark) + ".pt"
 
 	######################################################################
@@ -140,8 +135,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	original_queries['original_qid'] = original_queries['qid']
 	original_queries.set_index('original_qid', inplace=True)
 	original_queries.sort_values('original_qid')
-	#print("original_queries")
-	#print(original_queries)
 
 	######################################################################
 
@@ -149,17 +142,15 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	    collection = pd.read_csv("/dfs/scratch0/okhattab/OpenQA/collection.tsv", sep="\t")
 	    collection.columns = ['pid', 'passage', 'passage_title']
 	elif LoTTE_or_BEIR == "BEIR":
-	    collection = pd.read_csv("../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" , sep="\t", header=None)
+	    collection = pd.read_csv("../beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" , sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 	else:
-	    collection = pd.read_csv("../ColBERT_FM/downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
+	    collection = pd.read_csv("../downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 
 	collection['original_pid'] = collection['pid']
 	collection.set_index('original_pid', inplace=True)
 	collection.sort_values('original_pid')
-	#print("collection")
-	#print(collection)
 
 	######################################################################
 
@@ -392,10 +383,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	        outputs = model(**new_batch)
 
-	        #print("outputs")
-	        #print(outputs['combined_logits'])
-	        #print(batch['combined_label'])
-
 	        loss = criterion(outputs['combined_logits'], batch['combined_label'].to(device))
 
 	        loss.backward()
@@ -472,8 +459,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	print("Beginning Evaluation")
 
-	#metric = load_metric("accuracy")
-
 	total_original_label_predictions = torch.LongTensor([]).to(device)
 	total_original_label_references = torch.LongTensor([]).to(device)
 
@@ -507,7 +492,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	        total_original_qid_matches.append(batch['original_qid'].cpu().numpy())
 	        total_passage_ids_of_retrieved_passages.append(batch['passage_ids'].cpu().numpy())
-	        #total_positive_label_logit_scores.append(outputs['combined_logits'][0][1].cpu().numpy())
 	        for j in range(0, len(outputs['combined_logits'])):
 	            total_positive_label_logit_scores.append(outputs['combined_logits'][j][1].cpu().numpy())
 
@@ -526,21 +510,10 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	############################################################
 
-	#print("Average Reranking Times: " + str(sum(reranking_times) / len(reranking_times)))
-
-	############################################################
-
 	total_combined_label_predictions = total_combined_label_predictions.tolist()
 	total_combined_label_references = total_combined_label_references.tolist()
 
 	total_original_label_references = total_original_label_references.tolist()
-
-	#results = metric.compute(references=total_combined_label_references, predictions=total_combined_label_predictions)
-	#print("Accuracy for Model Training Task: " + str(results['accuracy']))
-
-	#print("Total Positive Labels and Negative labels percentages")
-	#print(round((total_combined_label_references.count(1) / len(total_combined_label_references)) * 100, 2))
-	#print(round((total_combined_label_references.count(0) / len(total_combined_label_references)) * 100, 2))
 
 	############################################################
 
@@ -554,7 +527,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	total_original_qid_matches = [int(qid) for qid_list in total_original_qid_matches for qid in qid_list]
 	total_passage_ids_of_retrieved_passages = [int(pid) for pid_list in total_passage_ids_of_retrieved_passages for pid in pid_list]
 
-	# Sanity check
 	assert len(reranker_results['qids']) == len(reranker_results['pids'])
 	assert len(reranker_results['pids']) == len(reranker_results['logits'])
 	assert len(reranker_results['logits']) == len(reranker_results['labels'])
@@ -565,8 +537,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	print("Saved results to: " + str(reranker_results_filename))
 
 	############################################################
-
-	#print("Performing final scoring")
 
 	correct_5 = 0
 	correct_20 = 0
