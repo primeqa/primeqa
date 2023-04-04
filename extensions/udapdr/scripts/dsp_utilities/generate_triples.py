@@ -19,7 +19,7 @@ import random
 
 def generate_triples(reranker_results_filename, chosen_split, chosen_type, chosen_set, given_prompt_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
 
-	distillation_triples_filename = "../ColBERT_FM/datasets/distillation_triples_for_ColBERTV2_" 
+	distillation_triples_filename = "../datasets/distillation_triples_for_ColBERTV2_" 
 	if LoTTE_or_BEIR == "LoTTE":
 		distillation_triples_filename += str(chosen_split) + "_" + str(chosen_type) + "_" + str(chosen_set) + "_" + str(given_prompt_number) + ".json"
 	elif LoTTE_or_BEIR == "BEIR":
