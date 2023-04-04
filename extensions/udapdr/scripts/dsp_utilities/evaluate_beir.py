@@ -17,7 +17,7 @@ def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_L
 
 	if chosen_LoTTE_split != None:
 
-		with open("../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosent_LoTTE_set + "/qas." + chosent_LoTTE_type + ".jsonl", 'r') as f:
+		with open("../downloads/lotte/" + chosen_LoTTE_split + "/" + chosent_LoTTE_set + "/qas." + chosent_LoTTE_type + ".jsonl", 'r') as f:
 		    qas = f.readlines()
 
 		for line in qas:	
@@ -27,7 +27,7 @@ def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_L
 
 	else:
 
-		with open("../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 'r') as f:
+		with open("../beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 'r') as f:
 		    qas = f.readlines()
 
 		for line in qas:	
@@ -75,8 +75,5 @@ def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_L
 	return overall_ncdg_score
 
 ################################
-
-#evaluate_beir("/future/u/jonsf/ColBERT/experiments/default/ColBERT_Evaluation_Script/2023-03/29/07.12.50/msmarco.k=1000.device=gpu.ranking.tsv", "arguana", "test")
-
 
 
