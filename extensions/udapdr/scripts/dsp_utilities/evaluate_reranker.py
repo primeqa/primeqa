@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import ast
 import datasets
-#from datasets import load_metric
 from transformers import TrainingArguments, Trainer
 
 import pyarrow as pa
@@ -94,7 +93,7 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 
 	model_choice = "microsoft/deberta-v3-large"
 	chosen_k = 5
-	model_max_length = 384 #384
+	model_max_length = 384
 	tokenizer = AutoTokenizer.from_pretrained(model_choice, model_max_length=model_max_length)
 	assigned_batch_size = 1
 	gradient_accumulation_multiplier = 32
@@ -475,7 +474,7 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 	print("Success@5 Performance of UDAPDR")
 	print(round(correct_5 * 100 / five_total, 2))
 	print("--------------------------------------")
-	print("Success@5 Performance of normal strategy")
+	print("Success@5 Performance of baseline strategy")
 	print(round(normal_correct_5 * 100 / five_total_normal, 2))
 
 	if LoTTE_or_BEIR == "BEIR":
