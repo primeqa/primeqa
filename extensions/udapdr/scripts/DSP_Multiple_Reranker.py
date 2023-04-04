@@ -469,8 +469,8 @@ if __name__ == '__main__':
 	parser.add_argument("--sample_count", type=int, required=True)
 	#parser.add_argument("--number_of_prompts", type=int, required=False)
 	#parser.add_argument("--prompts_to_use", type=list, required=False)
-	parser.add_argument("--reranker_count", type=int, required=True)
-	parser.add_argument("--devices", type=str, default="cuda:0", required=False)
+	parser.add_argument("--reranker_count", type=int, default=5, required=True)
+	parser.add_argument("--devices", type=list, default=["cuda:0", "cuda:1", "cuda:2", "cuda:3", "cuda:4"], required=False)
 
 	parser.add_argument("--query_count", type=int, required=True)
 	parser.add_argument("--model_choice", type=str, required=True)
