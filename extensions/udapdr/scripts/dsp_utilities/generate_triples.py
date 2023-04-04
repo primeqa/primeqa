@@ -28,12 +28,6 @@ def generate_triples(reranker_results_filename, chosen_split, chosen_type, chose
 	with open(reranker_results_filename, 'r') as JSON:
 	    reranking_results = json.load(JSON)
 
-	#for key in reranking_results.keys():
-	#	print(key)
-	#	print(len(reranking_results[key]))
-	#	print(type(reranking_results[key]))
-		#print(reranking_results[key])
-
 	###########################################
 
 	current_matching_qid = None
@@ -96,37 +90,13 @@ def generate_triples(reranker_results_filename, chosen_split, chosen_type, chose
 				retrieved_pids = qid_to_top_k_passages[qid]
 
 				if len(retrieved_pids) < 90:
-					print("Error! The pid count of " + str(qid) + " is too small.")
-				
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[:15]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
-
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[15:30]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
-
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[30:45]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
-
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[45:60]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
-
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[60:75]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
-
-				next_triple = [qid, qid_to_answer_pid[qid]]
-				for pair in retrieved_pids[75:90]:
-					next_triple.append(pair)
-				distillation_triples.append(next_triple)
+				    print("Error! The pid count of " + str(qid) + " is too small.")
+					
+				for triple_count in range(0, 6):
+				    next_triple = [qid, qid_to_answer_pid[qid]]
+				    for pair in retrieved_pids[triple_count * 15:(triple_count + 1) * 15]:
+				        next_triple.append(pair)
+				    distillation_triples.append(next_triple)
 
 		except:
 			print("Error with QID: " + str(qid))
