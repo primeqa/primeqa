@@ -47,10 +47,16 @@ Examples:
     ['rougeL', 'gen_len']
 """
 
+import sys
 
 @datasets.utils.file_utils.add_start_docstrings(_DESCRIPTION, _KWARGS_DESCRIPTION)
 class ROUGE(datasets.Metric):
+    
     def _info(self):
+        self._hf_rouge = rouge_scorer.RougeScorer(rouge_types=['rougeLsum'], split_summaries=True)
+        self._kilt_rouge = Rouge(metrics=['rouge-l'])
+        sys.setrecursionlimit(20000)
+        
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
@@ -69,24 +75,21 @@ class ROUGE(datasets.Metric):
         )
         
     def _rougel_score(self,prediction, ground_truth):
-        rouge = Rouge()
-        scorer = rouge_scorer.RougeScorer(['rougeL'])
-        # no normalization
         try:
-            scores = rouge.get_scores(prediction, ground_truth, avg=True)
-            google_scores = scorer.score(prediction, ground_truth)
+            hf_scores = self._hf_rouge.score(ground_truth, prediction)
+            kilt_scores = self._kilt_rouge.get_scores(prediction, ground_truth, avg=True)
         except ValueError:  # "Hypothesis is empty."
-            return 0.0
-        return scores["rouge-l"]["f"], google_scores['rougeL'].fmeasure
+            return 0.0, 0.0
+        return hf_scores['rougeLsum'].fmeasure, kilt_scores["rouge-l"]["f"]
 
-    def _metric_max_over_ground_truths(self,metric_fn, prediction, ground_truths):
+    def _metric_max_over_ground_truths(self, prediction, ground_truths):
         kilt_scores_for_ground_truths = []
         google_scores_for_ground_truths = []
         for ground_truth in ground_truths:
-            kilt_score, google_score = metric_fn(prediction, ground_truth)
+            hf_score, kilt_score = self._rougel_score(prediction, ground_truth)
+            google_scores_for_ground_truths.append(hf_score)
             kilt_scores_for_ground_truths.append(kilt_score)
-            google_scores_for_ground_truths.append(google_score)
-        return max(kilt_scores_for_ground_truths), max(google_scores_for_ground_truths)
+        return max(google_scores_for_ground_truths), max(kilt_scores_for_ground_truths)
 
     
     def _compute(self, predictions, references, **kwargs):
@@ -102,7 +105,7 @@ class ROUGE(datasets.Metric):
             assert ref["id"] == _id
             total_count += 1
             _refs = ref["answers"]
-            kilt_local_rougel, google_local_rougel = self._metric_max_over_ground_truths(self._rougel_score, _pred, _refs)
+            google_local_rougel, kilt_local_rougel = self._metric_max_over_ground_truths(_pred, _refs)
             kilt_rougel += kilt_local_rougel
             google_rougel += google_local_rougel
             
