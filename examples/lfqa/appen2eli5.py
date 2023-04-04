@@ -205,7 +205,7 @@ def main():
 
     with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-3.28.23.json",'wb') as writer:
         for data in two_annotator_data:
-            writer.write((json.dumps(two_annotator_data) + "\n").encode())
+            writer.write((json.dumps(two_annotator_data[data]) + "\n").encode())
 
     
 
