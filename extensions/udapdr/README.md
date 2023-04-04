@@ -39,7 +39,6 @@ python scripts/DSP_Multiple_Reranker.py \
        --chosen_BEIR_type None \
        --sample_count 20 \
        --reranker_count 5 \
-       --devices '["cuda:0", "cuda:1", "cuda:2", "cuda:3", "cuda:4"]' \
        --query_count 1000000 \
        --model_choice google/flan-t5-xxl \
        --gpt3_model_choice text-davinci-002 \
