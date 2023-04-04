@@ -54,19 +54,11 @@ def is_bad_question_problematic(given_good_question, given_bad_question):
     given_bad_question = re.sub(r'[^\w\s]','', given_bad_question).lower()
 
     if given_good_question[:20] == given_bad_question[:20]:
-    	print("Problematic queries!")
-    	print(given_good_question)
-    	print(given_bad_question)
-    	print("---------------------")
     	return True 
     
     good_question_split = given_good_question.split(" ")
     bad_question_split = given_bad_question.split(" ")
     if len(list(set(good_question_split) & set(given_bad_question))) > (len(good_question_split) / 2):
-    	print("Problematic queries!")
-    	print(given_good_question)
-    	print(given_bad_question)
-    	print("---------------------")
     	return True 
 
     #############
@@ -148,19 +140,6 @@ def generate_synthetic_questions_with_GPT3(given_passage, prompt_number, given_g
 
 	########################################################
 
-	# # Remove queries that are just substrings of passage
-	# #if query in " ".join(given_passage.split(" ")[:128]):
-	# #	query = ""
-
-	#query = query.lower()
-	#if prompt_number == 0 or:
-
-	#	query = query.lower()
-	#	if query.find("?") != -1:
-	#		question_mark_index = query.find("?")
-	#		query = query[:question_mark_index + 1]
-	#	query = query.strip()
-
 	if prompt_number == 1:
 		
 		if query.lower().find("bad question") != -1:
@@ -181,13 +160,6 @@ def generate_synthetic_questions_with_GPT3(given_passage, prompt_number, given_g
 	query = query.strip()
 
 	#########################################################
-
-	#print("Generate Question")
-	#print("Prompt " + str(prompt_number))
-	#print(query)
-	#print("Query Before Processing")
-	#print(unprocessed_query)
-	#print("---------------------------------------")
 
 	return query
 
@@ -298,9 +270,6 @@ def perform_synthetic_question_generation_v2(given_passage, prompt_number, given
         qa_template = dsp.Template(instructions="Write a good question that is answered by the given document.", document=Document(), good_question=Synthetic_Good_Question(), bad_question=Synthetic_Bad_Question())
         completed_good_question, completed_bad_question = vanilla_LM_QA(given_passage)
 
-        #print("completed_bad_question")
-        #print(completed_bad_question)
-
         return completed_bad_question
 
 ########################################################
@@ -407,13 +376,6 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 
 	########################################################
 
-	#print("Generated query and its prompt!")
-	#print("Query")
-	#print(query)
-	#print("Prompt")
-	#print(given_prompt)
-	#print("------------------------------------------")
-
 	return query
 
 ########################################################
@@ -421,16 +383,6 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 def end_to_end_reranker_training(given_prompt, given_device, given_process_number, queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
 
 	print("Starting end-to-end process!")
-
-	#synthetic_queries_filename, synthetic_qas_filename = generate_synthetic_queries(given_prompt, model_choice, query_count, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, given_process_number, parallelization)
-
-	#print(synthetic_queries_filename) 
-	#print(synthetic_qas_filename)
-	#print("Completed step #1!")
-
-	#zeroshot_ranking = generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, None, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_process_number)
-
-	#print("Completed step #2!")
 
 	reranker_checkpoint_path, reranker_results_filename, reranker_success_at_five, baseline_success_at_5 = train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_filename, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type)
 
@@ -447,20 +399,12 @@ def end_to_end_reranker_training(given_prompt, given_device, given_process_numbe
 
 	print("Completed step #5! Adding results to queue")
 
-	# TODO: Create numbering system for synthetic queries
 	queue.put((triples_for_distillation, synthetic_queries_filename, given_prompt, given_device, given_process_number))
-	#queue.put((triples_for_distillation, synthetic_queries_filename, reranker_performance, baseline_performance))
-
-	#return (triples_for_distillation, synthetic_queries_filename)
 
 ######################################################################
 
 def combine_rerankers_and_evaluate(triples_and_queries_list):
 
-	# Get top-5 rerankers based on reranker accuracy for dev set
-	#triples_and_queries_list = sorted(triples_and_queries_list, key = lambda x: x[2], reverse = True)[:5]
-
-	#distilled_checkpoint = "/future/u/jonsf/ColBERTv2_Checkpoints/okhattab/msmarco.psg.kldR2.nway64.ib__colbert-400000"
 	distilled_checkpoint = "DSP_Experiments/msmarco.psg.kldR2.nway64.ib__colbert-400000"
 	for triples_and_queries in triples_and_queries_list:
 
@@ -536,8 +480,6 @@ if __name__ == '__main__':
 	parser.add_argument("--use_FLAN_for_all_synthetic_query_generation", default=False, type=bool, required=False)
 
 	args = parser.parse_args()
-	print("Parsed arguments")
-	print(args)
 
 	######################################################################
 
@@ -561,31 +503,6 @@ if __name__ == '__main__':
 	parallelization = args.parallelization
 	dsp_prompting = args.dsp_prompting
 	use_FLAN_for_all_synthetic_query_generation = args.use_FLAN_for_all_synthetic_query_generation
-
-	######################################################################
-
-	# Instructions setup
-
-	# chosen_LoTTE_split = "technology"
-	# chosen_LoTTE_type = "forum"
-	# chosen_LoTTE_set = "dev"
-
-	# LoTTE_or_BEIR = "LoTTE"
-	# chosen_BEIR_set = "scifact"
-	# chosen_BEIR_type = "test"
-
-	# sample_count = 15 #500
-	# number_of_prompts = 5
-	# prompts_to_use = [1, 2, 3] # [0, 1, 2, 3, 4]
-	# reranker_count = 2 # 2, 5, 50
-	# devices = ["cuda:0", "cuda:1"] #
-
-	# query_count = 100 #15000 #13000
-	# model_choice = "google/flan-t5-xxl" #"google/flan-t5-xxl"
-	# gpt3_model_choice = 'text-davinci-002'
-	# parallelization = False
-	# dsp_prompting = False
-	# use_FLAN_for_all_synthetic_query_generation = False
 
 	######################################################################
 
@@ -679,7 +596,6 @@ if __name__ == '__main__':
 
 	######################################################################
 
-	# Create 50 prompts for training 50 rerankers
 	unique_prompts = []
 	used_question_selection = set()
 
@@ -699,9 +615,6 @@ if __name__ == '__main__':
 			else:
 				random_column = randrange(number_of_prompts)
 
-			#problematic_queries = is_bad_question_problematic(sub_collection.iloc[random_row]['Generated_Question#' + str(random_column)], 
-			#	                                              sub_collection.iloc[random_row]['Bad_Question'])
-			
 			while random_row in used_question_selection or random_column not in prompts_to_use or is_bad_question_problematic(sub_collection.iloc[random_row]['Generated_Question#' + str(random_column)], sub_collection.iloc[random_row]['Bad_Question']):
 				
 				random_row = randrange(len(sub_collection))
@@ -717,7 +630,6 @@ if __name__ == '__main__':
 
 		######################################################################
 
-		#current_prompt = "Write a Question that is answered by the following Passage.\n"
 		current_prompt = ""
 		for j in range(1, 4):
 			current_prompt += "Example " + str(j) + ":\n"
@@ -732,8 +644,6 @@ if __name__ == '__main__':
 		unique_prompts.append(current_prompt)
 
 	######################################################################
-
-#if __name__ == '__main__':
 
 	import torch.multiprocessing as mp
 	context = mp.get_context('spawn')
@@ -766,16 +676,12 @@ if __name__ == '__main__':
 	######################################################
 
 	for prompt, chosen_device, process_number, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking in zip(unique_prompts, devices, range(len(unique_prompts)), synthetic_queries_filenames, synthetic_qas_filenames, zeroshot_rankings):
-	#for prompt, chosen_device, process_number in zip(unique_prompts, devices, range(len(unique_prompts))):
 
 	    print("Starting on a prompt!")
 
 	    process = context.Process(target=end_to_end_reranker_training, args=(prompt,chosen_device,process_number,queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type))
-	    #process = context.Process(target=end_to_end_reranker_training, args=(prompt,chosen_device,process_number,queue,))
 	    total_processes.append(process)
 	    process.start()
-	    #total_triples_and_synth_queries_for_distillation.append(queue.get())
-	    #p.join()
 
 	for finished_process in total_processes:
 		finished_process.join()
