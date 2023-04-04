@@ -86,7 +86,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
         # Use checkpoint as a model type
         elif config.checkpoint == 'bert-base-uncased' or config.checkpoint =='bert-large-uncased' \
-                or config.checkpoint == 'xlm-roberta-base' or config.checkpoint == 'xlm-roberta-large':
+                or config.checkpoint == 'xlm-roberta-base' or config.checkpoint == 'xlm-roberta-large' \
+                or config.checkpoint == 'roberta-base' or config.checkpoint == 'roberta-large':
             config.model_type = config.checkpoint
         else:
             print_message(f"unsupported checkpoint type or format: {config.checkpoint}")
@@ -126,7 +127,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             print_message(f"#> Load init from lm {config.init_from_lm}")
             checkpoint = torch.load(config.init_from_lm, map_location='cpu')
             checkpoint = OrderedDict([('model.' + key, value) for key, value in checkpoint.items()])
-            colbert.load_state_dict(checkpoint)
+            colbert.load_state_dict(checkpoint, strict=False)  # to allow loading from "bare" LM models
 
         # load from checkpoint if checkpoint is an actual model
         if config.checkpoint is not None:

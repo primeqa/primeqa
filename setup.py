@@ -62,10 +62,10 @@ _deps = {
     "ninja~=1.10.2.3": ["install", "gpu"],
     "numpy~=1.21.5": ["install", "gpu"],
     "packaging~=21.3": ["install", "gpu"],
-    "pandas~=1.3.5": ["install", "gpu"],
+    "pandas~=1.4.0": ["install", "gpu"],
     "psutil~=5.9.0": ["install", "gpu"],
     "pyarrow~=7.0.0": ["install", "gpu"],
-    "pyserini~=0.16.0": ["install", "gpu"],
+    "pyserini~=0.20.0": ["install", "gpu"],
     "pytest~=7.1.1": ["tests"],
     "pytest-cov~=3.0.0": ["tests"],
     "pytest-mock~=3.7.0": ["tests"],
@@ -76,6 +76,8 @@ _deps = {
     "torch~=1.11.0": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.24.0": ["install", "gpu"],
+    "sentence_transformers": ["install", "gpu"],
+    "tensorboard":["install", "gpu"],
     "sentencepiece~=0.1.96": ["install", "gpu"],
     "ujson~=5.1.0": ["install"],
     "tqdm~=4.64.0": ["install", "gpu"],
@@ -96,6 +98,7 @@ _deps = {
     "uvicorn~=0.18.0": ["install", "gpu"],
     "cachetools~=5.2.0": ["install", "gpu"],
     "sqlitedict~=2.0.0": ["install", "gpu"],
+    "openai~=0.27.0": ["install", "gpu"],
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]

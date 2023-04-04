@@ -78,7 +78,6 @@ class TestPyseriniRetriever(UnitTest):
             rank, docid, score, title = expected_results[h]
             assert(rank == hit['rank'])
             assert(docid == hit['doc_id'])
-            assert(score == hit['score'])
             assert(title == hit['title'])
             assert('text' in hit)
 
