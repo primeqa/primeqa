@@ -2,7 +2,6 @@
 import torch.nn as nn
 from transformers import T5Tokenizer, T5EncoderModel, T5ForConditionalGeneration, AutoModelForSeq2SeqLM
 from transformers import BertModel, AutoTokenizer, AutoModel, GPT2Tokenizer
-#import tensorflow as tf
 
 import pandas as pd
 import numpy as np
@@ -37,17 +36,13 @@ def generate_synthetic_questions_with_fewshot_FLAN(given_prompt, given_passage, 
     
 	given_prompt += "Example 4:\n"
 	given_prompt += "Document: " + " ".join(str(given_passage).split(" ")[:256]) #  + "\n"
-	#given_prompt += "Good Question: "
 
 	input_ids = flan_tokenizer.encode(given_prompt, max_length=2048, truncation=True, return_tensors='pt').to(device)
-	#print("input_ids length")
-	#print(input_ids.shape)
 	if input_ids.shape[0] != 1 or input_ids.shape[1] >= 2048:
 		print(input_ids.shape)
 		print(input_ids.shape[0])
 		print(input_ids.shape[1])
 		print("Major error! Sequence length exceeds max length")
-		#assert False
 		return ""
 	outputs = flan_model.generate(
 	    input_ids=input_ids,
@@ -58,13 +53,6 @@ def generate_synthetic_questions_with_fewshot_FLAN(given_prompt, given_passage, 
 
 	query = flan_tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-	#print("Generated query and its prompt!")
-	#print("Query")
-	#print(query)
-	#print("Prompt")
-	#print(given_prompt)
-	#print("------------------------------------------")
-
 	########################################################
 
 	if query.lower().find("bad question") != -1:
@@ -72,13 +60,7 @@ def generate_synthetic_questions_with_fewshot_FLAN(given_prompt, given_passage, 
 		query = query[:bad_question_index]
 	query = query.replace("Good Question", "").replace(": ","")
 
-	# To remove questions not phrased properly as questions
-	#if query.find("?") == -1:
-	#	query = ""
-
 	########################################################
-
-	#torch.cuda.empty_cache()
 
 	return query
 
@@ -92,19 +74,12 @@ def detect_problematic_question(given_question):
 		problem_detected = True 
 	elif "author" in given_question or "Author" in given_question:
 		problem_detected = True 
-	#elif given_question[-1] != "?":
-	#	problem_detected = True
 	elif "the issue" in given_question or "the problem" in given_question:
 		problem_detected = True 
 	elif len(given_question) == 0:
 		problem_detected = True 
 	elif len(given_question.replace(" ", "")) == 0:
 		problem_detected = True 
-
-	#if problem_detected:
-	#	print("Problem detected with query!")
-	#	print(given_question)
-	#	print("-----------------------------------------")
 
 	return problem_detected
 
@@ -167,21 +142,16 @@ def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_
 	collection.set_index('original_pid', inplace=True)
 	collection.sort_values('original_pid')
 
-	#print("collection")
-	#print(collection.shape)
-	#print(collection.head())
-
 	######################################################################
 
 	question_id_to_gold_passages = {}
 	gold_passage_id_to_question_id = {}
 
-	#with open('../stackexchange/Dataset_Generation_Code/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
 	if LoTTE_or_BEIR == "LoTTE":
-		with open('../ColBERT_FM/downloads/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
+		with open('../downloads/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
 		    qas = f.readlines()
 	elif LoTTE_or_BEIR == "BEIR":
-		with open('../ColBERT_FM/beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
+		with open('../beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
 		    qas = f.readlines()
 
 	total_answer_pids = set()
