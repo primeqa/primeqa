@@ -6,10 +6,7 @@ import sys
 
 
 def evaluate_dataset(query_type, dataset, split, k, data_rootdir, rankings_rootdir):
-    #data_path = os.path.join(data_rootdir, dataset, split)
-    #rankings_path = os.path.join(
-    #    rankings_rootdir, split, f"{dataset}.{query_type}.ranking.tsv"
-    #)
+    
     data_path = data_rootdir
     rankings_path = rankings_rootdir
     if not os.path.exists(rankings_path):
@@ -27,7 +24,6 @@ def evaluate_dataset(query_type, dataset, split, k, data_rootdir, rankings_rootd
             assert rank == len(rankings[qid])
 
     success = 0
-    #qas_path = os.path.join(data_path, f"qas.{query_type}.jsonl")
     qas_path = data_path
 
     num_total_qids = 0
@@ -48,15 +44,14 @@ def evaluate_dataset(query_type, dataset, split, k, data_rootdir, rankings_rootd
 
 
 def main(args):
-    #for query_type in ["search", "forum"]:
     for query_type in ["forum"]:
         for dataset in [
-            #"writing",
-            #"recreation",
-            #"science",
-            #"technology",
+            "writing",
+            "recreation",
+            "science",
+            "technology",
             "lifestyle",
-            #"pooled",
+            "pooled",
         ]:
             evaluate_dataset(
                 query_type,
