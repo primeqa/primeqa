@@ -4,10 +4,6 @@ import ujson
 
 from colbert.evaluation.loaders import load_queries
 
-# TODO: Look up path in some global [per-thread or thread-safe] list.
-# TODO: path could be a list of paths...? But then how can we tell it's not a list of queries..
-
-
 class Queries:
     def __init__(self, path=None, data=None):
         self.path = path
@@ -119,45 +115,3 @@ class Queries:
             return obj
 
         assert False, f"obj has type {type(obj)} which is not compatible with cast()"
-
-
-# class QuerySet:
-#     def __init__(self, *paths, renumber=False):
-#         self.paths = paths
-#         self.original_queries = [load_queries(path) for path in paths]
-
-#         if renumber:
-#             self.queries = flatten([q.values() for q in self.original_queries])
-#             self.queries = {idx: text for idx, text in enumerate(self.queries)}
-
-#         else:
-#             self.queries = {}
-
-#             for queries in self.original_queries:
-#                 assert len(set.intersection(set(queries.keys()), set(self.queries.keys()))) == 0, \
-#                     "renumber=False requires non-overlapping query IDs"
-
-#                 self.queries.update(queries)
-
-#         assert len(self.queries) == sum(map(len, self.original_queries))
-
-#     def todict(self):
-#         return dict(self.queries)
-
-#     def tolist(self):
-#         return list(self.queries.values())
-
-#     def query_sets(self):
-#         return self.original_queries
-
-#     def split_rankings(self, rankings):
-#         assert type(rankings) is list
-#         assert len(rankings) == len(self.queries)
-
-#         sub_rankings = []
-#         offset = 0
-#         for source in self.original_queries:
-#             sub_rankings.append(rankings[offset:offset+len(source)])
-#             offset += len(source)
-
-#         return sub_rankings
