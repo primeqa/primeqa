@@ -65,11 +65,11 @@ def evaluate(CKPT, insert_experiment_name_here, chosen_collection, chosen_querie
 def generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, CKPT, chosen_split, chosen_type, chosen_set, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, re_index=True):
 
 	if LoTTE_or_BEIR == "LoTTE":
-		insert_experiment_name_here = "ColBERTv2_Zeroshot:_FLAN_XXL_" + chosen_split + "_" + chosen_type  + "_" + chosen_set +  "_" + str(given_process_number) # + "_" + str(chosen_device) # + "_" + CKPT.replace("/","_")
+		insert_experiment_name_here = "ColBERTv2_Zeroshot:_FLAN_XXL_" + chosen_split + "_" + chosen_type  + "_" + chosen_set +  "_" + str(given_process_number)
 		chosen_collection = "downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv" 
 		chosen_queries = "../downloads/lotte/" + chosen_split + "/" + chosen_set + "/questions." + chosen_type + ".tsv"
 	elif LoTTE_or_BEIR == "BEIR":
-		insert_experiment_name_here = "ColBERTv2_Zeroshot:_FLAN_XXL_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set  + "_" + chosen_BEIR_type +  "_" + str(given_process_number) # + "_" + str(chosen_device) # + "_" + CKPT.replace("/","_")
+		insert_experiment_name_here = "ColBERTv2_Zeroshot:_FLAN_XXL_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set  + "_" + chosen_BEIR_type +  "_" + str(given_process_number)
 		chosen_collection = "beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" 
 		chosen_queries = "beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/questions.tsv"
 
