@@ -39,11 +39,7 @@ def generate_synthetic_questions_with_fewshot_FLAN(given_prompt, given_passage, 
 
 	input_ids = flan_tokenizer.encode(given_prompt, max_length=2048, truncation=True, return_tensors='pt').to(device)
 	if input_ids.shape[0] != 1 or input_ids.shape[1] >= 2048:
-		print(input_ids.shape)
-		print(input_ids.shape[0])
-		print(input_ids.shape[1])
-		print("Major error! Sequence length exceeds max length")
-		return ""
+	    return ""
 	outputs = flan_model.generate(
 	    input_ids=input_ids,
 	    max_length=32,
@@ -92,36 +88,9 @@ def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_
 
 	######################################################################
 
-	if parallelize:
-
-		chosen_device = "cuda:0"
-
-		gpu_count = 4
-
-		print("Parallelization: loading FLAN on to: " + chosen_device)
-
-		heads_per_gpu = len(flan_model.encoder.block) // gpu_count                                                                                                             
-		device_map = {                                                                                                                                                      
-		    gpu: list(                                                                                                                                                      
-		            range(                                                                                                                                                      
-		                0 + (gpu * heads_per_gpu),                                                                                                                              
-		                (0 + (gpu * heads_per_gpu)) + heads_per_gpu,                                                                                                            
-		            )                                                                                                                                                           
-		        )                                                                                                                                                               
-		    for gpu in range(gpu_count)                                                                                                                                     
-		}                                                                                                                                                                   
-		flan_model.parallelize(device_map)
-
-		device = chosen_device
-		device = torch.device(device)
-
-	else:
-
-		print("No parallelization: loading FLAN on to: " + chosen_device)
-
-		device = chosen_device
-		device = torch.device(device)
-		flan_model.to(device)
+	device = chosen_device
+	device = torch.device(device)
+	flan_model.to(device)
 
 	######################################################################
 
