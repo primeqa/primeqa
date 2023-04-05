@@ -12,6 +12,8 @@ from primeqa.services.constants import (
     IndexStatus,
     ATTR_ENGINE_TYPE,
     ATTR_METADATA,
+    ATTR_CONFIGURATION,
+    ATTR_CHECKPOINT,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
 from primeqa.services.grpc_server.utils import (
@@ -82,6 +84,7 @@ class IndexerService(IndexingServiceServicer):
         index_information = {
             ATTR_INDEX_ID: self._store.generate_index_uuid(),
             ATTR_STATUS: IndexStatus.INDEXING.value,
+            ATTR_CONFIGURATION: {},
         }
 
         # Step 2: Iterate over all index requests to collect documents
@@ -133,8 +136,14 @@ class IndexerService(IndexingServiceServicer):
                                 parameter_id=parameter.parameter_id,
                             ),
                         )
-                        # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
+                        # Process `checkpoint` parameter
                         if parameter.parameter_id == "checkpoint":
+                            # Add `checkpoint` parameter value to index information
+                            index_information[ATTR_CONFIGURATION][
+                                ATTR_CHECKPOINT
+                            ] = indexer_kwargs["checkpoint"]
+
+                            # Re-map checkpoint kwarg to point to checkpoint file path in the service's store
                             indexer_kwargs[
                                 "checkpoint"
                             ] = self._store.get_checkpoint_path(
@@ -161,7 +170,9 @@ class IndexerService(IndexingServiceServicer):
             )
 
         # Step 3: Save index information
-        index_information[ATTR_ENGINE_TYPE] = instance.get_engine_type()
+        index_information[ATTR_CONFIGURATION][
+            ATTR_ENGINE_TYPE
+        ] = instance.get_engine_type()
         self._store.save_index_information(
             index_id=index_information[ATTR_INDEX_ID],
             information=index_information,
@@ -237,8 +248,8 @@ class IndexerService(IndexingServiceServicer):
                 if request.engine_type:
                     # Step 1.a: If requested engine type doesn't match current index's engine type, skip processing
                     if (
-                        ATTR_ENGINE_TYPE not in index_information
-                        or request.engine_type != index_information[ATTR_ENGINE_TYPE]
+                        index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE]
+                        != request.engine_type
                     ):
                         continue
 
@@ -249,6 +260,11 @@ class IndexerService(IndexingServiceServicer):
                     index_information_return_obj.status = INDEXING
                 else:
                     index_information_return_obj.status = CORRUPT
+
+                # Add configuration information
+                index_information_return_obj.configuration.update(
+                    index_information[ATTR_CONFIGURATION]
+                )
 
                 # Add metadata information
                 if (

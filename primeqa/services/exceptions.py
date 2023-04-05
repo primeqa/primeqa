@@ -28,6 +28,7 @@ class ErrorMessages(str, Enum):
     # RETRIEVER
     INVALID_RETRIEVER = "E5001: Invalid retriever: {}. Please select one of the following pre-defined retrievers: {}"
     INDEX_UNAVAILABLE_FOR_QUERYING = 'E5002: Cannot query index with "{}" status. Please make sure index has "READY" status before querying.'
+    MISMATCHED_ENGINE_TYPE = 'E5003: Cannot query index with "{}" engine_type with {} retriever of "{}" engine type.'
 
     # INDEXER
     INVALID_INDEXER = "E6001: Invalid indexer: {}. Please select one of the following pre-defined indexers: {}"
@@ -35,6 +36,9 @@ class ErrorMessages(str, Enum):
     FAILED_TO_LOCATE_INDEX_INFORMATION = (
         "E6003: Index information for index with id {} doesn't exist."
     )
+    
+    # RETRANKER
+    INVALID_RETRANKER = "E5001: Invalid reranker: {}. Please select one of the following pre-defined rerankers: {}"
 
     # INITIALIZATION
-    FAILED_TO_INITIALIZE = "E9001: Failed to initalize {}. Please contact us."
+    FAILED_TO_INITIALIZE = "E9001: Failed to initialize {}. Please contact us."

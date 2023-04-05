@@ -16,15 +16,13 @@
 # limitations under the License.
 
 
-def test_get_readers(mock_client):
+def test_get_rerankers(mock_client):
     response = mock_client.get(
-        "/readers",
+        "/rerankers",
     )
     assert response.status_code == 200
-    readers = response.json()
-    assert len(readers) == 2  # 3
-    assert [
-        "ExtractiveReader",
-        #        "GenerativeReader",
-        "PromptReader",
-    ] == [reader["reader_id"] for reader in readers]
+    rerankers = response.json()
+    assert len(rerankers) == 2
+    assert ["SeqClassificationReranker", "ColBERTReranker"] == [
+        reranker["reranker_id"] for reranker in rerankers
+    ]

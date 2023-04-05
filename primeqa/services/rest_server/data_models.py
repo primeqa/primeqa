@@ -53,14 +53,22 @@ class Retriever(BaseModel):
 
 
 #############################################################################################
+#                       Reranker
+#############################################################################################
+class Reranker(BaseModel):
+    reranker_id: str
+    parameters: Union[List[Parameter], None] = None
+
+
+#############################################################################################
 #                       RetrieveRequest
 #############################################################################################
 class RetrieveRequest(BaseModel):
     retriever: Retriever
     index_id: str
     queries: List[str]
-
-
+    
+    
 #############################################################################################
 #                       Document
 #############################################################################################
@@ -77,6 +85,14 @@ class Hit(BaseModel):
     document: Document
     score: float
 
+
+#############################################################################################
+#                       RerankRequest
+#############################################################################################
+class RerankRequest(BaseModel):
+    reranker: Reranker
+    queries: List[str]
+    hitsperquery: List[List[Hit]]
 
 #############################################################################################
 #                       Indexer
@@ -107,4 +123,5 @@ class IndexInformation(BaseModel):
         IndexStatus.DOES_NOT_EXISTS,
         IndexStatus.CORRUPT,
     ]
+    configuration: Dict[str, Any]
     metadata: Union[Dict[str, Any], None] = None

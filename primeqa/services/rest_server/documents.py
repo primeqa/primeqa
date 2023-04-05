@@ -22,6 +22,9 @@ from fastapi import APIRouter, status, HTTPException
 from primeqa.services.exceptions import PATTERN_ERROR_MESSAGE, Error, ErrorMessages
 from primeqa.services.constants import (
     ATTR_STATUS,
+    ATTR_CONFIGURATION,
+    ATTR_ENGINE_TYPE,
+    ATTR_CHECKPOINT,
     IndexStatus,
 )
 from primeqa.services.store import DIR_NAME_INDEX, StoreFactory
@@ -42,7 +45,27 @@ STORE = StoreFactory.get_store()
 )
 def get_documents(request: RetrieveRequest):
     try:
-        # Step 1: Verify requested retriever
+        # Step 1: Load index information
+        if request.index_id:
+            index_root = STORE.get_index_directory_path(request.index_id)
+            # Step 1.a: Check if `index_root` exists
+            if not STORE.exists(index_root):
+                raise Error(
+                    ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
+                )
+
+            # Step 1.b: Load index information
+            index_information = STORE.get_index_information(index_id=request.index_id)
+            if index_information[ATTR_STATUS] != IndexStatus.READY.value:
+                raise Error(
+                    ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
+                        index_information[ATTR_STATUS]
+                    )
+                )
+        else:
+            raise Error(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
+
+        # Step 2: Verify requested retriever exists
         try:
             retriever = RETRIEVERS_REGISTRY[request.retriever.retriever_id]
         except KeyError as err:
@@ -53,7 +76,20 @@ def get_documents(request: RetrieveRequest):
                 )
             ) from err
 
-        # Step 2: Load default retriever keyword arguments
+        # Step 3: Match engine type of requested collection and retriever
+        if (
+            index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE]
+            != retriever.get_engine_type()
+        ):
+            raise Error(
+                ErrorMessages.MISMATCHED_ENGINE_TYPE.value.format(
+                    index_information[ATTR_CONFIGURATION][ATTR_ENGINE_TYPE],
+                    request.retriever.retriever_id,
+                    retriever.get_engine_type(),
+                )
+            )
+
+        # Step 4: Load default retriever keyword arguments
         retriever_kwargs = {
             k: v.default for k, v in retriever.__dataclass_fields__.items() if v.init
         }
@@ -70,39 +106,26 @@ def get_documents(request: RetrieveRequest):
 
                 retriever_kwargs[parameter.parameter_id] = parameter.value
 
-        # Step 4: Load index information
-        if request.index_id:
-            index_root = STORE.get_index_directory_path(request.index_id)
-            # Step 4.a: Check if `index_root` exists
-            if not STORE.exists(index_root):
-                raise Error(
-                    ErrorMessages.FAILED_TO_LOCATE_INDEX.value.format(request.index_id)
-                )
-
-            # Step 4.b: Load index information
-            index_information = STORE.get_index_information(index_id=request.index_id)
-            if index_information[ATTR_STATUS] != IndexStatus.READY.value:
-                raise Error(
-                    ErrorMessages.INDEX_UNAVAILABLE_FOR_QUERYING.value.format(
-                        index_information[ATTR_STATUS]
-                    )
-                )
-
-            # Step 4.c: Update index specific arguments
-            retriever_kwargs["index_root"] = STORE.get_index_directory_path(
-                request.index_id
+        # Step 5: Update index specific arguments
+        retriever_kwargs["index_root"] = STORE.get_index_directory_path(
+            request.index_id
+        )
+        retriever_kwargs["index_name"] = DIR_NAME_INDEX
+        retriever_kwargs["collection"] = STORE.get_index_documents_file_path(
+            index_id=request.index_id
+        )
+        if ATTR_CHECKPOINT in retriever_kwargs:
+            retriever_kwargs[ATTR_CHECKPOINT] = STORE.get_checkpoint_path(
+                index_information[ATTR_CONFIGURATION][ATTR_CHECKPOINT]
             )
-            retriever_kwargs["index_name"] = DIR_NAME_INDEX
-        else:
-            raise Error(ErrorMessages.INVALID_REQUEST.value.format("index_id"))
 
-        # Step 5: Create retriever instance
+        # Step 6: Create retriever instance
         try:
             instance = RetrieverFactory.get(retriever, retriever_kwargs)
         except (ValueError, TypeError) as err:
             raise Error(err.args[0]) from err
 
-        # Step 6: Retrieve
+        # Step 7: Retrieve
         instance_fields = [
             k
             for k, v in instance.__class__.__dataclass_fields__.items()
@@ -133,7 +156,7 @@ def get_documents(request: RetrieveRequest):
                 )
             ) from err
 
-        # Step 7: Return
+        # Step 8: Return
         hits = []
         for result_per_query in results:
             hits_per_query = []

@@ -1,8 +1,11 @@
 import logging
 from typing import Union
 
+from primeqa.components.reader.extractive import ExtractiveReader
+
 from grpc import ServicerContext, StatusCode
 
+from primeqa.components.reader.extractive import ExtractiveReader
 from primeqa.services.exceptions import Error, ErrorMessages
 from primeqa.services.configurations import Settings
 from primeqa.services.grpc_server.utils import (
@@ -26,6 +29,8 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     AnswersForContext,
     AnswersForQuery,
     GetAnswersResponse,
+    Evidence,
+    Offset,
 )
 
 
@@ -147,50 +152,105 @@ class ReaderService(ReadingServiceServicer):
                     request.contexts[idx].texts,
                 )
                 try:
-                    predictions = instance.predict(
-                        questions=[query] * len(request.contexts[idx].texts),
-                        contexts=[[text] for text in request.contexts[idx].texts],
-                        example_ids=[
-                            str(example_id)
-                            for example_id in range(
-                                1, len(request.contexts[idx].texts) + 1
-                            )
-                        ],
-                        **reader_kwargs,
-                    )
-                    self._logger.info(
-                        "Applying '%s' reader for query = '%s' returns predictions = %s",
-                        instance.__class__.__name__,
-                        query,
-                        predictions,
-                    )
-
-                    # Step 5.b: Add answers for current query into response object
-                    answers_response.query_answers.append(
-                        AnswersForQuery(
-                            context_answers=[
-                                AnswersForContext(
-                                    answers=[
-                                        Answer(
-                                            text=prediction["span_answer_text"],
-                                            start_char_offset=prediction["span_answer"][
-                                                "start_position"
-                                            ],
-                                            end_char_offset=prediction["span_answer"][
-                                                "end_position"
-                                            ],
-                                            confidence_score=prediction[
-                                                "confidence_score"
-                                            ],
-                                            context_index=int(prediction["example_id"]),
-                                        )
-                                        for prediction in predictions_for_context
-                                    ]
+                    if isinstance(instance, ExtractiveReader):
+                        predictions = instance.predict(
+                            questions=[query] * len(request.contexts[idx].texts),
+                            contexts=[[text] for text in request.contexts[idx].texts],
+                            example_ids=[
+                                str(example_id)
+                                for example_id in range(
+                                    1, len(request.contexts[idx].texts) + 1
                                 )
-                                for predictions_for_context in predictions.values()
-                            ]
+                            ],
+                            **reader_kwargs,
                         )
-                    )
+                        self._logger.info(
+                            "Applying '%s' reader for query = '%s' returns predictions = %s",
+                            instance.__class__.__name__,
+                            query,
+                            predictions,
+                        )
+
+                        # Step 5.b: Add answers for current query into response object
+                        answers_response.query_answers.append(
+                            AnswersForQuery(
+                                context_answers=[
+                                    AnswersForContext(
+                                        answers=[
+                                            Answer(
+                                                text=prediction["span_answer_text"],
+                                                confidence_score=prediction[
+                                                    "confidence_score"
+                                                ],
+                                                evidences=[
+                                                    Evidence(
+                                                        context_index=int(
+                                                            prediction["example_id"]
+                                                        ),
+                                                        offsets=[
+                                                            Offset(
+                                                                start=prediction[
+                                                                    "span_answer"
+                                                                ]["start_position"],
+                                                                end=prediction[
+                                                                    "span_answer"
+                                                                ]["end_position"],
+                                                            )
+                                                        ],
+                                                    )
+                                                ],
+                                            )
+                                            for prediction in predictions_for_context
+                                        ]
+                                    )
+                                    for predictions_for_context in predictions.values()
+                                ]
+                            )
+                        )
+                    else:
+                        # This is a generative reader
+                        predictions = instance.predict(
+                            questions=[query],
+                            contexts=[request.contexts[idx].texts],
+                            **reader_kwargs,
+                        )
+                        self._logger.info(
+                            "Applying '%s' reader for query = '%s' returns predictions = %s",
+                            instance.__class__.__name__,
+                            query,
+                            predictions,
+                        )
+                        # Step 5.b: Add answers for current query into response object
+                        answers_response.query_answers.append(
+                            AnswersForQuery(
+                                context_answers=[
+                                    AnswersForContext(
+                                        answers=[
+                                            Answer(
+                                                text=prediction["span_answer_text"],
+                                                confidence_score=prediction[
+                                                    "confidence_score"
+                                                ],
+                                                evidences=[
+                                                    Evidence(
+                                                        context_index=context_index + 1
+                                                    )
+                                                    for context_index in range(
+                                                        len(
+                                                            request.contexts[
+                                                                prediction["example_id"]
+                                                            ].texts
+                                                        )
+                                                    )
+                                                ],
+                                            )
+                                            for prediction in predictions_for_context
+                                        ]
+                                    )
+                                    for predictions_for_context in predictions.values()
+                                ]
+                            )
+                        )
                 except AssertionError:
                     context.set_code(StatusCode.INTERNAL)
                     context.set_details(ErrorMessages.INVALID_READER_INPUT.value)
