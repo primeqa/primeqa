@@ -1,10 +1,7 @@
 
 import os
 import dsp
-from multiprocessing import Process
-import queue
 import torch
-import subprocess as sp
 import openai
 
 from dsp_utilities.generate_synthetic_queries import generate_synthetic_queries
@@ -16,21 +13,12 @@ from dsp_utilities.distill_triples_with_retriever import distill_triples_with_re
 from dsp_utilities.evaluate_beir import evaluate_beir
 
 from dsp_utilities.evaluate_lotte_rankings import evaluate_dataset
-from dsp_utilities.pytorchtools import EarlyStopping
-
-import torch.nn as nn
-from transformers import T5Tokenizer, T5EncoderModel, T5ForConditionalGeneration, AutoModelForSeq2SeqLM
-from transformers import BertModel, AutoTokenizer, AutoModel, GPT2Tokenizer
 
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
 tqdm.pandas()
 
-import statistics
-import time
-
-import json
 import random
 from random import randrange
 import re
