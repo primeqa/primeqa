@@ -34,7 +34,6 @@ class Ranking:
         return {'provenance': self.provenance()}
 
     def _prepare_data(self, data):
-        # TODO: Handle list of lists???
         if isinstance(data, dict):
             self.flat_ranking = [(qid, *rest) for qid, subranking in data.items() for rest in subranking]
             return data
