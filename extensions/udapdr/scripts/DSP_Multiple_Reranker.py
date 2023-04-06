@@ -267,8 +267,8 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 	given_passage = " ".join(given_passage.split(" ")[:192])
 
 	if prompt_number == 0:
-		given_prompt = "Write a Question answered by the given Passage.\n" #passage
-		given_prompt += "Passage: " + given_passage + "\n" #" ".join(given_passage.split(" ")[:256])
+		given_prompt = "Write a Question answered by the given Passage.\n" 
+		given_prompt += "Passage: " + given_passage + "\n"
 		given_prompt += "Question:" #passage
 	elif prompt_number == 1:
 		given_prompt = "Example 1:\n"
@@ -284,8 +284,7 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 		given_prompt += "Good Question: Information on the Canadian Armed Forces size and history\n"
 		given_prompt += "Bad Question: How large is the Canadian military?\n\n"
 		given_prompt += "Example 4:\n"
-		given_prompt += "Document: " + given_passage #+ "\n" # + "\n"
-		#given_prompt += "Good Question:"
+		given_prompt += "Document: " + given_passage 
 	elif prompt_number == 2:
 		given_prompt = "Example 1:\n"
 		given_prompt += "Document: We don't know a lot about the effects of caffeine during pregnancy on you and your baby. So it's best to limit the amount you get each day. If you are pregnant, limit caffeine to 200 milligrams each day. This is about the amount in 1½ 8-ounce cups of coffee or one 12-ounce cup of coffee\n"
@@ -321,9 +320,8 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 		given_prompt += "Good Question: Information on the Canadian Armed Forces size and history\n"
 		given_prompt += "Bad Question: How large is the Canadian military?\n\n"
 		given_prompt += "Example 4:\n"
-		given_prompt += "Document: " + given_passage + "\n" # + "\n"
-		given_prompt += "Good Question: " + given_good_question #+ "\n"
-		#given_prompt += "Bad Question:"
+		given_prompt += "Document: " + given_passage + "\n"
+		given_prompt += "Good Question: " + given_good_question 
 
 
 	########################################################
