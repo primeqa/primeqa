@@ -453,8 +453,6 @@ if __name__ == '__main__':
 	parser.add_argument("--chosen_BEIR_type", type=str, default=None, required=True)
 
 	parser.add_argument("--sample_count", type=int, required=True)
-	#parser.add_argument("--number_of_prompts", type=int, required=False)
-	#parser.add_argument("--prompts_to_use", type=list, required=False)
 	parser.add_argument("--reranker_count", type=int, default=5, required=True)
 	parser.add_argument("--devices", type=list, default=["cuda:0", "cuda:1", "cuda:2", "cuda:3", "cuda:4"], required=False)
 
