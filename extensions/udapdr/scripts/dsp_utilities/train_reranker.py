@@ -408,7 +408,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	                new_batch = {'input_ids': batch['input_ids'].to(device), 'attention_mask': batch['attention_mask'].to(device), 
 	                             'labels': batch['combined_label'].to(device)} 
-	            			     #"overlapping_passage_counts": batch['overlapping_passage_counts'].to(device)}
 
 	                outputs = model(**new_batch)
 
@@ -482,7 +481,6 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	        start_time = time.time()
 	        new_batch = {'input_ids': batch['input_ids'].to(device), 'attention_mask': batch['attention_mask'].to(device), 
 	                     'labels': batch['combined_label'].to(device)} 
-	        			 #"overlapping_passage_counts": batch['overlapping_passage_counts'].to(device)}
 
 	        outputs = model(**new_batch)
 	        reranking_times.append(time.time() - start_time)
