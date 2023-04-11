@@ -5,10 +5,10 @@ import torch
 import tqdm
 import time
 
-from colbert.infra import Run, RunConfig, ColBERTConfig
-from colbert.data import Queries
+from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig, ColBERTConfig
+from primeqa.ir.dense.colbert_top.colbert.data import Queries
 
-from colbert import Indexer, Searcher
+from primeqa.ir.dense.colbert_top.colbert import Indexer, Searcher
 
 #############################################################################
 
