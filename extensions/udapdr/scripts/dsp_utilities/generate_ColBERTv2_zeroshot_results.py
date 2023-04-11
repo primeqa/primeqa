@@ -32,14 +32,14 @@ def evaluate(CKPT, insert_experiment_name_here, chosen_collection, chosen_querie
                 query_maxlen=32,
                 nbits=nbits,
                 kmeans_niters=4,
-                root="/lfs/1/jonsf/colbert/experiments",
+                root="primeqa/ir/dense/colbert_top/colbert/experiments",
                 experiment=experiment,
             )
             indexer = Indexer(CKPT, config=config)
             indexer.index(name=INDEX_NAME, collection=collection, overwrite=True)
 
         config = ColBERTConfig(
-            root="/lfs/1/jonsf/colbert/experiments",
+            root="primeqa/ir/dense/colbert_top/colbert/experiments",
             query_maxlen=32,
             experiment=experiment,
         )
