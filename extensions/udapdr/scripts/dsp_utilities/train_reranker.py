@@ -39,7 +39,7 @@ os.environ['PYTHONHASHSEED'] = str(random_state)
 
 ############################################################
 
-def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_filename, chosen_split, chosen_type, chosen_set, device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
+def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_filename, chosen_split, chosen_type, chosen_set, device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
 
 	class CustomBERTModel(nn.Module):
 	    def __init__(self, model_choice):
@@ -121,10 +121,10 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	###########################################################################
 
 	if LoTTE_or_BEIR == "LoTTE":
-		reranker_results_filename = '../datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + chosen_set + '.tsv'
+		reranker_results_filename = downloads_folder + '/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + chosen_set + '.tsv'
 		checkpoint_path = "checkpoints/" + str(given_process_number) + "_" + selected_model + "_" + chosen_split + "_" + chosen_type + "_" + str(model_choice.replace("/", "-")) + "_" + str(num_epochs) + "_" + str(include_gpt_3_query) + "_" + str(chosen_learning_rate) + "_" + str(device) + "_" + str(dev_split_mark) + ".pt"
 	elif LoTTE_or_BEIR == "BEIR":
-		reranker_results_filename = '../datasets/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + chosen_BEIR_type + '.tsv'
+		reranker_results_filename = downloads_folder + '/reranker_results_for_ColBERTV2_' + str(device) + "_" + str(given_process_number) + "_" + str(re_ranking_count) + "_" + str(training_passages_selection_5_20_or_100) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + chosen_BEIR_type + '.tsv'
 		checkpoint_path = "checkpoints/" + str(given_process_number) + "_" + selected_model + "_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set + "_" + str(model_choice.replace("/", "-")) + "_" + str(num_epochs) + "_" + str(include_gpt_3_query) + "_" + str(chosen_learning_rate) + "_" + str(device) + "_" + str(dev_split_mark) + ".pt"
 
 	######################################################################
@@ -138,14 +138,11 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 
 	######################################################################
 
-	if chosen_split == "NQ" or chosen_split == "SQuAD":
-	    collection = pd.read_csv("/dfs/scratch0/okhattab/OpenQA/collection.tsv", sep="\t")
-	    collection.columns = ['pid', 'passage', 'passage_title']
-	elif LoTTE_or_BEIR == "BEIR":
-	    collection = pd.read_csv("../beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" , sep="\t", header=None)
+	if LoTTE_or_BEIR == "BEIR":
+	    collection = pd.read_csv(downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" , sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 	else:
-	    collection = pd.read_csv("../downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
+	    collection = pd.read_csv(downloads_folder + "/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 
 	collection['original_pid'] = collection['pid']
