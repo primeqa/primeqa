@@ -154,7 +154,7 @@ def generate_synthetic_questions_with_GPT3(given_passage, prompt_number, given_g
 
 ########################################################
 
-def perform_synthetic_question_generation_v2(given_passage, prompt_number, given_good_question):
+def perform_synthetic_question_generation_with_dsp_prompting(given_passage, prompt_number, given_good_question):
 
     def vanilla_LM_QA(document: str) -> str:
 
@@ -557,15 +557,15 @@ if __name__ == '__main__':
 	for i in range(0, number_of_prompts):
 		if i in prompts_to_use:
 			if dsp_prompting:
-				sub_collection['Generated_Question#' + str(i)] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_v2(row['passage'], i, ""), axis=1)
+				sub_collection['Generated_Question#' + str(i)] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_with_dsp_prompting(row['passage'], i, ""), axis=1)
 			elif use_FLAN_for_all_synthetic_query_generation:
 				sub_collection['Generated_Question#' + str(i)] = sub_collection.progress_apply(lambda row: generate_synthetic_questions_with_FLAN(row['passage'], i, ""), axis=1)
 			else:
 				sub_collection['Generated_Question#' + str(i)] = sub_collection.progress_apply(lambda row: generate_synthetic_questions_with_GPT3(row['passage'], i, ""), axis=1)
 
 	if dsp_prompting:
-		sub_collection['Generated_Question#' + str(1)] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_v2(row['passage'], 1, ""), axis=1)
-		sub_collection['Bad_Question'] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_v2(row['passage'], -1, row['Generated_Question#1']), axis=1)
+		sub_collection['Generated_Question#' + str(1)] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_with_dsp_prompting(row['passage'], 1, ""), axis=1)
+		sub_collection['Bad_Question'] = sub_collection.progress_apply(lambda row: perform_synthetic_question_generation_with_dsp_prompting(row['passage'], -1, row['Generated_Question#1']), axis=1)
 	elif use_FLAN_for_all_synthetic_query_generation:
 		sub_collection['Generated_Question#' + str(1)] = sub_collection.progress_apply(lambda row: generate_synthetic_questions_with_FLAN(row['passage'], 1, ""), axis=1)
 		sub_collection['Bad_Question'] = sub_collection.progress_apply(lambda row: generate_synthetic_questions_with_FLAN(row['passage'], -1, row['Generated_Question#1']), axis=1)
