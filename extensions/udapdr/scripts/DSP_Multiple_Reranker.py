@@ -460,9 +460,9 @@ if __name__ == '__main__':
 	parser.add_argument("--model_choice", type=str, required=True)
 	parser.add_argument("--gpt3_model_choice", type=str, required=True)
 	parser.add_argument("--parallelization", type=bool, required=True)
-	parser.add_argument("--dsp_prompting", type=bool, required=True)
-	parser.add_argument("--use_FLAN_for_all_synthetic_query_generation", default=False, type=bool, required=False)
-	parser.add_argument("--downloads_folder", type=str, default="../downloads", required=True)
+	parser.add_argument("--dsp_prompting", type=bool, required=True, help="Use DSP prompting if true, direct GPT-3 API prompting if false")
+	parser.add_argument("--use_FLAN_for_all_synthetic_query_generation", default=False, type=bool, required=False, help="Use FLAN for initial query generation if true, use GPT-3 if false")
+	parser.add_argument("--downloads_folder", type=str, default="../downloads", required=True, help="Folder containing LoTTE and BEIR directories")
 
 	args = parser.parse_args()
 
