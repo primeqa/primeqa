@@ -13,6 +13,12 @@ conda create --name udapdr --file requirements.txt
 conda activate udapdr
 ````
 
+Additionally, an OpenAI account is needed for querying the GPT-3 API. Specify your OpenAI key by running:
+
+````
+export OPENAI_API_KEY = add_key_here
+````
+
 ## Data
 
 We include [two sample synthetic query datasets](https://zenodo.org/record/7701883#.ZAXr6ezMKdY), one for LoTTE and one for BEIR. To generate the datasets, we used our corpus-adapted prompting approach from [the paper](https://arxiv.org/abs/2303.00807), leveraging both GPT-3 and Flan-T5 XXL.
