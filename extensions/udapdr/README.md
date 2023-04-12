@@ -33,12 +33,12 @@ After installation, create a directory called `downloads` before placing the LoT
 
 ## Training and Inference
 
-For running the end-to-end domain adaptation approach, please use the `scripts/DSP_Multiple_Reranker.py`
+For running the end-to-end domain adaptation approach, please use the `extensions/udapdr/scripts/DSP_Multiple_Reranker.py`
 
-Here is an example command for running `scripts/DSP_Multiple_Reranker.py`:
+Here is an example command for running `extensions/udapdr/scripts/DSP_Multiple_Reranker.py`:
 
 ````
-python scripts/DSP_Multiple_Reranker.py \
+python extensions/udapdr/scripts/DSP_Multiple_Reranker.py \
        --chosen_LoTTE_split pooled \
        --chosen_LoTTE_type forum \
        --chosen_LoTTE_set dev \
