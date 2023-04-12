@@ -2,6 +2,7 @@
 from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 from primeqa.ir.dense.colbert_top.colbert import Trainer
+import torch
 
 def distill_triples_with_retriever(given_triples, given_synth_queries, given_checkpoint, chosen_split, chosen_type, chosen_set, dataset, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
     
