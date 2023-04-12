@@ -3,16 +3,16 @@ from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig, RunConfig
 from primeqa.ir.dense.colbert_top.colbert import Trainer
 
-def distill_triples_with_retriever(given_triples, given_synth_queries, given_checkpoint, chosen_split, chosen_type, chosen_set, dataset, chosen_BEIR_set, chosen_BEIR_type):
+def distill_triples_with_retriever(given_triples, given_synth_queries, given_checkpoint, chosen_split, chosen_type, chosen_set, dataset, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
     
     nranks = torch.cuda.device_count()
     
     with Run().context(RunConfig(nranks=nranks)):
         
         if dataset == "LoTTE":
-        	collection = '../downloads/lotte/' + chosen_split + '/' + chosen_set +'/collection.tsv'
+        	collection = downloads_folder + '/lotte/' + chosen_split + '/' + chosen_set +'/collection.tsv'
         elif dataset == "BEIR":
-        	collection = '../beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type +'/collection.tsv'
+        	collection = downloads_folder + '/beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type +'/collection.tsv'
         else:
             raise ValueError("Incorrect dataset specification for triples")
 
