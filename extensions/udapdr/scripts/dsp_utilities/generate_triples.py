@@ -17,13 +17,13 @@ import random
 
 ###########################################
 
-def generate_triples(reranker_results_filename, chosen_split, chosen_type, chosen_set, given_prompt_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
+def generate_triples(reranker_results_filename, chosen_split, chosen_type, chosen_set, given_prompt_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
 
-	distillation_triples_filename = "../datasets/distillation_triples_for_ColBERTV2_" 
+	distillation_triples_filename = downloads_folder + "/distillation_triples_for_ColBERTV2_" 
 	if LoTTE_or_BEIR == "LoTTE":
-		distillation_triples_filename += str(chosen_split) + "_" + str(chosen_type) + "_" + str(chosen_set) + "_" + str(given_prompt_number) + ".json"
+	    distillation_triples_filename += str(chosen_split) + "_" + str(chosen_type) + "_" + str(chosen_set) + "_" + str(given_prompt_number) + ".json"
 	elif LoTTE_or_BEIR == "BEIR":
-		distillation_triples_filename += str(LoTTE_or_BEIR) + "_" + str(chosen_BEIR_set) + "_" + str(chosen_BEIR_type) + "_" + str(given_prompt_number) + ".json"
+	    distillation_triples_filename += str(LoTTE_or_BEIR) + "_" + str(chosen_BEIR_set) + "_" + str(chosen_BEIR_type) + "_" + str(given_prompt_number) + ".json"
 
 	with open(reranker_results_filename, 'r') as JSON:
 	    reranking_results = json.load(JSON)
