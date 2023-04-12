@@ -394,13 +394,13 @@ def combine_rerankers_and_evaluate(triples_and_queries_list):
 	distilled_checkpoint = "DSP_Experiments/msmarco.psg.kldR2.nway64.ib__colbert-400000"
 	for triples_and_queries in triples_and_queries_list:
 
-		distilled_checkpoint = distill_triples_with_retriever(triples_and_queries[0], triples_and_queries[1], distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type)
+		distilled_checkpoint = distill_triples_with_retriever(triples_and_queries[0], triples_and_queries[1], distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 
 	########################################
 
 	print("Completed step #6!")
 
-	distilled_ranking = generate_ColBERTv2_zeroshot_results(None, distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, -1, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, re_index=True)
+	distilled_ranking = generate_ColBERTv2_zeroshot_results(None, distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, -1, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder, re_index=True)
 
 	print("Completed step #7!")
 
