@@ -45,6 +45,7 @@ python scripts/DSP_Multiple_Reranker.py \
        --parallelization False \
        --dsp_prompting False \
        --use_FLAN_for_all_synthetic_query_generation False
+       --downloads_folder downloads
 ````
 
 ## Citing
