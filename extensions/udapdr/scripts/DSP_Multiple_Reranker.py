@@ -432,7 +432,7 @@ def combine_rerankers_and_evaluate(triples_and_queries_list):
 			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
-		evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type)
+		evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 
 ######################################################################
 
