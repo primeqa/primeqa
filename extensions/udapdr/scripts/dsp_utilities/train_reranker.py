@@ -26,7 +26,7 @@ import os
 
 import json
 import random
-from dsp_utilities.pytorchtools import EarlyStopping
+from extensions.udapdr.scripts.dsp_utilities.pytorchtools import EarlyStopping
 
 ######################################################################
 
