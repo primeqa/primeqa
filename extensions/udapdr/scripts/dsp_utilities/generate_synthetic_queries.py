@@ -81,7 +81,7 @@ def detect_problematic_question(given_question):
 
 ######################################################################
 
-def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_split, chosen_type, chosen_set, chosen_device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, parallelize=True):
+def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_split, chosen_type, chosen_set, chosen_device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, parallelize=True, downloads_folder="../downloads"):
 
 	flan_tokenizer = AutoTokenizer.from_pretrained(model_choice, max_length=2048, truncation=True)
 	flan_model = AutoModelForSeq2SeqLM.from_pretrained(model_choice)
@@ -102,9 +102,9 @@ def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_
 		qas_file_name = "datasets/synthetic_qas_for_ColBERTv2_" + str(chosen_device) + "_" + str(given_process_number) + "_" + model_choice.replace("/","-") + "_" + str(sample_count) + "_" + chosen_BEIR_set + "_" + chosen_BEIR_type + ".jsonl"
 
 	if LoTTE_or_BEIR == "LoTTE":
-		collection = pd.read_csv("../ColBERT_FM/downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
+		collection = pd.read_csv(downloads_folder + "/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
 	elif LoTTE_or_BEIR == "BEIR":
-		collection = pd.read_csv("../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
+		collection = pd.read_csv(downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
 
 	collection.columns = ['pid', 'passage']
 	collection['original_pid'] = collection['pid']
@@ -117,10 +117,10 @@ def generate_synthetic_queries(given_prompt, model_choice, sample_count, chosen_
 	gold_passage_id_to_question_id = {}
 
 	if LoTTE_or_BEIR == "LoTTE":
-		with open('../downloads/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
+		with open(downloads_folder + '/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
 		    qas = f.readlines()
 	elif LoTTE_or_BEIR == "BEIR":
-		with open('../beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
+		with open(downloads_folder + '/beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
 		    qas = f.readlines()
 
 	total_answer_pids = set()
