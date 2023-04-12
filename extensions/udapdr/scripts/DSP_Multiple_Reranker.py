@@ -366,22 +366,22 @@ def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_g
 
 ########################################################
 
-def end_to_end_reranker_training(given_prompt, given_device, given_process_number, queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
+def end_to_end_reranker_training(given_prompt, given_device, given_process_number, queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
 
 	print("Starting end-to-end process!")
 
-	reranker_checkpoint_path, reranker_results_filename, reranker_success_at_five, baseline_success_at_5 = train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_filename, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type)
+	reranker_checkpoint_path, reranker_results_filename, reranker_success_at_five, baseline_success_at_5 = train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_filename, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 
 	print("Completed step #3!")
 
-	reranker_performance, baseline_performance = evaluate_reranker(reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type)
+	reranker_performance, baseline_performance = evaluate_reranker(reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 	
 	print("reranker_performance: " + str(reranker_performance))
 	print("baseline_performance: " + str(baseline_performance))
 
 	print("Completed step #4!")
 
-	triples_for_distillation = generate_triples(reranker_results_filename, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type)
+	triples_for_distillation = generate_triples(reranker_results_filename, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 
 	print("Completed step #5! Adding results to queue")
 
@@ -462,6 +462,7 @@ if __name__ == '__main__':
 	parser.add_argument("--parallelization", type=bool, required=True)
 	parser.add_argument("--dsp_prompting", type=bool, required=True)
 	parser.add_argument("--use_FLAN_for_all_synthetic_query_generation", default=False, type=bool, required=False)
+	parser.add_argument("--downloads_folder", type=str, default="../downloads", required=True)
 
 	args = parser.parse_args()
 
@@ -487,6 +488,7 @@ if __name__ == '__main__':
 	parallelization = args.parallelization
 	dsp_prompting = args.dsp_prompting
 	use_FLAN_for_all_synthetic_query_generation = args.use_FLAN_for_all_synthetic_query_generation
+	downloads_folder = args.downloads_folder
 
 	######################################################################
 
@@ -526,9 +528,9 @@ if __name__ == '__main__':
 	########################################################
 
 	if LoTTE_or_BEIR == "LoTTE":
-		collection = pd.read_csv("../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/collection.tsv", sep="\t", header=None)
+		collection = pd.read_csv(downloads_folder + "/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/collection.tsv", sep="\t", header=None)
 	elif LoTTE_or_BEIR == "BEIR":
-		collection = pd.read_csv("../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
+		collection = pd.read_csv(downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
 
 	collection.columns = ['pid', 'passage']
 	collection['original_pid'] = collection['pid']
@@ -648,10 +650,10 @@ if __name__ == '__main__':
 	for prompt, chosen_device, process_number in zip(unique_prompts, devices, range(len(unique_prompts))):
 
 	    synthetic_queries_filename, synthetic_qas_filename = generate_synthetic_queries(prompt, model_choice, query_count, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, 
-	                                                                                    chosen_device, process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, parallelization)
+	                                                                                    chosen_device, process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, parallelization, downloads_folder)
 	    
-	    zeroshot_ranking = generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, "DSP_Experiments/msmarco.psg.kldR2.nway64.ib__colbert-400000", 
-	    													   chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, re_index=True)
+	    zeroshot_ranking = generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, downloads_folder + "/msmarco.psg.kldR2.nway64.ib__colbert-400000", 
+	    													   chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder, re_index=True)
 
 	    synthetic_queries_filenames.append(synthetic_queries_filename)
 	    synthetic_qas_filenames.append(synthetic_qas_filename)
@@ -663,7 +665,7 @@ if __name__ == '__main__':
 
 	    print("Starting on a prompt!")
 
-	    process = context.Process(target=end_to_end_reranker_training, args=(prompt,chosen_device,process_number,queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type))
+	    process = context.Process(target=end_to_end_reranker_training, args=(prompt,chosen_device,process_number,queue, synthetic_queries_filename, synthetic_qas_filename, zeroshot_ranking, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder))
 	    total_processes.append(process)
 	    process.start()
 
