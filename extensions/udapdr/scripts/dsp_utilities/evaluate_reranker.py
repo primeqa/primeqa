@@ -28,7 +28,7 @@ import json
 import random
 
 from sklearn.metrics import ndcg_score
-from dsp_utilities.evaluate_beir import evaluate_beir
+from extensions.udapdr.scripts.dsp_utilities.evaluate_beir import evaluate_beir
 
 ######################################################################
 
