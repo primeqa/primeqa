@@ -6,7 +6,7 @@ from sklearn.metrics import ndcg_score
 from tqdm import tqdm
 import ast
 
-def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_LoTTE_split=None, chosen_LoTTE_type=None, chosent_LoTTE_set=None):
+def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, downloads_folder, chosen_LoTTE_split=None, chosen_LoTTE_type=None, chosent_LoTTE_set=None):
 
 	distilled_results = pd.read_csv(distilled_ranking, sep="\t", header=None)
 
@@ -17,7 +17,7 @@ def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_L
 
 	if chosen_LoTTE_split != None:
 
-		with open("../downloads/lotte/" + chosen_LoTTE_split + "/" + chosent_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 'r') as f:
+		with open(downloads_folder + "/lotte/" + chosen_LoTTE_split + "/" + chosent_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 'r') as f:
 		    qas = f.readlines()
 
 		for line in qas:	
@@ -27,7 +27,7 @@ def evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, chosen_L
 
 	else:
 
-		with open("../beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 'r') as f:
+		with open(downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 'r') as f:
 		    qas = f.readlines()
 
 		for line in qas:	
