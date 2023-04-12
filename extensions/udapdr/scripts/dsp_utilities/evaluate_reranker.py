@@ -41,7 +41,7 @@ os.environ['PYTHONHASHSEED'] = str(random_state)
 
 ############################################################
 
-def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chosen_set, device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type):
+def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chosen_set, device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
 
 	class CustomBERTModel(nn.Module):
 	    def __init__(self, model_choice):
@@ -78,11 +78,11 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 
 	if LoTTE_or_BEIR == "LoTTE":
 		if chosen_type == "forum":
-			zero_shot_ranking_filename = "zeroshot_results/ColBERTv2_ZeroShot:_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
+			zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_ZeroShot:_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
 		elif chosen_type == "search":
-			zero_shot_ranking_filename = "zeroshot_results/ColBERTv2_Zeroshot_Search_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
+			zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_Zeroshot_Search_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
 	elif LoTTE_or_BEIR == "BEIR":
-		zero_shot_ranking_filename = "zeroshot_results/ColBERTv2_ZeroShot_BEIR_" + chosen_BEIR_set + ".k=1000.device=gpu.ranking.tsv"
+		zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_ZeroShot_BEIR_" + chosen_BEIR_set + ".k=1000.device=gpu.ranking.tsv"
 
 	zero_shot_ranking_results = pd.read_csv(zero_shot_ranking_filename, sep="\t", header=None)
 
@@ -103,12 +103,10 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 
 	######################################################
 
-	if chosen_split == "NQ" or chosen_split == "SQuAD":
-	    original_queries = pd.read_csv('/dfs/scratch0/okhattab/OpenQA/NQ/dev/questions.tsv', sep="\t", header=None)
-	elif LoTTE_or_BEIR == "BEIR":
-		original_queries = pd.read_csv('../beir_datasets/' + chosen_BEIR_set + "/" + chosen_BEIR_type + '/questions.tsv', sep="\t", header=None)
+	if LoTTE_or_BEIR == "BEIR":
+	    original_queries = pd.read_csv(downloads_folder + '/beir_datasets/' + chosen_BEIR_set + "/" + chosen_BEIR_type + '/questions.tsv', sep="\t", header=None)
 	else:
-	    original_queries = pd.read_csv('../downloads/lotte/' + chosen_split + '/' + chosen_set + '/questions.' + chosen_type + '.tsv', sep="\t", header=None)
+	    original_queries = pd.read_csv(downloads_folder + '/lotte/' + chosen_split + '/' + chosen_set + '/questions.' + chosen_type + '.tsv', sep="\t", header=None)
 
 	original_queries.columns = ['qid', 'question']
 	original_queries['original_qid'] = original_queries['qid']
@@ -119,14 +117,11 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 
 	######################################################################
 
-	if chosen_split == "NQ" or chosen_split == "SQuAD":
-	    collection = pd.read_csv("/dfs/scratch0/okhattab/OpenQA/collection.tsv", sep="\t")
-	    collection.columns = ['pid', 'passage', 'passage_title']
-	elif LoTTE_or_BEIR == "BEIR":
-	    collection = pd.read_csv("../beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
+	if LoTTE_or_BEIR == "BEIR":
+	    collection = pd.read_csv(downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv", sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 	else:
-	    collection = pd.read_csv("../downloads/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
+	    collection = pd.read_csv(downloads_folder + "/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv", sep="\t", header=None)
 	    collection.columns = ['pid', 'passage']
 
 	collection['original_pid'] = collection['pid']
@@ -141,7 +136,7 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 	question_id_to_gold_passage_scores = {}
 
 	if LoTTE_or_BEIR == "BEIR":
-		with open('../beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
+		with open(downloads_folder + '/beir_datasets/' + chosen_BEIR_set + '/' + chosen_BEIR_type + '/qas.jsonl', 'r') as f:
 			qas = f.readlines()
 		for line in tqdm(qas):  
 			parsed_line = json.loads(line)
@@ -149,7 +144,7 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 			question_id_to_gold_passage_scores[int(parsed_line['qid'])] = parsed_line['answer_scores']
 
 	else:
-		with open('../downloads/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
+		with open(downloads_folder + '/lotte/' + chosen_split + '/' + chosen_set + '/qas.' + chosen_type + '.jsonl', 'r') as f:
 			qas = f.readlines()
 
 		for line in tqdm(qas):	
