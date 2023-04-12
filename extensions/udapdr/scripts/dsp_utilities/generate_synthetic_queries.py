@@ -19,8 +19,6 @@ import json
 import random
 from random import randrange
 
-import openai
-
 ######################################################################
 
 random_state = 45
