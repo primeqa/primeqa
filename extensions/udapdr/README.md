@@ -23,6 +23,8 @@ To download the question and documents sets for evaluation, please go to [the fo
 
 To download the ColBERTv2 retriever zeroshot results, please go to the [following download site](https://zenodo.org/record/7782210#.ZCRZeOzMKdY).
 
+After installation, create a directory called `downloads` before placing the LoTTE files in a subfolder `lotte` and placing the BEIR files in a subfolder `beir_datasets`.
+
 ## Training and Inference
 
 For running the end-to-end domain adaptation approach, please use the `scripts/DSP_Multiple_Reranker.py`
