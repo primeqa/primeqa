@@ -55,6 +55,7 @@ def is_bad_question_problematic(given_good_question, given_bad_question):
 
 ######################################################################
 
+# Use GPT-3 prompting to generate initial synthetic queries
 def generate_synthetic_questions_with_GPT3(given_passage, prompt_number, given_good_question):
 
 	given_passage = " ".join(given_passage.split(" ")[:192])
@@ -154,6 +155,7 @@ def generate_synthetic_questions_with_GPT3(given_passage, prompt_number, given_g
 
 ########################################################
 
+# Use DSP prompting to generate initial synthetic queries
 def perform_synthetic_question_generation_with_dsp_prompting(given_passage, prompt_number, given_good_question):
 
     def vanilla_LM_QA(document: str) -> str:
@@ -262,6 +264,7 @@ def perform_synthetic_question_generation_with_dsp_prompting(given_passage, prom
 
 ########################################################
 
+# Use FLAN prompting to generate initial synthetic queries
 def generate_synthetic_questions_with_FLAN(given_passage, prompt_number, given_good_question):
 
 	given_passage = " ".join(given_passage.split(" ")[:192])
