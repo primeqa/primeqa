@@ -144,3 +144,6 @@ setup(
         "Programming Language :: Python :: 3",
     ],
 )
+
+import nltk
+nltk.download('punkt')
