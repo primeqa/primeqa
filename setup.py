@@ -99,6 +99,7 @@ _deps = {
     "cachetools~=5.2.0": ["install", "gpu"],
     "sqlitedict~=2.0.0": ["install", "gpu"],
     "openai~=0.27.0": ["install", "gpu"],
+    "nltk~=3.8.1": ["install", "gpu"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]
