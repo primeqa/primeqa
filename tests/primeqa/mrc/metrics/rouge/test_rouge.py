@@ -14,7 +14,7 @@ class TestROUGE(UnitTest):
     def references_and_predictions(self):
         references = [
             dict(id='1', answers=["hello there"]),
-            dict(id='2', answers=["general kenobi"]),
+            dict(id='2', answers=["general kenobi"])
         ]
         predictions = [
             dict(id='1', prediction_text='hello there'),
@@ -32,5 +32,5 @@ class TestROUGE(UnitTest):
     def test_compute_metric(self, metric, references_and_predictions):
         metric.add_batch(**references_and_predictions)
         actual_metric_values = metric.compute()
-        expected_metric_values = {'rougeL': 100.00, 'gen_len': 1.0}
+        expected_metric_values = {'kilt_rougeL': 100.00, 'google_rougeL': 100.00, 'gen_len': 1.0}
         assert actual_metric_values == expected_metric_values
