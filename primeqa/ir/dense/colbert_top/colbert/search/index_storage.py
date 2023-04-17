@@ -134,7 +134,7 @@ class IndexScorer(IndexLoader, CandidateGeneration):
                 codes_packed_ = codes_packed[idx_]
                 approx_scores_ = centroid_scores[codes_packed_.long()]
                 if approx_scores_.shape[0] == 0:
-                    approx_scores.append(torch.zeros((len(pids_),), dtype=approx_scores_.dtype))
+                    approx_scores.append(torch.zeros((len(pids_),), dtype=approx_scores_.dtype).cuda())
                     continue
                 approx_scores_strided = StridedTensor(approx_scores_, pruned_codes_lengths, use_gpu=self.use_gpu)
                 approx_scores_padded, approx_scores_mask = approx_scores_strided.as_padded_tensor()
