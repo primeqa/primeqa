@@ -150,7 +150,7 @@ python primeqa/primeqa/mrc/run_mrc.py \
     --evaluation_strategy epoch \
     --save_strategy epoch \
     --load_best_model_at_end \
-    --metric_for_best_model rougeL \
+    --metric_for_best_model kilt_rougeL \
     --overwrite_output_dir \
     --overwrite_cache \
 ```
