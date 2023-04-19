@@ -165,14 +165,14 @@ def main():
     file_names = ["/dccstor/srosent2/generative/appen/round1_jobs/job_2022794.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2035917.json", 
     "/dccstor/srosent2/generative/appen/round1_jobs/job_2006984.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2004889.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2084633.json"]
     # these are the round 2 files. 
-    round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs/*")
+    round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*")
 
     # If an example has multiple annotations keep it as dev set.    
 
     answer_fields = ["type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_", "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_",
         "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_","type_your_answer_here_keep_your_answer_as_close_to_the_passage_as_possible_", "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"]
     valid_annotators = [None, None, ["Arafat","Sara","Salim"], ["Arafat","Sara","Salim"], None]
-    output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-3.28.23.json"
+    output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-4.14.23.json"
 
     fid_data = {}
 
@@ -203,9 +203,9 @@ def main():
                 continue
             writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-    with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-3.28.23.json",'wb') as writer:
+    with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-4.14.23.json",'wb') as writer:
         for data in two_annotator_data:
-            writer.write((json.dumps(two_annotator_data[data]) + "\n").encode())
+            writer.write((json.dumps(data) + "\n").encode())
 
     
 
