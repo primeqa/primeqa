@@ -216,7 +216,7 @@ class GenerativeFiDReader(GenerativeReader):
             predict_dataset=predict_dataset, predict_examples=predict_examples
         ):
             processed_prediction = {}
-            processed_prediction["example_id"] = raw_prediction["id"]
+            processed_prediction["example_id"] = int(raw_prediction["id"])
             processed_prediction["span_answer_text"] = raw_prediction["prediction_text"]
             processed_prediction["confidence_score"] = 1
             predictions[raw_prediction["id"]] = [processed_prediction]
