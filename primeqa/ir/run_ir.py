@@ -12,6 +12,7 @@ from transformers import HfArgumentParser
 from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 from primeqa.ir.sparse.config import BM25Config
 from primeqa.ir.sparse.bm25_engine import BM25Engine
+from primeqa.ir.dense.colbert_top.colbert.data import Collection
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,9 @@ class ProcessArguments:
     )
     do_search: bool = field(
         default=False, metadata={"help": "Run search"}
+    )
+    do_index_update: bool = field(
+        default=False, metadata={"help": "Update the existing index with new data"}
     )
 
 def main():
@@ -128,6 +132,40 @@ def main():
                 rankings = searcher.search_all(args.queries, args.topK)
                 out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 rankings.save(out_fn)
+
+        if hasattr(process_args, 'do_index_update'):
+            logger.info("Updating index")
+            from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
+            from primeqa.ir.dense.colbert_top.colbert.index_updater import IndexUpdater
+
+            parser = Arguments(description='ColBERT search')
+
+            parser.add_model_parameters()
+            parser.add_model_inference_parameters()
+            parser.add_compressed_index_input()
+            parser.add_ranking_input()
+            parser.add_retrieval_input()
+            args = parser.parse()
+
+            args_dict = vars(args)
+            # remove keys not in ColBERTConfig
+            args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'qrels', 'partitions', 'retrieve_only', 'input_arguments']}
+            colBERTConfig = ColBERTConfig(**args_dict)
+
+            with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
+                searcher = Searcher(args.index_name, checkpoint=args.checkpoint, collection=args.collection, config=colBERTConfig)
+            parser = Arguments(description='ColBERT Index Updater')
+            index_updater = IndexUpdater(
+                config=args, searcher=searcher, checkpoint=args.checkpoint
+            )
+            collection = Collection(args.collection)
+            
+            index_updater.add(collection.data)
+            index_updater.persist_to_disk()
+
+
+
+
 
     elif process_args.engine_type == 'DPR':
         logger.info(f"Running DPR")
