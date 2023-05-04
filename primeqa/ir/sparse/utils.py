@@ -15,24 +15,35 @@ def load_queries(queries_tsv_filepath):
             queries[row['id']] = row['text']
     return queries
 
-def write_colbert_ranking_tsv(output_dir: str , id_to_hits: Dict):
+def write_colbert_ranking_tsv(output_dir: str , id_to_hits: Dict, json_format=False):
     output_file = os.path.join(output_dir,'ranked_passages.tsv')
     search_results = []
-    for id in id_to_hits:
-        for i, hit in enumerate(id_to_hits[id]):
-            result = {
-                "id": id,
-                "docid": hit['doc_id'],
-                "rank": i+1, 
-                "score": hit['score']
-            }
-            search_results.append(result)
+    if json_format:
+        for id in id_to_hits:
+            for i, hit in enumerate(id_to_hits[id]):
+                result = {
+                    "id": id,
+                    "docid": hit['doc_id'],
+                    "rank": i+1, 
+                    "score": hit['score']
+                }
+                search_results.append(result)
 
-    with open(output_file,'w',encoding='utf-8') as f:
-        writer = csv.writer(f, delimiter='\t', lineterminator='\n')
-        for r in search_results:
-            writer.writerow(r.values())
-    logger.info(f"Wrote {output_file}")
+        with open(output_file,'w',encoding='utf-8') as f:
+            writer = csv.writer(f, delimiter='\t', lineterminator='\n')
+            for r in search_results:
+                writer.writerow(r.values())
+        logger.info(f"Wrote {output_file}")
+    else:
+        lines = []
+        for id in id_to_hits:
+            for i, hit in enumerate(id_to_hits[id]):
+                lines.append(f"{id}\t{hit[2]}\t{hit[0]}\t{hit[1]}")
+        with open(output_file,'w',encoding='utf-8') as f:
+            f.writelines([f'{l}\n' for l in lines])
+        logger.info(f"Wrote {output_file}")
+            
+        
         
 def get_language_id(xorqa_data_file: str) -> Dict:
     id_to_lang = {}

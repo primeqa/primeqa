@@ -29,12 +29,35 @@ class BM25Engine:
             logger.info(f"Loaded index from {self.config.index_location}")
             searcher = PyseriniRetriever(self.config.index_location,use_bm25=self.config.use_bm25,k1=self.config.k1,b=self.config.b)
             logger.info(f"Running search num queries: {len(queries)} topK: {self.config.topK} threads: {self.config.threads}")
-            search_results = searcher.batch_retrieve(list(queries.values()),list(queries.keys()),
-                        topK=self.config.topK,threads=self.config.threads)
+            
+            all_results = {}
+            all_queries = list(queries.values())
+            all_keys = list(queries.keys())
+            step = 1000
+            
+            if not os.path.exists(self.config.output_dir):
+                os.makedirs(self.config.output_dir)
+            output_file = os.path.join(self.config.output_dir, "ranking_passages.tsv")
+            with open(output_file,'w',encoding='utf-8') as f:
+                for x in range(0, len(queries), step):
+                    
+                    logger.info(f"Running queries {x} to {x+step} of {len(queries)}")
+                    id_to_hits = searcher.batch_retrieve(all_queries[x:x+step], all_keys[x:x+step],
+                            topK=self.config.topK,threads=self.config.threads)
+                    logger.info(f"Search Done {len(all_results)}")
+                    
+                    lines = []
+                    for id in id_to_hits:
+                        for i, hit in enumerate(id_to_hits[id]):
+                            lines.append(f"{id}\t{hit[2]}\t{hit[0]}\t{hit[1]}")
 
-            if self.config.output_dir != None:
-                logger.info(f"Writing ranked results to {self.config.output_dir}")
-                if not os.path.exists(self.config.output_dir):
-                    os.makedirs(self.config.output_dir)
-                write_colbert_ranking_tsv(self.config.output_dir, search_results)
+                    f.writelines([f'{l}\n' for l in lines])
+                    f.flush()
+                    logger.info(f"Wrote {output_file}")
+                
+            # if self.config.output_dir != None:
+            #     logger.info(f"Writing ranked results to {self.config.output_dir}")
+            #     if not os.path.exists(self.config.output_dir):
+            #         os.makedirs(self.config.output_dir)
+            #     write_colbert_ranking_tsv(self.config.output_dir, search_results, json_format=False)
             logger.info("BM25 Search finished")

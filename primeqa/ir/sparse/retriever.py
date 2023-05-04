@@ -72,27 +72,32 @@ class PyseriniRetriever:
         """
 
         hits = self.searcher.batch_search(queries, qids, k=topK, threads=threads)
+
         query_to_hits = {}
         for q, hits in hits.items():
             query_to_hits[q] = self._collect_hits(hits)
         return query_to_hits
 
 
-    def _collect_hits(self, hits: List):
+    def _collect_hits(self, hits: List, json_format=False):
         search_results = []
         for i, hit in enumerate(hits):
-            title, text = json.loads(hit.raw)['contents'].split("\t")
-            title = title.replace('\n',' ')
-            text = text.replace('\n',' ')
+            # title, text = json.loads(hit.raw)['contents'].split("\t")
+            # title = title.replace('\n',' ')
+            # text = text.replace('\n',' ')
             docid = hit.docid
-            search_result = {
-                "rank": i,
-                "score": hit.score,
-                "doc_id": docid,
-                "title": title,
-                "text": text 
-            }
-            search_results.append(search_result)
+            if json_format:
+                search_result = {
+                    "rank": i+1,
+                    "score": hit.score,
+                    "doc_id": docid,
+                    # "title": title,
+                    # "text": text 
+                }
+                search_results.append(search_result)
+            else:
+                search_results.append( (i+1, hit.score, docid) )
+            
         return search_results
 
 
