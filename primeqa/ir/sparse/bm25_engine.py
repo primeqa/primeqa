@@ -37,7 +37,7 @@ class BM25Engine:
             
             if not os.path.exists(self.config.output_dir):
                 os.makedirs(self.config.output_dir)
-            output_file = os.path.join(self.config.output_dir, "ranking_passages.tsv")
+            output_file = os.path.join(self.config.output_dir, "ranked_passages.tsv")
             with open(output_file,'w',encoding='utf-8') as f:
                 for x in range(0, len(queries), step):
                     
