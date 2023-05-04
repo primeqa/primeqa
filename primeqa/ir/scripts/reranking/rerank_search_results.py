@@ -1,3 +1,4 @@
+import os
 from tqdm import tqdm
 import csv
 from dataclasses import dataclass, field
@@ -28,6 +29,10 @@ class RerankArguments():
     collection: str = field(default=None, metadata={"help":"Path to a corpus tsv in format 'id\ttext\ttitle"})
     
     include_title: bool = field(default=True, metadata={"help":"Prepend title to passage"})
+    
+    resume: bool = field(default=True, metadata={"help":"Resume from last processed query"})
+    
+    overwrite: bool = field(default=True, metadata={"help":"Overwrite reranked results file"})
     
     checkpoint: str = field(default=None, metadata={"help":"Path to a ColBERT checkpoint"})
     
@@ -73,38 +78,63 @@ def load_search_results(in_file, num_lines=1000000):
             qid_to_hits[row['qid']].append(row['docid'])
     return qid_to_hits
             
-def rerank(reranker, qid_to_question, id_to_passages,id_to_title, qid_to_hits,topk_to_rerank=None, include_title=True):
+def rerank(output_file, resume, reranker, qid_to_question, id_to_passages,id_to_title, qid_to_hits,topk_to_rerank=None, include_title=True):
     print("Reranking...")
     print("Num queries:", len(qid_to_hits))
     qid_to_reranked_results = {}
-    for qid in tqdm(qid_to_hits):
-        hits = []
-        print(f"{qid}\n {len( qid_to_hits[qid])}")
-        for docid in qid_to_hits[qid]:
-            hit = {
-                "document": {
-                    "document_id": docid,
-                    "title": id_to_title[docid],
-                    "text": id_to_passages[docid]
+    
+    
+    if resume:
+        pass
+    
+    with open(output_file,'w') as f:
+        for qid in tqdm(qid_to_hits):
+            hits = []
+            print(f"{qid}\n {len( qid_to_hits[qid])}")
+            for docid in qid_to_hits[qid]:
+                hit = {
+                    "document": {
+                        "document_id": docid,
+                        "title": id_to_title[docid],
+                        "text": id_to_passages[docid]
+                    }
                 }
-            }
-            hits.append(hit)
-        hits = hits[0:topk_to_rerank] if topk_to_rerank is not None else hits
-        reranked_results = reranker.predict([qid_to_question[qid]], [hits], include_title=include_title,  max_num_documents=len(hits))
-        # print(f"len reranked_results {len(reranked_results)}")
-        # print(f"Reranked {qid}\n {len(reranked_results[0])}")
-        assert len(reranked_results[0]) ==  len(qid_to_hits[qid][0:topk_to_rerank])
-        qid_to_reranked_results[qid] = reranked_results[0]
+                hits.append(hit)
+            hits = hits[0:topk_to_rerank] if topk_to_rerank is not None else hits
+            reranked_results = reranker.predict([qid_to_question[qid]], [hits], include_title=include_title,  max_num_documents=len(hits))
+            # print(f"len reranked_results {len(reranked_results)}")
+            # print(f"Reranked {qid}\n {len(reranked_results[0])}")
+            assert len(reranked_results[0]) ==  len(qid_to_hits[qid][0:topk_to_rerank])
+            qid_to_reranked_results[qid] = reranked_results[0]
+            if len(qid_to_reranked_results) == 1000:
+                lines = format_output(qid_to_reranked_results)
+                print(f"Writing {len(lines)}")
+                f.writelines([f'{l}\n' for l in lines])
+                f.flush()
+                qid_to_reranked_results = {}
+                
+        if len(qid_to_reranked_results) > 0:
+            lines = format_output(qid_to_reranked_results)
+            print(f"Writing {len(lines)}")
+            f.writelines([f'{l}\n' for l in lines])
+            f.flush()
+        print(f"Wrote {output_file}")
         
-    return qid_to_reranked_results
-            
-
+                
 def get_colbert_reranker(checkpoint, q_max_len=32, d_max_len=180):
     print(f"Loading ColBERT model q_max_len:{q_max_len} d_max_len:{d_max_len} checkpoint:{checkpoint} ...")
     reranker = ColBERTReranker(checkpoint, query_maxlen=q_max_len, doc_maxlen=d_max_len)
     reranker.load()
     return reranker
 
+def format_output(qid_to_reranked_results):
+    lines = []
+    for qid in qid_to_reranked_results:
+        reranked_results = qid_to_reranked_results[qid]
+        for i, r in enumerate(reranked_results):
+            lines.append(f"{qid}\t{r['document']['document_id']}\t{i+1}\t{r['score']}")
+    return lines
+    
 
 def write(output_file, qid_to_reranked_results):
     lines = []
@@ -123,13 +153,19 @@ def main():
     parser = HfArgumentParser([RerankArguments])
     (rerank_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True)
     
+    if os.path.exists(rerank_args.output_file) and not rerank_args.overwrite and not rerank_args.resume:
+        raise ValueError(
+                f"Output file ({rerank_args.output_file}) already exists. "
+                "Use --overwrite or --resume to overcome."
+            )
+        
     qid_to_question = load_queries(rerank_args.queries)
     id_to_passage, id_to_title = load_corpus(rerank_args.collection)
     qid_to_hits = load_search_results(rerank_args.search_results)
     
     reranker = get_colbert_reranker(rerank_args.checkpoint,q_max_len=rerank_args.q_max_len, d_max_len=rerank_args.d_max_len)
-    qid_to_reranked_results = rerank(reranker, qid_to_question, id_to_passage, id_to_title, qid_to_hits,include_title=rerank_args.include_title, topk_to_rerank=rerank_args.topk_to_rerank)
-    write(rerank_args.output_file, qid_to_reranked_results)
+    rerank(rerank_args.output_file, rerank_args.resume, reranker, qid_to_question, id_to_passage, id_to_title, qid_to_hits,include_title=rerank_args.include_title, topk_to_rerank=rerank_args.topk_to_rerank)
+    # write(rerank_args.output_file, qid_to_reranked_results)
     
     print("Done...")
     
