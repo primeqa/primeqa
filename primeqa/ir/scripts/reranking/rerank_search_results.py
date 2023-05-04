@@ -28,7 +28,7 @@ class RerankArguments():
     
     collection: str = field(default=None, metadata={"help":"Path to a corpus tsv in format 'id\ttext\ttitle"})
     
-    include_title: bool = field(default=True, metadata={"help":"Prepend title to passage"})
+    include_title: bool = field(default=False, metadata={"help":"Prepend title to passage"})
     
     resume: bool = field(default=True, metadata={"help":"Resume from last processed query"})
     
@@ -54,15 +54,18 @@ def load_queries(in_file):
     return id_to_question
         
 
-def load_corpus(in_file ):
+def load_corpus(in_file, include_title=False):
     print(f"Loading collection {in_file} ...")
+    with open(in_file) as f:
+        lines = f.readlines()
     id_to_passage = {}
     id_to_title = {}
     with open(in_file) as f:
         csv_reader = csv.DictReader(f, fieldnames=["id", "text", "title"], delimiter="\t")
-        for row in tqdm(csv_reader, total=50000000):
+        for row in tqdm(csv_reader, total=len(lines)):
             id_to_passage[row['id'] ] = row['text']
-            id_to_title[row['id'] ] = row['title']
+            if include_title:
+                id_to_title[row['id'] ] = row['title']
 
     return id_to_passage, id_to_title
     
@@ -78,7 +81,7 @@ def load_search_results(in_file, num_lines=1000000):
             qid_to_hits[row['qid']].append(row['docid'])
     return qid_to_hits
             
-def rerank(output_file, resume, reranker, qid_to_question, id_to_passages,id_to_title, qid_to_hits,topk_to_rerank=None, include_title=True):
+def rerank(output_file, resume, reranker, qid_to_question, id_to_passages,id_to_title, qid_to_hits,topk_to_rerank=None, include_title=False):
     print("Reranking...")
     print("Num queries:", len(qid_to_hits))
     qid_to_reranked_results = {}
@@ -95,12 +98,14 @@ def rerank(output_file, resume, reranker, qid_to_question, id_to_passages,id_to_
                 hit = {
                     "document": {
                         "document_id": docid,
-                        "title": id_to_title[docid],
+                        "title": id_to_title[docid] if include_title else "",
                         "text": id_to_passages[docid]
                     }
                 }
                 hits.append(hit)
             hits = hits[0:topk_to_rerank] if topk_to_rerank is not None else hits
+            if len(hits) < topk_to_rerank:
+                print(f"{qid} has fewer hits than requested topk: {topk_to_rerank} hits:{len(hits)}")
             reranked_results = reranker.predict([qid_to_question[qid]], [hits], include_title=include_title,  max_num_documents=len(hits))
             # print(f"len reranked_results {len(reranked_results)}")
             # print(f"Reranked {qid}\n {len(reranked_results[0])}")
@@ -160,7 +165,7 @@ def main():
             )
         
     qid_to_question = load_queries(rerank_args.queries)
-    id_to_passage, id_to_title = load_corpus(rerank_args.collection)
+    id_to_passage, id_to_title = load_corpus(rerank_args.collection, include_title=rerank_args.include_title)
     qid_to_hits = load_search_results(rerank_args.search_results)
     
     reranker = get_colbert_reranker(rerank_args.checkpoint,q_max_len=rerank_args.q_max_len, d_max_len=rerank_args.d_max_len)
