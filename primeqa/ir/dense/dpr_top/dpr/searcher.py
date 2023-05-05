@@ -66,9 +66,9 @@ class DPRSearcher():
         # we either have a single index.faiss or we have an index for each offsets/passages
         if os.path.exists(os.path.join(self.opts.index_location, "index.faiss")):
             self.passages = Corpus(os.path.join(self.opts.index_location))
-            index = ANNIndex(os.path.join(self.opts.index_location, "index.faiss"))
+            self.index = ANNIndex(os.path.join(self.opts.index_location, "index.faiss"))
             self.shards = None
-            self.dim = index.dim()
+            self.dim = self.index.dim()
         else:
             self.shards = []
             # loop over the different index*.faiss
@@ -86,6 +86,50 @@ class DPRSearcher():
             logger.info(f'Using sharded faiss with {len(self.shards)} shards.')
         self.dummy_doc = {'pid': 'N/A', 'title': '', 'text': '', 'vector': np.zeros(self.dim, dtype=np.float32)}
 
+    def merge_results(self, query_vectors, k): # from corpus_server_direct.merge_results
+            # CONSIDER: consider ResultHeap (https://github.com/matsui528/faiss_tips)
+            all_scores = np.zeros((query_vectors.shape[0], k * len(self.shards)), dtype=np.float32)
+            all_indices = np.zeros((query_vectors.shape[0], k * len(self.shards)), dtype=np.int64)
+            for si, shard in enumerate(self.shards):
+                index_i, passages_i = shard
+                scores, indexes = index_i.search(query_vectors, k)
+                assert len(scores.shape) == 2
+                assert scores.shape[1] == k
+                assert scores.shape == indexes.shape
+                assert scores.dtype == np.float32
+                assert indexes.dtype == np.int64
+                all_scores[:, si * k: (si + 1) * k] = scores
+                all_indices[:, si * k: (si + 1) * k] = indexes
+            kbest = all_scores.argsort()[:, -k:][:, ::-1]
+            docs = [[self.shards[ndx // k][1][all_indices[bi, ndx]] for ndx in ndxs] for bi, ndxs in enumerate(kbest)]
+            return docs, np.sort(all_scores)[:, ::-1][:, 0:k]
+
+
+    def init_title_to_title(self):
+        self.passages_of_titles = {}
+
+        def update_passages_of_titles(passages):
+            for pos in range(len(passages)):
+                title = passages[pos]['title']
+                if not title in self.passages_of_titles:
+                    self.passages_of_titles[passages[pos]['title']] = passages[pos]
+
+        if self.shards is None:
+            update_passages_of_titles(self.passages)
+        else:
+            for si, shard in enumerate(self.shards):
+                update_passages_of_titles(shard[1])
+
+
+    def search_title_to_title(self, title):
+        vectors = np.expand_dims(self.passages_of_titles[title]['vector'].astype(np.float32), 0)
+        if self.shards is None:
+            _, indexes = self.index.search(vectors, self.opts.top_k)
+            docs = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
+        else:
+            docs, _ = self.merge_results(vectors, self.opts.top_k)
+
+        return docs # first and only query
 
     def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):
         # from corpus_server_direct.run
@@ -108,24 +152,6 @@ class DPRSearcher():
                 docs.append(doc)
             return docs
 
-        def merge_results(query_vectors, k): # from corpus_server_direct.merge_results
-            # CONSIDER: consider ResultHeap (https://github.com/matsui528/faiss_tips)
-            all_scores = np.zeros((query_vectors.shape[0], k * len(self.shards)), dtype=np.float32)
-            all_indices = np.zeros((query_vectors.shape[0], k * len(self.shards)), dtype=np.int64)
-            for si, shard in enumerate(self.shards):
-                index_i, passages_i = shard
-                scores, indexes = index_i.search(query_vectors, k)
-                assert len(scores.shape) == 2
-                assert scores.shape[1] == k
-                assert scores.shape == indexes.shape
-                assert scores.dtype == np.float32
-                assert indexes.dtype == np.int64
-                all_scores[:, si * k: (si + 1) * k] = scores
-                all_indices[:, si * k: (si + 1) * k] = indexes
-            kbest = all_scores.argsort()[:, -k:][:, ::-1]
-            docs = [[self.shards[ndx // k][1][all_indices[bi, ndx]] for ndx in ndxs] for bi, ndxs in enumerate(kbest)]
-            return docs
-
         # from dpr_apply
         def retrieve(queries):
             with torch.no_grad():
@@ -137,37 +163,15 @@ class DPRSearcher():
                 assert query_vectors.shape[1] == self.dim
 
                 if self.shards is None:
-                    scores, indexes = self.index.search(query_vectors, self.opts.top_k)
+                    doc_scores, indexes = self.index.search(query_vectors, self.opts.top_k)
                     docs = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
                 else:
-                    docs = merge_results(query_vectors, self.opts.top_k)
+                    docs, doc_scores = self.merge_results(query_vectors, self.opts.top_k)
 
                 doc_dicts = [{'pid': [dqk['pid'] for dqk in dq],
                               'title': [dqk['title'] for dqk in dq],
                               'text': [dqk['text'] for dqk in dq]} for dq in docs]
 
-                doc_vectors = np.zeros([batch_size, self.opts.top_k, self.dim], dtype=np.float32)
-                for qi, docs_qi in enumerate(docs):
-                    gpids = []
-                    for ki, doc_qi_ki in enumerate(docs_qi):
-                        # if we have gold_pids, set their vector to 100 * the query vector
-                        if ki < len(gpids):
-                            doc_vectors[qi, ki] = 100 * query_vectors[qi]
-                        else:
-                            doc_vectors[qi, ki] = doc_qi_ki['vector']
-                # ^ from from corpus_server_direct.retrieve_docs
-
-                # from corpus_client.retrieve
-                retrieved_doc_embeds = torch.Tensor(doc_vectors.copy()).to(query_vectors_tensor)
-                doc_scores = torch.bmm(
-                    query_vectors_tensor.unsqueeze(1), retrieved_doc_embeds.transpose(1, 2)
-                ).squeeze(1)
-                # ^ from corpus_client.retrieve
-
-            # from dpr_apply.retrieve
-            # after
-            # doc_scores, docs, doc_vectors = client_retrieve(query_vectors, n_docs=opts.n_docs_for_provenance)
-            doc_scores = doc_scores.detach().cpu().numpy()
             docs = doc_dicts # Because in corpus_server_directretrieve_docs: "retval = {'docs': doc_dicts}"
 
             retrieved_doc_ids = [dd['pid'] for dd in docs]
