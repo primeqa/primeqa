@@ -133,7 +133,7 @@ def main():
                 out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 rankings.save(out_fn)
 
-        if hasattr(process_args, 'do_index_update'):
+        if hasattr(process_args, 'do_index_update') and process_args.do_index_update:
             logger.info("Updating index")
             from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
             from primeqa.ir.dense.colbert_top.colbert.index_updater import IndexUpdater
@@ -156,7 +156,7 @@ def main():
                 searcher = Searcher(args.index_name, checkpoint=args.checkpoint, collection=args.collection, config=colBERTConfig)
             parser = Arguments(description='ColBERT Index Updater')
             index_updater = IndexUpdater(
-                config=args, searcher=searcher, checkpoint=args.checkpoint
+                config=colBERTConfig, searcher=searcher, checkpoint=args.checkpoint
             )
             collection = Collection(args.collection)
             
