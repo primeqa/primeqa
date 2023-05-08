@@ -54,7 +54,8 @@ class PyseriniRetriever:
         return search_results
 
 
-    def batch_retrieve(self,  queries: List[str], qids: List[str], topK: int = 10, threads: int = 1):
+    def batch_retrieve(self,  queries: List[str], qids: List[str], topK: int = 10, 
+                       threads: int = 1, json_format=False, include_text=False):
 
         """
            Run a batch of queries 
@@ -71,29 +72,35 @@ class PyseriniRetriever:
                 
         """
 
-        hits = self.searcher.batch_search(queries, qids, k=topK, threads=threads)
+        hits = self.searcher.batch_search(queries, qids, k=topK, threads=threads, 
+                                          )
 
         query_to_hits = {}
         for q, hits in hits.items():
-            query_to_hits[q] = self._collect_hits(hits)
+            query_to_hits[q] = self._collect_hits(hits, json_format=json_format, include_text=include_text)
         return query_to_hits
 
 
-    def _collect_hits(self, hits: List, json_format=False):
+    def _collect_hits(self, hits: List, json_format=False, include_text=False):
         search_results = []
         for i, hit in enumerate(hits):
-            # title, text = json.loads(hit.raw)['contents'].split("\t")
-            # title = title.replace('\n',' ')
-            # text = text.replace('\n',' ')
             docid = hit.docid
             if json_format:
+                if include_text:
+                    title, text = json.loads(hit.raw)['contents'].split("\t")
+                    title = title.replace('\n',' ')
+                    text = text.replace('\n',' ')
+
+
                 search_result = {
-                    "rank": i+1,
-                    "score": hit.score,
-                    "doc_id": docid,
-                    # "title": title,
-                    # "text": text 
+                        "rank": i+1,
+                        "score": hit.score,
+                        "doc_id": docid,
+                        "title": title if include_text else "",
+                        "text": text if include_text else ""
                 }
+                
+                
                 search_results.append(search_result)
             else:
                 search_results.append( (i+1, hit.score, docid) )

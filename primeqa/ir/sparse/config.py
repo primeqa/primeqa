@@ -16,6 +16,7 @@ class IndexingArguments():
     additional_indexing_args: str = field(default='--storePositions --storeDocvectors --storeRaw', metadata={"help":'pyserini index options'})
 
     threads: int = field(default=1, metadata={"help":'num threads'})
+    
 
 
 @dataclass
@@ -33,6 +34,12 @@ class SearchArguments():
     b: float = field(default=0.4, metadata={"help":"bm25 constant to fine tune the effect of document length"})
 
     output_dir: str = field(default=None, metadata={"help":"Output directory to write out search results"})
+    
+    batch_size: int = field(default=1000, metadata={"help":'max num queries in a batch'})
+    
+    include_text: bool = field(default=False,  metadata={"help":'include text and title in results'})
+    
+    json_format: bool = field(default=False,  metadata={"help":'output in json format'})
 
 @dataclass
 class BM25Config(SearchArguments, IndexingArguments):

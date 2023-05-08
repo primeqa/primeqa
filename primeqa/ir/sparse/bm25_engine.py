@@ -33,7 +33,9 @@ class BM25Engine:
             all_results = {}
             all_queries = list(queries.values())
             all_keys = list(queries.keys())
-            step = 1000
+            step = self.config.batch_size
+            include_text = self.config.include_text
+            json_format = self.config.json_format
             
             if not os.path.exists(self.config.output_dir):
                 os.makedirs(self.config.output_dir)
@@ -43,7 +45,8 @@ class BM25Engine:
                     
                     logger.info(f"Running queries {x} to {x+step} of {len(queries)}")
                     id_to_hits = searcher.batch_retrieve(all_queries[x:x+step], all_keys[x:x+step],
-                            topK=self.config.topK,threads=self.config.threads)
+                            topK=self.config.topK,threads=self.config.threads, include_text=include_text,
+                            json_format=json_format)
                     logger.info(f"Search Done {len(all_results)}")
                     
                     lines = []
