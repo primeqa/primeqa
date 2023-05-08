@@ -16,7 +16,10 @@ primeqa.ir.dense.dpr\_top.dpr.searcher.DPRSearcher
    .. autosummary::
       :nosignatures:
    
+      ~DPRSearcher.init_title_to_title
+      ~DPRSearcher.merge_results
       ~DPRSearcher.search
+      ~DPRSearcher.search_title_to_title
    
    
 
