@@ -160,11 +160,9 @@ def main():
             if '--title_to_title' in remaining_args:
                 searcher.init_title_to_title()
                 while True:
-                    #print('')
                     print('Enter title:')
-                    title = input().strip() # 'Apollo'
-                    #title = 'American Beauty'
-                    docs_found, title_exact_match_found, title_found = searcher.search_title_to_title(title)
+                    title = input().strip()
+                    docs_found, title_exact_match_found, title_found = searcher.search_title_to_title(title, top_k = dpr_args.top_k + 1)
 
                     for rank in range(dpr_args.top_k + 1):
                         if rank == 0:

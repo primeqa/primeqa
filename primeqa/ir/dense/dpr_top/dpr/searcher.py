@@ -120,7 +120,7 @@ class DPRSearcher():
             for si, shard in enumerate(self.shards):
                 update_passages_of_titles(shard[1])
 
-    def search_title_to_title(self, title):
+    def search_title_to_title(self, title, top_k = 5):
         title_exact_match_found = title in self.passages_of_titles
         if not title_exact_match_found:
             query_vectors = queries_to_vectors(self.tokenizer, self.qencoder, [title]).detach().cpu().numpy().astype(np.float32)
@@ -133,10 +133,10 @@ class DPRSearcher():
 
         vectors = np.expand_dims(self.passages_of_titles[title]['vector'].astype(np.float32), 0)
         if self.shards is None:
-            _, indexes = self.index.search(vectors, self.opts.top_k + 1)
+            _, indexes = self.index.search(vectors, top_k)
             docs = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
         else:
-            docs, _ = self.merge_results(vectors, self.opts.top_k + 1)
+            docs, _ = self.merge_results(vectors, top_k)
 
         return docs, title_exact_match_found, title # first and only query
 
