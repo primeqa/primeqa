@@ -120,16 +120,25 @@ class DPRSearcher():
             for si, shard in enumerate(self.shards):
                 update_passages_of_titles(shard[1])
 
-
     def search_title_to_title(self, title):
+        title_exact_match_found = title in self.passages_of_titles
+        if not title_exact_match_found:
+            query_vectors = queries_to_vectors(self.tokenizer, self.qencoder, [title]).detach().cpu().numpy().astype(np.float32)
+            if self.shards is None:
+                _, indexes = self.index.search(query_vectors, 1)
+                docs_from_fuzzy_title_match = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
+            else:
+                docs_from_fuzzy_title_match, _ = self.merge_results(query_vectors, 1)
+            title = docs_from_fuzzy_title_match[0][0]['title']
+
         vectors = np.expand_dims(self.passages_of_titles[title]['vector'].astype(np.float32), 0)
         if self.shards is None:
-            _, indexes = self.index.search(vectors, self.opts.top_k)
+            _, indexes = self.index.search(vectors, self.opts.top_k + 1)
             docs = [[self.passages[ndx] for ndx in ndxs] for ndxs in indexes]
         else:
-            docs, _ = self.merge_results(vectors, self.opts.top_k)
+            docs, _ = self.merge_results(vectors, self.opts.top_k + 1)
 
-        return docs # first and only query
+        return docs, title_exact_match_found, title # first and only query
 
     def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):
         # from corpus_server_direct.run

@@ -157,6 +157,29 @@ def main():
 
             from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
             searcher = DPRSearcher(dpr_args)
+            if '--title_to_title' in remaining_args:
+                searcher.init_title_to_title()
+                while True:
+                    #print('')
+                    print('Enter title:')
+                    title = input().strip() # 'Apollo'
+                    #title = 'American Beauty'
+                    if True or title in searcher.passages_of_titles:
+                        docs_found, title_exact_match_found, title_found = searcher.search_title_to_title(title)
+
+                        for rank in range(dpr_args.top_k + 1):
+                            if rank == 0:
+                                if not title_exact_match_found:
+                                    print(f'===== Did you mean \"{title_found}\"?')
+                                    print(f"===== Your query: {docs_found[0][rank]['title']}")
+                            else:
+                                print(f'===== Rank {rank}')
+                                print(f"Title: {docs_found[0][rank]['title']}")
+                                print(f"Text: {docs_found[0][rank]['text']}")
+                    else:
+                        print('Have not seen that one (yet), sorry.')
+                    print('')
+
             searcher.search()
 
     elif process_args.engine_type == 'BM25':
