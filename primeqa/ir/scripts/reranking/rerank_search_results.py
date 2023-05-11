@@ -30,9 +30,9 @@ class RerankArguments():
     
     include_title: bool = field(default=False, metadata={"help":"Prepend title to passage"})
     
-    resume: bool = field(default=True, metadata={"help":"Resume from last processed query"})
+    resume: bool = field(default=False, metadata={"help":"Resume from last processed query"})
     
-    overwrite: bool = field(default=True, metadata={"help":"Overwrite reranked results file"})
+    overwrite: bool = field(default=False, metadata={"help":"Overwrite reranked results file"})
     
     checkpoint: str = field(default=None, metadata={"help":"Path to a ColBERT checkpoint"})
     
@@ -88,12 +88,12 @@ def rerank(output_file, resume, reranker, qid_to_question, id_to_passages,id_to_
     
     
     if resume:
-        pass
+        raise RuntimeError("resume not implemented")
     
     with open(output_file,'w') as f:
         for qid in tqdm(qid_to_hits):
             hits = []
-            print(f"{qid}\n {len( qid_to_hits[qid])}")
+            #print(f"{qid}\n {len( qid_to_hits[qid])}")
             for docid in qid_to_hits[qid]:
                 hit = {
                     "document": {
@@ -161,7 +161,7 @@ def main():
     if os.path.exists(rerank_args.output_file) and not rerank_args.overwrite and not rerank_args.resume:
         raise ValueError(
                 f"Output file ({rerank_args.output_file}) already exists. "
-                "Use --overwrite or --resume to overcome."
+                "Use --overwrite to overcome."
             )
         
     qid_to_question = load_queries(rerank_args.queries)
