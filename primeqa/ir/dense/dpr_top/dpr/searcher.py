@@ -122,6 +122,7 @@ class DPRSearcher():
                     update_passages_of_titles(shard[1])
 
     def search_title_to_title(self, title, top_k = 5):
+        title = title.strip()
         title_exact_match_found = title in self.passages_of_titles
         if not title_exact_match_found:
             query_vectors = queries_to_vectors(self.tokenizer, self.qencoder, [title]).detach().cpu().numpy().astype(np.float32)
