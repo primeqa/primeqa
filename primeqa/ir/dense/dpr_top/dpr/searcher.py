@@ -106,19 +106,20 @@ class DPRSearcher():
 
 
     def init_title_to_title(self):
-        self.passages_of_titles = {}
+        if not hasattr(self, 'passages_of_titles'):
+            self.passages_of_titles = {}
 
-        def update_passages_of_titles(passages):
-            for pos in range(len(passages)):
-                title = passages[pos]['title']
-                if not title in self.passages_of_titles:
-                    self.passages_of_titles[passages[pos]['title']] = passages[pos]
+            def update_passages_of_titles(passages):
+                for pos in range(len(passages)):
+                    title = passages[pos]['title']
+                    if not title in self.passages_of_titles:
+                        self.passages_of_titles[passages[pos]['title']] = passages[pos]
 
-        if self.shards is None:
-            update_passages_of_titles(self.passages)
-        else:
-            for si, shard in enumerate(self.shards):
-                update_passages_of_titles(shard[1])
+            if self.shards is None:
+                update_passages_of_titles(self.passages)
+            else:
+                for si, shard in enumerate(self.shards):
+                    update_passages_of_titles(shard[1])
 
     def search_title_to_title(self, title, top_k = 5):
         title_exact_match_found = title in self.passages_of_titles
