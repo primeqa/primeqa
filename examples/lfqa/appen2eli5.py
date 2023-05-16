@@ -36,6 +36,8 @@ def process_data(data, valid_annotators=None, answer_field=""):
     non_consecutive = 0
     selected = 0
     num_sentences = 0
+    skip_count = 0
+    bad_question = 0
 
     for _, row in data.iterrows():
         eli5_format = {}
@@ -94,10 +96,19 @@ def process_data(data, valid_annotators=None, answer_field=""):
                 output['meta']['score'] = 3
                 output['answer'] = "NA"
                 eli5_format['output'].append(output)
+                skip_count += 1
+                if is_nonconsecutive:
+                    print("bad nonconsecutive?") 
+            else:
+                if is_nonconsecutive:
+                    print("bad nonconsecutive?") 
+                bad_question+=1
         if len(eli5_format['output']) > 0: 
             eli5_formatted_data[eli5_format['id']] = eli5_format
     print("answered: " + str(answered) + "/" + str(len(eli5_formatted_data)))
-    print("non-consective: " + str(non_consecutive))
+    print("skip: " + str(skip_count))
+    print("bad: " + str(bad_question))
+    print("non-consecutive: " + str(non_consecutive))
     print("selected: " + str(selected / len(eli5_formatted_data)))
     print("num sentences: " + str(num_sentences / len(eli5_formatted_data)))
     return eli5_formatted_data, answered, non_consecutive
@@ -156,8 +167,6 @@ def process_round2_data(eli5_formatted_data, data, answer_field=""):
         if is_answered:
             answered += 1
         eli5_formatted_data[eli5_format['id']] = eli5_format
-    print("answered: " + str(answered) + "/" + str(len(eli5_formatted_data)))
-    print("num sentences: " + str(num_sentences / len(eli5_formatted_data)))
     return eli5_formatted_data, answered
 
 def main():
@@ -167,12 +176,19 @@ def main():
     # these are the round 2 files. 
     round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*")
 
+    file_names = ["/dccstor/srosent2/generative/appen/round1_jobs/job_2111155.json"]
+    round2_files_test = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs3/output/*")
+
     # If an example has multiple annotations keep it as dev set.    
 
     answer_fields = ["type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_", "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_",
         "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_","type_your_answer_here_keep_your_answer_as_close_to_the_passage_as_possible_", "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"]
     valid_annotators = [None, None, ["Arafat","Sara","Salim"], ["Arafat","Sara","Salim"], None]
     output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-4.14.23.json"
+
+    answer_fields = ["type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"]
+    valid_annotators = [None]
+    output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-5.15.23.json"
 
     fid_data = {}
 
@@ -189,7 +205,7 @@ def main():
     print("answered: " + str(answered) + "/" + str(len(fid_data)))
     print("non-consective: " + str(non_consecutive))
 
-    for input_file in round2_files:
+    for input_file in round2_files_test:
         round2data = pd.read_json(input_file, lines=True)
         fid_data, answered_i = process_round2_data(fid_data, round2data)
 
@@ -203,7 +219,7 @@ def main():
                 continue
             writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-    with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-4.14.23.json",'wb') as writer:
+    with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-test-5.15.23.json",'wb') as writer:
         for data in two_annotator_data:
             writer.write((json.dumps(data) + "\n").encode())
 
