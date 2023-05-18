@@ -150,7 +150,7 @@ class SeqClassificationReranker(BaseReranker):
                 s = outputs.shape[1] - 1
                 probs = F.softmax(outputs, dim=s)[:,s].numpy().tolist()
                 scores.extend(probs)
-            ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents].tolist()
+            ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents if max_num_documents > 0 else len(scores)].tolist()
             results = []
             for idx in ranked_passage_indexes:
                 docs[idx]['score'] = scores[idx]
