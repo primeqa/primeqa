@@ -46,6 +46,7 @@ class RerankArguments():
 
 
 def load_queries(in_file):
+    print(f"Loading queries {in_file} ...")
     id_to_question = {}
     with open(in_file, 'r')  as f:
         csv_reader = csv.DictReader(f, fieldnames=["id", "question"], delimiter="\t")
@@ -71,7 +72,10 @@ def load_corpus(in_file, include_title=False):
     
 
 def load_search_results(in_file, num_lines=1000000):
-    
+    print(f"Loading search results {in_file} ...")
+    with open(in_file) as f:
+        lines = f.readlines()
+        num_lines=len(lines)
     qid_to_hits = {}
     with open(in_file) as f:
         csv_reader = csv.DictReader(f, fieldnames=["qid", "docid", "rank", "score"], delimiter="\t")
