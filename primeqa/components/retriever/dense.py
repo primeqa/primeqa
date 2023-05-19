@@ -194,6 +194,15 @@ class DPRRetriever(BaseRetriever):
             "exclude_from_hash": True,
         },
     )
+    title_to_title: bool = field(
+        default=False,
+        metadata={
+            "name": "Document similarity using embeddings",
+            "description": "Document similarity using embeddings, performing a preliminary document lookup by title",
+            "options": [True, False],
+            "api_support": True,
+        },
+    )
 
     def __post_init__(self):
         self._config = DPRSearchArguments(
@@ -248,16 +257,39 @@ class DPRRetriever(BaseRetriever):
             if "max_num_documents" in kwargs
             else self.max_num_documents
         )
-
-        retrieved_doc_ids, passages = self._searcher.search(
-            list(input_texts), max_num_documents, mode="query_list"
+        title_to_title = (
+            kwargs["title_to_title"]
+            if "title_to_title" in kwargs
+            else self.title_to_title
         )
+
+        if title_to_title:
+            self._searcher.init_title_to_title()
+            max_num_documents = max_num_documents + 1
+            docs_found, title_exact_match_found, title_found = self._searcher.search_title_to_title(input_texts[0], max_num_documents)
+
+            retrieved_doc_ids = [[ doc["pid"] for doc in docs_found[0] ]]
+
+            passages = [
+                {
+                    'titles': [ doc["title"] for doc in docs_found[0] ],
+                    'texts': [ doc["text"] for doc in docs_found[0] ],
+                    'scores': [ float(i) for i in range(len(docs_found[0]), 0, -1) ]
+                }
+            ]
+
+        else:
+            retrieved_doc_ids, passages = self._searcher.search(
+                list(input_texts), max_num_documents, mode="query_list"
+            )
+
         # retrieved_doc_ids: list (per query) of lists (per rank) of (str)docids
         # passages: list (per query) of dicts with keys {'titles', 'texts', 'scores'} of lists (per rank)
 
         retrieved_doc_ids = [list(map(int, doc_ids)) for doc_ids in retrieved_doc_ids]
 
         # returning: list (per query) of lists (per rank) of tuples (((int) docid, (float)score)
+        # [ [ (docid:int, score:float) ] ]
         return [
             list(zip(docids, scores))
             for docids, scores in zip(
