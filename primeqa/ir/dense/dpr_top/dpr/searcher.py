@@ -86,6 +86,8 @@ class DPRSearcher():
             logger.info(f'Using sharded faiss with {len(self.shards)} shards.')
         self.dummy_doc = {'pid': 'N/A', 'title': '', 'text': '', 'vector': np.zeros(self.dim, dtype=np.float32)}
 
+        self.all_query_embeddings = []
+
     def merge_results(self, query_vectors, k): # from corpus_server_direct.merge_results
             # CONSIDER: consider ResultHeap (https://github.com/matsui528/faiss_tips)
             all_scores = np.zeros((query_vectors.shape[0], k * len(self.shards)), dtype=np.float32)
@@ -156,7 +158,7 @@ class DPRSearcher():
         def retrieve(queries):
             with torch.no_grad():
                 query_vectors_tensor = queries_to_vectors(self.tokenizer, self.qencoder, queries)
-
+                self.all_query_embeddings.extend(query_vectors_tensor.tolist())
                 # from from corpus_server_direct.retrieve_docs
                 query_vectors = query_vectors_tensor.detach().cpu().numpy().astype(np.float32)
                 batch_size = query_vectors.shape[0]
@@ -244,6 +246,12 @@ class DPRSearcher():
                 if len(query_batch) > 0:
                     one_batch(id_batch, query_batch, output)
             logger.info(f'Finished instance {self.report.check_count}, {self.report.check_count/self.report.elapsed_seconds()} per second.')
+
+            # dumping embeddings
+            with open(os.path.join(self.opts.output_dir, f'query_embeddings.pkl'), 'bw') as embeddings_outf:
+                import pickle
+                pickle.dump(self.all_query_embeddings, embeddings_outf)
+
         elif mode == 'query_list':
             self.opts.top_k = top_k
             retrieved_doc_ids, passages = retrieve(query_batch)

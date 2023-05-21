@@ -55,9 +55,11 @@ class DPRIndexer():
 
     def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:
         documents = {"title": [doci.title if doci.title is not None else "" for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
+        #documents = {"no_title": ["" for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
         """Compute the DPR embeddings of document passages"""
         input_ids = ctx_tokenizer(
             documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
+            #documents["no_title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
         )["input_ids"]
         embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
         return embeddings.detach().cpu().to(dtype=torch.float16).numpy()
@@ -83,6 +85,9 @@ class DPRIndexer():
 
         report = Reporting()
         doc_batch = []
+
+        # embeddings to be dumped
+        all_embeddings = []
         for pndx, passage in enumerate(corpus_reader(self.opts.collection, fieldnames = ('id', 'text', 'title'))):
             if pndx == 0 and (passage.pid == 'id' or passage.pid == 'pid') and (passage.text == 'text' or passage.text == 'contents') and passage.title == 'title':
                 continue
@@ -94,16 +99,23 @@ class DPRIndexer():
             if len(doc_batch) == self.opts.bsize:
                 embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
                 cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
+                all_embeddings.extend(embeddings.tolist())
                 doc_batch = []
         if len(doc_batch) > 0:
             embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
             cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
+            all_embeddings.extend(embeddings.tolist())
         offsets.append(cur_offset)  # just the length of the file
         passages.close()
         with write_open(os.path.join(self.opts.output_dir, f'offsets_{self.embed_num}_of_{self.embed_count}.npy'), binary=True) as f:
             np.save(f, np.array(offsets, dtype=np.int64), allow_pickle=False)
         logger.info(f'wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
         #print(f'Wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
+
+        # dumping embeddings
+        with open(os.path.join(self.opts.output_dir, f'embeddings_{self.embed_num}_of_{self.embed_count}'), 'bw') as embeddings_outf:
+            import pickle
+            pickle.dump(all_embeddings, embeddings_outf)
 
         if self.opts.sharded_index:
             build_index(os.path.join(self.opts.output_dir, f'passages_{self.embed_num}_of_{self.embed_count}.json.gz.records'),
