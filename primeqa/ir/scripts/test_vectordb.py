@@ -23,6 +23,10 @@ def handle_args():
     parser.add_argument('--num_embeddings_deleted', '-n', type=int, default=100, )
     parser.add_argument('--top_k', '-t', type=int, default=10, )
 
+    parser.add_argument('--create_own_embeddings', '-w',default=False, action='store_true')
+    parser.add_argument('--index_name', '-i', default='test-10k-v1')
+    parser.add_argument('--dimension', '-d', type=int, default=768, )
+
     args=parser.parse_args()
     return args
 
@@ -61,7 +65,7 @@ def main():
         next(csv_reader)
         for row in csv_reader:
             assert len(row) == 3 or len(row) == 2, f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-            input_passages.append( {'text': row["title"] if len(row) == 3 else ' ' + ' ' + row["text"] } )
+            input_passages.append( {'text': ( row["title"] if len(row) == 3 else ' ' ) + ' ' + row["text"] } )
 
     input_queries = []  # {'text': text}
     with open(args.input_queries) as in_file:
@@ -86,18 +90,47 @@ def main():
             environment=PINECONE_ENV
         )
 
-        index_name = 'test-10k-v1'
+        #pinecone.delete_index('test-10k-v1')
+        if args.index_name in pinecone.list_indexes():
+            pinecone.delete_index(args.index_name)
 
         # only create index if it doesn't exist
-        if index_name not in pinecone.list_indexes():
+        if args.index_name not in pinecone.list_indexes():
             pinecone.create_index(
-                name=index_name,
-                dimension=768,
+                name=args.index_name,
+                dimension=args.dimension,
                 metric='cosine'
             )
 
         # connect to the index
-        index = pinecone.GRPCIndex(index_name)
+        index = pinecone.GRPCIndex(args.index_name)
+
+    # === create embeddings
+    if args.create_own_embeddings:
+        if args.db_engine == 'pinecone':
+            from sentence_transformers import SentenceTransformer
+            import torch
+
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            if device != 'cuda':
+                print(f"You are using {device}. This is much slower than using "
+                      "a CUDA-enabled GPU. If on Colab you can change this by "
+                      "clicking Runtime > Change runtime type > GPU.")
+
+            model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+
+        print('=== done initializing model')
+        last_time = report_time(last_time)
+
+        passage_vectors = []
+        batch_size = 128
+        for i in tqdm(range(0, len(input_passages), batch_size)):
+            # find end of batch
+            i_end = min(i+batch_size, len(input_passages))
+            passage_vectors.extend(model.encode([passage['text'] for passage in input_passages[i:i_end]]))
+
+        print('=== done creating passage embeddings')
+        last_time = report_time(last_time)
 
     # === update index
     if args.db_engine == 'pinecone':
@@ -145,7 +178,14 @@ def main():
     print('=== done testing index items insertion')
     last_time = report_time(last_time)
 
+    if args.create_own_embeddings:
+        if args.db_engine == 'pinecone':
+            query_vectors = []
+            for query_number in range(len(input_queries)):
+                query_vectors.append(model.encode(input_queries[query_number]['text']))
 
+        print('=== done creating query embeddings')
+        last_time = report_time(last_time)
     # === run retrieval
     out_ranks = []
 
@@ -163,6 +203,8 @@ def main():
         tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
         tsv_writer.writerows(out_ranks)
 
+    if args.db_engine == 'pinecone':
+        pinecone.delete_index(args.index_name)
 
 # do main
 if __name__=='__main__':
