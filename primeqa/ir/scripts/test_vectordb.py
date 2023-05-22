@@ -7,6 +7,7 @@ import os
 import pickle
 import time
 import random
+import re
 from tqdm.auto import tqdm
 
 def handle_args():
@@ -24,7 +25,7 @@ def handle_args():
     parser.add_argument('--top_k', '-t', type=int, default=10, )
 
     parser.add_argument('--create_own_embeddings', '-w',default=False, action='store_true')
-    parser.add_argument('--index_name', '-i', default='test-10k-v1')
+    parser.add_argument('--model_name', '-m', default='all-MiniLM-L6-v2')
     parser.add_argument('--dimension', '-d', type=int, default=768, )
 
     args=parser.parse_args()
@@ -90,20 +91,23 @@ def main():
             environment=PINECONE_ENV
         )
 
+        index_name = (args.model_name + '__index').lower()
+        index_name = re.sub('[^a-z0-9]', '-', index_name)
+
         #pinecone.delete_index('test-10k-v1')
-        if args.index_name in pinecone.list_indexes():
+        if index_name in pinecone.list_indexes():
             pinecone.delete_index(args.index_name)
 
         # only create index if it doesn't exist
-        if args.index_name not in pinecone.list_indexes():
+        if index_name not in pinecone.list_indexes():
             pinecone.create_index(
-                name=args.index_name,
+                name=index_name,
                 dimension=args.dimension,
                 metric='cosine'
             )
 
         # connect to the index
-        index = pinecone.GRPCIndex(args.index_name)
+        index = pinecone.GRPCIndex(index_name)
 
     # === create embeddings
     if args.create_own_embeddings:
@@ -117,7 +121,7 @@ def main():
                       "a CUDA-enabled GPU. If on Colab you can change this by "
                       "clicking Runtime > Change runtime type > GPU.")
 
-            model = SentenceTransformer('all-MiniLM-L6-v2', device=device)
+            model = SentenceTransformer(args.model_name, device=device)
 
         print('=== done initializing model')
         last_time = report_time(last_time)
@@ -204,7 +208,7 @@ def main():
         tsv_writer.writerows(out_ranks)
 
     if args.db_engine == 'pinecone':
-        pinecone.delete_index(args.index_name)
+        pinecone.delete_index(index_name)
 
 # do main
 if __name__=='__main__':
