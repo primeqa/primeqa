@@ -82,24 +82,6 @@ def main():
                 pass_num = rankings[qnum]['neg'][npos]
                 num_pass_out = add_records(pass_num, num_pass_out)
 
-            '''if not pass_num in seen_pass and int(pass_num) < len(passages):
-                seen_pass.add(pass_num)
-                doc = passages[int(pass_num)]
-                rec = [num_pass_out, doc[1], doc[2]]
-                pass_recs.append(rec)
-                passid_map.append([num_pass_out, pass_num])
-                num_pass_out += 1
-
-            for npos in range(args.num_negatives_per_query):
-                pass_num = rankings[qnum]['neg'][npos]
-                if not pass_num in seen_pass and int(pass_num) < len(passages):
-                    seen_pass.add(pass_num)
-                    doc = passages[int(pass_num)]
-                    rec = [num_pass_out, doc[1], doc[2]]
-                    pass_recs.append(rec)
-                    passid_map.append([num_pass_out, pass_num])
-                    num_pass_out += 1
-            '''
             num_queries_processed += 1
             if num_queries_processed >= args.num_queries:
                 break
