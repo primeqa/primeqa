@@ -96,7 +96,7 @@ def main():
 
         #pinecone.delete_index('test-10k-v1')
         if index_name in pinecone.list_indexes():
-            pinecone.delete_index(args.index_name)
+            pinecone.delete_index(index_name)
 
         # only create index if it doesn't exist
         if index_name not in pinecone.list_indexes():
@@ -108,6 +108,9 @@ def main():
 
         # connect to the index
         index = pinecone.GRPCIndex(index_name)
+
+    print('=== done initializing index')
+    last_time = report_time(last_time)
 
     # === create embeddings
     if args.create_own_embeddings:
