@@ -7,3 +7,9 @@
 New to [PrimeQA](https://github.com/primeqa/primeqa)? Trying to figure out how to use the various components? 
 
 No worries we got you covered. These tutorials will get you acquainted with the PrimeQA functionalities in order for you to create your next awesome search application.
+
+
+## Tutorials
+| Name                                     | Colab                                                                                                                                                                                                                                     | Source Code                                                                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Run a re-ranker on top of your search engine output | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](add link here to colab notebook)  | [01_Re-ranker.ipynb](./tutorials/01_Basic_Re-ranker.ipynb)                                                                             |
