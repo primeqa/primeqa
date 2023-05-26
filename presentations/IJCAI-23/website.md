@@ -1,28 +1,35 @@
 # Tutorial: Reproducible and Efficient Multi-modal Open Retrieval Question Answering
-   Half day tutorial@IJCAI'2023
+   Half day tutorial@IJCAI'2023 \
    Date: Aug 20, 2023.
 
 ## Summary
 Open Retrieval Question Answering (OpenQA) systems are made of two key components: retrievers and readers, both of which have seen rapid advancements in their cross-lingual capabilities across modalities. This brings up a new challenge of ensuring efficiency, reproducibility and easy reusability of these state-of-the-art (SOTA) retrievers and readers. In this tutorial, we will first cover recent advances in multilingual and multi-modal retrievers and readers across structured tabular data and unstructured text data, with a specific focus to using them in OpenQA. We will also introduce a novel toolkit which hosts multiple SOTA retrievers and readers, and have hands-on sessions to demonstrate how to build robust OpenQA systems with SOTA models using this toolkit.
 
-## Outline
+## Tutorial Outline
 A. 1st Half: 1 hr 45 mins
-1. Motivation of OpenQA [15 min]
-2. Retrievers: Sparse and Dense [20 mins]
-3. Recent Advances for OpenQA Efficient Neural Retrievers [20 mins]
-4. Recent Advances in Efficient Multilingual Retrieval [20 mins]
-5. Reproducibility in OpenQA: Hands-On Session I (30 min):
+---
+
+1. Motivation of OpenQA} [15 min]
+2. Retrievers: Sparse and Dense} [20 mins]
+3. Recent Advances for OpenQA Efficient Neural Retrievers} [20 mins]
+4. Recent Advances in Efficient Multilingual Retrieval} [20 mins]
+5. Reproducibility in OpenQA: Hands-On Session I} (30 min):
     5a. Toolkit Overview
     5b. Hands-on with OpenQA Retriever
 
 B. 2nd Half: 1 hr 45 mins
+---
 
-6. Multilingual Readers [15 mins]
-7. Multi-modal Readers: Text, Table, Visual QA [20 + 15 mins]
-8. Large Language Models as Readers [15 mins]
-9. Reproducibility in OpenQA: Hands-on Session II [25 mins]
-10. Pipelines, Service and Deployment [15 mins]
 
+6. Multilingual Readers} [15 mins]
+7. Multi-modal Readers: Text, Table, Visual QA} [20 + 15 mins]
+8. Large Language Models as Readers} [15 mins]
+9. Reproducibility in OpenQA: Hands-on Session II} [25 mins]
+10. Pipelines, Service and Deployment} [15 mins]
+
+
+## Slides
+[Coming Soon...]
 
 ## Organizers
 
