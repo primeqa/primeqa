@@ -7,21 +7,21 @@ Open Retrieval Question Answering (OpenQA) systems are made of two key component
 
 ## Outline
 A. 1st Half: 1 hr 45 mins
-1. Motivation of OpenQA} [15 min]
-2. Retrievers: Sparse and Dense} [20 mins]
-3. Recent Advances for OpenQA Efficient Neural Retrievers} [20 mins]
-4. Recent Advances in Efficient Multilingual Retrieval} [20 mins]
-5. Reproducibility in OpenQA: Hands-On Session I} (30 min):
+1. Motivation of OpenQA [15 min]
+2. Retrievers: Sparse and Dense [20 mins]
+3. Recent Advances for OpenQA Efficient Neural Retrievers [20 mins]
+4. Recent Advances in Efficient Multilingual Retrieval [20 mins]
+5. Reproducibility in OpenQA: Hands-On Session I (30 min):
     5a. Toolkit Overview
     5b. Hands-on with OpenQA Retriever
 
 B. 2nd Half: 1 hr 45 mins
 
-6. Multilingual Readers} [15 mins]
-7. Multi-modal Readers: Text, Table, Visual QA} [20 + 15 mins]
-8. Large Language Models as Readers} [15 mins]
-9. Reproducibility in OpenQA: Hands-on Session II} [25 mins]
-10. Pipelines, Service and Deployment} [15 mins]
+6. Multilingual Readers [15 mins]
+7. Multi-modal Readers: Text, Table, Visual QA [20 + 15 mins]
+8. Large Language Models as Readers [15 mins]
+9. Reproducibility in OpenQA: Hands-on Session II [25 mins]
+10. Pipelines, Service and Deployment [15 mins]
 
 
 ## Organizers
