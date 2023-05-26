@@ -33,7 +33,8 @@ creator of the PrimeQA toolkit which has obtained the top
 scores in public QA benchmark datasets and has published
 more than 20 papers on question answering. Avi is a Senior Program Committee Member and the Area
 Chair in Question Answering for major NLP conferences e.g.
-ACL, EMNLP, NAACL. 
+ACL, EMNLP, NAACL. He has been the Demo Chair (NAACL
+2021, 2022) and has taught two tutorials at ACL 2018, EMNLP 2021.
 
 2. [Revanth Gangi Reddy](https://gangiswag.github.io/), PhD scholar, UIUC: \
 Revanth is a  PhD student at the University of Illinois at Urbana-Champaign, advised by Prof. Heng
@@ -61,8 +62,7 @@ on multiple public QA leaderboard.
 4. [Jaydeep Sen](https://researcher.watson.ibm.com/researcher/view.php?person=in-jaydesen), Senior Research Scientist,IBM Research AI:\
 Jaydeep Sen is a Senior Research Scientist in IBM Research
 AI. His current research interests include question answering over
-structured and unstructured data, including applications to
-natural language understanding and semantic reasoning. He
+structured and unstructured data. He
 has more than 10 papers published at top conferences such
 as EMNLP, COLING, IJCAI and VLDB, and has served as
 a PC member for NAACL, EMNLP, AAAI, SIGMOD and
