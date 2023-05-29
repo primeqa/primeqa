@@ -74,6 +74,7 @@ def save_checkpoint(path, epoch_idx, mb_idx, model, optimizer, amp, train_loss, 
     checkpoint = {}
     checkpoint['epoch'] = epoch_idx
     checkpoint['batch'] = mb_idx
+    checkpoint['config'] = model.config.to_dict()
     checkpoint['train_loss'] = train_loss
     checkpoint['model_state_dict'] = model.state_dict()
     checkpoint['optimizer_state_dict'] = optimizer.state_dict()

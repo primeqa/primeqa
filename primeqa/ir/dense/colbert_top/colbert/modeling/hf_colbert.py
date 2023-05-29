@@ -16,6 +16,7 @@ class HF_ColBERT(BertPreTrainedModel):
     def __init__(self, config, colbert_config):
         super().__init__(config)
 
+        self.config = config
         self.dim = colbert_config.dim
         self.bert = BertModel(config)
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
@@ -54,6 +55,19 @@ class HF_ColBERT(BertPreTrainedModel):
         obj.base = name_or_path
 
         return obj
+
+    def load_state_dict(self, name):
+        assert name.endswith('dnn') or name.endswith('.model'), f"name is not valid colbert checkpoint ending with '.dnn' or '.model'"
+        dnn = torch_load_dnn(name)
+        state_dict = dnn['model_state_dict']
+
+        import re
+        from collections import OrderedDict
+
+        state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
+
+        self.base = "roberta-base"
+        super().load_state_dict(state_dict)
 
     @staticmethod
     def raw_tokenizer_from_pretrained(name_or_path):

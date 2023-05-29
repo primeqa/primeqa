@@ -30,7 +30,5 @@ class Trainer:
 
         self._best_checkpoint_path = launcher.launch(self.config, self.triples, self.queries, self.collection)
 
-
     def best_checkpoint_path(self):
         return self._best_checkpoint_path
-

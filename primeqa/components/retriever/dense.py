@@ -49,6 +49,13 @@ class ColBERTRetriever(BaseRetriever):
             "description": "Path to collection",
         },
     )
+    model_type: str = field(
+        default=None,
+        metadata={
+            "name": "Model Type",
+            "description": "Model Family name",
+        },
+    )
     max_num_documents: int = field(
         default=5,
         metadata={
@@ -82,11 +89,11 @@ class ColBERTRetriever(BaseRetriever):
             index_root=self.index_root,
             index_name=self.index_name,
             index_path=f"{self.index_root}/{self.index_name}",
+            model_type=self.model_type,
             ncells=self.ncells,
             centroid_score_threshold=self.centroid_score_threshold,
             ndocs=self.ndocs,
         )
-
         # Placeholder variables
         self._searcher = None
 

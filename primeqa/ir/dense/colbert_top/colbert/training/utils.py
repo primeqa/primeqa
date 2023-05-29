@@ -9,7 +9,7 @@ from primeqa.ir.dense.colbert_top.colbert.infra.run import Run
 
 def print_progress(scores):
     positive_avg, negative_avg = round(scores[:, 0].mean().item(), 2), round(scores[:, 1].mean().item(), 2)
-    print("#>>>   ", positive_avg, negative_avg, '\t\t|\t\t', positive_avg - negative_avg)
+    print(f"#>>>   {positive_avg}, {negative_avg} \t\t|\t\t {positive_avg - negative_avg}")
 
 # change the "manage_checkpoints" to "manage_checkpoints_consumed_all_triples" as we use it aftere consumed akk triples
 def manage_checkpoints_consumed_all_triples(args, colbert, optimizer, batch_idx, savepath=None, consumed_all_triples=False):
