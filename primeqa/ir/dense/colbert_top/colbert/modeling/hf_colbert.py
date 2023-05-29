@@ -64,7 +64,7 @@ class HF_ColBERT(BertPreTrainedModel):
         import re
         from collections import OrderedDict
 
-        state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
+        state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
 
         self.base = "roberta-base"
         super().load_state_dict(state_dict)
