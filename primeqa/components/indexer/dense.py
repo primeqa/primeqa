@@ -35,8 +35,16 @@ class ColBERTIndexer(BaseIndexer):
     Raises:
         TypeError: _description_
     """
-
+    vector_db: str = field(
+        default="FAISS",
+         metadata={
+            "name": "vector_db",
+            "description": "vector_db to use for indexing embedding vectors",
+            "api_support": True,
+        },
+    )
     checkpoint: str = field(
+        default=None,
         metadata={
             "name": "Checkpoint",
             "description": "Path to checkpoint",
@@ -117,9 +125,10 @@ class ColBERTIndexer(BaseIndexer):
             kmeans_niters=self.kmeans_niters,
             num_partitions_max=self.num_partitions_max,
         )
-
+        assert not self.vector_db is not 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
         # Placeholder variables
-        self._indexer = None
+        # self._indexer = None
+        self._indexer = Indexer(self.checkpoint, config=self._config)
 
     def __hash__(self) -> int:
         return hash(
@@ -142,3 +151,16 @@ class ColBERTIndexer(BaseIndexer):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
+
+    def index_documents(self, collection: Union[List[dict], str], *args, **kwargs):
+        if not isinstance(collection, str):
+            raise TypeError(
+                "ColBERT indexer expects path to `documents.tsv` as value for `collection` argument."
+            )
+        self._indexer.index(
+            self.index_name,
+            collection,
+            overwrite="overwrite" in kwargs and kwargs["overwrite"],
+        )
+    def get_collection(self):
+        pass

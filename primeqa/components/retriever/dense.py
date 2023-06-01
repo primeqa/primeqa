@@ -4,10 +4,12 @@ from dataclasses import dataclass, field
 import json
 
 from primeqa.components.base import Retriever as BaseRetriever
+from primeqa.components.indexer.dense import ColBERTIndexer
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+
 
 
 @dataclass
@@ -35,6 +37,13 @@ class ColBERTRetriever(BaseRetriever):
 
     """
 
+    indexer: ColBERTIndexer = field(
+        default=None,
+        metadata={
+            "name": "Indexer",
+            "description": "The instance of ColBERTIndexer used to index the search corpus",
+        },
+    )
     checkpoint: str = field(
         default=None,
         metadata={
@@ -78,6 +87,11 @@ class ColBERTRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
+        
+        if self.indexer is not None :
+            self.index_root = self.indexer.index_root
+            self.index_name=self.indexer.index_name,
+
         self._config = ColBERTConfig(
             index_root=self.index_root,
             index_name=self.index_name,
