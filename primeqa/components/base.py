@@ -61,17 +61,20 @@ class Reader(Component):
 @dataclass(init=False, repr=False, eq=False)
 class Retriever(Component):
     index_root: str = field(
+        default=None,
         metadata={
             "name": "Index root",
             "description": "Path to root directory where index is stored",
         },
     )
     index_name: str = field(
+        default=None,
         metadata={
             "name": "Index name",
         },
     )
     collection: str = field(
+        default=None,
         metadata={
             "name": "The corpus file split in paragraphs",
         },
@@ -111,12 +114,14 @@ class Retriever(Component):
 @dataclass(init=False, repr=False, eq=False)
 class Indexer:
     index_root: str = field(
+        default=None,
         metadata={
             "name": "Index root",
             "description": "Path to root directory where index to be stored",
         },
     )
     index_name: str = field(
+        default=None,
         metadata={
             "name": "Index name",
         },
