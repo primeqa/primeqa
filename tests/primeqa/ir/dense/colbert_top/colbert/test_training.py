@@ -48,6 +48,8 @@ class TestTraining(UnitTest):
         rank = 0
         nranks = 1
         config = ColBERTConfig()
+        config.model_type = 'bert'
+        config.checkpoint = 'bert-base-uncased'
         text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
         reader_eager_batcher = EagerBatcher(config, text_triples_fn, rank, nranks)
 
@@ -72,19 +74,19 @@ class TestTraining(UnitTest):
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
 
-        model_types = ['bert-base-uncased']
+        model_types = {'bert': 'bert-base-uncased'}
 
         do_training = True
         if do_training:
-            for model_type in model_types:
-                args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': model_type, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 5, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 1, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
+            for model_type, checkpoint in model_types.items():
+                args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': checkpoint, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 5, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 1, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
 
                 with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                     # reading text training triples
                     colBERTConfig = ColBERTConfig(**args_dict)
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
 
-                    if model_type == 'bert-base-uncased':
+                    if checkpoint == 'bert-base-uncased':
 
                         # reading numerical training triples
                         args_dict['triples'] = numerical_triples_fn
@@ -94,7 +96,7 @@ class TestTraining(UnitTest):
                         train(colBERTConfig, numerical_triples_fn, queries_fn, collection_fn)
 
                         # student/teacher training, top level
-                        args_dict['teacher_checkpoint'] = model_type
+                        args_dict['teacher_checkpoint'] = checkpoint
                         args_dict['teacher_model_type'] = model_type
                         args_dict['teacher_triples'] = text_triples_en_fn
                         args_dict['queries'] = None
@@ -104,7 +106,7 @@ class TestTraining(UnitTest):
 
                         # student/teacher model, token level
                         args_dict['distill_query_passage_separately'] = True
-                        args_dict['teacher_checkpoint'] = model_type
+                        args_dict['teacher_checkpoint'] = checkpoint
                         args_dict['teacher_model_type'] = model_type
                         args_dict['triples'] = parallel_non_en_fn
                         args_dict['teacher_triples'] = parallel_en_fn
@@ -118,7 +120,7 @@ class TestTraining(UnitTest):
 
         do_indexing = True
         if do_indexing:
-            args_dict = {'root': os.path.join(output_dir, 'test_indexing'), 'experiment': 'test_indexing', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn + '.dnn.epoch_0.model', 'bsize': 256, 'amp': True, 'collection': collection_fn, 'index_root': os.path.join(output_dir, 'test_indexing', 'indexes'), 'index_name': 'index_name', 'num_partitions_max': 2, 'kmeans_niters': 1, 'nway': 1, 'nranks': 1}
+            args_dict = {'root': os.path.join(output_dir, 'test_indexing'), 'experiment': 'test_indexing', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'checkpoint': latest_model_fn + '.dnn.epoch_0.model', 'model_type': model_type, 'bsize': 256, 'amp': True, 'collection': collection_fn, 'index_root': os.path.join(output_dir, 'test_indexing', 'indexes'), 'index_name': 'index_name', 'num_partitions_max': 2, 'kmeans_niters': 1, 'nway': 1, 'nranks': 1}
             with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                     colBERTConfig = ColBERTConfig(**args_dict)
                     create_directory(colBERTConfig.index_path_)
