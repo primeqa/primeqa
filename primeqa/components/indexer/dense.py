@@ -167,7 +167,7 @@ class DPRIndexer(BaseIndexer):
     )
 
     ctx_encoder_name_or_path: str = field(
-        default="facebook/dpr-ctx_encoder-multiset-base",
+        default="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder",
         metadata={"help": "Query model name or path"},
     )
 
