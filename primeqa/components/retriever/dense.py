@@ -9,6 +9,7 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+from tqdm import tqdm
 
 
 
@@ -59,7 +60,7 @@ class ColBERTRetriever(BaseRetriever):
         },
     )
     max_num_documents: int = field(
-        default=5,
+        default=3,
         metadata={
             "name": "Maximum number of retrieved documents",
             "range": [1, 100, 1],
@@ -90,7 +91,12 @@ class ColBERTRetriever(BaseRetriever):
         
         if self.indexer is not None :
             self.index_root = self.indexer.index_root
-            self.index_name=self.indexer.index_name,
+            self.index_name=self.indexer.index_name
+            print("self.indexer.index_name",self.indexer.index_name)
+            print("self.index_root",self.index_root)
+            print("self.index_name",self.index_name)
+            self.collection=self.indexer.get_collection()
+            print("self.collection",self.collection)
 
         self._config = ColBERTConfig(
             index_root=self.index_root,
@@ -100,9 +106,20 @@ class ColBERTRetriever(BaseRetriever):
             centroid_score_threshold=self.centroid_score_threshold,
             ndocs=self.ndocs,
         )
-
+        print("self._config",self._config)
         # Placeholder variables
         self._searcher = None
+        self._searcher = Searcher(
+            self.index_name,
+            checkpoint=self.checkpoint,
+            collection=self.collection,
+            config=self._config,
+        )
+        self.corpus_passages = []
+        with open(self.collection, "r") as infile:
+            for line in tqdm(infile):
+                id, text, title = line.split("\t")
+                self.corpus_passages.append(title + " " + text)
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -136,7 +153,7 @@ class ColBERTRetriever(BaseRetriever):
     def eval(self, *args, **kwargs):
         pass
 
-    def predict(self, input_texts: List[str], *args, **kwargs) -> Any:
+    def predict(self, input_texts: List[str], return_passages:bool, *args, **kwargs) -> Any:
         """Retrieves relevant documents based on input_texts
 
         Args:
@@ -157,11 +174,33 @@ class ColBERTRetriever(BaseRetriever):
             {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
             k=max_num_documents,
         )
-        return [
-            [(result[0], result[-1]) for result in results_per_query]
-            for results_per_query in ranking_results.data.values()
-        ]
+        if return_passages:
+            doc_ids = [
+                [(result[0]) for result in results_per_query]
+                for results_per_query in ranking_results.data.values()
+            ]
+            passages = [
+                [(self.corpus_passages[int(result[0])]) for result in results_per_query]
+                for results_per_query in ranking_results.data.values()
+            ]
+            return doc_ids, passages
 
+            # return [
+            #     [(result[0], self.corpus_passages[int(result[0])], result[-1]) for result in results_per_query]
+            #     for results_per_query in ranking_results.data.values()
+            # ]
+        else:
+            return [
+                [(result[0], result[-1]) for result in results_per_query]
+                for results_per_query in ranking_results.data.values()
+            ]
+
+        return [
+            list(zip(docids, scores))
+            for docids, scores in zip(
+                retrieved_doc_ids, [passage["scores"] for passage in passages]
+            )
+        ]
 
 @dataclass
 class DPRRetriever(BaseRetriever):

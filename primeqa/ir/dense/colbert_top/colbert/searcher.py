@@ -19,9 +19,9 @@ TextQueries = Union[str, List[str], Dict[int, str], Queries]
 TextDocuments = Union[List[str]]
 
 class Searcher:
+    corpus_passages=[]
     def __init__(self, index, checkpoint=None, collection=None, config=None, rescore_only=False):
-        print_memory_stats()
-
+        print_memory_stats()       
         initial_config = ColBERTConfig.from_existing(Run().config, config)
         self.rescore_only = rescore_only
 

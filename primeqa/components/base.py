@@ -124,6 +124,7 @@ class Indexer:
         default="index_name",
         metadata={
             "name": "Index name",
+            "description": "name of the index where embeddings are to be stored",
         },
     )
 

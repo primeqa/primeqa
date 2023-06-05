@@ -157,10 +157,13 @@ class ColBERTIndexer(BaseIndexer):
             raise TypeError(
                 "ColBERT indexer expects path to `documents.tsv` as value for `collection` argument."
             )
+        self._collection_path=collection
+        print("Indexer: collection path set to:",collection)
         self._indexer.index(
             self.index_name,
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
     def get_collection(self):
-        pass
+        print("Indexer: get collection returned as :",self._collection_path)
+        return self._collection_path
