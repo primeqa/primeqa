@@ -1,15 +1,34 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 
-import csv
 import argparse
 import csv
+import json
 import os
 import pickle
-import time
 import random
 import re
 from tqdm.auto import tqdm
+import sys
+import tempfile
+import time
+from typing import List, Any
+from unittest.mock import patch
+
+import numpy as np
+import transformers
+from tqdm import tqdm
+from transformers import HfArgumentParser
+from pymilvus import (
+    connections,
+    utility,
+    FieldSchema, CollectionSchema, DataType,
+    Collection,
+)
+from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
+from chromadb.utils import embedding_functions
+import chromadb
+
 
 def handle_args():
     usage = 'usage'
@@ -33,6 +52,9 @@ def handle_args():
                         help="The actions that can be done: c(create), i(ingest), d(delete), "
                              "I(insert), r(retrieve), R(recreate)")
     parser.add_argument("--normalize_embs", action="store_true", help="If present, the embeddings are normalized.")
+    parser.add_argument("--evaluate", action="store_true",
+                        help="If present, evaluates the results based on test data, at the provided ranks.")
+    parser.add_argument("--ranks", default="1,5,10,100", help="Defines the R@i evaluation ranks.")
 
     args = parser.parse_args()
     if args.output_ranks == "":
@@ -81,19 +103,6 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
             from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
             self.queries_to_vectors = queries_to_vectors
-            # self.config = DPRConfig(name)
-            # if self.config.model_type in {"gpt2", "roberta"}:
-            #     self.tokenizer = DPRContextEncoderTokenizer.from_pretrained(
-            #         name,
-            #         use_fast=True,
-            #         add_prefix_space=True,
-            #     )
-            # else:
-            #     self.tokenizer = DPRContextEncoderTokenizer.from_pretrained(
-            #         name,
-            #         use_fast=True,
-            #     )
-            #
             self.model = DPRQuestionEncoder.from_pretrained(
                 pretrained_model_name_or_path=name,
                 from_tf = False,
@@ -156,11 +165,12 @@ def main():
     with open(args.input_query_vectors, 'rb') as in_file:
         query_vectors = pickle.load(in_file)
 
-    input_passages = []  # {'text': text}
     input_passages = read_data(args.input_passages, fields=["id", "text", "title"])
+    if args.evaluate:
+        input_queries = read_data(args.input_queries, fields=["id", "text", "relevant"])
+    else:
+        input_queries = read_data(args.input_queries, fields=["id", "text"])
 
-    input_queries: list[Any] = []  # {'text': text}
-    input_queries = read_data(args.input_queries, num_args=2, fields=["id", "text"])
     # with open(args.input_queries) as in_file:
     #     csv_reader = csv.reader(in_file, delimiter="\t")
     #     for row in csv_reader:
@@ -234,7 +244,7 @@ def main():
                     parser.parse_args_into_dataclasses(return_remaining_strings=True)
                 indexer = DPRIndexer(dpr_args)
                 indexer.index()
-        elif args.db_engine == "pqa":
+        elif args.db_engine == "pqa_colbert":
             from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
             from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
             from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
@@ -272,34 +282,6 @@ def main():
             with Run().context(RunConfig(root=args.root, experiment=args.experiment, nranks=args.nranks, amp=args.amp)):
                 indexer = Indexer(args.checkpoint, colBERTConfig)
                 indexer.index(name=args.index_name, collection=args.collection, overwrite=True)
-            # from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
-            # from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
-            # if args.model_name is None:
-            #     print(
-            #         "You need to specify the encoder if you're going to use PrimeQA: use --model_name|-m argument")
-            #     sys.exit(1)
-            #
-            # os.makedirs(output_dir, exist_ok=True)
-            # print(output_dir)
-            #
-            # search_args = [
-            #     "prog",
-            #     "--engine_type", "ColBERT",
-            #     "--do_index",
-            #     "--bsize", "16",
-            #     "--ctx_encoder_name_or_path", os.path.join(args.model_name, "ctx_encoder"),
-            #     "--embed", "1of1",
-            #     "--output_dir", os.path.join(output_dir, "index"),
-            #     "--shared_index",
-            #     "--collection", args.input_passages,
-            # ]
-            #
-            # with patch.object(sys, 'argv', search_args):
-            #     parser = HfArgumentParser(DPRIndexingArguments)
-            #     (dpr_args, remaining_args) = \
-            #         parser.parse_args_into_dataclasses(return_remaining_strings=True)
-            #     indexer = DPRIndexer(dpr_args)
-            #     indexer.index()
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
@@ -530,8 +512,57 @@ def main():
             tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
             tsv_writer.writerows(out_ranks)
 
+        if args.evaluate:
+            if "relevant" not in input_queries[0] or input_queries[0]['relevant'] is None:
+                print("The input question file does not contain answers. Please fix that and restart.")
+                sys.exit(12)
+            ranks = [int(r) for r in args.ranks.split(",")]
+            scores = {r:0 for r in ranks}
+            gt = {}
+            for q in input_queries:
+                gt[q['id']] = {id:1 for id in q['relevant'].split(" ") if int(id)>=0}
+            def skip(out_ranks, record, rid):
+                qid = record[0]
+                while rid < len(out_ranks) and out_ranks[rid][0] == qid:
+                    rid += 1
+                return rid
+            rid = 0
+            out_ranks1 = []
+            # while rid < len(out_ranks):
+            for rid, record in enumerate(out_ranks):
+                # record = out_ranks[rid]
+
+                # if len(gt[record[0]]) == 0 or record[2] > ranks[-1]:
+                #     rid = skip(out_ranks, record, rid)
+                #     continue
+                # else:
+                outr = record[0:3]
+                if record[1] in gt[record[0]]: # Great, we found a match.
+                    j = 0
+                    while ranks[j] < record[2]:
+                        j += 1
+                    for k in ranks[j:]:
+                        scores[k] += 1
+                    outr.append(1)
+                else:
+                    outr.append(0)
+                out_ranks1.append(outr)
+                    # rid = skip(out_ranks, record, rid)
+                    # continue
+                # rid += 1
+
+            res = {"num_ranked_queries": len(input_queries),
+                   "num_judged_queries": len(input_queries),
+                   "success__WARNING": {r:int(1000*scores[r]/len(input_queries))/1000.0 for r in ranks}}
+            with open(args.output_ranks+".annotated.deb","w") as out_file:
+                tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
+                tsv_writer.writerows(out_ranks1)
+
+            with open(args.output_ranks+".metrics","w") as out:
+                out.write(json.dumps(res, indent=2)+"\n")
     # if args.db_engine == 'pinecone':
     #     pinecone.delete_index(index_name)
+
 
 
 def create_pqa_searcher(args, output_dir):
@@ -558,8 +589,12 @@ def create_milvusdb():
     connections.connect("default", host="localhost", port="19530")
 
 
-def read_data(input_file, fields=None, num_args=3):
+def read_data(input_file, fields=None):
     passages = []
+    if fields is None:
+        num_args = 3
+    else:
+        num_args = len(fields)
     with open(input_file) as in_file:
         csv_reader = \
             csv.DictReader(in_file, fieldnames=fields, delimiter="\t") \
@@ -568,10 +603,12 @@ def read_data(input_file, fields=None, num_args=3):
         next(csv_reader)
         for row in csv_reader:
             assert len(row) == num_args or len(row) == 2, f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-            itm = {'text': (row["title"] if len(row) == 3 else ' ') + ' ' + row["text"],
+            itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
                              'id': row['id']}
             if 'title'in row:
                 itm['title'] = row['title']
+            if 'relevant' in row:
+                itm['relevant'] = row['relevant']
             passages.append(itm)
     return passages
 
