@@ -1,32 +1,15 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 
+import csv
 import argparse
 import csv
 import os
 import pickle
+import time
 import random
 import re
-import sys
-import tempfile
-import time
-from typing import List, Any
-from unittest.mock import patch
-
-import numpy as np
-import transformers
-from tqdm import tqdm
-from transformers import HfArgumentParser
-from pymilvus import (
-    connections,
-    utility,
-    FieldSchema, CollectionSchema, DataType,
-    Collection,
-)
-from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
-from chromadb.utils import embedding_functions
-import chromadb
-
+from tqdm.auto import tqdm
 
 def handle_args():
     usage = 'usage'
