@@ -113,6 +113,54 @@ def process_data(data, valid_annotators=None, answer_field=""):
     print("num sentences: " + str(num_sentences / len(eli5_formatted_data)))
     return eli5_formatted_data, answered, non_consecutive
 
+def process_NA_data(data):
+
+    eli5_formatted_data = {}
+    answered = 0
+    non_consecutive = 0
+    selected = 0
+    num_sentences = 0
+    skip_count = 0
+    bad_question = 0
+
+    for _, row in data.iterrows():
+        eli5_format = {}
+
+        eli5_format['id'] = row['data']['id']
+        eli5_format['input'] = row['data']['question']
+
+        passage = {}
+        passage['title'] = row['data']['title']
+        passage["text"] = " ".join(row['data']['long_answer'])
+        eli5_format['passages'] = [passage]
+        eli5_format['output'] = []
+
+        is_answered = False
+        for judgement in row['results']['judgments']:
+            output = {}
+            
+            answer_type = judgement['data']['how_would_you_describe_the_questionanswer']
+
+            output['answer'] = ""
+            output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']],row['data']['worker']], "has_minimal_answer": None, 'non_consecutive': None}
+            
+            if answer_type == 'complete' or answer_type == 'partial':
+                answered += 1
+            elif answer_type == "skip" or answer_type == "bad_paragraph" or answer_type == "bad_question":
+                output['meta']['score'] = 3
+                output['answer'] = "NA"
+                eli5_format['output'].append(output)
+                skip_count += 1
+            else:
+                bad_question+=1
+                print(answer_type)
+        if len(eli5_format['output']) > 0: 
+            eli5_formatted_data[eli5_format['id']] = eli5_format
+    print("answered: " + str(answered))
+    print("skip: " + str(skip_count))
+    print("bad: " + str(bad_question))
+    return eli5_formatted_data
+
 def process_round2_data(eli5_formatted_data, data, answer_field=""):
     answered = 0
     num_sentences = 0
@@ -175,9 +223,12 @@ def main():
     "/dccstor/srosent2/generative/appen/round1_jobs/job_2006984.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2004889.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2084633.json"]
     # these are the round 2 files. 
     round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*")
+    # these are the NA files.
+    na_files = "/dccstor/srosent2/generative/appen/no_answer_round2/annotated/*"
+    file_names = glob.glob(na_files)
 
-    file_names = ["/dccstor/srosent2/generative/appen/round1_jobs/job_2111155.json"]
-    round2_files_test = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs3/output/*")
+    # file_names = ["/dccstor/srosent2/generative/appen/round1_jobs/job_2111155.json"]
+    # round2_files_test = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs3/output/*")
 
     # If an example has multiple annotations keep it as dev set.    
 
@@ -188,7 +239,7 @@ def main():
 
     answer_fields = ["type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"]
     valid_annotators = [None]
-    output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-5.15.23.json"
+    output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_NA.json"
 
     fid_data = {}
 
@@ -196,32 +247,39 @@ def main():
     non_consecutive = 0
     i = 0
     for input_file in file_names:
+        print(input_file)
         data = pd.read_json(input_file, lines=True)
-        formatted_data, answered_i, non_consecutive_i = process_data(data, valid_annotators=valid_annotators[i], answer_field=answer_fields[i])
+        # formatted_data, answered_i, non_consecutive_i 
+        formatted_data = process_NA_data(data)
+                                        #  valid_annotators=valid_annotators[i], answer_field=answer_fields[i])
         fid_data.update(formatted_data)
-        answered += answered_i
-        non_consecutive += non_consecutive_i
+        # answered += answered_i
+        # non_consecutive += non_consecutive_i
         i += 1
-    print("answered: " + str(answered) + "/" + str(len(fid_data)))
-    print("non-consective: " + str(non_consecutive))
+    # print("answered: " + str(answered) + "/" + str(len(fid_data)))
+    # print("non-consective: " + str(non_consecutive))
 
-    for input_file in round2_files_test:
-        round2data = pd.read_json(input_file, lines=True)
-        fid_data, answered_i = process_round2_data(fid_data, round2data)
+    # for input_file in round2_files_test:
+    #     round2data = pd.read_json(input_file, lines=True)
+    #     fid_data, answered_i = process_round2_data(fid_data, round2data)
 
-    two_annotator_data = []
+    # two_annotator_data = []
+    # with open(output_file,'wb') as writer:
+    #     for data in fid_data:
+    #         if len(fid_data[data]['output']) > 1 or \
+    #             len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1 \
+    #              or fid_data[data]['output'][0]["meta"]["non_consecutive"]:
+    #             two_annotator_data.append(fid_data[data])
+    #             continue
+    #         writer.write((json.dumps(fid_data[data]) + "\n").encode())
+
+    # with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-test-5.15.23.json",'wb') as writer:
+    #     for data in two_annotator_data:
+    #         writer.write((json.dumps(data) + "\n").encode())
+
     with open(output_file,'wb') as writer:
         for data in fid_data:
-            if len(fid_data[data]['output']) > 1 or \
-                len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1 \
-                 or fid_data[data]['output'][0]["meta"]["non_consecutive"]:
-                two_annotator_data.append(fid_data[data])
-                continue
             writer.write((json.dumps(fid_data[data]) + "\n").encode())
-
-    with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-test-5.15.23.json",'wb') as writer:
-        for data in two_annotator_data:
-            writer.write((json.dumps(data) + "\n").encode())
 
     
 
