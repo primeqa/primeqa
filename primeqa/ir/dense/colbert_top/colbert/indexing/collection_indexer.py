@@ -271,8 +271,18 @@ class CollectionIndexer():
         quantiles = torch.arange(0, num_options, device=heldout_avg_residual.device) * (1 / num_options)
         bucket_cutoffs_quantiles, bucket_weights_quantiles = quantiles[1:], quantiles + (0.5 / num_options)
 
-        bucket_cutoffs = heldout_avg_residual.float().quantile(bucket_cutoffs_quantiles)
-        bucket_weights = heldout_avg_residual.float().quantile(bucket_weights_quantiles)
+        try:
+            bucket_cutoffs = heldout_avg_residual.float().quantile(bucket_cutoffs_quantiles)
+            bucket_weights = heldout_avg_residual.float().quantile(bucket_weights_quantiles)
+        except RuntimeError as e:
+            print(f"{e}, Shape of Tensor: {heldout_avg_residual.shape}")
+            DEVICE = heldout_avg_residual.device
+            #Switch to numpy qauntile to address `torch quantile throws error on larger tensors` error.
+            heldout_avg_residual = heldout_avg_residual.float().cpu().numpy()
+            bucket_cutoffs = np.quantile(heldout_avg_residual, bucket_cutoffs_quantiles.cpu().numpy())
+            bucket_weights = np.quantile(heldout_avg_residual, bucket_weights_quantiles.cpu().numpy())
+            bucket_cutoffs = torch.from_numpy(bucket_cutoffs).to(device=DEVICE)
+            bucket_weights = torch.from_numpy(bucket_weights).to(device=DEVICE)
 
         print_message(
             f"#> Got bucket_cutoffs_quantiles = {bucket_cutoffs_quantiles} and bucket_weights_quantiles = {bucket_weights_quantiles}")
