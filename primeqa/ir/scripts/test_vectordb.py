@@ -128,7 +128,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
     def encode(self, texts:Documents) -> Embeddings:
         # embed the documents somehow
         if not self.pqa:
-            embs = self.model(texts)
+            embs = self.model.encode(texts)
         else:
             # tokt = self.tokenizer(texts)
             # ems = self.model.run(tokt)
@@ -285,10 +285,13 @@ def main():
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
-            sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
             client = chromadb.Client()
-            collection = client.create_collection("vectordbtest",
-                                                  embedding_function=sentence_transformer_ef)
+            if os.path.exists(args.model_name):
+                sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
+                collection = client.create_collection("vectordbtest",
+                                                      embedding_function=sentence_transformer_ef)
+            else:
+                collection = client.create_collection("vectordbtest")
         elif args.db_engine == "milvus":
             create_milvusdb()
     else:
