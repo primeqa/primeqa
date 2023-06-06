@@ -6,7 +6,8 @@ import json
 
 import openai
 import torch
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer,AutoConfig,AutoModelForCausalLM
+from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
 
 from primeqa.components.base import Reader as BaseReader
 from primeqa.components.reader.LLMService import LLMService
@@ -427,4 +428,125 @@ class BAMReader(PromptReader):
             processed_prediction["confidence_score"] = 1
             predictions[question_idx] = [processed_prediction]
 
+        return predictions
+
+@dataclass
+class AutoReader(PromptReader):
+    api_key: str = field(
+        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"}, default=None
+    )
+    model_name: str = field(
+        default="google/flan-t5-large",
+        metadata={"name": "Model"},
+    )
+    max_new_tokens: int = field(
+        default=256,
+        metadata={
+            "name": "Maximum sequence length",
+            "description": "Maximum length of question and context inputs to the model (in word pieces/bpes)",
+        },
+    )
+    min_new_tokens: int = field(
+        default=100,
+        metadata={
+            "name": "Min sequence length",
+            "description": "Minimum new tokens that must be generated (in word pieces/bpes)",
+        },
+    )
+    temperature: float = field(
+        default=0.7, metadata={"name": "The temperature parameter used for generation"}
+    )
+    top_p: int = field(
+        default=1, metadata={"name": "The top_p parameter used for generation"}
+    )
+    frequency_penalty: int = field(
+        default=0,
+        metadata={"name": "frequency_penalty"},
+    )
+    presence_penalty: int = field(
+        default=0,
+        metadata={"name": "presence_penalty"},
+    )
+    use_bam: bool = field(
+        default=False, metadata={"name": "if true, use bam to run FLAN-T5"}
+    )
+
+    def __post_init__(self):
+        # Placeholder variables
+        self._model = None
+        self._device = None
+        self._tokenizer = None
+
+    def __hash__(self) -> int:
+        # Step 1: Identify all fields to be included in the hash
+        hashable_fields = [
+            k
+            for k, v in self.__class__.__dataclass_fields__.items()
+            if not "exclude_from_hash" in v.metadata
+            or not v.metadata["exclude_from_hash"]
+        ]
+
+        # Step 2: Run
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v for k, v in vars(self).items() if k in hashable_fields }, sort_keys=True)}"
+        )
+
+    def load(self, *args, **kwargs):
+        if self.use_bam:
+            self._model = LLMService(token=self.api_key, model_id=self.model_name)
+        else:
+            self._device = "cuda:0" if torch.cuda.is_available() else "cpu"
+            self._config = AutoConfig.from_pretrained(self.model_name)
+            if self._config.architectures[0] in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values():
+                self._model = AutoModelForCausalLM.from_pretrained(self.model_name)
+            elif self._config.architectures[0] in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES.values():
+                self._model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+            self._model = self._model.to(self._device)
+        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(
+        self,
+        questions: List[str],
+        *args,
+        contexts: List[List[str]] = None,
+        example_ids: List[str] = None,
+        **kwargs,
+    ) -> Dict[str, List[Dict]]:
+        predictions = {}
+
+        for question_idx, question in enumerate(questions):
+            passages = None
+            if contexts:
+                passages = contexts[question_idx]
+
+            prompt = self.create_prompt(question, passages, **kwargs)
+            inputs = self._tokenizer(prompt, return_tensors="pt").to(self._device)
+            span_answer_text = ""
+            if self.use_bam:
+                resp = self._model.generate(
+                    [prompt], self.max_new_tokens, self.min_new_tokens
+                )
+                span_answer_text = resp["results"][0]["generated_text"]
+            else:
+                outputs = self._model.generate(
+                    **inputs,
+                    max_new_tokens=self.max_new_tokens,
+                    min_length=self.min_new_tokens,
+                    temperature=self.temperature,
+                    top_p=self.top_p,
+                )
+                span_answer_text = self._tokenizer.batch_decode(
+                    outputs, skip_special_tokens=True
+                )[0]
+            processed_prediction = {}
+            processed_prediction["example_id"] = question_idx
+            processed_prediction["span_answer_text"] = span_answer_text
+            processed_prediction["confidence_score"] = 1
+            predictions[question_idx] = [processed_prediction]
         return predictions
