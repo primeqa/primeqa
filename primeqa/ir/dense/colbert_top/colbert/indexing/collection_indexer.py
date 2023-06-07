@@ -277,7 +277,7 @@ class CollectionIndexer():
         except RuntimeError as e:
             print(f"{e}, Shape of Tensor: {heldout_avg_residual.shape}")
             DEVICE = heldout_avg_residual.device
-            #Switch to numpy qauntile to address `torch quantile throws error on larger tensors` error.
+            #Switch to numpy qauntile to address `RuntimeError: quantile() input tensor is too large` error.
             heldout_avg_residual = heldout_avg_residual.float().cpu().numpy()
             bucket_cutoffs = np.quantile(heldout_avg_residual, bucket_cutoffs_quantiles.cpu().numpy())
             bucket_weights = np.quantile(heldout_avg_residual, bucket_weights_quantiles.cpu().numpy())
