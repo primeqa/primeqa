@@ -224,6 +224,13 @@ class DPRRetriever(BaseRetriever):
 
     """
 
+    index_location: str = field(
+        default="dpr_index",
+        metadata={
+            "name": "Index location",
+            "description": "Path to index",
+        },
+    )
     checkpoint: str = field(
         default=None,
         metadata={
@@ -250,12 +257,13 @@ class DPRRetriever(BaseRetriever):
 
     def __post_init__(self):
         self._config = DPRSearchArguments(
-            index_location=os.path.join(self.index_root, self.index_name),
+            index_location=self.index_location,
             model_name_or_path=self.checkpoint,
         )
 
-        # Placeholder variables
-        self._searcher = None
+        self._searcher = DPRSearcher(
+            self._config,
+        )
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -286,7 +294,7 @@ class DPRRetriever(BaseRetriever):
     def eval(self, *args, **kwargs):
         pass
 
-    def predict(self, input_texts: List[str], *args, **kwargs) -> Any:
+    def predict(self, input_texts: List[str], return_passages: bool, *args, **kwargs) -> Any:
         """Retrieves relevant documents based on input_texts
 
         Args:
@@ -305,6 +313,9 @@ class DPRRetriever(BaseRetriever):
         retrieved_doc_ids, passages = self._searcher.search(
             list(input_texts), max_num_documents, mode="query_list"
         )
+        if return_passages:
+            return retrieved_doc_ids, passages
+       
         # retrieved_doc_ids: list (per query) of lists (per rank) of (str)docids
         # passages: list (per query) of dicts with keys {'titles', 'texts', 'scores'} of lists (per rank)
 
