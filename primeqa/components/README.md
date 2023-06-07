@@ -246,11 +246,13 @@ print(json.dumps(answers, indent=4))
 
 ## Embeddings Components
 
-The `Embeddings` provides API to obtain vector representations of given texts.
+The `Embeddings` component provides an API to obtain vector representations of given texts.
 
-The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder).  The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
+The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder).  
 
-The following shows how to run a `DPREmbedding` on the above documents input.
+The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
+
+The following shows how to use the component [DPREmbedding](./embeddings/dpr_embeddings.py) to obtain vectors.
 
 The input is a list of document where each item is a dictionary containing a `text` and optionally a `title` field.
 
