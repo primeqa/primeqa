@@ -29,6 +29,10 @@ class Component(ABC):
     @abstractmethod
     def predict(self, *args, **kwargs):
         pass
+    
+    @abstractmethod
+    def get_embeddings(self, *args, **kwargs):
+        pass
 
 
 @dataclass(init=False, repr=False, eq=False)
@@ -57,6 +61,8 @@ class Reader(Component):
     ) -> Dict[str, List[Dict]]:
         pass
 
+    def get_embeddings(self, *args, **kwargs):
+        pass
 
 @dataclass(init=False, repr=False, eq=False)
 class Retriever(Component):
@@ -106,7 +112,9 @@ class Retriever(Component):
     @abstractmethod
     def predict(self, input_texts: List[str], *args, **kwargs):
         pass
-
+    
+    def get_embeddings(self, *args, **kwargs):
+        pass
 
 @dataclass(init=False, repr=False, eq=False)
 class Indexer:
@@ -154,6 +162,9 @@ class Indexer:
 
     @abstractmethod
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
+        pass
+    
+    def get_embeddings(self, *args, **kwargs):
         pass
     
 @dataclass(init=False, repr=False, eq=False)
@@ -226,4 +237,81 @@ class Reranker(Component):
             List[List[Dict]] For each query a list of reranked documents in the same 
             structure as the input documents with the score replace with the reranker score.
         """
+        pass
+    
+    def get_embeddings(self, *args, **kwargs):
+        pass
+    
+@dataclass(init=False, repr=False, eq=False)
+class Embeddings(Component):
+    
+    model: str = field(
+            metadata={
+                "name": "Model",
+                "api_support": True,
+                "description": "Path to model",
+            },
+        )
+        
+    max_doc_length: int = field(
+            default=512,
+            metadata={
+                "name": "max_doc_length",
+                "api_support": True,
+                "description": "maximum document length (sub-word units)",
+            },
+        )
+
+    @abstractmethod
+    def load(self, *args, **kwargs):
+            pass
+        
+    @abstractmethod
+    def __hash__(self) -> int:
+            """
+            Custom hashing function useful to compare instances of `Retriever`.
+
+            Raises:
+                NotImplementedError:
+
+            Returns:
+                int: hash value
+            """
+            raise NotImplementedError
+
+    @abstractmethod
+    def get_embeddings(self, documents: List[str], 
+                        *args, 
+                        **kwargs):
+        """
+            Takes in a list of texts .
+            For each text returns a dict where the 'embeddings' element contains a vector of floats.
+            
+            Args:
+                documents List[Dict]: For each query, a list of documents containing text and title
+                each document is a dictionary with these elements:
+                {
+                        "text": "A man is eating food.",
+                        "title": "food"
+                }
+            
+            Returns:
+                List[Dict]
+                
+                dict:
+                  {
+                      'embeddings': list[float]
+                      'model': str
+                  }
+        """
+        pass
+        
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, *args, **kwargs):
         pass
