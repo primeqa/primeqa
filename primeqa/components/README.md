@@ -102,7 +102,7 @@ The reranker requires a ColBERT checkpoint. A checkpoint can be downloaded from 
 
 Usage:
 ```
-    from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+    from primeqa.components.reranker.colbert_reranker import ColBERTReranker
 
     reranker = ColBERTReranker(model=<path-to-colbert-checkpoint>)
     reranker.load()
@@ -241,4 +241,51 @@ context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is ba
             as one possible cause of the increasing frequency and amount of cirrus"""]]
 answers = fid_reader.predict(question,context)  
 print(json.dumps(answers, indent=4)) 
+```
+
+
+## Embeddings Components
+
+The `Embeddings` provides API to obtain vector representations of given texts.
+
+The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder).  The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
+
+The following shows how to run a `DPREmbedding` on the above documents input.
+
+The input is a list of document where each item is a dictionary containing a `text` and optionally a `title` field.
+
+
+Usage:
+```
+    from primeqa.components.embeddings.dpr_embeddings import DPREmbeddings
+
+    model_name_or_path="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder"
+    embedding = DPREmbedding(model_name_or_path)
+    embedding.load()   # IMPORTANT
+    documents = []
+    documents.append ({
+        "title": "Florence Cathedral",
+        "text": "The building of the cathedral had started in 1296 with the design of Arnolfo di Cambio and was completed in 1469" 
+        }
+    )
+    vectors = embedder.get_embeddings(documents=documents, max_doc_length=512)
+    print(json.dumps(vectors,indent=4))
+
+```
+
+This will output:
+```
+    [
+        {
+            "embeddings": [
+                -0.42919921875,
+                0.04327392578125,
+                0.72998046875,
+                -0.471435546875,
+                0.308837890625,
+                ...
+            ],
+            "model": "PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder"
+        }
+    ]
 ```
