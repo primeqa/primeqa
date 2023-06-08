@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import json
 
 from primeqa.components.base import Retriever as BaseRetriever
-from primeqa.components.indexer.dense import ColBERTIndexer
+from primeqa.components.indexer.dense import ColBERTIndexer, DPRIndexer
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
@@ -45,7 +45,7 @@ class ColBERTRetriever(BaseRetriever):
             "description": "The instance of ColBERTIndexer used to index the search corpus",
         },
     )
-    checkpoint: str = field(
+    query_encoder_model_checkpoint: str = field(
         default=None,
         metadata={
             "name": "Checkpoint",
@@ -60,7 +60,7 @@ class ColBERTRetriever(BaseRetriever):
         },
     )
     model_type: str = field(
-        default="xlm-roberta",
+        default="roberta",
         metadata={
             "name": "Model Type",
             "description": "Model Family name",
@@ -95,15 +95,16 @@ class ColBERTRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
-        
+        if self.query_encoder_model_checkpoint is not None:
+            self.checkpoint=self.query_encoder_model_checkpoint
+        elif self.indexer is not None:
+            self.query_encoder_model_checkpoint=self.indexer.doc_encoder_model_checkpoint
+            self.checkpoint=self.indexer.doc_encoder_model_checkpoint
+
         if self.indexer is not None :
             self.index_root = self.indexer.index_root
             self.index_name=self.indexer.index_name
-            print("self.indexer.index_name",self.indexer.index_name)
-            print("self.index_root",self.index_root)
-            print("self.index_name",self.index_name)
             self.collection=self.indexer.get_collection()
-            print("self.collection",self.collection)
 
         self._config = ColBERTConfig(
             index_root=self.index_root,
@@ -232,6 +233,14 @@ class DPRRetriever(BaseRetriever):
 
     """
 
+    indexer: DPRIndexer = field(
+        default=None,
+        metadata={
+            "name": "Indexer",
+            "description": "The instance of ColBERTIndexer used to index the search corpus",
+        },
+    )
+
     index_location: str = field(
         default="dpr_index",
         metadata={
@@ -239,11 +248,11 @@ class DPRRetriever(BaseRetriever):
             "description": "Path to index",
         },
     )
-    checkpoint: str = field(
+    query_encoder_model_name_or_path: str = field(
         default=None,
         metadata={
-            "name": "Checkpoint",
-            "description": "Path to checkpoint",
+            "name": "query encoder model name or path",
+            "description": "query encoder model name or path to the model checkpoint",
         },
     )
     collection: str = field(
@@ -264,9 +273,18 @@ class DPRRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
+        
+        self.checkpoint=None
+        if self.query_encoder_model_name_or_path is not None:
+            self.checkpoint=self.query_encoder_model_name_or_path
+        elif self.indexer is not None:
+            self.query_encoder_model_name_or_path=self.indexer.doc_encoder_model_name_or_path
+            self.checkpoint=self.indexer.doc_encoder_model_name_or_path
+            
         self._config = DPRSearchArguments(
-            index_location=self.index_location,
+            #index_location=self.index_location,
             model_name_or_path=self.checkpoint,
+            index_location=self.indexer.output_dir,
         )
 
         self._searcher = DPRSearcher(

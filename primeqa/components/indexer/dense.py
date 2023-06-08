@@ -47,15 +47,16 @@ class ColBERTIndexer(BaseIndexer):
             "api_support": True,
         },
     )
-    checkpoint: str = field(
+    doc_encoder_model_checkpoint: str = field(
         default=None,
         metadata={
-            "name": "Checkpoint",
-            "description": "Path to checkpoint",
+            "name": "doc encoder model checkpoint",
+            "description": "Path to doc encoder model checkpoint",
             "api_support": True,
         },
     )
     model_type: str = field(
+        default="roberta",
         metadata={
             "name": "Model Type",
             "description": "Model Family name",
@@ -121,6 +122,7 @@ class ColBERTIndexer(BaseIndexer):
     )
 
     def __post_init__(self):
+        self.checkpoint=self.doc_encoder_model_checkpoint
         self._config = ColBERTConfig(
             index_root=self.index_root,
             index_name=self.index_name,
@@ -163,6 +165,7 @@ class ColBERTIndexer(BaseIndexer):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
+        self._collection_path=collection
 
     def index_documents(self, collection: Union[List[dict], str], *args, **kwargs):
         if not isinstance(collection, str):
@@ -186,6 +189,14 @@ class DPRIndexer(BaseIndexer):
     Arguments used in indexing
     """
 
+    vector_db: str = field(
+        default="FAISS",
+         metadata={
+            "name": "vector_db",
+            "description": "vector_db to use for indexing embedding vectors",
+            "api_support": True,
+        },
+    )
     output_dir: str = field(
         default="dpr_index",
         metadata={"help": "Output directory to write results"},
@@ -197,9 +208,9 @@ class DPRIndexer(BaseIndexer):
         default="None", metadata={"help": "Collection file path"}
     )
 
-    ctx_encoder_name_or_path: str = field(
+    doc_encoder_model_name_or_path: str = field(
         default="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder",
-        metadata={"help": "Query model name or path"},
+        metadata={"help": "document encoder model name or path"},
     )
 
     embed: str = field(
@@ -212,13 +223,15 @@ class DPRIndexer(BaseIndexer):
     )
 
     def __post_init__(self):
+        self.ctx_encoder_name_or_path=self.doc_encoder_model_name_or_path
         self._config = DPRIndexingArguments(
             output_dir=self.output_dir,
             bsize=self.bsize,
             embed=self.embed,
-            ctx_encoder_name_or_path=self.ctx_encoder_name_or_path,
+            ctx_encoder_name_or_path=self.doc_encoder_model_name_or_path,
             sharded_index=self.sharded_index,
         )
+        assert not self.vector_db is not 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
 
         # Placeholder variables
         self._indexer = None
