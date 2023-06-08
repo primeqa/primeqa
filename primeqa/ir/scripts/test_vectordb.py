@@ -89,7 +89,7 @@ def report_time(last_time):
 
 
 def normalize(passage_vectors):
-    passage_vectors = passage_vectors / np.linalg.norm(passage_vectors)
+    return [v/np.linalg.norm(v) for v in passage_vectors if np.linalg.norm(v)>0]
 
 class MyChromaEmbeddingFunction(EmbeddingFunction):
     def __init__(self, name, batch_size=128):
@@ -100,6 +100,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                   "a CUDA-enabled GPU. If on Colab you can change this by "
                   "clicking Runtime > Change runtime type > GPU.")
         self.pqa = False
+        self.batch_size = batch_size
         if os.path.exists(name):
             from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
             from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
@@ -109,9 +110,8 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                 from_tf = False,
                 cache_dir=None,)
             self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(name)
-            self.config = AutoConfig.from_pretrained(name)
+            self._model_config = AutoConfig.from_pretrained(name)
             self.model.eval()
-            self.batch_size = batch_size
             self.model = self.model.half()
             self.model.to(device)
             self.pqa = True
@@ -121,22 +121,22 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
         print('=== done initializing model')
 
     def get_sentence_embedding_dimension(self):
-        return self.config.hidden_size
+        return self._model_config.hidden_size
 
     def __call__(self, texts: Documents) -> Embeddings:
         return self.encode(texts)
 
-    def encode(self, texts:Documents) -> Embeddings:
+    def encode(self, texts:Documents, batch_size=-1) -> Embeddings:
         # embed the documents somehow
         if not self.pqa:
             embs = self.model.encode(texts)
         else:
-            # tokt = self.tokenizer(texts)
-            # ems = self.model.run(tokt)
-            if len(texts) > self.batch_size:
+            if batch_size < 0:
+                batch_size = self.batch_size
+            if len(texts) > batch_size:
                 embs = []
-                for i in tqdm(range(0, len(texts), self.batch_size)):
-                    i_end = min(i + self.batch_size, len(texts))
+                for i in tqdm(range(0, len(texts), batch_size)):
+                    i_end = min(i + batch_size, len(texts))
                     tems = self.queries_to_vectors(self.tokenizer,
                                                    self.model,
                                                    texts[i:i_end],
@@ -190,6 +190,30 @@ def main():
     if args.db_engine == "milvus":
         index_name = index_name.replace("-", "_")
 
+    milvus_default_search_params = {
+        "IVF_FLAT": {"metric_type": "L2", "params": {"nprobe": 10}},
+        "IVF_SQ8": {"metric_type": "L2", "params": {"nprobe": 10}},
+        "IVF_PQ": {"metric_type": "L2", "params": {"nprobe": 10}},
+        "HNSW": {"metric_type": "L2", "params": {"ef": 10}},
+        "RHNSW_FLAT": {"metric_type": "L2", "params": {"ef": 10}},
+        "RHNSW_SQ": {"metric_type": "L2", "params": {"ef": 10}},
+        "RHNSW_PQ": {"metric_type": "L2", "params": {"ef": 10}},
+        "IVF_HNSW": {"metric_type": "L2", "params": {"nprobe": 10, "ef": 10}},
+        "ANNOY": {"metric_type": "L2", "params": {"search_k": 10}},
+        "AUTOINDEX": {"metric_type": "L2", "params": {}},
+    }
+    milvus_default_index_params = {
+        "metric_type": "L2",
+        "index_type": "HNSW",
+        "params": {"M": 8, "efConstruction": 64},
+    }
+    milvus_hnsw_index_params = {
+        "index_type": "HNSW",
+        "metric_type": "L2",
+        "params": {"M": 8, "efConstruction": 64},
+    }
+
+    query_vectors = []
     # === initialize index and engine
     if create_db:
         if args.db_engine == 'pinecone':
@@ -291,12 +315,12 @@ def main():
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
             client = chromadb.Client()
-            if os.path.exists(args.model_name):
-                sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
-                collection = client.create_collection("vectordbtest",
-                                                      embedding_function=sentence_transformer_ef)
-            else:
-                collection = client.create_collection("vectordbtest")
+            # if os.path.exists(args.model_name):
+            sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
+            collection = client.create_collection("vectordbtest",
+                                                  embedding_function=sentence_transformer_ef)
+            # else:
+            #     collection = client.create_collection("vectordbtest")
         elif args.db_engine == "milvus":
             create_milvusdb()
         elif args.db_engine == faiss:
@@ -307,6 +331,7 @@ def main():
             # connect to the index
             index = pinecone.GRPCIndex(index_name)
 
+    model = None
     # === create embeddings
     if insert_db:
         if args.create_own_embeddings and args.db_engine not in ['pqa',"chromadb"]:
@@ -320,39 +345,31 @@ def main():
                       "a CUDA-enabled GPU. If on Colab you can change this by "
                       "clicking Runtime > Change runtime type > GPU.")
 
-            if args.db_engine == 'chromadb':
-                model = sentence_transformer_ef
-            else:
-                model = SentenceTransformer(args.model_name, device=device)
+            batch_size = 64
+            model = MyChromaEmbeddingFunction(args.model_name)
 
-            hidden_dim = model.get_sentence_embedding_dimension()
+            # hidden_dim = model.get_sentence_embedding_dimension()
 
             print('=== done initializing model')
-            last_time = report_time(last_time)
+            report_time(last_time)
 
-            passage_vectors = []
-            batch_size = 128
-            for i in tqdm(range(0, len(input_passages), batch_size)):
-                # find end of batch
-                i_end = min(i + batch_size, len(input_passages))
-                passage_vectors.extend(model.encode([passage['text'] for passage in input_passages[i:i_end]]))
-
+            passage_vectors = model.encode([passage['text'] for passage in input_passages], batch_size=batch_size)
+            # for i in tqdm(range(0, len(input_passages), batch_size)):
+            #     # find end of batch
+            #     i_end = min(i + batch_size, len(input_passages))
+            #     passage_vectors.extend(model.encode([passage['text'] for passage in input_passages[i:i_end]]))
+            hidden_dim = len(passage_vectors[0])
             if args.normalize_embs:
-                normalize(passage_vectors)
+                passage_vectors = normalize(passage_vectors)
 
             print('=== done creating passage embeddings')
-            last_time = report_time(last_time)
+            report_time(last_time)
+            # last_time = report_time(last_time)
 
             # if args.db_engine in ['pinecone', 'milvus']:
-            query_vectors = []
-            for query_number in range(len(input_queries)):
-                query_vectors.append(model.encode(input_queries[query_number]['text']))
 
-            if args.normalize_embs:
-                normalize(query_vectors)
-
-            print('=== done creating query embeddings')
-            last_time = report_time(last_time)
+            # print('=== done creating query embeddings')
+            # last_time = report_time(last_time)
 
         # === update index
         if args.db_engine == 'pinecone':
@@ -429,11 +446,7 @@ def main():
             # index = {"index_type": "IVF_FLAT",
             #          "metric_type": "IP",
             #          "params": {"nlist": 128}}
-            index_params = {
-                "index_type": "HNSW",
-                "metric_type": "L2",
-                "params": {"M": 8, "efConstruction": 64},
-                }
+            index_params = milvus_default_index_params
             milvus1k.create_index("embeddings",
                                   index_params)
             milvus1k.load()
@@ -474,12 +487,20 @@ def main():
     # === run retrieval
     out_ranks = []
 
+    # query_vectors = []
+    # for query_number in range(len(input_queries)):
+    #     query_vectors.append(model.encode(input_queries[query_number]['text']))
+    #
+    # if args.normalize_embs:
+    #     normalize(query_vectors)
+
     if retrieve_items:
         print(f"**** Retrieving with {args.db_engine}")
         if args.db_engine == 'pinecone':
             for query_number in tqdm(range(len(query_vectors))):
                 # for query_number in range(len(query_vectors)):
-                response = index.query(query_vectors[query_number], top_k=args.top_k, include_metadata=True)
+                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+                response = index.query(query_vector, top_k=args.top_k, include_metadata=True)
                 for rank, match in enumerate(response['matches']):
                     out_ranks.append([input_queries[query_number]['id'], match["id"], rank + 1, match["score"]])
         elif args.db_engine == "chromadb":
@@ -565,15 +586,18 @@ def main():
             #     "metric_type": "L2",
             #     "params": {"nprobe": 10},
             # }
-            search_params = {
-                "metric_type": "L2",
-                "params": {"ef": 10},
-            }
+            # search_params = {
+            #     "metric_type": "L2",
+            #     "params": {"ef": 10},
+            # }
+            search_params = milvus_default_search_params["IVF_FLAT"]
 
             for query_number in tqdm(range(len(input_queries))):
                 # for query_number in range(len(query_vectors)):
+                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+
                 result = milvus1k.search(
-                    [query_vectors[query_number]],
+                    query_vector,
                     "embeddings",
                     search_params,
                     limit=args.top_k,
@@ -584,8 +608,11 @@ def main():
         elif args.db_engine == 'faiss':
             for query_number in tqdm(range(len(input_queries))):
                 # for query_number in range(len(query_vectors)):
+                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+                if len(query_vector) == hidden_dim:
+                    query_vector = [query_vector]
                 distances, ann = index.search(
-                    np.array([query_vectors[query_number]]),
+                    np.array(query_vector),
                     k = args.top_k
                 )
                 for rank, hit in enumerate(ann[0]):
@@ -607,7 +634,7 @@ def main():
             lscores = {r:0 for r in ranks}
             gt = {}
             for q in input_queries:
-                gt[q['id']] = {id:1 for id in q['relevant'].split(" ") if int(id)>=0}
+                gt[q['id']] = {id: 1 for id in q['relevant'].split(" ") if int(id)>=0}
 
             def skip(out_ranks, record, rid):
                 qid = record[0]
@@ -627,27 +654,31 @@ def main():
             # while rid < len(out_ranks):
             with_answers = False
             if 'answers' in input_queries[0]:
-                rqmap = {}
-                for i, q in enumerate(input_queries):
-                    rqmap[str(q['id'])] = i
+                rq_map = reverse_map(input_queries)
+                rp_map = reverse_map(input_passages)
                 with_answers = True
+            tmp_scores = scores.copy()
+            tmp_lscores = lscores.copy()
+            prev_id = -1
             for rid, record in enumerate(out_ranks):
-                # record = out_ranks[rid]
-
-                # if len(gt[record[0]]) == 0 or record[2] > ranks[-1]:
-                #     rid = skip(out_ranks, record, rid)
-                #     continue
-                # else:
                 outr = record[0:3]
-                if record[1] in gt[record[0]]: # Great, we found a match.
-                    update_scores(ranks, record[2], scores)
+                if prev_id != record[0]:
+                    for r in ranks:
+                        scores[r]  += int(tmp_scores[r]  >= 1)
+                        lscores[r] += int(tmp_lscores[r] >= 1)
+                    tmp_scores = {r:0 for r in ranks}
+                    tmp_lscores = {r:0 for r in ranks}
+                    prev_id = record[0]
+                if str(record[1]) in gt[record[0]]: # Great, we found a match.
+                    update_scores(ranks, record[2], tmp_scores)
                     outr.append(1)
                 else:
                     outr.append(0)
                 if with_answers:
-                    qid = rqmap[record[0]]
+                    qid = rq_map[record[0]]
+                    did = rp_map[str(record[1])]
                     inputq = input_queries[qid]
-                    txt = input_passages[int(record[1])]['text'].lower()
+                    txt = input_passages[did]['text'].lower()
                     found = False
                     for s in inputq['answers']:
                         if txt.find(s.lower()) >= 0:
@@ -655,7 +686,7 @@ def main():
                             break
                     if (found):
                         outr.append(1)
-                        update_scores(ranks, record[2], lscores)
+                        update_scores(ranks, record[2], tmp_lscores)
                     else:
                         outr.append(0)
                 out_ranks1.append(outr)
@@ -663,9 +694,16 @@ def main():
                     # continue
                 # rid += 1
 
+            for r in ranks:
+                scores[r] += int(tmp_scores[r] >= 1)
+                lscores[r] += int(tmp_lscores[r] >= 1)
             res = {"num_ranked_queries": len(input_queries),
                    "num_judged_queries": len(input_queries),
-                   "success__WARNING": {r:int(1000*scores[r]/len(input_queries))/1000.0 for r in ranks}}
+                   "success__WARNING":
+                       {r:int(1000*scores[r]/len(input_queries))/1000.0 for r in ranks},
+                   "lienient_success__WARNING":
+                       {r:int(1000*lscores[r]/len(input_queries))/1000.0 for r in ranks}
+                   }
             with open(args.output_ranks+".annotated.deb","w") as out_file:
                 tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
                 tsv_writer.writerows(out_ranks1)
@@ -674,8 +712,22 @@ def main():
                 out.write(json.dumps(res, indent=2)+"\n")
     # if args.db_engine == 'pinecone':
     #     pinecone.delete_index(index_name)
+        print('=== done computing scores')
+        last_time = report_time(last_time)
 
 
+def reverse_map(input_queries):
+    rq_map = {}
+    for i, q in enumerate(input_queries):
+        rq_map[q['id']] = i
+    return rq_map
+
+
+def compute_embedding(model, input_query, normalize_embs):
+    query_vector = model.encode(input_query)
+    if normalize_embs:
+        query_vector = normalize(query_vector)
+    return query_vector
 
 def create_pqa_searcher(args, output_dir):
     from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
