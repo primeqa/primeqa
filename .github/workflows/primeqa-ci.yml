@@ -40,6 +40,11 @@ jobs:
       - name: Run tests
         run: |
           echo "******* Running tests *******"
+          echo "Run IR tests"
+          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
+          du -h /tmp
+          rm -rf /tmp/tmp*
+          echo "******* Running MRC tests *******"
           echo "Run MRC tests excluding trainer"
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers  tests/primeqa/mrc
           echo "Run MRC trainer tests"
@@ -47,11 +52,13 @@ jobs:
           echo "Remove datasets cache to free disk space"
           du -h /home/runner/.cache/huggingface/datasets/
           rm -rf /home/runner/.cache/huggingface/datasets/
+          echo "******* Running TableQA tests *******"
           echo "Run TableQA tests"
           pytest -s --cov primeqa/tableqa --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/tableqa 
           echo "Remove datasets cache to free disk space"
           du -h /home/runner/.cache/huggingface/datasets/
           rm -rf /home/runner/.cache/huggingface/datasets/
+          echo "******* Run Remaining Tests *******"
           echo "Run all except IR and MRC and tableqa tests"
           pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=14 --ignore tests/primeqa/qg/processors/test_hybridqg_data_processor.py --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
           echo "******* Finished running tests *******"
