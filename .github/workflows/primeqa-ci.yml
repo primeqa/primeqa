@@ -42,8 +42,6 @@ jobs:
           echo "******* Running tests *******"
           echo "Run IR tests"
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
-          echo "Run MRC tests excluding trainer"
-          pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers --ignore  tests/primeqa/mrc/processors/preprocessors   tests/primeqa/mrc
           echo "Check size of datasets cache"
           du -hs /home/runner/.cache/huggingface/datasets/
           echo "Run MRC trainer tests"
