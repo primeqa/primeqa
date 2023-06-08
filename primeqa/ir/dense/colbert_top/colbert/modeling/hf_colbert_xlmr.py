@@ -25,7 +25,6 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
         self.pooler = None
 
         self.roberta = XLMRobertaModel(config)
-        self.bert = self.roberta
         #self.bert = XLMRobertaModel(config)
 
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
@@ -57,7 +56,7 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
             # state_dict = OrderedDict([(re.sub(r'^roberta.', 'bert.', key), value) for key, value in state_dict.items()])
 
             # for reading V2
-            state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
+            state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
 
             obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
             #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
@@ -70,6 +69,19 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
         obj.base = name_or_path
 
         return obj
+
+    def load_state_dict(self, name):
+        assert name.endswith('dnn') or name.endswith('.model'), f"name is not valid colbert checkpoint ending with '.dnn' or '.model'"
+        dnn = torch_load_dnn(name)
+        state_dict = dnn['model_state_dict']
+
+        import re
+        from collections import OrderedDict
+
+        state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
+
+        self.base = 'xlm-roberta-base'
+        super().load_state_dict(state_dict)
 
     @staticmethod
     def raw_tokenizer_from_pretrained(name_or_path):
@@ -87,6 +99,9 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
 
         return obj
 
+    @property
+    def bert(self):
+        return self.roberta
 """
 TODO: It's easy to write a class generator that takes "name_or_path" and loads AutoConfig to check the Architecture's
       name, finds that name's *PreTrainedModel and *Model in dir(transformers), and then basically repeats the above.

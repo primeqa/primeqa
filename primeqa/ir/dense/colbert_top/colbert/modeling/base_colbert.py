@@ -30,6 +30,7 @@ class BaseColBERT(torch.nn.Module):
         # self.colbert_config.model_type = checkpoint_config.model_type
 
         self.model = get_colbert_from_pretrained(name, colbert_config=self.colbert_config)
+        self.config = self.model.config
 
         self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)
         # self.raw_tokenizer = None
