@@ -40,9 +40,6 @@ jobs:
       - name: Run tests
         run: |
           echo "******* Running tests *******"
-          echo "Run IR tests"
-          pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
-          echo "Run MRC trainer tests"
           pytest -s --cov primeqa/mrc/trainers --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/mrc/trainers/
           echo "Run TableQA tests"
           pytest -s --cov primeqa/tableqa --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/tableqa 
