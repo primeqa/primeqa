@@ -42,8 +42,8 @@ jobs:
           echo "******* Running tests *******"
           echo "Run IR tests"
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
-          du -h /tmp
-          rm -rf /tmp/tmp*
+          du -h /tmp/tmp*/output_dir
+          rm -rf /tmp/tmp*/output_dir
           echo "******* Running MRC tests *******"
           echo "Run MRC tests excluding trainer"
           pytest -s --cov primeqa/mrc/processors --cov-config .coveragerc --cov-fail-under=50 --ignore tests/primeqa/mrc/trainers  tests/primeqa/mrc
