@@ -42,6 +42,7 @@ jobs:
           echo "******* Running tests *******"
           echo "Run IR tests"
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
+          echo "Remove  /tmp/tmp*/output_dir to free disk space"
           du -h /tmp/tmp*/output_dir
           rm -rf /tmp/tmp*/output_dir
           echo "******* Running MRC tests *******"
