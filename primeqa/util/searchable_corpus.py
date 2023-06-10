@@ -59,8 +59,6 @@ class SearchableCorpus:
         self.searcher = None
         self.input_passages = None
         self.working_dir = None
-        # self.qry_tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(
-        #     os.path.join(self.model_name,"qry_encoder"))
 
 
     def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
@@ -92,8 +90,6 @@ class SearchableCorpus:
                     ]) + "\n"
                     )
         if self._is_dpr:
-            # embs = self.encode(texts, self.ctxt_tokenizer, kwargs['batch_size'] if 'batch_size' in kwargs else 64)
-
             index_args = [
                 "prog",
                 "--bsize", "16",
@@ -186,7 +182,6 @@ class SearchableCorpus:
             parser.add_compressed_index_input()
             parser.add_ranking_input()
             parser.add_retrieval_input()
-            # search_args = parser.parse()
             with patch.object(sys, 'argv', colbert_opts):
                 sargs = parser.parse()
 
@@ -241,7 +236,6 @@ class SearchableCorpus:
         batch = 0
         while batch<len(input_queries):
             batch_end = min(len(input_queries), batch+batch_size)
-            # for query_number in tqdm(range(len(input_queries))):
             p_ids, response = self.searcher.search(
                 query_batch=input_queries[batch: batch_end],
                 top_k=self.top_k,
@@ -251,23 +245,18 @@ class SearchableCorpus:
             scores.extend([r['scores'] for r in response])
             batch = batch_end
 
-            # for rank, match in enumerate(p_ids[0]):
-            #     out_ranks.append([input_queries[-1, match, rank + 1, response[0]['scores'][rank]])
         return passage_ids, scores
 
     def _colbert_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         passage_ids = []
         scores = []
         for query_number in tqdm(range(len(input_queries))):
-            # for query_number in range(len(query_vectors)):
             p_ids, response = self.searcher.search_all(
                 query_batch=[input_queries[query_number]],
                 top_k=self.top_k
             )
             passage_ids.extend(p_ids[0])
             scores.extend(response[0]['scores'])
-            # for rank, match in enumerate(q_ids[0]):
-            #     out_ranks.append([input_queries[query_number]['id'], match, rank + 1, response[0]['scores'][rank]])
         return passage_ids, scores
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
