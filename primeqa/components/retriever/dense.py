@@ -50,7 +50,7 @@ class ColBERTRetriever(BaseRetriever):
         },
     )
     model_type: str = field(
-        default=None,
+        default="roberta",
         metadata={
             "name": "Model Type",
             "description": "Model Family name",

@@ -100,9 +100,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             teacher_reader = EagerBatcher(config, config.teacher_triples, (0 if config.rank == -1 else config.rank), config.nranks)
 
     if not config.reranker:
-        if config.init_from_lm is not None and config.checkpoint is None:
-            config.checkpoint = config.init_from_lm
-
         colbert = ColBERT(name=config.checkpoint, colbert_config=config)
 
         if config.teacher_checkpoint is not None:

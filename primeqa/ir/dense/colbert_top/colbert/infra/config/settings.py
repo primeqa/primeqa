@@ -153,8 +153,7 @@ class TrainingSettings:
     save_epochs: int = DefaultVal(-1)
     epochs: int = DefaultVal(10)
     input_arguments: dict = DefaultVal({})
-    model_type: str = DefaultVal('bert')
-    init_from_lm: str = DefaultVal(None)
+    model_type: str = DefaultVal('roberta')
     local_models_repository: str = DefaultVal(None)
     ranks_fn: str = DefaultVal(None)
     output_dir: str = DefaultVal(None)
@@ -163,7 +162,7 @@ class TrainingSettings:
     # used in distillation (Student/Teacher) training
     student_teacher_temperature: float = DefaultVal(1.0)
     student_teacher_top_loss_weight: float = DefaultVal(0.5)
-    teacher_model_type: str = DefaultVal('bert')
+    teacher_model_type: str = DefaultVal('xlm-roberta')
     teacher_doc_maxlen: int = DefaultVal(180)
     distill_query_passage_separately: bool = DefaultVal(False)
     query_only: bool = DefaultVal(False)

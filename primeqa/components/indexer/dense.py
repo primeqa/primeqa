@@ -44,6 +44,7 @@ class ColBERTIndexer(BaseIndexer):
         },
     )
     model_type: str = field(
+        default="roberta",
         metadata={
             "name": "Model Type",
             "description": "Model Family name",

@@ -49,7 +49,7 @@ class TestTraining(UnitTest):
         nranks = 1
         config = ColBERTConfig()
         config.model_type = 'bert'
-        config.checkpoint = 'bert-base-uncased'
+        config.checkpoint = 'prajjwal1/bert-tiny'
         text_triples_fn = os.path.join(test_files_location, "ColBERT.C3_3_20_biased200_triples_text_head_100.tsv")
         reader_eager_batcher = EagerBatcher(config, text_triples_fn, rank, nranks)
 
@@ -74,19 +74,19 @@ class TestTraining(UnitTest):
         with tempfile.TemporaryDirectory() as working_dir:
             output_dir=os.path.join(working_dir, 'output_dir')
 
-        model_types = {'bert': 'bert-base-uncased'}
+        model_types = {'bert': 'prajjwal1/bert-tiny'}
 
         do_training = True
         if do_training:
             for model_type, checkpoint in model_types.items():
-                args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': checkpoint, 'init_from_lm': None, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 5, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 1, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
+                args_dict = {'root': output_dir, 'experiment': 'test_training', 'rank': 0, 'similarity': 'cosine', 'dim': 128, 'query_maxlen': 32, 'doc_maxlen': 180, 'mask_punctuation': True, 'local_models_repository': None, 'resume': False, 'resume_optimizer': False, 'checkpoint': checkpoint, 'model_type': model_type, 'lr': 1.5e-06, 'maxsteps': 5, 'bsize': 1, 'accumsteps': 1, 'amp': True, 'shuffle_every_epoch': False, 'save_steps': 2000, 'save_epochs': -1, 'epochs': 1, 'teacher_checkpoint': None, 'student_teacher_temperature': 1.0, 'student_teacher_top_loss_weight': 0.5, 'teacher_model_type': None, 'teacher_doc_maxlen': 180, 'distill_query_passage_separately': False, 'query_only': False, 'loss_function': None, 'query_weight': 0.5, 'triples': text_triples_fn, 'queries': None, 'collection': None, 'teacher_triples': None, 'nranks': 1}
 
                 with Run().context(RunConfig(root=args_dict['root'], experiment=args_dict['experiment'], nranks=args_dict['nranks'], amp=args_dict['amp'])):
                     # reading text training triples
                     colBERTConfig = ColBERTConfig(**args_dict)
                     latest_model_fn = train(colBERTConfig, text_triples_fn, None, None)
 
-                    if checkpoint == 'bert-base-uncased':
+                    if checkpoint == 'prajjwal1/bert-tiny':
 
                         # reading numerical training triples
                         args_dict['triples'] = numerical_triples_fn
