@@ -19,11 +19,11 @@ if __name__ == "__main__":
 
     collection = SearchableCorpus(model_name=args.model, batch_size=64, top_k=10)
 
-    # collection.add(select_column(passages, 'text'),
-    #                select_column(passages, 'title'),
-    #                select_column(passages, 'id'))
+    collection.add(select_column(passages, 'text'),
+                   select_column(passages, 'title'),
+                   select_column(passages, 'id'))
     # or you can do this:
-    collection.add(args.psgs)
+    # collection.add(args.psgs)
     res, scores = collection.search(select_column(queries, 'text'))
     if args.verbose:
         with open("res.out", "w") as out:
