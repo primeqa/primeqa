@@ -19,11 +19,11 @@ if __name__ == "__main__":
 
     collection = SearchableCorpus(model_name=args.model, batch_size=64, top_k=10)
 
-    # collection.add(select_column(passages, 'text'),
-    #                select_column(passages, 'title'),
-    #                select_column(passages, 'id'))
+    collection.add(select_column(passages, 'text'),
+                   select_column(passages, 'title'),
+                   select_column(passages, 'id'))
     # or you can do this:
-    collection.add(args.psgs)
+    # collection.add(args.psgs)
     res, scores = collection.search(select_column(queries, 'text'))
     if args.verbose:
         with open("res.out", "w") as out:
@@ -31,12 +31,6 @@ if __name__ == "__main__":
                 for rank, (ans, score) in enumerate(zip(res[q], scores[q])):
                     out.write("\t".join([queries[q]['id'], ans, str(rank+1), str(score)])+"\n")
     answers = []
-    # for ans in res:
-    #     docs = []
-    #     for a in ans:
-    #         docs.extend(passages[a]['qid'])
-    #     answers.extend(docs)
 
-    print(res[0])
     score = compute_score(queries, passages, res, [1,3,5,10], args.verbose)
     print(f"Score is: {json.dumps(score, indent=2)}")
