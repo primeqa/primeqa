@@ -10,6 +10,9 @@ from primeqa.components.base import Embeddings
 from transformers import (
     DPRContextEncoder,
     DPRContextEncoderTokenizerFast,
+    DPRQuestionEncoder,
+    DPRQuestionEncoderTokenizerFast,
+    AutoConfig
 )
 
 @dataclass
@@ -39,8 +42,8 @@ class DPREmbeddings(Embeddings):
     
     def __post_init__(self):
         # Placeholder variables
-        self._ctx_encoder = None
-        self._ctx_tokenizer = None
+        self._encoder = None
+        self._tokenizer = None
         self._device = None
     
     
@@ -59,9 +62,16 @@ class DPREmbeddings(Embeddings):
         )
 
     def load(self, *args, **kwargs):
-        self._ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.model)
+        
+        config = AutoConfig.from_pretrained(self.model)
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
-        self._ctx_encoder = DPRContextEncoder.from_pretrained(self.model).to(device=self._device)
+        if 'DPRQuestionEncoder' in config.get_config_dict(self.model)[0]['architectures']:
+            self._tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.model)
+            self._encoder = DPRQuestionEncoder.from_pretrained(self.model).to(device=self._device)
+        else:
+            self._tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.model)
+            self._encoder = DPRContextEncoder.from_pretrained(self.model).to(device=self._device)
+        self._encoder.eval()
         
 
     def get_embeddings(self, documents: List[Dict],
@@ -99,11 +109,11 @@ class DPREmbeddings(Embeddings):
                   "text": [ doc["text"] for doc in documents]
                  }
         
-        input_ids = self._ctx_tokenizer(
+        input_ids = self._tokenizer(
             texts["title"], texts["text"], truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
         )["input_ids"]
 
-        vectors = self._ctx_encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
+        vectors = self._encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
         vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy()
         vectors = vectors.tolist()
         
@@ -114,4 +124,7 @@ class DPREmbeddings(Embeddings):
                 "model": self.model
             })
         return embeddings_list
+    
+    
+    
         

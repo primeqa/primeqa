@@ -30,10 +30,6 @@ class Component(ABC):
     def predict(self, *args, **kwargs):
         pass
     
-    @abstractmethod
-    def get_embeddings(self, *args, **kwargs):
-        pass
-
 
 @dataclass(init=False, repr=False, eq=False)
 class Reader(Component):
@@ -61,8 +57,6 @@ class Reader(Component):
     ) -> Dict[str, List[Dict]]:
         pass
 
-    def get_embeddings(self, *args, **kwargs):
-        pass
 
 @dataclass(init=False, repr=False, eq=False)
 class Retriever(Component):
@@ -113,8 +107,6 @@ class Retriever(Component):
     def predict(self, input_texts: List[str], *args, **kwargs):
         pass
     
-    def get_embeddings(self, *args, **kwargs):
-        pass
 
 @dataclass(init=False, repr=False, eq=False)
 class Indexer:
@@ -164,8 +156,6 @@ class Indexer:
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
     
-    def get_embeddings(self, *args, **kwargs):
-        pass
     
 @dataclass(init=False, repr=False, eq=False)
 class Reranker(Component):
@@ -239,15 +229,13 @@ class Reranker(Component):
         """
         pass
     
-    def get_embeddings(self, *args, **kwargs):
-        pass
     
 @dataclass(init=False, repr=False, eq=False)
 class Embeddings(Component):
     
     model: str = field(
             metadata={
-                "name": "Model",
+                "name": "Model. This could be either a query or context DPR encoder model.",
                 "api_support": True,
                 "description": "Path to model",
             },
