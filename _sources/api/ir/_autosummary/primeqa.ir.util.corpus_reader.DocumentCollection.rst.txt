@@ -1,0 +1,27 @@
+primeqa.ir.util.corpus\_reader.DocumentCollection
+=================================================
+
+.. currentmodule:: primeqa.ir.util.corpus_reader
+
+.. autoclass:: DocumentCollection
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DocumentCollection.add_document_text_to_hit
+      ~DocumentCollection.load_corpus
+      ~DocumentCollection.write_corpus_tsv
+   
+   
+
+   
+   
+   
