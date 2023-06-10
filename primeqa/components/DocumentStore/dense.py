@@ -3,7 +3,7 @@ import json
 from typing import Union, List
 from dataclasses import dataclass, field
 
-from primeqa.components.base import Indexer as BaseIndexer
+from primeqa.components.base import DocumentStore as BaseDocumentStore
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
@@ -12,7 +12,7 @@ from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer as DprIn
 
 
 @dataclass
-class ColBERTIndexer(BaseIndexer):
+class ColBERTDocumentStore(BaseDocumentStore):
     """_summary_
 
     Args:
@@ -47,7 +47,7 @@ class ColBERTIndexer(BaseIndexer):
             "api_support": True,
         },
     )
-    doc_encoder_model_checkpoint: str = field(
+    ctx_encoder_model_checkpoint: str = field(
         default=None,
         metadata={
             "name": "doc encoder model checkpoint",
@@ -122,7 +122,7 @@ class ColBERTIndexer(BaseIndexer):
     )
 
     def __post_init__(self):
-        self.checkpoint=self.doc_encoder_model_checkpoint
+        self.checkpoint=self.ctx_encoder_model_checkpoint
         self._config = ColBERTConfig(
             index_root=self.index_root,
             index_name=self.index_name,
@@ -184,7 +184,7 @@ class ColBERTIndexer(BaseIndexer):
         return self._collection_path
 
 @dataclass
-class DPRIndexer(BaseIndexer):
+class DPRDocumentStore(BaseDocumentStore):
     """
     Arguments used in indexing
     """
@@ -208,7 +208,7 @@ class DPRIndexer(BaseIndexer):
         default="None", metadata={"help": "Collection file path"}
     )
 
-    doc_encoder_model_name_or_path: str = field(
+    ctx_encoder_model_name_or_path: str = field(
         default="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder",
         metadata={"help": "document encoder model name or path"},
     )
@@ -223,12 +223,11 @@ class DPRIndexer(BaseIndexer):
     )
 
     def __post_init__(self):
-        self.ctx_encoder_name_or_path=self.doc_encoder_model_name_or_path
         self._config = DPRIndexingArguments(
             output_dir=self.output_dir,
             bsize=self.bsize,
             embed=self.embed,
-            ctx_encoder_name_or_path=self.doc_encoder_model_name_or_path,
+            ctx_encoder_name_or_path=self.ctx_encoder_model_name_or_path,
             sharded_index=self.sharded_index,
         )
         assert not self.vector_db is not 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"

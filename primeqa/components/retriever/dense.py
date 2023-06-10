@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import json
 
 from primeqa.components.base import Retriever as BaseRetriever
-from primeqa.components.indexer.dense import ColBERTIndexer, DPRIndexer
+from primeqa.components.DocumentStore.dense import ColBERTDocumentStore, DPRDocumentStore
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
@@ -38,7 +38,7 @@ class ColBERTRetriever(BaseRetriever):
 
     """
 
-    indexer: ColBERTIndexer = field(
+    document_store: ColBERTDocumentStore = field(
         default=None,
         metadata={
             "name": "Indexer",
@@ -95,6 +95,8 @@ class ColBERTRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
+        self.indexer=self.document_store
+        
         if self.query_encoder_model_checkpoint is not None:
             self.checkpoint=self.query_encoder_model_checkpoint
         elif self.indexer is not None:
@@ -233,7 +235,7 @@ class DPRRetriever(BaseRetriever):
 
     """
 
-    indexer: DPRIndexer = field(
+    document_store: DPRDocumentStore = field(
         default=None,
         metadata={
             "name": "Indexer",
@@ -273,7 +275,7 @@ class DPRRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
-        
+        self.indexer=self.document_store
         self.checkpoint=None
         if self.query_encoder_model_name_or_path is not None:
             self.checkpoint=self.query_encoder_model_name_or_path
