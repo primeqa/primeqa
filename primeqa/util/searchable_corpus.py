@@ -24,7 +24,23 @@ from transformers import (
 
 
 class SearchableCorpus:
+    """Class that allows easy indexing and searching of documents. It's meant to be used in the
+    context of the RAG pattern (retrive-and-generate). It provides 2 main apis:
+    * SearchableCorpus.add(List[Tuple[text:AnyStr, title:AnyStr, id:AnyStr]]) - adds documents to the collection
+    * SearchableCorpus.search(queries: List[AnyStr]) - retrieves documents that are relevant to a set of queries
+
+    It currently wraps the DPR index, and it will support ColBERT with the same interface soon."""
     def __init__(self, model_name, batch_size=64, top_k=10):
+        """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
+        It will automatically detect the index type (DPR, ColBERT, etc).
+        Args:
+            * model_name: AnyStr -
+                 defines the model - it should either be a HuggingFace id or a directory
+            * batch_size: int
+                 defines the ingestion batch size.
+            * top_k: int
+                 - defines the default number of retrieved answers. It can be changed in .search()
+            """
         self.output_dir = None
         self._is_dpr = True
         self.top_k = top_k
@@ -199,6 +215,17 @@ class SearchableCorpus:
         self.tmp_dir.cleanup()
 
     def search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        """Retrieves the most relevant documents in the collection for a given set of queries.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
         if self._is_dpr:
             return self._dpr_search(input_queries, batch_size, **kwargs)
         elif self._is_colbert:
@@ -244,6 +271,18 @@ class SearchableCorpus:
         return passage_ids, scores
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
+        """ Encodes a list of context documents, returning their dense representation.
+        It will be used when the code will no longer insist in writing everything to disk.
+        Arguments:
+            * texts: Union[List[AnyStr], AnyStr]
+              - either a list of documents or just a single document
+            * tokenizer: Tokenizer
+              - The tokenizer used to transform the strings into word-pieces, then integers
+            * batch_size: int
+              - The batch size used in indexing.
+        Returns:
+            The list of embeddings (or the one embedding) for the given documents (document).
+            """
         if self._is_dpr:
             return self._dpr_encode(texts, tokenizer, batch_size, **kwargs)
         elif self._is_colbert:
@@ -265,6 +304,17 @@ class SearchableCorpus:
 
 
 def read_tsv_data(input_file, fields=None):
+    """
+    Utility function to read the standard tuple representation for both passages and questions.
+    Args:
+        input_file: the tsv file with either contexts or queries, tab-separated.
+        fields: the schema of the file. It can be either ['id', 'text', 'title'] for contexts,
+        ['id', 'text', 'relevant', 'answers'] or ['id', 'text', 'relevant'] for questions
+
+    Returns: List[Dict[AnyStr: AnyStr]]
+       the list of tuples
+
+    """
     import csv
     passages = []
     if fields is None:
@@ -291,6 +341,30 @@ def read_tsv_data(input_file, fields=None):
     return passages
 
 def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], verbose=False):
+    """
+    Computes the success at different levels of recall, given the goldstandard passage indexes per query.
+    It computes two scores:
+       * Success at rank_i, defined as sum_q 1_{top i answers for question q contains a goldstandard passage} / #questions
+       * Lenient success at rank i, defined as
+                sum_q 1_{ one in the documents in top i for question q contains a goldstandard answer) / #questions
+    Note that a document that contains the actual textual answer does not necesarily answer the question, hence it's a
+    more lenient evaluation. Any goldstandard passage will contain a goldstandard answer text, by definition.
+    Args:
+        input_queries: List[Dict['id': AnyStr, 'text': AnyStr, 'relevant': AnyStr, 'answers': AnyStr]]
+           - the input queries. Each query is a dictionary with the keys 'id','text', 'relevant', 'answers'.
+        input_passages: List[Dict['id': AnyStr, 'text': AnyStr', 'title': AnyStr]]
+           - the input passages. These are used to create a reverse-index list for the passages (so we can get the
+             text for a given passage ID)
+        answers: List[List[AnyStr]]
+           - the retrieved passages IDs for each query
+        ranks: List[int]
+           - the ranks at which to compute success
+        verbose: Bool
+           - Will save a file with the individual (query, passage_answer) tuples.
+
+    Returns:
+
+    """
     if "relevant" not in input_queries[0] or input_queries[0]['relevant'] is None:
         print("The input question file does not contain answers. Please fix that and restart.")
         sys.exit(12)
@@ -370,9 +444,9 @@ def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], ver
 
     res = {"num_ranked_queries": len(input_queries),
            "num_judged_queries": len(input_queries),
-           "success__WARNING":
+           "success":
                {r: int(1000 * scores[r] / len(input_queries)) / 1000.0 for r in ranks},
-           "lenient_success__WARNING":
+           "lenient_success":
                {r: int(1000 * lscores[r] / len(input_queries)) / 1000.0 for r in ranks}
            }
     if verbose:
