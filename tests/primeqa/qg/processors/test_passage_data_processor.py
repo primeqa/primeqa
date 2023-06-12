@@ -12,8 +12,16 @@ def test_preprocess_data_for_qg(model_name):
     target_max_len = 1024
 
     processor = QGProcessor(tokenizer, input_max_len, target_max_len)
-    dataset = load_dataset('squad', split='validation')
-    processed_dataset = processor(dataset)
+    # dataset = load_dataset('squad', split='validation')
+    raw_dataset = load_dataset("squad", "plain_text", split='validation', streaming=True)
+    iterable_dataset = raw_dataset.take(100)
+    examples = {}
+    for e in iterable_dataset:
+        for key in e.keys():
+            if key not in examples:
+                examples[key] = []
+            examples[key].append(e[key])    
+    processed_dataset = processor(Dataset.from_dict(examples))
     assert processed_dataset != None
     assert len(processed_dataset['question']) == len(processed_dataset['input'])
 
