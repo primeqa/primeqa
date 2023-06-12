@@ -30,6 +30,10 @@ class StridedTensorCore:
             self.tensor = torch.cat((self.tensor, padding))
 
         self.views = {stride: _create_view(self.tensor, stride, self.inner_dims) for stride in self.strides}
+        if use_gpu:
+            self.lengths = self.lengths.cuda()
+            self.offsets = self.offsets.cuda()
+            self.views = {k: v.cuda() for k, v in self.views.items()}
 
     @classmethod
     def from_packed_tensor(cls, tensor, lengths):

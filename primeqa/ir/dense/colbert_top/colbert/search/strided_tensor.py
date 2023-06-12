@@ -62,10 +62,14 @@ class StridedTensor(StridedTensorCore):
 
         if self.use_gpu:
             pids = pids.cuda()
+            self.lengths = self.lengths.cuda()
+            self.offsets = self.offsets.cuda()
         pids = pids.long()
+
         lengths = self.lengths[pids]
         if self.use_gpu:
             lengths = lengths.cuda()
+
         offsets = self.offsets[pids]
 
         return pids, lengths, offsets
