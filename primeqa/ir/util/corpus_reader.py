@@ -121,6 +121,7 @@ class DocumentCollection:
             tsv_writer = csv.DictWriter(f, delimiter='\t', lineterminator='\n', quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames)
             tsv_writer.writeheader()
             tsv_writer.writerows(self.id_to_document.values())
+        return output_file
     
     def add_document_text_to_hit(self, hits: list):
         """
