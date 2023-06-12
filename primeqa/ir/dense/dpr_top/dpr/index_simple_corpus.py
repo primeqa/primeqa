@@ -78,47 +78,69 @@ class DPRIndexer():
         return cur_offset
 
 
-    def index(self):
+    def index(self, write_to_disk=True, documents:List[Passage]=None):
         offsets = []
         cur_offset = 0
-        passages = write_open(os.path.join(self.opts.output_dir, f'passages_{self.embed_num}_of_{self.embed_count}.json.gz.records'), binary=True)
 
         report = Reporting()
         doc_batch = []
+        if write_to_disk:
+            passages = write_open(
+                os.path.join(self.opts.output_dir, f'passages_{self.embed_num}_of_{self.embed_count}.json.gz.records'),
+                binary=True
+            )
 
         # embeddings to be dumped
         all_embeddings = []
-        for pndx, passage in enumerate(corpus_reader(self.opts.collection, fieldnames = ('id', 'text', 'title'))):
-            if pndx == 0 and (passage.pid == 'id' or passage.pid == 'pid') and (passage.text == 'text' or passage.text == 'contents') and passage.title == 'title':
-                continue
-            if pndx % self.embed_count != (self.embed_num-1):
-                continue
-            if report.is_time():
-                logger.info(f'on instance {report.check_count}, {report.check_count/report.elapsed_seconds()} instances per second')
-            doc_batch.append(passage)
-            if len(doc_batch) == self.opts.bsize:
+        if documents is not None:
+            for pndx, passage in enumerate(documents):
+                if report.is_time():
+                    logger.info(f'on instance {report.check_count}, {report.check_count/report.elapsed_seconds()} instances per second')
+                doc_batch.append(passage)
+                if len(doc_batch) == self.opts.bsize:
+                    embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
+                    if write_to_disk:
+                        cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
+                    all_embeddings.extend(embeddings.tolist())
+                    doc_batch = []
+            if len(doc_batch) > 0:
+                embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
+                if write_to_disk:
+                    cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
+                all_embeddings.extend(embeddings.tolist())
+        else:
+            for pndx, passage in enumerate(corpus_reader(self.opts.collection, fieldnames = ('id', 'text', 'title'))):
+                if pndx == 0 and (passage.pid == 'id' or passage.pid == 'pid') and (passage.text == 'text' or passage.text == 'contents') and passage.title == 'title':
+                    continue
+                if pndx % self.embed_count != (self.embed_num-1):
+                    continue
+                if report.is_time():
+                    logger.info(f'on instance {report.check_count}, {report.check_count/report.elapsed_seconds()} instances per second')
+                doc_batch.append(passage)
+                if len(doc_batch) == self.opts.bsize:
+                    embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
+                    cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
+                    all_embeddings.extend(embeddings.tolist())
+                    doc_batch = []
+            if len(doc_batch) > 0:
                 embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
                 cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
                 all_embeddings.extend(embeddings.tolist())
-                doc_batch = []
-        if len(doc_batch) > 0:
-            embeddings = self.embed(doc_batch, self.ctx_encoder, self.ctx_tokenizer)
-            cur_offset = self.write(cur_offset, offsets, passages, doc_batch, embeddings)
-            all_embeddings.extend(embeddings.tolist())
-        offsets.append(cur_offset)  # just the length of the file
-        passages.close()
-        with write_open(os.path.join(self.opts.output_dir, f'offsets_{self.embed_num}_of_{self.embed_count}.npy'), binary=True) as f:
-            np.save(f, np.array(offsets, dtype=np.int64), allow_pickle=False)
-        logger.info(f'wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
-        #print(f'Wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
+        if write_to_disk:
+            offsets.append(cur_offset)  # just the length of the file
+            passages.close()
+            with write_open(os.path.join(self.opts.output_dir, f'offsets_{self.embed_num}_of_{self.embed_count}.npy'), binary=True) as f:
+                np.save(f, np.array(offsets, dtype=np.int64), allow_pickle=False)
+            logger.info(f'wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
+            #print(f'Wrote passages_{self.embed_num}_of_{self.embed_count}.json.gz.records in {report.elapsed_time_str()}')
 
-        # dumping embeddings
-        with open(os.path.join(self.opts.output_dir, f'embeddings_{self.embed_num}_of_{self.embed_count}'), 'bw') as embeddings_outf:
-            import pickle
-            pickle.dump(all_embeddings, embeddings_outf)
+            # dumping embeddings
+            with open(os.path.join(self.opts.output_dir, f'embeddings_{self.embed_num}_of_{self.embed_count}'), 'bw') as embeddings_outf:
+                import pickle
+                pickle.dump(all_embeddings, embeddings_outf)
 
-        if self.opts.sharded_index:
-            build_index(os.path.join(self.opts.output_dir, f'passages_{self.embed_num}_of_{self.embed_count}.json.gz.records'),
-                        os.path.join(self.opts.output_dir, f'index_{self.embed_num}_of_{self.embed_count}.faiss'), self.opts)
-        elif self.embed_count == 1:
-            build_index(self.opts.output_dir, os.path.join(self.opts.output_dir, 'index.faiss'), self.opts)
+            if self.opts.sharded_index:
+                build_index(os.path.join(self.opts.output_dir, f'passages_{self.embed_num}_of_{self.embed_count}.json.gz.records'),
+                            os.path.join(self.opts.output_dir, f'index_{self.embed_num}_of_{self.embed_count}.faiss'), self.opts)
+            elif self.embed_count == 1:
+                build_index(self.opts.output_dir, os.path.join(self.opts.output_dir, 'index.faiss'), self.opts)

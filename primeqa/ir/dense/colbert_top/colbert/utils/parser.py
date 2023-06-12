@@ -141,8 +141,8 @@ class Arguments():
         for check in self.checks:
             check(args)
 
-    def parse(self):
-        (args, remaining_args) = self.parser.parse_known_args()
+    def parse(self, _args=[]):
+        (args, remaining_args) = self.parser.parse_known_args(_args)
         if len(remaining_args):
             print_message(f'arguments not used by ColBERT engine: {remaining_args}')
 

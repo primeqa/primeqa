@@ -40,8 +40,8 @@ class Options(DPROptions):
         self.__required_args__ = ['index_location', 'output_dir']
         self.output_json = False
 
-class DPRSearcher():
-    def __init__(self, config: DPRSearchArguments):
+class DPRSearcher:
+    def __init__(self, config: DPRSearchArguments, index = None):
         # from dpr_apply.main
         self.opts = Options()
         fill_from_config(self.opts, config)
@@ -66,7 +66,9 @@ class DPRSearcher():
         # we either have a single index.faiss or we have an index for each offsets/passages
         if os.path.exists(os.path.join(self.opts.index_location, "index.faiss")):
             self.passages = Corpus(os.path.join(self.opts.index_location))
-            self.index = ANNIndex(os.path.join(self.opts.index_location, "index.faiss"))
+            self.index = index \
+                if index is not None\
+                else ANNIndex(os.path.join(self.opts.index_location, "index.faiss"))
             self.shards = None
             self.dim = self.index.dim()
         else:

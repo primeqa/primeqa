@@ -1,0 +1,1 @@
+from .searchable_corpus import SearchableCorpus

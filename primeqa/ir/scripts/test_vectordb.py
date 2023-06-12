@@ -29,6 +29,8 @@ from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 from chromadb.utils import embedding_functions
 import chromadb
 import faiss
+from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
+from primeqa.util import SearchableCorpus
 
 def handle_args():
     usage = 'usage'
@@ -103,7 +105,6 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
         self.batch_size = batch_size
         if os.path.exists(name):
             from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
-            from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
             self.queries_to_vectors = queries_to_vectors
             self.model = DPRQuestionEncoder.from_pretrained(
                 pretrained_model_name_or_path=name,
@@ -242,75 +243,77 @@ def main():
             # connect to the index
             index = pinecone.GRPCIndex(index_name)
         elif args.db_engine == "pqa":
-            from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
-            from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
-            if args.model_name is None:
-                print("You need to specify the encoder if you're going to use PrimeQA: use --model_name|-m argument")
-                sys.exit(1)
-
-            os.makedirs(output_dir, exist_ok=True)
-            print(output_dir)
-
-            index_args = [
-                "prog",
-                "--engine_type", "DPR",
-                "--do_index",
-                "--bsize", "16",
-                "--ctx_encoder_name_or_path", os.path.join(args.model_name,"ctx_encoder"),
-                "--embed", "1of1",
-                "--output_dir", os.path.join(output_dir, "index"),
-                "--shared_index",
-                "--collection", args.input_passages,
-            ]
-
-            with patch.object(sys, 'argv', index_args):
-                parser = HfArgumentParser(DPRIndexingArguments)
-                (dpr_args, remaining_args) = \
-                    parser.parse_args_into_dataclasses(return_remaining_strings=True)
-                indexer = DPRIndexer(dpr_args)
-                indexer.index()
+            collection = SearchableCorpus(args.model_name, top_k=args.top_k, batch_size=64)
+            # from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
+            # from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+            # if args.model_name is None:
+            #     print("You need to specify the encoder if you're going to use PrimeQA: use --model_name|-m argument")
+            #     sys.exit(1)
+            #
+            # os.makedirs(output_dir, exist_ok=True)
+            # print(output_dir)
+            #
+            # index_args = [
+            #     "prog",
+            #     "--engine_type", "DPR",
+            #     "--do_index",
+            #     "--bsize", "16",
+            #     "--ctx_encoder_name_or_path", os.path.join(args.model_name,"ctx_encoder"),
+            #     "--embed", "1of1",
+            #     "--output_dir", os.path.join(output_dir, "index"),
+            #     "--shared_index",
+            #     "--collection", args.input_passages,
+            # ]
+            #
+            # with patch.object(sys, 'argv', index_args):
+            #     parser = HfArgumentParser(DPRIndexingArguments)
+            #     (dpr_args, remaining_args) = \
+            #         parser.parse_args_into_dataclasses(return_remaining_strings=True)
+            #     indexer = DPRIndexer(dpr_args)
+            #     indexer.index()
         elif args.db_engine == "pqa_colbert":
-            from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
-            from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-            from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
-            from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-
-            colbert_parser = Arguments(description='ColBERT indexing')
-
-            colbert_parser.add_model_parameters()
-            colbert_parser.add_model_inference_parameters()
-            colbert_parser.add_indexing_input()
-            colbert_parser.add_compressed_index_input()
-            colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
-            cargs = None
-            index_args = [
-                "prog",
-                "--engine_type", "ColBERT",
-                "--do_index",
-                "--amp",
-                "--bsize", "256",
-                "--mask-punctuation",
-                "--doc_maxlen", "180",
-                "--model_name_or_path", args.model_name,
-                "--index_name", os.path.join(output_dir, "index"),
-                "--root", args.colbert_root,
-                "--nbits", "4",
-                "--kmeans_niters", "20",
-                "--collection", args.input_passages,
-            ]
-
-            with patch.object(sys, 'argv', index_args):
-                cargs = colbert_parser.parse()
-
-            args_dict = vars(cargs)
-            # remove keys not in ColBERTConfig
-            args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'input_arguments']}
-            # args_dict to ColBERTConfig
-            colBERTConfig = ColBERTConfig(**args_dict)
-
-            with Run().context(RunConfig(root=cargs.root, experiment=cargs.experiment, nranks=cargs.nranks, amp=cargs.amp)):
-                indexer = Indexer(cargs.checkpoint, colBERTConfig)
-                indexer.index(name=cargs.index_name, collection=cargs.collection, overwrite=True)
+            collection = SearchableCorpus(args.model_name, top_k=args.top_k, batch_size=64)
+            # from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
+            # from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
+            # from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
+            # from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
+            #
+            # colbert_parser = Arguments(description='ColBERT indexing')
+            #
+            # colbert_parser.add_model_parameters()
+            # colbert_parser.add_model_inference_parameters()
+            # colbert_parser.add_indexing_input()
+            # colbert_parser.add_compressed_index_input()
+            # colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
+            # cargs = None
+            # index_args = [
+            #     "prog",
+            #     "--engine_type", "ColBERT",
+            #     "--do_index",
+            #     "--amp",
+            #     "--bsize", "256",
+            #     "--mask-punctuation",
+            #     "--doc_maxlen", "180",
+            #     "--model_name_or_path", args.model_name,
+            #     "--index_name", os.path.join(output_dir, "index"),
+            #     "--root", args.colbert_root,
+            #     "--nbits", "4",
+            #     "--kmeans_niters", "20",
+            #     "--collection", args.input_passages,
+            # ]
+            #
+            # with patch.object(sys, 'argv', index_args):
+            #     cargs = colbert_parser.parse()
+            #
+            # args_dict = vars(cargs)
+            # # remove keys not in ColBERTConfig
+            # args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'input_arguments']}
+            # # args_dict to ColBERTConfig
+            # colBERTConfig = ColBERTConfig(**args_dict)
+            #
+            # with Run().context(RunConfig(root=cargs.root, experiment=cargs.experiment, nranks=cargs.nranks, amp=cargs.amp)):
+            #     indexer = Indexer(cargs.checkpoint, colBERTConfig)
+            #     indexer.index(name=cargs.index_name, collection=cargs.collection, overwrite=True)
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
@@ -392,7 +395,9 @@ def main():
             # check number of records in the index
             index.describe_index_stats()
         elif args.db_engine == "pqa":
-            pass
+            collection.add(texts=[row['text'] for row in input_passages],
+                           titles=[row['title'] for row in input_passages],
+                           ids=[row['id'] for row in input_passages])
             # indexing_args = [
             #     "prog",
             #     "--ctx_encoder_path_name_or_path", os.path.join(args.model_name, "ctx_encoder"),
@@ -514,73 +519,24 @@ def main():
                     out_ranks.append(
                         [input_queries[query_number]['id'], match, rank + 1, response['distances'][0][rank]])
         elif args.db_engine == 'pqa':
-            searcher = create_pqa_searcher(args, output_dir)
+            # searcher = create_pqa_searcher(args, output_dir)
             for query_number in tqdm(range(len(input_queries))):
                 # for query_number in range(len(query_vectors)):
-                q_ids, response = searcher.search(
-                    query_batch=[input_queries[query_number]['text']],
-                    top_k=args.top_k,
-                    mode="query_list"
+                q_ids, response = collection.search(
+                    input_queries=[input_queries[query_number]['text']],
+                    top_k=args.top_k
                 )
                 for rank, match in enumerate(q_ids[0]):
-                    out_ranks.append([input_queries[query_number]['id'], match, rank + 1, response[0]['scores'][rank]])
+                    out_ranks.append([input_queries[query_number]['id'], match, rank + 1, response[0][rank]])
         elif args.db_engine == 'pqa_colbert':
-            from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
-            from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
-            from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-            colbert_opts = [
-                "prog",
-                "--engine_type", "ColBERT",
-                "--do_index",
-                "--amp",
-                "--bsize", "1",
-                "--mask-punctuation",
-                "--doc_maxlen", "180",
-                "--model_name_or_path", args.model_name,
-                "--index_location", os.path.join(output_dir, "index"),
-                "--centroid_score_threshold", "0.4",
-                "--ncells", "4",
-                "--top_k", str(args.top_k),
-                "--retrieve_only",
-                "--ndocs", "40000",
-                "--kmeans_niters", "20",
-                "--collection", args.input_passages,
-                "--root", args.colbert_root,
-                "--output_dir", args.output_dir,
-                ]
-            parser = Arguments(description='ColBERT search')
-
-            parser.add_model_parameters()
-            parser.add_model_inference_parameters()
-            parser.add_compressed_index_input()
-            parser.add_ranking_input()
-            parser.add_retrieval_input()
-            # search_args = parser.parse()
-            with patch.object(sys, 'argv', colbert_opts):
-                sargs = parser.parse()
-
-            args_dict = vars(sargs)
-            # remove keys not in ColBERTConfig
-            args_dict = {key: args_dict[key] for key in args_dict if
-                         key not in ['run', 'nthreads', 'distributed', 'compression_level', 'qrels', 'partitions',
-                                     'retrieve_only', 'input_arguments']}
-            colBERTConfig = ColBERTConfig(**args_dict)
-            with Run().context(RunConfig(root=sargs.root, experiment=sargs.experiment, nranks=sargs.nranks, amp=sargs.amp)):
-                searcher = Searcher(sargs.index_name, checkpoint=sargs.checkpoint, collection=sargs.collection,
-                                    config=colBERTConfig)
-
-                # rankings = searcher.search_all(args.queries, args.topK)
-                # out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
-                # rankings.save(out_fn)
-
-                for query_number in tqdm(range(len(input_queries))):
-                    # for query_number in range(len(query_vectors)):
-                    q_ids, response = searcher.search_all(
-                        query_batch=[input_queries[query_number]['text']],
-                        top_k=args.top_k
-                    )
-                    for rank, match in enumerate(q_ids[0]):
-                        out_ranks.append([input_queries[query_number]['id'], match, rank + 1, response[0]['scores'][rank]])
+            for query_number in tqdm(range(len(input_queries))):
+                # for query_number in range(len(query_vectors)):
+                q_ids, response = collection.search(
+                    input_qureries=[input_queries[query_number]['text']],
+                    top_k=args.top_k
+                )
+                for rank, match in enumerate(q_ids[0]):
+                    out_ranks.append([input_queries[query_number]['id'], match, rank + 1, response[0][rank]])
         elif args.db_engine == 'milvus':
             # search_params = {
             #     "metric_type": "L2",
