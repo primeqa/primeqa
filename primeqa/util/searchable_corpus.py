@@ -8,7 +8,7 @@ from huggingface_hub import hf_hub_download
 from tqdm import tqdm
 
 from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
-from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
+#from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
@@ -17,6 +17,8 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
+from primeqa.components.indexer.dense import DPRIndexer
+from primeqa.components.retriever.dense import DPRRetriever
 from transformers import (
     HfArgumentParser,
     DPRContextEncoderTokenizer
@@ -30,7 +32,7 @@ class SearchableCorpus:
     * SearchableCorpus.search(queries: List[AnyStr]) - retrieves documents that are relevant to a set of queries
 
     It currently wraps the DPR index, and it will support ColBERT with the same interface soon."""
-    def __init__(self, model_name, batch_size=64, top_k=10):
+    def __init__(self, model_name, query_encoder_model_name_or_path, batch_size=64, top_k=10):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
         It will automatically detect the index type (DPR, ColBERT, etc).
         Args:
@@ -41,24 +43,32 @@ class SearchableCorpus:
             * top_k: int
                  - defines the default number of retrieved answers. It can be changed in .search()
             """
+        self.model_name=model_name
+        self.qry_model_name=query_encoder_model_name_or_path
         self.output_dir = None
         self._is_dpr = True
         self.top_k = top_k
+        
+        # below code assumes HF model download has files in certain naming convention which right now is not valid.
+        #ToDo: ColBERT- some part of the code below might get reintroduced later.
 
-        if not os.path.exists(model_name): # Assume a HF model name
-            model_name = hf_hub_download(repo_id=model_name, filename="config.json")
-        self.model_name = model_name
-        if os.path.exists(os.path.join(model_name,"ctx_encoder")): # Looks like a DPR model
-            self._is_dpr = True
-        else:
-            self._is_colbert = True
-        self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
-            os.path.join(self.model_name,"ctx_encoder"))
-        self.tmp_dir = None
-        self.indexer = None
-        self.searcher = None
-        self.input_passages = None
-        self.working_dir = None
+        # self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(self.model_name)
+        
+        # if not os.path.exists(model_name): # Assume a HF model name
+        #     print("trying to download HF repo")
+        #     model_name = hf_hub_download(repo_id=model_name, filename="config.json")
+        # self.model_name = model_name
+        # if os.path.exists(os.path.join(model_name,"ctx_encoder")): # Looks like a DPR model
+        #     self._is_dpr = True
+        # else:
+        #     self._is_colbert = True
+        # self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
+        #     os.path.join(self.model_name,"ctx_encoder"))
+        # self.tmp_dir = None
+        # self.indexer = None
+        # self.searcher = None
+        # self.input_passages = None
+        # self.working_dir = None
 
 
     def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
@@ -206,10 +216,26 @@ class SearchableCorpus:
             raise RuntimeError("Unknown indexer type.")
 
 
+    def add_documents(self,input_file):
+        dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.model_name, vector_db="FAISS")
+        dpr.index(input_file)
+
+        self.searcher = DPRRetriever(self.qry_model_name, indexer=dpr, index_name=dpr.index_name, max_num_documents=self.top_k)
+        #self.searcher=self.searcher.get_searcher()
+
+
+        
+
+    def select_column(data, col):
+        return [d[col] for d in data]
+
     def __del__(self):
         self.tmp_dir.cleanup()
 
     def search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        return self.searcher.predict(input_queries,return_passages=True)
+
+    def search_not_in_use(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         """Retrieves the most relevant documents in the collection for a given set of queries.
         Args:
             * input_queries: List[AnyStr]
@@ -290,6 +316,7 @@ class SearchableCorpus:
                 tems = queries_to_vectors(tokenizer, self.model, texts[i:i_end], max_query_length=500).tolist()
                 embs.extend(tems)
         return embs
+
 
 
 def read_tsv_data(input_file, fields=None):

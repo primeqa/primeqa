@@ -138,6 +138,7 @@ class ColBERTRetriever(BaseRetriever):
             if "max_num_documents" in kwargs
             else self.max_num_documents
         )
+      
         ranking_results = self._searcher.search_all(
             {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
             k=max_num_documents,
