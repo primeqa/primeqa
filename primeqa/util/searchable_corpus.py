@@ -19,6 +19,7 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.components.indexer.dense import DPRIndexer
 from primeqa.components.retriever.dense import DPRRetriever
+from primeqa.ir.util.corpus_reader import DocumentCollection
 from transformers import (
     HfArgumentParser,
     DPRContextEncoderTokenizer
@@ -217,8 +218,14 @@ class SearchableCorpus:
 
 
     def add_documents(self,input_file):
+        doc_class = DocumentCollection(input_file)
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.working_dir = self.tmp_dir.name
+        os.makedirs(os.path.join(self.working_dir, "processed_data"))
+        out_file= os.path.join(self.working_dir, "processed_data","processed_input.tsv")
+        output_file_path= doc_class.write_corpus_tsv(out_file)
         dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.model_name, vector_db="FAISS")
-        dpr.index(input_file)
+        dpr.index(output_file_path)
 
         self.searcher = DPRRetriever(self.qry_model_name, indexer=dpr, index_name=dpr.index_name, max_num_documents=self.top_k)
         #self.searcher=self.searcher.get_searcher()
