@@ -7,7 +7,7 @@ from typing import Callable
 import pytest
 
 _MODEL_NAMES = [
-        'roberta-base', 'xlm-roberta-base', 'bert-base-uncased',
+        'roberta-base', 'xlm-roberta-base', 'bert-base-uncased', 'albert-base-v2',
 ]
 
 
