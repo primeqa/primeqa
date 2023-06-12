@@ -39,6 +39,15 @@ class DPREmbeddings(Embeddings):
         },
     )
     
+    batch_size: int = field(
+        default=128,
+        metadata={
+            "name": "batch_size",
+            "api_support": False,
+            "description": "batch size",
+        },
+    )
+    
     
     def __post_init__(self):
         # Placeholder variables
@@ -74,7 +83,7 @@ class DPREmbeddings(Embeddings):
         self._encoder.eval()
         
 
-    def get_embeddings(self, documents: List[Dict],
+    def get_embeddings(self, input_texts: List[Dict],
                     *args,
                     **kwargs):
         """
@@ -82,12 +91,15 @@ class DPREmbeddings(Embeddings):
             For each text returns a dict where the 'embeddings' element contains a vector of floats.
             
             Args:
-                documents List[Dict]: For each query, a list of documents containing text and title
+                input_texts List[Dict]: For each query, a list of documents containing text and title
                 each document is a dictionary with these elements:
                 {
                         "text": "A man is eating food.",
                         "title": "food"
                 }
+                max_doc_length int: 
+                batch_size int: default 128
+                
             
             Returns:
                 List[Dict]
@@ -104,25 +116,34 @@ class DPREmbeddings(Embeddings):
             if "max_num_documents" in kwargs
             else self.max_doc_length
         )
-
-        texts = { "title": [ doc["title"] if doc["title"] is not None else "" for doc in documents], 
-                  "text": [ doc["text"] for doc in documents]
+        
+        batch_size = (
+            kwargs["batch_size"]
+            if "batch_size" in kwargs
+            else self.batch_size
+        )
+        
+       
+        embeddings_list = []
+        for i in range(0, len(input_texts), batch_size):
+            
+            texts = { "title": [ doc["title"] if doc["title"] is not None else "" for doc in input_texts[i:i+batch_size]], 
+                  "text": [ doc["text"] for doc in input_texts[i:i+batch_size]]
                  }
         
-        input_ids = self._tokenizer(
-            texts["title"], texts["text"], truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
-        )["input_ids"]
+            input_ids = self._tokenizer(
+                texts["title"], texts["text"], truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
+            )["input_ids"]
 
-        vectors = self._encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
-        vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy()
-        vectors = vectors.tolist()
+            vectors = self._encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
+            vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy()
+            vectors = vectors.tolist()
         
-        embeddings_list = []
-        for vector in vectors:
-            embeddings_list.append({
-                "embeddings": vector,
-                "model": self.model
-            })
+            for vector in vectors:
+                embeddings_list.append({
+                    "embeddings": vector,
+                    "model": self.model
+                })
         return embeddings_list
     
     

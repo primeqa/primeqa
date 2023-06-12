@@ -249,6 +249,15 @@ class Embeddings(Component):
                 "description": "maximum document length (sub-word units)",
             },
         )
+    
+    batch_size: int = field(
+        default=128,
+        metadata={
+            "name": "batch_size",
+            "api_support": False,
+            "description": "batch size",
+        },
+    )
 
     @abstractmethod
     def load(self, *args, **kwargs):
@@ -268,7 +277,7 @@ class Embeddings(Component):
             raise NotImplementedError
 
     @abstractmethod
-    def get_embeddings(self, documents: List[str], 
+    def get_embeddings(self, input_texts: List[str], 
                         *args, 
                         **kwargs):
         """
@@ -276,12 +285,16 @@ class Embeddings(Component):
             For each text returns a dict where the 'embeddings' element contains a vector of floats.
             
             Args:
-                documents List[Dict]: For each query, a list of documents containing text and title
+                input_texts List[Dict]: For each query, a list of input texts containing text and title
                 each document is a dictionary with these elements:
                 {
                         "text": "A man is eating food.",
                         "title": "food"
                 }
+            
+            Optional Args:
+                max_doc_length int: Default 512 maximum document length (sub-word units)
+                batch_size int: Default 128 batch size
             
             Returns:
                 List[Dict]
