@@ -84,6 +84,7 @@ class DocumentCollection:
             input_files: list[str] one or more input files
             
         """
+        self._input_file=input_files
         self.reader = corpus_reader(input_files, fieldnames=fieldnames)
         self.id_to_document = None
         self.load_corpus()
@@ -122,6 +123,26 @@ class DocumentCollection:
             tsv_writer.writeheader()
             tsv_writer.writerows(self.id_to_document.values())
         return output_file
+
+    def process_tsv(self):
+        """
+            Write out the corpus in a format ready for indexing. 
+
+        Args:
+            output_file (str): tsv file where each row is in format 'id\ttext\title'
+        """
+        if self.id_to_document == None:
+            self.load_corpus()
+            
+        with open(self._input_file,'w') as f:
+            fieldnames = ['id', 'text', 'title']
+            tsv_writer = csv.DictWriter(f, delimiter='\t', lineterminator='\n', quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames)
+            tsv_writer.writeheader()
+            tsv_writer.writerows(self.id_to_document.values())
+        return self._input_file
+    
+    def get_processed_collection(self):
+        return self.process_tsv()
     
     def add_document_text_to_hit(self, hits: list):
         """
