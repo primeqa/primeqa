@@ -138,28 +138,14 @@ class ColBERTRetriever(BaseRetriever):
             if "max_num_documents" in kwargs
             else self.max_num_documents
         )
-
-        passage_ids=[]
-        scores=[]
-        p_ids, response = self._searcher.search(
-            query_batch=input_texts,
-            top_k=max_num_documents,
-            mode="query_list"
+        ranking_results = self._searcher.search_all(
+            {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
+            k=max_num_documents,
         )
-        passage_ids.extend(p_ids)
-        scores.extend([r['scores'] for r in response])
-        return passage_ids, scores
-
-        # # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
-        # ranking_results = self._searcher.search_all(
-        #     {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
-        #     k=max_num_documents,
-        # )
-        # return [
-        #     [(result[0], result[-1]) for result in results_per_query]
-        #     for results_per_query in ranking_results.data.values()
-        # ]
-
+        return [
+            [(result[0], result[-1]) for result in results_per_query]
+            for results_per_query in ranking_results.data.values()
+        ]
 
 @dataclass
 class DPRRetriever(BaseRetriever):
