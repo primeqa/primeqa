@@ -42,7 +42,7 @@ jobs:
           echo "******* Running tests *******"
           echo "Run IR tests"
           pytest -s --cov primeqa/ir --cov-config .coveragerc --cov-fail-under=50 tests/primeqa/ir
-           echo "Remove  /tmp/tmp*/output_dir to free disk space"
+          echo "Remove  /tmp/tmp*/output_dir to free disk space"
           du -h /tmp/tmp*/output_dir
           rm -rf /tmp/tmp*/output_dir
           echo "******* Running MRC tests *******"
@@ -63,4 +63,6 @@ jobs:
           echo "Run all except IR and MRC and tableqa tests"
           pytest -s --cov primeqa --cov-config .coveragerc --cov-fail-under=14 --ignore tests/primeqa/qg/processors/test_hybridqg_data_processor.py --ignore tests/primeqa/ir --ignore tests/primeqa/mrc --ignore tests/primeqa/tableqa tests/primeqa
           echo "******* Finished running tests *******"
+          echo "CHECK HF CACHE DISK USAGE"
+          du -h /home/runner/.cache/huggingface/datasets/
       - run: echo "🍏 This job's status is ${{ job.status }}."
