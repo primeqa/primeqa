@@ -1,4 +1,4 @@
-from primeqa.util import SearchableCorpus, read_tsv_data, compute_score
+from primeqa.components.retriever.searchable_corpus import SearchableCorpus,read_tsv_data, compute_score
 from argparse import ArgumentParser
 import json
 
