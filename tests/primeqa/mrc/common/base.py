@@ -1,6 +1,6 @@
 import pytest
 import torch
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
@@ -90,3 +90,57 @@ class UnitTest:
     def _assert_is_floating_point_tensor(tensor):
         assert isinstance(tensor, torch.Tensor)
         assert tensor.dtype.is_floating_point
+
+
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
+    @pytest.fixture(scope='session')
+    def tydiqa_train_examples(self):
+        raw_dataset = load_dataset("tydiqa", "primary_task", split='train', streaming=True)
+        iterable_dataset = raw_dataset.take(100)
+        examples = {}
+        for e in iterable_dataset:
+            for key in e.keys():
+                if key not in examples:
+                    examples[key] = []
+                examples[key].append(e[key])
+        return Dataset.from_dict(examples)
+
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
+    @pytest.fixture(scope='session')
+    def tydiqa_eval_examples(self):
+        raw_dataset = load_dataset("tydiqa", "primary_task", split='validation', streaming=True)
+        iterable_dataset = raw_dataset.take(100)
+        examples = {}
+        for e in iterable_dataset:
+            for key in e.keys():
+                if key not in examples:
+                    examples[key] = []
+                examples[key].append(e[key])
+        return Dataset.from_dict(examples)
+    
+    
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
+    @pytest.fixture(scope='session')
+    def squad_train_examples(self):
+        raw_dataset = load_dataset("squad", "plain_text", split='train', streaming=True)
+        iterable_dataset = raw_dataset.take(100)
+        examples = {}
+        for e in iterable_dataset:
+            for key in e.keys():
+                if key not in examples:
+                    examples[key] = []
+                examples[key].append(e[key])
+        return Dataset.from_dict(examples)
+
+    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
+    @pytest.fixture(scope='session')
+    def squad_eval_examples(self):
+        raw_dataset = load_dataset("squad", "plain_text", split='validation', streaming=True)
+        iterable_dataset = raw_dataset.take(100)
+        examples = {}
+        for e in iterable_dataset:
+            for key in e.keys():
+                if key not in examples:
+                    examples[key] = []
+                examples[key].append(e[key])
+        return Dataset.from_dict(examples)
