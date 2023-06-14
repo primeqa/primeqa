@@ -21,7 +21,7 @@ pyserini==0.16.1
 ujson==5.1.0
 tqdm==4.64.0
 joblib==1.1.0
-sklearn
+scikit-learn
 datasets==2.0.0
 torch==1.11.0
 stanza==1.4.0
