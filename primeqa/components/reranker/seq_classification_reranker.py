@@ -130,7 +130,7 @@ class SeqClassificationReranker(BaseReranker):
             texts_a = [query] * len(docs)
             texts_b = []
             for p in docs:
-                if include_title and 'title' in p['document'] and len(p['document']['title'].strip()) > 0:
+                if include_title and 'title' in p['document'] and p['document']['title'] is not None and len(p['document']['title'].strip()) > 0:
                     texts_b.append(p['document']['title'] + '\n\n' + p['document']['text'])
                 else:
                     texts_b.append(p['document']['text'])
