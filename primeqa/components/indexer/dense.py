@@ -6,6 +6,9 @@ from primeqa.components.base import Indexer as BaseIndexer
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
 
+from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer as DprIndexer
+
 
 @dataclass
 class ColBERTIndexer(BaseIndexer):
@@ -142,3 +145,95 @@ class ColBERTIndexer(BaseIndexer):
             collection,
             overwrite="overwrite" in kwargs and kwargs["overwrite"],
         )
+
+
+@dataclass
+class DPRIndexer(BaseIndexer):
+    """
+    Arguments used in indexing
+    """
+
+    vector_db: str = field(
+        default="FAISS",
+         metadata={
+            "name": "vector_db",
+            "description": "vector_db to use for indexing embedding vectors",
+            "api_support": True,
+        },
+    )
+    index_root: str = field(
+        default="default_dpr_index_root",
+         metadata={
+            "name": "index_root",
+            "description": "root folder of index creation",
+            "api_support": True,
+        },
+    )
+    index_name: str = field(
+        default="default_dpr_index",
+         metadata={
+            "name": "index_name",
+            "description": "name of index folder",
+            "api_support": True,
+        },
+    )
+
+    output_dir: str = field(
+        default="dpr_index_dir",
+        metadata={"help": "Output directory to write results"},
+    )
+
+    bsize: int = field(default=16, metadata={"help": "Batch size"})
+
+    collection: str = field(
+        default="None", metadata={"help": "Collection file path"}
+    )
+
+    ctx_encoder_model_name_or_path: str = field(
+        default="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder",
+        metadata={"help": "document encoder model name or path"},
+    )
+
+    embed: str = field(
+        default="1of1",
+        metadata={"help": 'Embedding shard ID (<n>of<total>, e.g. "2of10")'},
+    )
+
+    sharded_index: bool = field(
+        default=True, metadata={"help": "Use sharded index"}
+    )
+
+    def __post_init__(self):
+        self._config = DPRIndexingArguments(
+            output_dir=self.output_dir,
+            bsize=self.bsize,
+            embed=self.embed,
+            ctx_encoder_name_or_path=self.ctx_encoder_model_name_or_path,
+            sharded_index=self.sharded_index,
+        )
+        assert not self.vector_db is not 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
+
+        # Placeholder variables
+        self._indexer = None
+
+        #implicit load
+        self._indexer = DprIndexer(config=self._config)
+        
+    def __hash__(self) -> int:
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+        )
+
+    def load(self, *args, **kwargs):
+        self._indexer = Indexer(self.checkpoint, config=self._config)
+
+    def get_engine_type(self):
+        return "DPR"
+
+    def index(self, collection: Union[List[dict], str], *args, **kwargs):
+        if not isinstance(collection, str):
+            raise TypeError(
+                "DPR indexer expects path to `documents.tsv` as value for `collection` argument."
+            )
+        self._indexer.opts.collection = collection
+        self._indexer.index()
