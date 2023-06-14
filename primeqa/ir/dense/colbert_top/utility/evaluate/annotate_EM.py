@@ -52,7 +52,8 @@ def main(args):
         d[f'success{extra}'] = {k: v / num_judged_queries for k, v in success.items()}
         d[f'counts{extra}'] = {k: v / num_judged_queries for k, v in counts.items()}
         d[f'precision{extra}'] = {k: v / num_judged_queries / (1000 if k == 'all' else int(k)) for k, v in counts.items()}
-        d['arguments'] = get_metadata(args)
+        # d['arguments'] = get_metadata(args)
+        d['arguments'] = vars(args)
 
         f.write(format_metadata(d) + '\n')
 
