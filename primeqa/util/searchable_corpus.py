@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 from typing import List, AnyStr, Union
 from unittest.mock import patch
@@ -33,7 +34,8 @@ class SearchableCorpus:
     _UnknownModelType = 0
     _DPR = 1
     _ColBERT = 2
-    def __init__(self, model_name, batch_size=64, top_k=10):
+
+    def __init__(self, model_name, batch_size=64, top_k=10, **kwargs):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
         It will automatically detect the index type (DPR, ColBERT, etc).
         Args:
@@ -51,11 +53,12 @@ class SearchableCorpus:
         self.output_dir = None
         self._model_type = SearchableCorpus._UnknownModelType
         self.top_k = top_k
+        self.batch_size = batch_size
 
-        if not os.path.exists(model_name): # Assume a HF model name
+        if not os.path.exists(model_name):  # Assume a HF model name
             model_name = hf_hub_download(repo_id=model_name, filename="config.json")
         self.model_name = model_name
-        if os.path.exists(os.path.join(model_name,"ctx_encoder")): # Looks like a DPR model
+        if os.path.exists(os.path.join(model_name, "ctx_encoder")):  # Looks like a DPR model
             self._model_type = SearchableCorpus._DPR
             self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
                 os.path.join(self.model_name, "ctx_encoder"))
@@ -67,9 +70,12 @@ class SearchableCorpus:
         self.searcher = None
         self.input_passages = None
         self.working_dir = None
+        if 'colbert_index' in kwargs:
+            self._colbert_index = kwargs['colbert_index']
+        else:
+            self._colbert_index = None
 
-
-    def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
+    def add(self, texts: Union[AnyStr, List[AnyStr]], titles: List[AnyStr] = None, ids: List[AnyStr] = None, **kwargs):
         """
         Adds documents to the collection, including optionally the titles and the ids of the indexed items
         (possibly passages).
@@ -84,20 +90,20 @@ class SearchableCorpus:
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.working_dir = self.tmp_dir.name
         self.output_dir = os.path.join(self.working_dir, 'output_dir')
-        if type(texts)==str:
+        if type(texts) == str:
             self.input_passages = texts
         else:
             os.makedirs(os.path.join(self.working_dir, "input_dir"))
             self.input_passages = os.path.join(self.working_dir, "input_dir", "input.tsv")
             with open(self.input_passages, "w") as w:
-                w.write("\t".join(['id', 'text', 'title'])+"\n")
+                w.write("\t".join(['id', 'text', 'title']) + "\n")
                 for i, t in enumerate(texts):
                     w.write("\t".join([
                         str(i + 1) if ids is None else ids[i],
                         texts[i].strip(),
                         titles[i] if titles is not None else ""
                     ]) + "\n"
-                    )
+                            )
         if self._model_type == SearchableCorpus._DPR:
             index_args = [
                 "prog",
@@ -109,7 +115,8 @@ class SearchableCorpus:
             ]
 
             parser = HfArgumentParser(DPRIndexingArguments)
-            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True, args=index_args)
+            (dpr_args, remaining_args) = parser.parse_args_into_dataclasses(return_remaining_strings=True,
+                                                                            args=index_args)
 
             self.indexer = DPRIndexer(dpr_args)
             self.indexer.index()
@@ -128,62 +135,64 @@ class SearchableCorpus:
                 parser.parse_args_into_dataclasses(return_remaining_strings=True, args=search_args)
             self.searcher = DPRSearcher(dpr_args)
         elif self._model_type == SearchableCorpus._ColBERT:
-            colbert_parser = Arguments(description='ColBERT indexing')
+            if self._colbert_index is None:
+                colbert_parser = Arguments(description='ColBERT indexing')
 
-            colbert_parser.add_model_parameters()
-            colbert_parser.add_model_inference_parameters()
-            colbert_parser.add_indexing_input()
-            colbert_parser.add_compressed_index_input()
-            colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
-            cargs = None
-            index_args = [
-                "prog",
-                "--engine_type", "ColBERT",
-                "--do_index",
-                "--amp",
-                "--bsize", "256",
-                "--mask-punctuation",
-                "--doc_maxlen", "180",
-                "--model_name_or_path", self.model_name,
-                "--index_name", os.path.join(self.output_dir, "index"),
-                "--root", os.path.join(os.path.join(self.output_dir, "root")),
-                "--nbits", "4",
-                "--kmeans_niters", "20",
-                "--collection", self.input_passages,
-            ]
+                colbert_parser.add_model_parameters()
+                colbert_parser.add_model_inference_parameters()
+                colbert_parser.add_indexing_input()
+                colbert_parser.add_compressed_index_input()
+                colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
+                cargs = None
+                index_args = [
+                    "prog",
+                    "--amp",
+                    "--bsize", "256",
+                    "--mask-punctuation",
+                    "--doc_maxlen", "180",
+                    "--model_name_or_path", self.model_name,
+                    "--index_name", os.path.join(self.output_dir, "index"),
+                    "--root", os.path.join(os.path.join(self.output_dir, "root")),
+                    "--nbits", "4",
+                    "--kmeans_niters", "20",
+                    "--collection", self.input_passages,
+                ]
 
-            with patch.object(sys, 'argv', index_args):
-                cargs = colbert_parser.parse()
+                with patch.object(sys, 'argv', index_args):
+                    cargs = colbert_parser.parse()
+                    # cargs = colbert_parser.parse(index_args)
 
-            args_dict = vars(cargs)
-            # remove keys not in ColBERTConfig
-            args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'input_arguments']}
-            # args_dict to ColBERTConfig
-            colBERTConfig: ColBERTConfig = ColBERTConfig(**args_dict)
+                args_dict = vars(cargs)
+                # remove keys not in ColBERTConfig
+                args_dict = {key: args_dict[key] for key in args_dict if
+                             key not in ['run', 'nthreads', 'distributed', 'compression_level', 'input_arguments']}
+                # args_dict to ColBERTConfig
+                colBERTConfig: ColBERTConfig = ColBERTConfig(**args_dict)
 
-            with Run().context(RunConfig(root=cargs.root, experiment=cargs.experiment, nranks=cargs.nranks, amp=cargs.amp)):
-                indexer = Indexer(cargs.checkpoint, colBERTConfig)
-                indexer.index(name=cargs.index_name, collection=cargs.collection, overwrite=True)
+                with Run().context(
+                        RunConfig(root=cargs.root, experiment=cargs.experiment, nranks=cargs.nranks, amp=cargs.amp)):
+                    indexer = Indexer(cargs.checkpoint, colBERTConfig)
+                    indexer.index(name=cargs.index_name, collection=cargs.collection, overwrite=True)
+                    shutil.copytree(cargs.index_name, os.path.join(os.path.dirname(self.model_name), "index"))
+                self._colbert_index = cargs.index_name
+
             colbert_opts = [
                 "prog",
-                "--engine_type", "ColBERT",
-                "--do_index",
                 "--amp",
                 "--bsize", "1",
                 "--mask-punctuation",
                 "--doc_maxlen", "180",
                 "--model_name_or_path", self.model_name,
-                "--index_location", os.path.join(self.output_dir, "index"),
+                "--index_location", self._colbert_index,
                 "--centroid_score_threshold", "0.4",
                 "--ncells", "4",
                 "--top_k", str(self.top_k),
-                "--retrieve_only",
                 "--ndocs", "40000",
                 "--kmeans_niters", "20",
                 "--collection", self.output_dir,
-                "--root",  os.path.join(os.path.join(self.output_dir, "root")),
+                "--root", os.path.join(os.path.join(self.output_dir, "root")),
                 "--output_dir", self.output_dir,
-                ]
+            ]
             parser = Arguments(description='ColBERT search')
 
             parser.add_model_parameters()
@@ -207,14 +216,13 @@ class SearchableCorpus:
 
             with Run().context(RunConfig(root=self.root, experiment=self.experiment, nranks=self.nranks, amp=self.amp)):
                 self.searcher = Searcher(sargs.index_name, checkpoint=sargs.checkpoint, collection=sargs.collection,
-                                    config=colBERTConfig)
+                                         config=colBERTConfig)
 
                 # rankings = searcher.search_all(args.queries, args.topK)
                 # out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 # rankings.save(out_fn)
         else:
             raise RuntimeError("Unknown indexer type.")
-
 
     def __del__(self):
         self.tmp_dir.cleanup()
@@ -240,18 +248,18 @@ class SearchableCorpus:
             return call_funcs[self._model_type](input_queries, batch_size, **kwargs)
 
     # if self._model_type == SearchableCorpus._DPR:
-        #     return self._dpr_search(input_queries, batch_size, **kwargs)
-        # elif self._model_type == SearchableCorpus._ColBERT:
-        #     return self._colbert_search(input_queries, batch_size, **kwargs)
-        # else:
+    #     return self._dpr_search(input_queries, batch_size, **kwargs)
+    # elif self._model_type == SearchableCorpus._ColBERT:
+    #     return self._colbert_search(input_queries, batch_size, **kwargs)
+    # else:
 
     def _dpr_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         passage_ids = []
         scores = []
 
         batch = 0
-        while batch<len(input_queries):
-            batch_end = min(len(input_queries), batch+batch_size)
+        while batch < len(input_queries):
+            batch_end = min(len(input_queries), batch + batch_size)
             p_ids, response = self.searcher.search(
                 query_batch=input_queries[batch: batch_end],
                 top_k=self.top_k,
@@ -271,13 +279,13 @@ class SearchableCorpus:
                           experiment=self.experiment,
                           nranks=self.nranks,
                           amp=self.amp)):
-            for query_number in tqdm(range(len(input_queries))):
-                p_ids, response = self.searcher.search(
+            for query_number in range(len(input_queries)):
+                p_ids, ranks, scrs = self.searcher.search(
                     text=input_queries[query_number],
                     k=self.top_k
                 )
-                passage_ids.append(p_ids)
-                scores.extend(response['scores'])
+                passage_ids.append([str(p) for p in p_ids])
+                scores.append(scrs)
         return passage_ids, scores
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
@@ -339,9 +347,9 @@ def read_tsv_data(input_file, fields=None):
         next(csv_reader)
         for row in csv_reader:
             assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-            itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
-                             'id': row['id']}
-            if 'title'in row:
+            itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
+                   'id': row['id']}
+            if 'title' in row:
                 itm['title'] = row['title']
             if 'relevant' in row:
                 itm['relevant'] = row['relevant']
@@ -350,7 +358,8 @@ def read_tsv_data(input_file, fields=None):
             passages.append(itm)
     return passages
 
-def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], verbose=False):
+
+def compute_score(input_queries, input_passages, answers, ranks=[1, 3, 5, 10], verbose=False):
     """
     Computes the success at different levels of recall, given the goldstandard passage indexes per query.
     It computes two scores:
@@ -412,16 +421,17 @@ def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], ver
     if verbose:
         out_result = []
 
-    for qi, q in enumerate(input_queries):
+    for qi, q in tqdm(enumerate(input_queries)):
+        print(f"Processing query {qi}")
         tmp_scores = {r: 0 for r in ranks}
         tmp_lscores = {r: 0 for r in ranks}
         qid = input_queries[qi]['id']
         outranks = []
         for ai, ans in enumerate(answers[qi]):
             if verbose:
-                outr = [qid, ans, ai+1]
+                outr = [qid, ans, ai + 1]
             if str(ans) in gt[qid]:  # Great, we found a match.
-                update_scores(ranks, ai+1, tmp_scores)
+                update_scores(ranks, ai + 1, tmp_scores)
                 # break
                 if verbose:
                     outr.append(1)
@@ -431,26 +441,29 @@ def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], ver
                 outranks.append(outr)
 
         if with_answers:
+            inputq = input_queries[qi]
+            text_answers = inputq['answers']
             for ai, ans in enumerate(answers[qi]):
-                inputq = input_queries[qi]
+                if ans not in rp_map:
+                    print(f"On question {qi}, the answer {ans} is not in the reverse passage map.")
                 txt = input_passages[rp_map[ans]]['text'].lower()
                 found = False
-                for s in inputq['answers']:
-                    if txt.find(s.lower()) >= 0:
-                        found = True
-                        break
+                # for textans in text_answers:
+                #     if txt.find(textans.lower()) >= 0:
+                #         found = True
+                #         break
+                txt_ans = text_answers[0]
+                found = txt.find(txt_ans.lower())>=1
                 if (found):
-                    update_scores(ranks, ai+1, tmp_lscores)
+                    update_scores(ranks, ai + 1, tmp_lscores)
                 if verbose:
                     outranks[ai].append(int(found))
         if verbose:
             out_result.extend(outranks)
 
-
         for r in ranks:
             scores[r] += int(tmp_scores[r] >= 1)
             lscores[r] += int(tmp_lscores[r] >= 1)
-
 
     res = {"num_ranked_queries": len(input_queries),
            "num_judged_queries": len(input_queries),
@@ -462,5 +475,5 @@ def compute_score(input_queries, input_passages, answers,  ranks=[1,3,5,10], ver
     if verbose:
         with open("result.augmented", "w") as out:
             for entry in out_result:
-                out.write("\t".join([str(s) for s in entry])+"\n")
+                out.write("\t".join([str(s) for s in entry]) + "\n")
     return res

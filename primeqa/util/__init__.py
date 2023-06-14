@@ -1,1 +1,1 @@
-from .searchable_corpus import SearchableCorpus
+from .searchable_corpus import SearchableCorpus, read_tsv_data, compute_score

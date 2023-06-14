@@ -60,17 +60,21 @@ class StridedTensor(StridedTensorCore):
 
         assert pids.dim() == 1
 
-        if self.use_gpu:
-            pids = pids.cuda()
-            self.lengths = self.lengths.cuda()
-            self.offsets = self.offsets.cuda()
         pids = pids.long()
 
-        lengths = self.lengths[pids]
-        if self.use_gpu:
-            lengths = lengths.cuda()
+        if self.lengths.device != pids.device:
+            lengths = self.lengths[pids.to(self.lengths.device)]
+        else:
+            lengths = self.lengths[pids]
 
-        offsets = self.offsets[pids]
+        if self.offsets.device != pids.device:
+            offsets = self.offsets[pids.to(self.offsets.device)]
+        else:
+            offsets = self.offsets[pids]
+        if self.use_gpu:
+            pids = pids.cuda()
+            lengths = lengths.cuda()
+            offsets = offsets.cuda()
 
         return pids, lengths, offsets
 
@@ -81,7 +85,7 @@ class StridedTensor(StridedTensorCore):
             stride = lengths.max().item()
             stride = next(s for s in self.strides if stride <= s)
 
-            tensor = self.views[stride][offsets]
+            tensor = self.views[stride][offsets.to(self.views[stride].device)]
             if self.use_gpu:
                 tensor = tensor.cuda()
 

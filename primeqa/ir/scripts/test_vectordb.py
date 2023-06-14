@@ -394,7 +394,7 @@ def main():
 
             # check number of records in the index
             index.describe_index_stats()
-        elif args.db_engine == "pqa":
+        elif args.db_engine == "pqa" or args.db_engine == "pqa_colbert":
             collection.add(texts=[row['text'] for row in input_passages],
                            titles=[row['title'] for row in input_passages],
                            ids=[row['id'] for row in input_passages])

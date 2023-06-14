@@ -34,8 +34,8 @@ def check_sizes(qid2answers, qid2rankings):
     return num_judged_queries, num_ranked_queries
 
 
-def compute_and_write_labels(output_path, qid2answers, qid2rankings):
-    cutoffs = [1, 5, 10, 20, 30, 50, 100, 1000, 'all']
+def compute_and_write_labels(output_path, qid2answers, qid2rankings,
+                             cutoffs = [1, 5, 10, 20, 30, 50, 100, 1000, 'all']):
     success = {cutoff: 0.0 for cutoff in cutoffs}
     counts = {cutoff: 0.0 for cutoff in cutoffs}
 
