@@ -90,7 +90,7 @@ class SeqClassificationReranker(BaseReranker):
     def eval(self, *args, **kwargs):
         pass
     
-    def predict(self, queries: List[str], 
+    def rerank(self, queries: List[str], 
                     documents:  List[List[Dict]],
                     *args, 
                     **kwargs):

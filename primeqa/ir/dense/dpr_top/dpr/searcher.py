@@ -151,15 +151,6 @@ class DPRSearcher():
             docs, _ = self.merge_results(vectors, self.opts.top_k)
 
         return docs # first and only query
-    
-    def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:
-        documents = {"title": [doci.title if doci.title is not None else "" for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
-        """Compute the DPR embeddings of document passages"""
-        input_ids = ctx_tokenizer(
-            documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
-        )["input_ids"]
-        embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
-        return embeddings.detach().cpu().to(dtype=torch.float16).numpy()
 
     # for re-ranking we use this method
     def rescore(self, query, documents: List[Passage]): #, ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast):
@@ -167,29 +158,14 @@ class DPRSearcher():
             # get query embeddings
             query_embeddings_tensor = queries_to_vectors(self.tokenizer, self.qencoder, [query])
 
-            # is this getting the CLS of the query? #TODO: is this step below really necessary?
-            # query_embeddings = query_embeddings_tensor.detach().cpu().numpy().astype(np.float32)
-            #batch_size = query_embeddings.shape[0]
-            #assert query_embeddings.shape[1] == self.dim
-
             # get doc embeddings
             input_ids = self.ctx_tokenizer(documents, truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length)["input_ids"]
             doc_embeddings = self.ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
-            #TODO:do I have to do this next step?
-            #assert doc_embeddings.detach().cpu().to(dtype=torch.float16).numpy()
-            
+
+            # compute dot product
             dot_product = torch.matmul(query_embeddings_tensor, doc_embeddings.transpose(0,1))
             final_reranked_score = dot_product[0]
 
-
-        '''
-        from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed, colbert_score_reduce
-
-        Q = self.encode(text_queries)
-        D, attention_mask = self.encode_documents(text_documents)
-
-        scores = colbert_score(Q, D, attention_mask, self.config)
-        '''
         return final_reranked_score
 
     def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):

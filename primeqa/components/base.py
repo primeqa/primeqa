@@ -27,7 +27,7 @@ class Component(ABC):
         pass
 
     @abstractmethod
-    def predict(self, *args, **kwargs):
+    def rerank(self, *args, **kwargs):
         pass
 
 
@@ -47,7 +47,7 @@ class Reader(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(
+    def rerank(
         self,
         questions: List[str],
         contexts: List[List[str]],
@@ -104,7 +104,7 @@ class Retriever(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, input_texts: List[str], *args, **kwargs):
+    def rerank(self, input_texts: List[str], *args, **kwargs):
         pass
 
 
@@ -204,7 +204,7 @@ class Reranker(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, queries: List[str], 
+    def rerank(self, queries: List[str], 
                     documents: List[List[Dict]],
                     *args, 
                     **kwargs):
