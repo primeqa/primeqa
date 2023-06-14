@@ -9,18 +9,6 @@ import numpy as np
 
 class TestTyDiBoolQAPreprocessor(UnitTest):
 
-    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
-    @pytest.fixture(scope='session')
-    def train_examples(self):
-        examples = datasets.load_dataset("tydiqa", "primary_task", split='train[:100]')
-        return examples
-
-    @pytest.mark.flaky(reruns=10, reruns_delay=30)  # Account for intermittent S3 errors downloading HF data
-    @pytest.fixture(scope='session')
-    def eval_examples(self):
-        examples = datasets.load_dataset("tydiqa", "primary_task", split='validation[:100]')
-        return examples
-
     @pytest.fixture(scope='class')
     def tokenizer(self):
         return AutoTokenizer.from_pretrained('xlm-roberta-base')
@@ -33,8 +21,8 @@ class TestTyDiBoolQAPreprocessor(UnitTest):
             load_from_cache_file=False,
         )
 
-    def test_train_preprocessing_runs_without_errors(self, train_examples, tydiqa_preprocessor):
-        train_examples, train_features = tydiqa_preprocessor.process_train(train_examples)
+    def test_train_preprocessing_runs_without_errors(self, tydiqa_train_examples, tydiqa_preprocessor):
+        train_examples, train_features = tydiqa_preprocessor.process_train(tydiqa_train_examples)
         assert isinstance(train_examples, Dataset)
         assert isinstance(train_features, Dataset)
         for example in train_examples:
