@@ -17,7 +17,9 @@ primeqa.ir.util.corpus\_reader.DocumentCollection
       :nosignatures:
    
       ~DocumentCollection.add_document_text_to_hit
+      ~DocumentCollection.get_processed_collection
       ~DocumentCollection.load_corpus
+      ~DocumentCollection.process_tsv
       ~DocumentCollection.write_corpus_tsv
    
    

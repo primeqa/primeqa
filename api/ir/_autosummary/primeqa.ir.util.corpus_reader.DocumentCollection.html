@@ -806,8 +806,14 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.ir.util.corpus_reader.DocumentCollection.add_document_text_to_hit" title="primeqa.ir.util.corpus_reader.DocumentCollection.add_document_text_to_hit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_document_text_to_hit</span></code></a></p></td>
 <td><p>Look up and add document text/title to the hits</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus" title="primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_corpus</span></code></a></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_processed_collection</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus" title="primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_corpus</span></code></a></p></td>
 <td><p>Load the corpus tsv/csv or json</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#primeqa.ir.util.corpus_reader.DocumentCollection.process_tsv" title="primeqa.ir.util.corpus_reader.DocumentCollection.process_tsv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_tsv</span></code></a></p></td>
+<td><p>Write out the corpus in a format ready for indexing.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#primeqa.ir.util.corpus_reader.DocumentCollection.write_corpus_tsv" title="primeqa.ir.util.corpus_reader.DocumentCollection.write_corpus_tsv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_corpus_tsv</span></code></a></p></td>
 <td><p>Write out the corpus in a format ready for indexing.</p></td>
@@ -850,6 +856,19 @@ document_dict format:
 <dt class="sig sig-object py" id="primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus">
 <span class="sig-name descname"><span class="pre">load_corpus</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.ir.util.corpus_reader.DocumentCollection.load_corpus" title="Permalink to this definition">#</a></dt>
 <dd><p>Load the corpus tsv/csv or json</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="primeqa.ir.util.corpus_reader.DocumentCollection.process_tsv">
+<span class="sig-name descname"><span class="pre">process_tsv</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#primeqa.ir.util.corpus_reader.DocumentCollection.process_tsv" title="Permalink to this definition">#</a></dt>
+<dd><blockquote>
+<div><p>Write out the corpus in a format ready for indexing.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>output_file</strong> (<em>str</em>) – tsv file where each row is in format ‘id text    itle’</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
