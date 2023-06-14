@@ -40,7 +40,7 @@ class DPRReranker(BaseReranker):
             "description": "Path to checkpoint",
         },
     )
-    '''
+    
     checkpoint: str = field(
         default=None,
         metadata={
@@ -48,10 +48,13 @@ class DPRReranker(BaseReranker):
             "description": "Path to checkpoint",
         },
     )
+    '''
     def __post_init__(self):
         self._config = DPRSearchArguments(
             index_location=None,
-            model_name_or_path=self.checkpoint,
+            rescore_only = True,
+            qry_encoder_name_or_path=os.path.join(self.model, 'qry_encoder'),
+            ctx_encoder_name_or_path=os.path.join(self.model, 'ctx_encoder')
         )
 
         # Placeholder variables

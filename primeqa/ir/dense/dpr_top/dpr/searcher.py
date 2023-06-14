@@ -7,7 +7,7 @@ import numpy as np
 import ujson as json
 import logging
 
-from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
+from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast, DPRContextEncoder, DPRContextEncoderTokenizerFast)
 
 from primeqa.ir.dense.dpr_top.util.line_corpus import read_lines, write_open
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
@@ -16,6 +16,10 @@ from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
 from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import Corpus
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import ANNIndex
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
+
+from typing import List
+
+from primeqa.ir.util.corpus_reader import Passage
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +73,7 @@ class DPRSearcher():
         self.qencoder.eval()
         self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
 
-        if self.rescore_only:
+        if self.opts.rescore_only:
             # since this is re-ranker only mode we don't need an index.
             self.opts.ctx_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.ctx_encoder_name_or_path)
             self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.ctx_encoder_name_or_path).to(device=self.device)
@@ -158,33 +162,35 @@ class DPRSearcher():
         return embeddings.detach().cpu().to(dtype=torch.float16).numpy()
 
     # for re-ranking we use this method
-    def rescore(self, query, documents: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast):
+    def rescore(self, query, documents: List[Passage]): #, ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast):
         with torch.no_grad():
             # get query embeddings
             query_embeddings_tensor = queries_to_vectors(self.tokenizer, self.qencoder, [query])
 
             # is this getting the CLS of the query? #TODO: is this step below really necessary?
-            query_embeddings = query_embeddings_tensor.detach().cpu().numpy().astype(np.float32)
+            # query_embeddings = query_embeddings_tensor.detach().cpu().numpy().astype(np.float32)
             #batch_size = query_embeddings.shape[0]
             #assert query_embeddings.shape[1] == self.dim
 
             # get doc embeddings
-            input_ids = ctx_tokenizer(documents, truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length)["input_ids"]
-            doc_embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
+            input_ids = self.ctx_tokenizer(documents, truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length)["input_ids"]
+            doc_embeddings = self.ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
             #TODO:do I have to do this next step?
             #assert doc_embeddings.detach().cpu().to(dtype=torch.float16).numpy()
             
-            dot_product = torch.matmul(query_embeddings, doc_embeddings.transpose(0,1))
+            dot_product = torch.matmul(query_embeddings_tensor, doc_embeddings.transpose(0,1))
             final_reranked_score = dot_product[0]
 
 
+        '''
         from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed, colbert_score_reduce
 
         Q = self.encode(text_queries)
         D, attention_mask = self.encode_documents(text_documents)
 
         scores = colbert_score(Q, D, attention_mask, self.config)
-        return scores
+        '''
+        return final_reranked_score
 
     def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):
         # from corpus_server_direct.run

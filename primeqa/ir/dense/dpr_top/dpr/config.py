@@ -192,6 +192,19 @@ class DPRSearchArguments:
         metadata={"help": "Query model name or path"},
     )
 
+    ctx_encoder_name_or_path: str = field(
+        default="facebook/dpr-ctx_encoder-multiset-base",
+        metadata={"help": "Query model name or path"},
+    )
+
     top_k: int = field(
         default=10, metadata={"help": "Number of hits to return"}
+    )
+
+    rescore_only: bool = field(
+        default=False, metadata={"help": "Running in the rescoring mode"}
+    )
+
+    max_doc_length: int = field(
+        default=128, metadata={"help": "Maximum number of tokens in a document"}
     )
