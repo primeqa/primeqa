@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class Options(DPROptions):
-    def __init__(self):
+    def __init__(self, rescore_only=False):
         # from dpr_apply.__init__
         super().__init__()
         self.output_dir = ''
@@ -40,6 +40,10 @@ class Options(DPROptions):
         self.__required_args__ = ['index_location', 'output_dir']
         self.output_json = False
 
+        self.rescore_only = rescore_only
+
+
+
 class DPRSearcher():
     def __init__(self, config: DPRSearchArguments):
         # from dpr_apply.main
@@ -47,6 +51,26 @@ class DPRSearcher():
         fill_from_config(self.opts, config)
         torch.set_grad_enabled(False)
         self.report = Reporting()
+
+        if self.rescore_only:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            if self.opts.model_name_or_path != "":
+                self.opts.qry_encoder_name_or_path = self.opts.model_name_or_path
+
+            self.opts.qry_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.qry_encoder_name_or_path)
+
+            self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+            self.qencoder = self.qencoder.to(self.device)
+            self.qencoder.eval()
+            self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
+
+            self.opts.ctx_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.ctx_encoder_name_or_path)
+            self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.ctx_encoder_name_or_path).to(device=self.device)
+            self.ctx_encoder.eval()
+            self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.opts.ctx_encoder_name_or_path)
+
+            return
+
         # ^ from dpr_apply.main
 
         # as in index_simple_corpus.py
@@ -130,6 +154,43 @@ class DPRSearcher():
             docs, _ = self.merge_results(vectors, self.opts.top_k)
 
         return docs # first and only query
+    
+    def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:
+        documents = {"title": [doci.title if doci.title is not None else "" for doci in doc_batch], 'text': [doci.text for doci in doc_batch]}
+        """Compute the DPR embeddings of document passages"""
+        input_ids = ctx_tokenizer(
+            documents["title"], documents["text"], truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length
+        )["input_ids"]
+        embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
+        return embeddings.detach().cpu().to(dtype=torch.float16).numpy()
+
+    # for re-ranking we use this method
+    def rescore(self, queries, documents):
+        with torch.no_grad():
+            # get query embeddings
+            query_embeddings_tensor = queries_to_vectors(self.tokenizer, self.qencoder, queries)
+
+            # is this getting the CLS of the query?
+            query_embeddings = query_embeddings_tensor.detach().cpu().numpy().astype(np.float32)
+            batch_size = query_embeddings.shape[0]
+            assert query_embeddings.shape[1] == self.dim
+
+            # get doc embeddings
+            input_ids = ctx_tokenizer(documents, truncation=True, padding="longest", return_tensors="pt", max_length=self.opts.max_doc_length)["input_ids"]
+            doc_embeddings = ctx_encoder(input_ids.to(device=self.device), return_dict=True).pooler_output
+            assert doc_embeddings.detach().cpu().to(dtype=torch.float16).numpy()
+            
+            dot_product = torch.matmul(query_embeddings, doc_embeddings.transpose(0,1))
+            
+
+
+        from primeqa.ir.dense.colbert_top.colbert.modeling.colbert import colbert_score, colbert_score_packed, colbert_score_reduce
+
+        Q = self.encode(text_queries)
+        D, attention_mask = self.encode_documents(text_documents)
+
+        scores = colbert_score(Q, D, attention_mask, self.config)
+        return scores
 
     def search(self, query_batch = None, top_k = 10, mode: Union['query_list', 'queries_and_results_in_files', None] = None):
         # from corpus_server_direct.run
