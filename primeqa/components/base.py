@@ -264,8 +264,8 @@ class Embeddings(Component):
         metadata={
             "name": "embeddings_format",
             "api_support": False,
-            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns to list of floats ",
-            "choices": "'pt'|'np'|None"
+            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns vector as a list of floats ",
+            "choices": "'pt'|'np'| None"
         }
     )
 
@@ -291,29 +291,25 @@ class Embeddings(Component):
                         *args, 
                         **kwargs):
         """
-            Takes in a list of texts .
-            For each text returns a dict where the 'embeddings' element contains a vector of floats.
+            Returns embeddings for the input texts.
             
             Args:
-                input_texts List[Dict]: For each query, a list of input texts containing text and title
-                each document is a dictionary with these elements:
-                {
-                        "text": "A man is eating food.",
-                        "title": "food"
-                }
+                input_texts List[str]: list of texts to be encoded
             
             Optional Args:
                 max_doc_length int: Default 512 maximum document length (sub-word units)
                 batch_size int: Default 128 batch size
+                embeddings_format: 
+                    Default None (list of floats), choices 'pt' (tensors), 'np' (numpy array), None
+                            
             
             Returns:
-                List[Dict]
-                
-                dict:
+                Dict
                   {
-                      'embeddings': list[float]
+                      'embeddings': List[vectors]
                       'model': str
                   }
+                
         """
         pass
         

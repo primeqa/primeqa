@@ -55,8 +55,8 @@ class DPREmbeddings(Embeddings):
         metadata={
             "name": "embeddings_format",
             "api_support": False,
-            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns to list of floats",
-            "choices": "'pt'|'np'|None",
+            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns vector as a list of floats",
+            "choices": "'pt'|'np'| None",
             "exclude_from_hash": True,
         }
     )
@@ -96,7 +96,7 @@ class DPREmbeddings(Embeddings):
         self._encoder.eval()
         
 
-    def get_embeddings(self, input_texts: List[Dict],
+    def get_embeddings(self, input_texts: List[str],
                     *args,
                     **kwargs):
         """
@@ -104,15 +104,11 @@ class DPREmbeddings(Embeddings):
             For each text returns a dict where the 'embeddings' element contains a vector of floats.
             
             Args:
-                input_texts List[Dict]: For each query, a list of documents containing text and title
-                each document is a dictionary with these elements:
-                {
-                        "text": "A man is eating food.",
-                        "title": "food"
-                }
+                input_texts List[str]: list of texts to be encoded
                 max_doc_length int: 
                 batch_size int: default 128
-                embeddings_format str: default 'json' Choices: 'pt', 'np'
+                embeddings_format: 
+                    Default None (list of floats), choices 'pt' (tensors), 'np' (numpy array), None
                 
             
             Returns:
@@ -144,13 +140,11 @@ class DPREmbeddings(Embeddings):
         
         embeddings_list = []
         for i in range(0, len(input_texts), batch_size):
-            
-            texts = { "title": [ doc["title"] if "title" in doc and doc["title"] is not None else "" for doc in input_texts[i:i+batch_size]], 
-                  "text": [ doc["text"] for doc in input_texts[i:i+batch_size]]
-            }
+                        
+            texts = input_texts[i:i+batch_size]
         
             input_ids = self._tokenizer(
-                texts["title"], texts["text"], truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
+                texts, truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
             )["input_ids"]
 
             vectors = self._encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
