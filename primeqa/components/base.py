@@ -258,6 +258,16 @@ class Embeddings(Component):
             "description": "batch size",
         },
     )
+    
+    embeddings_format: str = field(
+        default=None,
+        metadata={
+            "name": "embeddings_format",
+            "api_support": False,
+            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns to list of floats ",
+            "choices": "'pt'|'np'|None"
+        }
+    )
 
     @abstractmethod
     def load(self, *args, **kwargs):

@@ -36,6 +36,7 @@ class DPREmbeddings(Embeddings):
             "name": "max_doc_length",
             "api_support": True,
             "description": "maximum document length (sub-word units)",
+            "exclude_from_hash": True,
         },
     )
     
@@ -45,7 +46,19 @@ class DPREmbeddings(Embeddings):
             "name": "batch_size",
             "api_support": False,
             "description": "batch size",
+            "exclude_from_hash": True,
         },
+    )
+    
+    embeddings_format: str = field(
+        default=None,
+        metadata={
+            "name": "embeddings_format",
+            "api_support": False,
+            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns to list of floats",
+            "choices": "'pt'|'np'|None",
+            "exclude_from_hash": True,
+        }
     )
     
     
@@ -99,14 +112,13 @@ class DPREmbeddings(Embeddings):
                 }
                 max_doc_length int: 
                 batch_size int: default 128
+                embeddings_format str: default 'json' Choices: 'pt', 'np'
                 
             
             Returns:
-                List[Dict]
-                
-                dict:
+                Dict
                   {
-                      'embeddings': list[float]
+                      'embeddings': List[vectors]
                       'model': str
                   }
         """
@@ -123,28 +135,39 @@ class DPREmbeddings(Embeddings):
             else self.batch_size
         )
         
+        embeddings_format = (
+            kwargs["embeddings_format"]
+            if "embeddings_format" in kwargs
+            else self.embeddings_format
+        )
        
+        
         embeddings_list = []
         for i in range(0, len(input_texts), batch_size):
             
-            texts = { "title": [ doc["title"] if doc["title"] is not None else "" for doc in input_texts[i:i+batch_size]], 
+            texts = { "title": [ doc["title"] if "title" in doc and doc["title"] is not None else "" for doc in input_texts[i:i+batch_size]], 
                   "text": [ doc["text"] for doc in input_texts[i:i+batch_size]]
-                 }
+            }
         
             input_ids = self._tokenizer(
                 texts["title"], texts["text"], truncation=True, padding="longest", return_tensors="pt", max_length=max_doc_length
             )["input_ids"]
 
             vectors = self._encoder(input_ids.to(device=self._device), return_dict=True).pooler_output
-            vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy()
-            vectors = vectors.tolist()
-        
-            for vector in vectors:
-                embeddings_list.append({
-                    "embeddings": vector,
-                    "model": self.model
-                })
-        return embeddings_list
+            
+            if embeddings_format == 'pt':
+                vectors = vectors.detach().cpu().to(dtype=torch.float16)
+                embeddings_list.extend(vectors)
+            elif embeddings_format == 'np':
+                vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy()
+                embeddings_list.extend(vectors)
+            else:
+                vectors = vectors.detach().cpu().to(dtype=torch.float16).numpy().tolist()
+                embeddings_list.extend(vectors)
+        return {
+            "embeddings": embeddings_list,
+            "model": self.model
+        }
     
     
     

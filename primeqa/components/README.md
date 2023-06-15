@@ -248,16 +248,17 @@ print(json.dumps(answers, indent=4))
 
 The `Embeddings` component provides an API to obtain vector representations of given texts.
 
-The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder).  
+The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder) and [DPRQuestionEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRQuestionEncoder).  The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
 
-The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
+The following shows how to use the component [DPREmbeddings](./embeddings/dpr_embeddings.py) to obtain vectors.
 
-The following shows how to use the component [DPREmbedding](./embeddings/dpr_embeddings.py) to obtain vectors.
+The input is a list of documents where each item is a dictionary containing a `text` and optionally a `title` field.
 
-The input is a list of document where each item is a dictionary containing a `text` and optionally a `title` field.
+The `embeddings_format` argument can be used specify the format of the vectors. The options are `pt` to return tensors, `np` to return numpy arrays, `None` to return as a list of floats.  The default is `None`
 
 
 Usage:
+
 ```
     from primeqa.components.embeddings.dpr_embeddings import DPREmbeddings
 
@@ -270,24 +271,17 @@ Usage:
         "text": "The building of the cathedral had started in 1296 with the design of Arnolfo di Cambio and was completed in 1469" 
         }
     )
-    vectors = embedder.get_embeddings(documents=documents, max_doc_length=512)
+    vectors = embedder.get_embeddings(documents=documents, max_doc_length=512, embeddings_format=None)
     print(json.dumps(vectors,indent=4))
 
 ```
 
 This will output:
+
 ```
-    [
         {
-            "embeddings": [
-                -0.42919921875,
-                0.04327392578125,
-                0.72998046875,
-                -0.471435546875,
-                0.308837890625,
-                ...
-            ],
+            [[-0.42919921875, 0.04327392578125, 0.72998046875, -0.471435546875, 0.308837890625, 0.464599609375, 0.69775390625, -0.233642578125, -0.1746826171875, ...]]
             "model": "PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder"
         }
-    ]
+    
 ```
