@@ -43,6 +43,9 @@ class MRCTrainer(Trainer):
                 kwargs["args"] = TrainingArguments(output_dir="tmp_trainer")
 
             kwargs["args"].label_names = ["start_positions", "end_positions"]
+            if 'per_device_eval_batch_size' in kwargs:
+                kwargs['args'].per_device_eval_batch_size = kwargs['per_device_eval_batch_size']
+                del kwargs['per_device_eval_batch_size']
         # --------  END OF FIX   --------
 
         super().__init__(*args, **kwargs)

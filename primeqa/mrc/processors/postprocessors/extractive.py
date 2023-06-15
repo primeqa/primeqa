@@ -73,7 +73,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
         all_predictions = {}
 
         start_idx = 0
-        for example_idx, example in enumerate(tqdm(examples)):
+        import transformers.utils.logging
+        disable_tqdm = not transformers.utils.logging.is_progress_bar_enabled()
+        for example_idx, example in enumerate(tqdm(examples, disable=disable_tqdm)):
             feat_example_idx, example_features = next(features_itr)
             if feat_example_idx != example_idx:
                 raise ValueError(f"Example id mismatch between example ({example['example_id']}) "

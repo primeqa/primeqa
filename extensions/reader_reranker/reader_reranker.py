@@ -1,8 +1,12 @@
+import os
+
 import pandas as pd
 import json
 import sys
 from libSIRE.timer import timer
 from tqdm import tqdm
+import transformers.utils.logging, datasets.utils.logging
+import logging
 
 tm = timer("Reranker times")
 input_rank_file = sys.argv[1]
@@ -13,7 +17,10 @@ info_df = pd.read_json(input_rank_file)
 qas_df = pd.read_json(info_df['arguments']['qas'], lines=True)
 ranking_df = pd.read_csv(info_df['arguments']['ranking'], delimiter="\t", names=['qid','pid','rank','score'])
 collection_df = pd.read_csv(info_df['arguments']['collection'], delimiter="\t")
-
+logger = transformers.utils.logging.get_logger('transformers.trainer')
+logging.getLogger("primeqa.mrc.trainers.mrc").setLevel(logging.WARNING)
+transformers.utils.logging.disable_progress_bar()
+datasets.utils.logging.disable_progress_bar()
 # load model from model hub
 from primeqa.components.reader.extractive import ExtractiveReader
 
@@ -38,20 +45,19 @@ def run(questions, contexts, example_ids, passage_ids):
         index+= 1
     return result
 
-def runq(question, contexts, example_ids, passage_ids):
+def runq(question, contexts, example_ids, passage_ids, index):
+    logger.setLevel(logging.ERROR)
     reader_answers = reader.predict(
         [question], [contexts], example_ids=[example_ids]
     )
     result = {}
-    index = 0
     for i, answers_i in reader_answers.items():
         i_result = {}
         for answer in answers_i:
             answer['passage_index'] = passage_ids[index][answer['passage_index']] #[i.index('.')+1:])]
         i_result["answers"] = answers_i
-        i_result["passages"] = contexts[index] #[i.index('.')+1:])]
+        i_result["passages"] = contexts #[i.index('.')+1:])]
         result[i] = i_result
-        index += 1
     return result
 
 def get_passages(qas, collection, ranking, num_passages=100):
@@ -85,14 +91,17 @@ qs, cs, es, ps = get_passages(qas_df[int(start):int(end)], collection_df, rankin
 tm.add_timing("data_read")
 # result = run(q,c,e,p)
 result = {}
-for q, c, e in tqdm(zip(qs, cs, es)):
-    r = runq(q, c, e, ps)
+for i, (q, c, e) in tqdm(enumerate(zip(qs, cs, es)), total=len(qs)):
+    r = runq(q, c, e, ps, i)
     for k, v in r.items():
         result[k] = v
 tm.add_timing("reranking")
 output_dir = sys.argv[4]
-with open(f'/dccstor/srosent3/reranking/{output_dir}/reader_answers_{start}-{end}.json', "w") as outfile:
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+
+with open(f'{output_dir}/reader_answers_{start}-{end}.json', "w") as outfile:
     json.dump(result, outfile)
 
 tm.add_timing("writing_data")
-tm.display_timing(tm.milliseconds_since_beginning(), 0)
+tm.display_timing(tm.milliseconds_since_beginning(), 0, num_words=len(qs))

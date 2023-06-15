@@ -93,7 +93,8 @@ class BasePreProcessor(AbstractPreProcessor):
             num_proc=self._num_workers,
             remove_columns=examples.column_names,
             load_from_cache_file=self._load_from_cache_file,
-            desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
+            # desc=f"Running tokenizer on {'train' if is_train else 'eval'} dataset",
+            desc="",
         )
         if is_train:
             features = self.subsample_features(features)

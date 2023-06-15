@@ -188,6 +188,24 @@ class ExtractiveReader(BaseReader):
         # Configure data collector
         self._data_collector = DataCollatorWithPadding(self._tokenizer)
 
+        self.postprocessor = ExtractivePostProcessor(
+            k=self.max_num_answers,
+            n_best_size=self.n_best_size,
+            max_answer_length=self.max_answer_length,
+            scorer_type=self._scorer_type_as_enum,
+        )
+
+        # Step 3: Load trainer
+        self.trainer = MRCTrainer(
+            model=self._loaded_model,
+            tokenizer=self._tokenizer,
+            data_collator=self._data_collector,
+            post_process_function=self.postprocessor.process,
+            per_device_eval_batch_size=10,
+        )
+
+
+
     def predict(
         self,
         questions: List[str],
@@ -197,39 +215,32 @@ class ExtractiveReader(BaseReader):
         **kwargs,
     ) -> Dict[str, List[Dict]]:
         # Step 1: Locally update object variable values, if provided
-        max_num_answers = (
-            kwargs["max_num_answers"]
-            if "max_num_answers" in kwargs
-            else self.max_num_answers
-        )
-
-        max_answer_length = (
-            kwargs["max_answer_length"]
-            if "max_answer_length" in kwargs
-            else self.max_answer_length
-        )
-
+        # max_num_answers = (
+        #     kwargs["max_num_answers"]
+        #     if "max_num_answers" in kwargs
+        #     else self.max_num_answers
+        # )
+        #
+        # max_answer_length = (
+        #     kwargs["max_answer_length"]
+        #     if "max_answer_length" in kwargs
+        #     else self.max_answer_length
+        # )
+        #
         min_score_threshold = (
             kwargs["min_score_threshold"]
             if "min_score_threshold" in kwargs
             else self.min_score_threshold
         )
+        if 'max_num_answers' in kwargs:
+            self.postprocessor._n_best_size = kwargs['max_num_answers']
 
-        # Step 2: Initialize post processor
-        postprocessor = ExtractivePostProcessor(
-            k=max_num_answers,
-            n_best_size=self.n_best_size,
-            max_answer_length=max_answer_length,
-            scorer_type=self._scorer_type_as_enum,
-        )
+        if 'max_answer_length' in kwargs:
+            self.postprocessor._max_answer_length = kwargs['max_answer_length']
 
-        # Step 3: Load trainer
-        trainer = MRCTrainer(
-            model=self._loaded_model,
-            tokenizer=self._tokenizer,
-            data_collator=self._data_collector,
-            post_process_function=postprocessor.process,
-        )
+
+        # if 'min_score_threshold' in kwargs:
+        #     self.postprocessor._min =
 
         # Step 4: Prepare dataset from input texts and contexts
         assert len(questions) == len(contexts)
@@ -249,7 +260,7 @@ class ExtractiveReader(BaseReader):
 
         # Step 5: Run predict
         predictions = {}
-        for example_id, raw_predictions in trainer.predict(
+        for example_id, raw_predictions in self.trainer.predict(
             eval_dataset=eval_dataset, eval_examples=eval_examples
         ).items():
             predictions[example_id] = []
