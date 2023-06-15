@@ -183,7 +183,8 @@ class Reranker(Component):
         metadata={
             "name": "Include Title",
             "description": "Whether to concatenate text and title",
-            "choices": "True|False"
+            "choices": "True|False",
+            "exclude_from_hash": True,
         },
     )
 
