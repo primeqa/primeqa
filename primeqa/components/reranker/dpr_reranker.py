@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass, field
 import json
 import numpy as np
+import warnings
 
 from primeqa.components.base import Reranker as BaseReranker
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
@@ -89,6 +90,7 @@ class DPRReranker(BaseReranker):
                     documents:  List[List[Dict]],
                     *args,
                     **kwargs):
+        warnings.warn("The 'predict' method is deprecated. Please use `rerank'", FutureWarning)
         return self.rerank(queries, documents, *args, **kwargs)
 
     def rerank(self, queries: List[str],

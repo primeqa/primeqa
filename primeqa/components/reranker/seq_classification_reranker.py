@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass, field
 import json
 import numpy as np
+import warnings
 import torch.nn.functional as F
 
 from primeqa.components.base import Reranker as BaseReranker
@@ -94,6 +95,7 @@ class SeqClassificationReranker(BaseReranker):
                     documents:  List[List[Dict]],
                     *args,
                     **kwargs):
+        warnings.warn("The 'predict' method is deprecated. Please use `rerank'", FutureWarning)
         return self.rerank(queries, documents, *args, **kwargs)
 
     def rerank(self, queries: List[str], 
