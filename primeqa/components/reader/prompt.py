@@ -173,7 +173,7 @@ class PromptGPTReader(PromptBaseReader):
                     text = response.choices[0]["message"]["content"]
                 else:
                     text = "Something went wrong with the GPT service"
-                predictions[i] = {"text": text}
+              
             else:
                 response = openai.Completion.create(
                     model=self.model_name,
@@ -188,11 +188,11 @@ class PromptGPTReader(PromptBaseReader):
                     text = response.choices[0]["text"]
                 else:
                     text = "Something went wrong with the GPT service"
-                processed_prediction = {}
-                processed_prediction["example_id"] = i
-                processed_prediction["span_answer_text"] = text
-                processed_prediction["confidence_score"] = 1
-                predictions[i] = [processed_prediction]
+            processed_prediction = {}
+            processed_prediction["example_id"] = i
+            processed_prediction["span_answer_text"] = text
+            processed_prediction["confidence_score"] = 1
+            predictions[i] = [processed_prediction]
         return predictions
 
 
