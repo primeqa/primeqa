@@ -23,6 +23,6 @@ def test_get_rerankers(mock_client):
     assert response.status_code == 200
     rerankers = response.json()
     assert len(rerankers) == 2
-    assert ["SeqClassificationReranker", "ColBERTReranker"] == [
+    assert ["SeqClassificationReranker", "ColBERTReranker", "DPRReranker"] == [
         reranker["reranker_id"] for reranker in rerankers
     ]
