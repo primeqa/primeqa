@@ -151,7 +151,7 @@ class ColBERTReranker(BaseReranker):
         for query, docs in zip(queries, documents):
             texts = []
             for p in docs:
-                if include_title and 'title' in p['document'] and len(p['document']['title'].strip()) > 0:
+                if include_title and 'title' in p['document'] and p['document']['title'] is not None and len(p['document']['title'].strip()) > 0:
                     texts.append(p['document']['title'] + '\n\n' + p['document']['text'])
                 else:
                     texts.append(p['document']['text'])

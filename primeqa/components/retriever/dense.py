@@ -8,6 +8,7 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
 from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+from primeqa.components.indexer.dense import DPRIndexer
 
 
 @dataclass
@@ -137,8 +138,6 @@ class ColBERTRetriever(BaseRetriever):
             if "max_num_documents" in kwargs
             else self.max_num_documents
         )
-
-        # TODO: Add kwarg defining return format (List[List[Tuple(pids, score)]], List[List[<document>]])
         ranking_results = self._searcher.search_all(
             {idx: str(input_text) for idx, input_text in enumerate(input_texts)},
             k=max_num_documents,
@@ -147,7 +146,6 @@ class ColBERTRetriever(BaseRetriever):
             [(result[0], result[-1]) for result in results_per_query]
             for results_per_query in ranking_results.data.values()
         ]
-
 
 @dataclass
 class DPRRetriever(BaseRetriever):
@@ -170,8 +168,14 @@ class DPRRetriever(BaseRetriever):
         _type_: _description_
 
     """
-
-    checkpoint: str = field(
+    indexer: DPRIndexer = field(
+        default=None,
+        metadata={
+            "name": "Indexer",
+            "description": "The instance of ColBERTIndexer used to index the search corpus",
+        },
+    )
+    query_encoder_model_name_or_path: str = field(
         default=None,
         metadata={
             "name": "Checkpoint",
@@ -196,13 +200,25 @@ class DPRRetriever(BaseRetriever):
     )
 
     def __post_init__(self):
+        self.checkpoint=None
+        if self.query_encoder_model_name_or_path is not None:
+            self.checkpoint=self.query_encoder_model_name_or_path
+        elif self.indexer is not None:
+            self.query_encoder_model_name_or_path=self.indexer.ctx_encoder_model_name_or_path
+            self.checkpoint=self.indexer.ctx_encoder_model_name_or_path
+            
         self._config = DPRSearchArguments(
-            index_location=os.path.join(self.index_root, self.index_name),
+            #index_location=self.index_location,
             model_name_or_path=self.checkpoint,
+            index_location=self.indexer.output_dir,
+            top_k=self.max_num_documents,
         )
 
-        # Placeholder variables
-        self._searcher = None
+        self._searcher = DPRSearcher(
+            self._config,
+        )
+
+
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -222,6 +238,8 @@ class DPRRetriever(BaseRetriever):
         self._searcher = DPRSearcher(
             self._config,
         )
+    def get_searcher(self):
+        return self._searcher
 
     @classmethod
     def get_engine_type(cls):
@@ -233,7 +251,7 @@ class DPRRetriever(BaseRetriever):
     def eval(self, *args, **kwargs):
         pass
 
-    def predict(self, input_texts: List[str], *args, **kwargs) -> Any:
+    def predict(self, input_texts: List[str], return_passages: bool, *args, **kwargs) -> Any:
         """Retrieves relevant documents based on input_texts
 
         Args:
@@ -252,9 +270,9 @@ class DPRRetriever(BaseRetriever):
         retrieved_doc_ids, passages = self._searcher.search(
             list(input_texts), max_num_documents, mode="query_list"
         )
-        # retrieved_doc_ids: list (per query) of lists (per rank) of (str)docids
-        # passages: list (per query) of dicts with keys {'titles', 'texts', 'scores'} of lists (per rank)
-
+        if return_passages:
+            return retrieved_doc_ids, passages
+        
         retrieved_doc_ids = [list(map(int, doc_ids)) for doc_ids in retrieved_doc_ids]
 
         # returning: list (per query) of lists (per rank) of tuples (((int) docid, (float)score)
