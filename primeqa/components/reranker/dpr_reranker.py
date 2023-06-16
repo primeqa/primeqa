@@ -85,8 +85,11 @@ class DPRReranker(BaseReranker):
     def eval(self, *args, **kwargs):
         pass
 
-    def predict(self, *args, **kwargs):
-        return self.rerank(self, *args, **kwargs)
+    def predict(self, queries: List[str],
+                    documents:  List[List[Dict]],
+                    *args,
+                    **kwargs):
+        return self.rerank(queries, documents, *args, **kwargs)
 
     def rerank(self, queries: List[str],
                     documents:  List[List[Dict]],
