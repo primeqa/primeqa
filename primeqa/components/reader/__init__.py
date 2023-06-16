@@ -53,7 +53,7 @@ class GenerativeReader():
                                        max_new_tokens=self.max_new_tokens,
                                        min_new_tokens=self.min_new_tokens,
                                        temperature=self.temperature,
-                                       top_p=self.top_k,
+                                       top_p=self.top_p,
                                        frequency_penalty=self.frequency_penalty,
                                        presence_penalty=self.presence_penalty)
         elif self.model_type == "OpenAI":
@@ -61,7 +61,7 @@ class GenerativeReader():
                                        model_name=self.model_name, 
                                        max_new_tokens=self.max_new_tokens,
                                        temperature=self.temperature,
-                                       top_p=self.top_k,
+                                       top_p=self.top_p,
                                        frequency_penalty=self.frequency_penalty,
                                        presence_penalty=self.presence_penalty)
         else:

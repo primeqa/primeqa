@@ -52,12 +52,12 @@ class RAG:
             questions, contexts, prefix=prefix, suffix=suffix
         )
         
-        result = {}
+        result = []
         for i, answers_i in reader_answers.items():
             i_result = {}
             i_result['question'] = questions[int(i)]
-            i_result["answers"] = answers_i
-            i_result["passages"] = contexts[int(i)]
-            result[i] = i_result
+            i_result["answer"] = answers_i[0]['span_answer_text']
+            i_result["passages"] = ["Passage: "+c[:200]+"..." for c in contexts[int(i)][:3]]
+            result.append(i_result)
 
         return result
