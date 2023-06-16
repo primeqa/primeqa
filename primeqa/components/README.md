@@ -89,7 +89,7 @@ Usage:
     reranker = SeqClassificationReranker(model=model_name_or_path)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 
 ### ColBERT Reranker
@@ -107,7 +107,7 @@ Usage:
     reranker = ColBERTReranker(model=<path-to-colbert-checkpoint>)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 This will output:
 
