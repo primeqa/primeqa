@@ -107,6 +107,7 @@ class Retriever(Component):
     def predict(self, input_texts: List[str], *args, **kwargs):
         pass
 
+
 @dataclass(init=False, repr=False, eq=False)
 class Indexer:
     index_root: str = field(
