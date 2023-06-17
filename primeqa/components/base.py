@@ -206,7 +206,32 @@ class Reranker(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, queries: List[str], 
+    def predict(self, queries: List[str],
+                    documents: List[List[Dict]],
+                    *args,
+                    **kwargs):
+        """
+        Args:
+            queries (List[str]): search queries
+            texts (List[List[Dict]]): For each query, a list of documents to rerank
+                where each document is a dictionary with the following structure:
+                {
+                    "document": {
+                        "text": "A man is eating food.",
+                        "document_id": "0",
+                        "title": "food"
+                    },
+                    "score": 1.4
+                }
+
+        Returns:
+            List[List[Dict]] For each query a list of reranked documents in the same
+            structure as the input documents with the score replace with the reranker score.
+        """
+        pass
+
+    @abstractmethod
+    def rerank(self, queries: List[str], 
                     documents: List[List[Dict]],
                     *args, 
                     **kwargs):

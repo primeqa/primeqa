@@ -6,11 +6,16 @@ import numpy as np
 import warnings
 
 from primeqa.components.base import Reranker as BaseReranker
+from primeqa.ir.dense.dpr_top.dpr.config import DPRSearchArguments
+from primeqa.ir.dense.dpr_top.dpr.searcher import DPRSearcher
+
+
+
 from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 
 @dataclass
-class ColBERTReranker(BaseReranker):
+class DPRReranker(BaseReranker):
     """_summary_
 
     Args:
@@ -36,42 +41,21 @@ class ColBERTReranker(BaseReranker):
             "description": "Path to checkpoint",
         },
     )
+    
+    checkpoint: str = field(
+        default=None,
+        metadata={
+            "name": "Checkpoint",
+            "description": "Path to checkpoint",
+        },
+    )
     '''
-
-    model: str = field(
-        default="drdecr",
-        metadata={
-            "name": "Model",
-            "api_support": True,
-            "description": "Path to model",
-        },
-    )
-
-    doc_maxlen: int = field(
-        default=180,
-        metadata={
-            "name": "doc_maxlen",
-            "api_support": True,
-            "description": "maximum document length (sub-word units)",
-        },
-    )
-
-    query_maxlen: int = field(
-        default=32,
-        metadata={
-            "name": "query_maxlen",
-            "api_support": True,
-            "description": "maximum query length (sub-word units)",
-        },
-    )
-
     def __post_init__(self):
-        self._config = ColBERTConfig(
-            index_root=None,
-            index_name=None,
-            index_path=None,
-            doc_maxlen=self.doc_maxlen,
-            query_maxlen = self.query_maxlen
+        self._config = DPRSearchArguments(
+            index_location=None,
+            rescore_only = True,
+            qry_encoder_name_or_path=os.path.join(self.model, 'qry_encoder'),
+            ctx_encoder_name_or_path=os.path.join(self.model, 'ctx_encoder')
         )
 
         # Placeholder variables
@@ -92,12 +76,8 @@ class ColBERTReranker(BaseReranker):
         )
 
     def load(self, *args, **kwargs):
-        self._loaded_model = Searcher(
-            None,
-            checkpoint=self.model,
-            collection=None,
-            config=self._config,
-            rescore_only=True
+        self._searcher = DPRSearcher(
+            self._config,
         )
 
     def train(self, *args, **kwargs):
@@ -153,12 +133,12 @@ class ColBERTReranker(BaseReranker):
         for query, docs in zip(queries, documents):
             texts = []
             for p in docs:
-                if include_title and 'title' in p['document'] and p['document']['title'] is not None and len(p['document']['title'].strip()) > 0:
+                if include_title and 'title' in p['document'] and len(p['document']['title'].strip()) > 0:
                     texts.append(p['document']['title'] + '\n\n' + p['document']['text'])
                 else:
                     texts.append(p['document']['text'])
 
-            scores = self._loaded_model.rescore(query, texts).tolist()
+            scores = self._searcher.rescore(query, texts).tolist()
             ranked_passage_indexes = np.array(scores).argsort()[::-1][:max_num_documents if max_num_documents > 0 else len(scores)].tolist()
 
             results = []

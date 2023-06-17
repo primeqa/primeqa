@@ -89,7 +89,7 @@ Usage:
     reranker = SeqClassificationReranker(model=model_name_or_path)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 
 ### ColBERT Reranker
@@ -107,7 +107,7 @@ Usage:
     reranker = ColBERTReranker(model=<path-to-colbert-checkpoint>)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 This will output:
 
@@ -134,6 +134,48 @@ This will output:
     ]
 ```
 
+### DPR Reranker
+
+The [DPRReranker](./reranker/dpr_reranker.py) computes representations of the input query and documents and computes the relevance scores using the DPR approach, as described in [Dense Passage Retrieval for Open-Domain Question Answering](https://arxiv.org/abs/2004.04906).
+The reranker requires models for query and document (context) representations.  Example models can be downloaded from HuggingFace model hub as follows:
+```
+    wget https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_qry_encoder
+    wget https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder
+```
+
+Usage:
+```
+    from primeqa.components.reranker.dpr_reranker import DPRReranker
+
+    reranker = ColBERTReranker(model=<path-to-models-directory>)
+    reranker.load()
+
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
+```
+This will output:
+
+```
+    [
+    [
+        {
+        "document": {
+            "text": "A man is riding a white horse on an enclosed ground.",
+            "title": "riding",
+            "docid": "3"
+        },
+        "score": 82.11125946044922
+        },
+        {
+        "document": {
+            "text": "Someone in a gorilla costume is playing a set of drums.",
+            "title": "in",
+            "docid": "1"
+        },
+        "score": 75.18437194824219
+        }
+    ]
+    ]
+```
 
 ## Reader Components
 
