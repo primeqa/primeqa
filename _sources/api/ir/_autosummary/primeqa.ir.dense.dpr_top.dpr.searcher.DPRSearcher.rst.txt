@@ -18,6 +18,7 @@ primeqa.ir.dense.dpr\_top.dpr.searcher.DPRSearcher
    
       ~DPRSearcher.init_title_to_title
       ~DPRSearcher.merge_results
+      ~DPRSearcher.rescore
       ~DPRSearcher.search
       ~DPRSearcher.search_title_to_title
    

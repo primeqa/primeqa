@@ -26,11 +26,14 @@ primeqa.ir.dense.dpr\_top.dpr.config.DPRSearchArguments
    .. autosummary::
    
       ~DPRSearchArguments.bsize
+      ~DPRSearchArguments.ctx_encoder_name_or_path
       ~DPRSearchArguments.index_location
+      ~DPRSearchArguments.max_doc_length
       ~DPRSearchArguments.model_name_or_path
       ~DPRSearchArguments.output_dir
       ~DPRSearchArguments.qry_encoder_name_or_path
       ~DPRSearchArguments.queries
+      ~DPRSearchArguments.rescore_only
       ~DPRSearchArguments.top_k
    
    
