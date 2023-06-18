@@ -1,1 +1,1 @@
-
+from primeqa.components.retriever.searchable_corpus import SearchableCorpus
