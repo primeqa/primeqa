@@ -42,7 +42,10 @@ def is_tsv(filename: str):
                ['.tsv', '.tsv.gz', 'tsv.bz2'])
                # '.csv', '.csv.gz', '.csv.bz2'
 
-
+def is_csv(filename: str):
+    return any(filename.endswith(ext) for ext in
+               ['.csv', '.csv.gz', '.csv.bz2'])
+    
 def list_corpus_files(*input_files: typing.Union[str, bytes, os.PathLike]):
     all_files = []
     for input_file in input_files:
@@ -62,8 +65,9 @@ def list_corpus_files(*input_files: typing.Union[str, bytes, os.PathLike]):
 def corpus_reader(*input_files: typing.Union[str, bytes, os.PathLike], fieldnames=None):
     for file in list_corpus_files(*input_files):
         with read_open(file) as f:
-            if is_tsv(file):
-                reader = csv.DictReader(f, delimiter='\t', fieldnames=fieldnames)
+            if is_tsv(file) or is_csv(file):
+                delimiter = ',' if is_csv(file) else '\t'
+                reader = csv.DictReader(f, delimiter=delimiter, fieldnames=fieldnames)
                 for row in reader:
                     passage = Passage.from_dict(row)
                     yield passage
