@@ -89,7 +89,13 @@ class ColBERTRetriever(BaseRetriever):
         )
 
         # Placeholder variables
-        self._searcher = None
+        #self._searcher = None
+        self._searcher = Searcher(
+            self.index_name,
+            checkpoint=self.checkpoint,
+            collection=self.collection,
+            config=self._config,
+        )
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -123,7 +129,7 @@ class ColBERTRetriever(BaseRetriever):
     def eval(self, *args, **kwargs):
         pass
 
-    def predict(self, input_texts: List[str], *args, **kwargs) -> Any:
+    def predict(self, input_texts: List[str], return_passages: bool, *args, **kwargs) -> Any:
         """Retrieves relevant documents based on input_texts
 
         Args:
@@ -217,8 +223,6 @@ class DPRRetriever(BaseRetriever):
         self._searcher = DPRSearcher(
             self._config,
         )
-
-
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash

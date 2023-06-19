@@ -1,4 +1,6 @@
 import os
+import re
+import time
 import tempfile
 from typing import List, AnyStr, Union
 from unittest.mock import patch
@@ -17,8 +19,8 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
-from primeqa.components.indexer.dense import DPRIndexer
-from primeqa.components.retriever.dense import DPRRetriever
+from primeqa.components.indexer.dense import ColBERTIndexer, DPRIndexer
+from primeqa.components.retriever.dense import ColBERTRetriever, DPRRetriever
 from primeqa.ir.util.corpus_reader import DocumentCollection
 from transformers import (
     HfArgumentParser,
@@ -33,7 +35,7 @@ class SearchableCorpus:
     * SearchableCorpus.search(queries: List[AnyStr]) - retrieves documents that are relevant to a set of queries
 
     It currently wraps the DPR index, and it will support ColBERT with the same interface soon."""
-    def __init__(self, model_name, query_encoder_model_name_or_path, batch_size=64, top_k=10):
+    def __init__(self, model_name, query_encoder_model_name_or_path=None, batch_size=64, top_k=10, retriever=None):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
         It will automatically detect the index type (DPR, ColBERT, etc).
         Args:
@@ -47,7 +49,7 @@ class SearchableCorpus:
         self.model_name=model_name
         self.qry_model_name=query_encoder_model_name_or_path
         self.output_dir = None
-        self._is_dpr = True
+        self.retriever = retriever
         self.top_k = top_k
         
         # below code assumes HF model download has files in certain naming convention which right now is not valid.
@@ -60,7 +62,7 @@ class SearchableCorpus:
         #     model_name = hf_hub_download(repo_id=model_name, filename="config.json")
         # self.model_name = model_name
         # if os.path.exists(os.path.join(model_name,"ctx_encoder")): # Looks like a DPR model
-        #     self._is_dpr = True
+        #     self.retriever = True
         # else:
         #     self._is_colbert = True
         # self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
@@ -100,7 +102,7 @@ class SearchableCorpus:
                         titles[i] if titles is not None else ""
                     ]) + "\n"
                     )
-        if self._is_dpr:
+        if self.retriever == 'dpr':
             index_args = [
                 "prog",
                 "--bsize", "16",
@@ -129,7 +131,7 @@ class SearchableCorpus:
             (dpr_args, remaining_args) = \
                 parser.parse_args_into_dataclasses(return_remaining_strings=True, args=search_args)
             self.searcher = DPRSearcher(dpr_args)
-        elif self._is_colbert:
+        elif self._is_colbert == 'colbert':
             colbert_parser = Arguments(description='ColBERT indexing')
 
             colbert_parser.add_model_parameters()
@@ -216,22 +218,28 @@ class SearchableCorpus:
         else:
             raise RuntimeError("Unknown indexer type.")
 
-
-    def add_documents(self,input_file):
+    def add_documents(self, input_file):
         doc_class = DocumentCollection(input_file)
         self.tmp_dir = tempfile.TemporaryDirectory()
         self.working_dir = self.tmp_dir.name
+        self.colbert_index_name = f"colbert_index_{re.sub(r'\s+', '_', time.ctime())}"
         os.makedirs(os.path.join(self.working_dir, "processed_data"))
-        out_file= os.path.join(self.working_dir, "processed_data","processed_input.tsv")
-        output_file_path= doc_class.write_corpus_tsv(out_file)
-        dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.model_name, vector_db="FAISS")
-        dpr.index(output_file_path)
+        processed_file = os.path.join(self.working_dir, "processed_data","processed_input.tsv")
+        processed_file_path = doc_class.write_corpus_tsv(processed_file)
 
-        self.searcher = DPRRetriever(self.qry_model_name, indexer=dpr, index_name=dpr.index_name, max_num_documents=self.top_k)
-        #self.searcher=self.searcher.get_searcher()
+        if self.retriever == 'dpr':
+            dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.model_name, vector_db="FAISS")
+            dpr.index(processed_file_path)
 
+            self.searcher = DPRRetriever(self.qry_model_name, indexer=dpr, index_name=dpr.index_name, max_num_documents=self.top_k)
+            #self.searcher=self.searcher.get_searcher()
+        elif self.retriever == 'colbert':
+            colbert = ColBERTIndexer(index_root=self.working_dir, index_name=self.colbert_index_name, checkpoint=self.model_name, model_type="xlm-roberta") 
+            colbert.index(processed_file_path)
 
-        
+            self.searcher = ColBERTRetriever(index_root=self.working_dir, index_name=self.colbert_index_name, max_num_documents=self.top_k)
+        else:
+            raise RuntimeError("Unknown indexer type.")
 
     def select_column(data, col):
         return [d[col] for d in data]
@@ -240,7 +248,7 @@ class SearchableCorpus:
         self.tmp_dir.cleanup()
 
     def search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
-        return self.searcher.predict(input_queries,return_passages=True)
+        return self.searcher.predict(input_queries, return_passages=True)
 
     def search_not_in_use(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         """Retrieves the most relevant documents in the collection for a given set of queries.
@@ -254,7 +262,7 @@ class SearchableCorpus:
             Tuple[List[List[AnyStr]], List[List[Float]]]
             - is a list of document IDs per query and an associated list of scores per query, for all the queries.
             """
-        if self._is_dpr:
+        if self.retriever:
             return self._dpr_search(input_queries, batch_size, **kwargs)
         elif self._is_colbert:
             return self._colbert_search(input_queries, batch_size, **kwargs)
@@ -305,13 +313,13 @@ class SearchableCorpus:
         Returns:
             The list of embeddings (or the one embedding) for the given documents (document).
             """
-        if self._is_dpr:
+        if self.retriever:
             return self._dpr_encode(texts, tokenizer, batch_size, **kwargs)
         elif self._is_colbert:
             return self._colbert_encode(texts, tokenizer, batch_size, **kwargs)
         else:
             print("Unknown indexer type.")
-            raise RuntimeError("Unknown indexer type.")
+            raise RuntimeError("Unknown index`er type.")
 
     def _dpr_encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
         if batch_size < 0:
