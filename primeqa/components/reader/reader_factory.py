@@ -1,6 +1,11 @@
 from dataclasses import dataclass, field
 from primeqa.components.reader.prompt import PromptReader,PromptGPTReader
+from primeqa.components.reader.generative import GenerativeFiDReader
 from typing import List, Dict
+from transformers import AutoConfig
+from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES,MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES
+
+PRIMEQA_GENERATIVE_MODELS = ["BartFiDModelForDownstreamTasks", "T5FiDModelForDownstreamTasks"]
 
 @dataclass
 class GenerativeReader():
@@ -49,13 +54,22 @@ class GenerativeReader():
 
     def __post_init__(self):
         if self.model_type == "HuggingFace":
-            self.reader = PromptReader(model_name=self.model_name, 
-                                       max_new_tokens=self.max_new_tokens,
-                                       min_new_tokens=self.min_new_tokens,
-                                       temperature=self.temperature,
-                                       top_p=self.top_p,
-                                       frequency_penalty=self.frequency_penalty,
-                                       presence_penalty=self.presence_penalty)
+            config = AutoConfig.from_pretrained(self.model_name)
+            if config.architectures[0] in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values() or \
+                config.architectures[0] in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES :
+                self.reader = PromptReader(model_name=self.model_name, 
+                                        max_new_tokens=self.max_new_tokens,
+                                        min_new_tokens=self.min_new_tokens,
+                                        temperature=self.temperature,
+                                        top_p=self.top_p,
+                                        frequency_penalty=self.frequency_penalty,
+                                        presence_penalty=self.presence_penalty)
+            elif config.architectures[0]  in PRIMEQA_GENERATIVE_MODELS:
+                self.reader = GenerativeFiDReader(model=self.model_name,
+                                                 max_answer_length=self.max_new_tokens,
+                                                 generation_max_length=self.max_new_tokens)
+            else:
+                raise Exception(f"The model {self.model_name} is not in the list of supported HuggingFace models")
         elif self.model_type == "OpenAI":
             self.reader = PromptGPTReader(api_key=self.api_key,
                                        model_name=self.model_name, 

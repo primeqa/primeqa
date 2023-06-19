@@ -188,8 +188,8 @@ class GenerativeFiDReader(GenerativeBaseReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]],
         *args,
+        contexts: List[List[str]] = None,
         example_ids: List[str] = None,
         **kwargs,
     ):

@@ -17,22 +17,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PromptBaseReader(BaseReader):
-    prefix: str = field(
-        default="Answer the following question after looking at the text.",
-        metadata={
-            "name": "The prompt prefix",
-            "api_support": False,
-            "exclude_from_hash": True,
-        },
-    )
-    suffix: str = field(
-        default="Answer: ",
-        metadata={
-            "name": "The prompt suffix",
-            "api_support": False,
-            "exclude_from_hash": True,
-        },
-    )
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
