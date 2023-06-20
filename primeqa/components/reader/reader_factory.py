@@ -56,7 +56,7 @@ class GenerativeReader():
         if self.model_type == "HuggingFace":
             config = AutoConfig.from_pretrained(self.model_name)
             if config.architectures[0] in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values() or \
-                config.architectures[0] in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES :
+                config.architectures[0] in MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING_NAMES.values() :
                 self.reader = PromptReader(model_name=self.model_name, 
                                         max_new_tokens=self.max_new_tokens,
                                         min_new_tokens=self.min_new_tokens,
