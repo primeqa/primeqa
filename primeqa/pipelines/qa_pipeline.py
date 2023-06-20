@@ -43,7 +43,7 @@ class RAG:
         self.reader = reader
        
 
-    def run(self, questions: List[str], prefix="", suffix=""):
+    def run(self, questions: List[str], prefix="", suffix="Answer"):
         
         _,search_results = self.retriever.search(questions)
         contexts = [sr['texts'] for sr in search_results]
