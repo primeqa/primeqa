@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import sys
+from primeqa.mrc.processors.postprocessors.scorers import SupportedSpanScorers
 
 default_rank_dir = sys.argv[1]
 # "/dccstor/colbert-ir/bsiyer/vectordb/weaviate/benchmark_1k_q_PassageAllMiniLML6v2/" 
@@ -14,7 +15,7 @@ collection_df = pd.read_csv(info_df['arguments']['collection'], delimiter="\t")
 # load model from model hub
 from primeqa.components.reader.extractive import ExtractiveReader
 
-reader = ExtractiveReader(model="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110", max_num_answers=100)
+reader = ExtractiveReader(model="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110", max_num_answers=100, scorer_type=SupportedSpanScorers.SCORE_DIFF_BASED.value)
 reader.load()
 
 
@@ -67,6 +68,6 @@ q, c, e, p = get_passages(qas_df[int(start):int(end)], collection_df, ranking_df
 result = run(q,c,e,p)
 
 output_dir = sys.argv[4]
-with open(f'/dccstor/srosent3/reranking/{output_dir}/reader_answers_{start}-{end}.json', "w") as outfile:
+with open(f'/dccstor/srosent3/reranking/{output_dir}/reader_answers_diffbased_{start}-{end}.json', "w") as outfile:
     json.dump(result, outfile)
 

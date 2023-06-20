@@ -272,6 +272,15 @@ class ExtractiveReader(BaseReader):
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]
+                processed_prediction["normalized_span_answer_score"] = raw_prediction[
+                    "normalized_span_answer_score"
+                ]
+                processed_prediction["cls_score"] = raw_prediction[
+                    "cls_score"
+                ]
+                processed_prediction["target_type_logits"] = raw_prediction["target_type_logits"]
+                processed_prediction["start_logit"] = raw_prediction["start_logit"]
+                processed_prediction["end_logit"] = raw_prediction["end_logit"]
 
                 predictions[example_id].append(processed_prediction)
 

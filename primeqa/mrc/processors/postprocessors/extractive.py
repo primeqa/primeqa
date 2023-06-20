@@ -193,7 +193,48 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'query_passage_similarity': query_passage_similarity
                         }
                     )
-            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
+            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)
+
+            # here let's discard overlapping spans (keep the first one only) 
+            discard_overlaps = True
+            if discard_overlaps:
+                seen_start = {}
+                seen_end = {}
+                new_example_predictions = []
+                for example in example_predictions:
+                    add_new = True
+                    sort_position = 0
+                    if example['passage_index'] in seen_start:
+                        for index in range(len(seen_start[example['passage_index']])):
+                            if seen_start[example['passage_index']][index] < example['span_answer']['start_position']:
+                                sort_position = index
+                            # skip if any overlap
+                            if (example['span_answer']['start_position'] >= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] <= seen_end[example['passage_index']][index]) or \
+                                (example['span_answer']['start_position'] <= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] <= seen_end[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_start[example['passage_index']][index]) or \
+                                (example['span_answer']['start_position'] >= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_end[example['passage_index']][index] and \
+                                example['span_answer']['start_position'] <= seen_end[example['passage_index']][index] or \
+                                example['span_answer']['start_position'] <= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_end[example['passage_index']][index]):
+                                add_new = False
+                                break
+                    if add_new:
+                        if example['passage_index'] not in seen_start:
+                            seen_start[example['passage_index']] = []
+                            seen_end[example['passage_index']] = []
+                        seen_start[example['passage_index']].append(example['span_answer']['start_position'])
+                        seen_end[example['passage_index']].append(example['span_answer']['end_position'])
+                        new_example_predictions.append(example)
+                    if len(new_example_predictions) >= self._k:
+                        example_predictions = new_example_predictions
+                        break
+                example_predictions = new_example_predictions[:self._k]
+            else:
+                example_predictions = example_predictions[:self._k]
+
             all_predictions[example_id] = example_predictions
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
