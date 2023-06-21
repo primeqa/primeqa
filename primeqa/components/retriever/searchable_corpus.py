@@ -19,7 +19,6 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.components.indexer.dense import DPRIndexer
 from primeqa.components.retriever.dense import DPRRetriever
-from primeqa.ir.util.corpus_reader import DocumentCollection
 from transformers import (
     HfArgumentParser,
     DPRContextEncoderTokenizer
