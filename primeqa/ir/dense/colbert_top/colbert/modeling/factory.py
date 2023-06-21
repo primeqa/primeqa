@@ -31,7 +31,6 @@ def get_colbert_from_pretrained(name, colbert_config):
 
     # currently, we support bert, xlmr and roberta model types ONLY.
 
-    print("printing inside the right branch")
     if name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
         config = dnn_checkpoint.get('config', None)
