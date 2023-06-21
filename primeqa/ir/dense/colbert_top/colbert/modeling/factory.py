@@ -16,6 +16,9 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_roberta import HF_
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.doc_tokenization_roberta import DocTokenizerRoberta
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenization_roberta import QueryTokenizerRoberta
 
+# Custom imports
+from primeqa.ir.dense.colbert_top.colbert.modeling.hf_colbert_custom import HF_ColBERT_custom
+
 import re
 import os
 import json
@@ -46,7 +49,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         config = None
 
     assert checkpoint_model_type == colbert_config.model_type or \
-            checkpoint_model_type.startswith(colbert_config.model_type), \
+            checkpoint_model_type.startswith(colbert_config.model_type) or \
+            colbert_config.model_type == 'custom', \
             f"Passed Model type {colbert_config.model_type} does \
             not match checkpoint Model type {checkpoint_model_type}"
 
@@ -71,6 +75,13 @@ def get_colbert_from_pretrained(name, colbert_config):
             colbert.load_state_dict(name)
         else:
             colbert = HF_ColBERT_Roberta.from_pretrained(name, colbert_config)
+    elif model_type == 'custom':
+        if config:
+            colbert = HF_ColBERT_custom(config, colbert_config)
+            colbert.load_state_dict(name)
+        else:
+            colbert = HF_ColBERT_custom.from_pretrained(name, colbert_config)
+
     else:
         raise NotImplementedError(f"Model type: {model_type} is not supported.")
 
@@ -84,7 +95,7 @@ def get_query_tokenizer(name, colbert_config):
 
     print_message(f"factory model type: {model_type}")
 
-    if model_type == 'bert':
+    if model_type == 'bert' or model_type == 'custom':
         return QueryTokenizer(maxlen, name, attend_to_mask_tokens)
     elif model_type == 'xlm-roberta':
         return QueryTokenizerXLMR(maxlen, name)
@@ -100,7 +111,7 @@ def get_doc_tokenizer(name, colbert_config, is_teacher=False):
 
     print_message(f"factory model type: {model_type}")
 
-    if model_type == 'bert':
+    if model_type == 'bert' or model_type == 'custom':
         return DocTokenizer(maxlen, name)
     elif model_type == 'xlm-roberta':
         return DocTokenizerXLMR(maxlen, name)

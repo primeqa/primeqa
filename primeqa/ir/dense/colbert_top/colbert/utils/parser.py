@@ -42,7 +42,7 @@ class Arguments():
         self.add_argument('--resume_optimizer', dest='resume_optimizer', default=False, action='store_true')
         self.add_argument('--checkpoint', dest='checkpoint', default=None, required=False)
 
-        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert','xlm-roberta', 'roberta'], required=False)
+        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert','xlm-roberta', 'roberta', 'custom'], required=False)
 
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
