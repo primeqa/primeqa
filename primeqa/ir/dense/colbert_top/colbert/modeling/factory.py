@@ -31,11 +31,15 @@ def get_colbert_from_pretrained(name, colbert_config):
 
     # currently, we support bert, xlmr and roberta model types ONLY.
 
+    print("printing inside the right branch")
     if name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
         config = dnn_checkpoint.get('config', None)
         if config:
+            delattr(PretrainedConfig, 'model_type')
             config = PretrainedConfig.from_dict(config)
+            if not hasattr(config, 'hidden_size'):
+                config.hidden_size = config.d_model
         checkpoint_model_type = dnn_checkpoint['model_type']
     else:
         checkpoint_config = AutoConfig.from_pretrained(name)
@@ -93,12 +97,12 @@ def get_query_tokenizer(name, colbert_config):
 #----------------------------------------------------------------
 def get_doc_tokenizer(name, colbert_config, is_teacher=False):
     model_type = colbert_config.model_type
-    maxlen = config.teacher_doc_maxlen if is_teacher else colbert_config.doc_maxlen
+    maxlen = colbert_config.teacher_doc_maxlen if is_teacher else colbert_config.doc_maxlen
 
     print_message(f"factory model type: {model_type}")
 
     if model_type == 'bert':
-        return DocTokenizer(maxlen,name)
+        return DocTokenizer(maxlen, name)
     elif model_type == 'xlm-roberta':
         return DocTokenizerXLMR(maxlen, name)
     elif model_type == 'roberta':

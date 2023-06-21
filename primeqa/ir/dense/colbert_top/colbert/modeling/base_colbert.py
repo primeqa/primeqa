@@ -21,7 +21,7 @@ class BaseColBERT(torch.nn.Module):
     def __init__(self, name, colbert_config=None):
         super().__init__()
 
-        print_message(f"#>>>>> at BaseColBERT name (model type) : {name}")
+        print_message(f"#>>>>> at BaseColBERT name (model name) : {name}")
 
         self.name = name
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)

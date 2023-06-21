@@ -5,6 +5,8 @@ from primeqa.ir.dense.colbert_top.colbert.infra import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.utils import _split_into_batches
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import batch
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
+
+
 class QueryTokenizer():
     #     def __init__(self, config: ColBERTConfig):
     def __init__(self, query_maxlen, model_type, attend_to_mask_tokens ):

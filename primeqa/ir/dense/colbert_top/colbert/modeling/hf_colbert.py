@@ -43,8 +43,7 @@ class HF_ColBERT(BertPreTrainedModel):
             state_dict=dnn['model_state_dict']
             from collections import OrderedDict
             import re
-            state_dict = OrderedDict([(re.sub(r'^model.bert.', 'bert.', key), value) for key, value in state_dict.items()])
-            state_dict = OrderedDict([(re.sub(r'^model.linear.', 'linear.', key), value) for key, value in state_dict.items()])
+            state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
             obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
             #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
             obj.base = base
@@ -57,7 +56,7 @@ class HF_ColBERT(BertPreTrainedModel):
         return obj
 
     def load_state_dict(self, name):
-        assert name.endswith('dnn') or name.endswith('.model'), f"name is not valid colbert checkpoint ending with '.dnn' or '.model'"
+        assert name.endswith('dnn') or name.endswith('.model'), f"{name} is not valid colbert checkpoint ending with '.dnn' or '.model'"
         dnn = torch_load_dnn(name)
         state_dict = dnn['model_state_dict']
 
@@ -66,7 +65,7 @@ class HF_ColBERT(BertPreTrainedModel):
 
         state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
 
-        self.base = "roberta-base"
+        self.base = "bert-base-uncased"
         super().load_state_dict(state_dict)
 
     @staticmethod

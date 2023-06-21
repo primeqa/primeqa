@@ -45,6 +45,14 @@ class ColBERTReranker(BaseReranker):
             "description": "Path to model",
         },
     )
+    model_type: str = field(
+        default="xlm-roberta",
+        metadata={
+            "name": "Model Type",
+            "api_support": True,
+            "description": "Type of encoder architecture",
+        },
+    )
 
     doc_maxlen: int = field(
         default=180,
@@ -69,6 +77,7 @@ class ColBERTReranker(BaseReranker):
             index_root=None,
             index_name=None,
             index_path=None,
+            model_type=self.model_type,
             doc_maxlen=self.doc_maxlen,
             query_maxlen = self.query_maxlen
         )

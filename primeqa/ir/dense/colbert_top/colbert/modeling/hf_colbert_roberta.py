@@ -56,7 +56,7 @@ class HF_ColBERT_Roberta(RobertaModel):
         return obj
 
     def load_state_dict(self, name):
-        assert name.endswith('dnn') or name.endswith('.model'), f"name is not valid colbert checkpoint ending with '.dnn' or '.model'"
+        assert name.endswith('dnn') or name.endswith('.model'), f"{name} is not valid colbert checkpoint ending with '.dnn' or '.model'"
         dnn = torch_load_dnn(name)
         state_dict = dnn['model_state_dict']
 

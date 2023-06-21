@@ -22,7 +22,7 @@ class ColBERT(BaseColBERT):
 
     def __init__(self, name=None, colbert_config=None):
 
-        print_message(f"#>>>>> at ColBERT name (model type) : {name}")
+        print_message(f"#>>>>> at ColBERT name (model name) : {name}")
 
         super().__init__(name, colbert_config)
         self.use_gpu = torch.cuda.is_available()
