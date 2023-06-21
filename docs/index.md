@@ -111,6 +111,7 @@ to erroneous or unexpected input argument.
     development
     testing
     api/index
+    tutorials/index
 ```
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 
