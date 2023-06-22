@@ -88,7 +88,7 @@ def rank_by_confidence(results, data, alpha=.7, beta=.3):
 
 #     return orig_scores, rerank_scores
 
-def doc_match_at_k(row, k_params=[1, 3, 10]):
+def doc_match_at_k(row, k_params=[1, 3, 10, 40]):
 
 
     # update order of document_ids to match ['order']
@@ -153,17 +153,25 @@ print(len(results))
 
 normalize_passage_scores(data_df)
 
+k_params=[1, 3, 10, 40]
+means = {}
 for i in range(11):
     alpha = round(i*.10,2)
     beta = round((10-i)*.10,2)
-    print(f'retriever weight: {alpha}, reader weight: {beta}')
+    # print(f'retriever weight: {alpha}, reader weight: {beta}')
     ranked_answer, order_answers = rank_by_confidence(results, data_df, alpha=alpha, beta=beta)
     # orig_scores, rerank_scores = compute_recall(data_df, order_answers)
     data_df = update_data(data_df, order_answers)
-    mean = data_df.apply(doc_match_at_k, axis=1).mean()
+    mean = data_df.apply(doc_match_at_k, axis=1, k_params=k_params).mean()
+    means[f'{alpha}-{beta}'] = mean
 
-    print(mean)
+    # print(mean)
     # print(f'orig: {orig_scores}')
     # print(f'rerank: {rerank_scores}')
-
+print(str(list(means.keys()))[1:-1])
+for k in k_params:
+    k_means = f"{k},"
+    for mean in means:
+        k_means += f"{means[mean][k]},"
+    print(k_means)
 # data_df.to_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking/output/dataset-retrieval-reranking=reader/" + "/output.csv", header=True)
