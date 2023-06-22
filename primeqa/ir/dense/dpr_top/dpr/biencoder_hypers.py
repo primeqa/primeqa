@@ -7,7 +7,8 @@ class BiEncoderHypers(HypersBase):
         super().__init__()
         # use 'facebook/dpr-ctx_encoder-multiset-base', 'facebook/dpr-question_encoder-multiset-base'
         # or 'facebook/dpr-question_encoder-single-nq-base', 'facebook/dpr-ctx_encoder-single-nq-base'
-        self.qry_encoder_name_or_path = 'facebook/dpr-question_encoder-multiset-base'
+        #self.qry_encoder_name_or_path = 'facebook/dpr-question_encoder-multiset-base'
+        self.qry_encoder_name_or_path = 'facebook/dpr-ctx_encoder-multiset-base'
         self.ctx_encoder_name_or_path = 'facebook/dpr-ctx_encoder-multiset-base'
         self.encoder_gpu_train_limit = 8  # max number of instances to encode (-1) to disable gradient checkpointing
 

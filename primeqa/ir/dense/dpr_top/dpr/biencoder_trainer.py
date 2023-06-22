@@ -61,8 +61,11 @@ class BiEncoderTrainer():
                          'Train with a single GPU or with --encoder_gpu_train_limit 0')
             exit(1)
 
-        self.qry_tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.args.qry_encoder_name_or_path)
+        #self.qry_tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.args.qry_encoder_name_or_path)
         self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.args.ctx_encoder_name_or_path)
+        # The query tokenizer is the same as the context tokenizer
+        self.qry_tokenizer = self.ctx_tokenizer
+        
         self.model = BiEncoder(self.args)
         self.model.to(self.args.device)
         self.model.train()
@@ -84,7 +87,8 @@ class BiEncoderTrainer():
         checkpoint['epoch'] = self.loader.on_epoch
         checkpoint['batch'] = batch_num
 
-        checkpoint['qry_model_state_dict'] = self.model.qry_model.state_dict()
+        # Only the context model is kept
+        #checkpoint['qry_model_state_dict'] = self.model.qry_model.state_dict()
         checkpoint['ctx_model_state_dict'] = self.model.ctx_model.state_dict()
 
         checkpoint['optimizer_state_dict'] = self.optimizer.optimizer.state_dict()
@@ -114,9 +118,11 @@ class BiEncoderTrainer():
         self.loader.on_epoch = checkpoint['epoch']
         self.first_batch_num = checkpoint['batch'] + 1
 
-        self.model.qry_model.load_state_dict(checkpoint['qry_model_state_dict'])  # , strict=False)
+        #self.model.qry_model.load_state_dict(checkpoint['qry_model_state_dict'])  # , strict=False)
         self.model.ctx_model.load_state_dict(checkpoint['ctx_model_state_dict'])  # , strict=False)
-
+        # The query model is the same as the context model 
+        self.model.qry_model = self.model.ctx_model
+        
         self.optimizer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.optimizer.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
 
@@ -130,7 +136,7 @@ class BiEncoderTrainer():
 
     def save_tokenizers(self):
         self.ctx_tokenizer.save_pretrained(os.path.join(self.args.output_dir, 'ctx_encoder'))
-        self.qry_tokenizer.save_pretrained(os.path.join(self.args.output_dir, 'qry_encoder'))
+        #self.qry_tokenizer.save_pretrained(os.path.join(self.args.output_dir, 'qry_encoder'))
 
     def train(self):
         self.save_tokenizers()

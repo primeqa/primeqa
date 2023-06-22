@@ -8,6 +8,7 @@ import ujson as json
 import logging
 
 from transformers import (DPRQuestionEncoder, DPRQuestionEncoderTokenizer, DPRQuestionEncoderTokenizerFast)
+from transformers import (DPRContextEncoder, DPRContextEncoderTokenizer, DPRContextEncoderTokenizerFast)
 
 from primeqa.ir.dense.dpr_top.util.line_corpus import read_lines, write_open
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
@@ -57,10 +58,12 @@ class DPRSearcher():
 
         self.opts.qry_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.qry_encoder_name_or_path)
 
-        self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+        self.qencoder = DPRContextEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+        #self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
         self.qencoder = self.qencoder.to(self.device)
         self.qencoder.eval()
-        self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
+        #self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
+        self.tokenizer = DPRContextEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
 
         # from corpus_server_direct.run
         # we either have a single index.faiss or we have an index for each offsets/passages
