@@ -36,7 +36,6 @@ class QAPipeline:
 
         return result
 
-
 class RAG:
     def __init__(self, retriever: SearchableCorpus, reader: GenerativeReader) -> None:
         self.retriever = retriever

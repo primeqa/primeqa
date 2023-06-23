@@ -9,8 +9,26 @@ PRIMEQA_GENERATIVE_MODELS = ["BartFiDModelForDownstreamTasks", "T5FiDModelForDow
 
 @dataclass
 class GenerativeReader():
+    '''
+    This class will initialize the correct generative reader component based on the model type and model name.
+    
+    Parameters:
+        model_type (str): Model type: HuggingFace, OpenAI
+        model_name (str): The model, default google/flan-t5-large
+        api_key (str): The API key for OpenAI
+        max_new_tokens (int): Maximum length of question and context inputs to the model (in word pieces/bpes)
+        min_new_tokens (int): Minimum new tokens that must be generated (in word pieces/bpes
+        temperature (float): The temperature parameter
+        top_p (float): The top_p parameter
+        top_k (float): The top_k parameter 
+        frequency_penalty (int): Generation argument for OpenAI
+        presence_penalty (int): eneration argument for OpenAI
+        
+    Returns:
+        reader (Reader): the generative reader innitialized by the class
+    '''
     api_key: str = field(
-        metadata={"name": "The API key for BAM https://bam.res.ibm.com/"}, default=None
+        metadata={"name": "The API key for OpenAI"}, default=None
     )
     model_type: str = field(
         default="HuggingFace",
@@ -91,6 +109,14 @@ class GenerativeReader():
         *args,
         **kwargs,
     ) -> Dict[str, List[Dict]]:
+        '''
+            Parameters:
+                questions (List[str]): List of questions to be answered
+                contexts (List[List[str]]): List of contexts for every question
+                example_ids (List[str]): A list of question ids, when available. Default None
+            Returns:
+                the predictions from the reader component
+        '''
         return self.reader.predict(questions,
                                     contexts=contexts,
                                     example_ids=example_ids,

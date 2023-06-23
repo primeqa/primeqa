@@ -31,6 +31,6 @@ if __name__ == "__main__":
                 for rank, (ans, score) in enumerate(zip(res[q], scores[q])):
                     out.write("\t".join([queries[q]['id'], ans, str(rank+1), str(score)])+"\n")
     answers = []
- 
+
     score = compute_score(queries, passages, res, [1,3,5,10], args.verbose)
     print(f"Score is: {json.dumps(score, indent=2)}")
