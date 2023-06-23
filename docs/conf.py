@@ -171,16 +171,16 @@ html_sidebars = {
         "tutorials/index": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
-        "tutorials/01_Index_Documents_with_DPR.ipynb": [
+        "tutorials/01_Index_Documents_with_DPR": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
         "tutorials/02_RAG_Generator": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
-        "tutorials/03_ReRank_search_results.ipynb": [
+        "tutorials/03_ReRank_search_results": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
-        "tutorials/04_Finetune_LLM_for_QA_with_QLORA.ipynb": [
+        "tutorials/04_Finetune_LLM_for_QA_with_QLORA": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
         "pull_request_template": [
