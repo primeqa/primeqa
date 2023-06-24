@@ -41,7 +41,8 @@ def handle_args():
     parser.add_argument('--input_queries', '-r', required=True)
 
     parser.add_argument('--db_engine', '-e', default='pinecone',
-                        choices=['pinecone', 'pqa', 'pqa_colbert', 'chromadb', 'milvus', 'faiss'], required=False)
+                        choices=['pinecone', 'pqa', 'pqa_colbert', 'chromadb', 'milvus',
+                                 'faiss', 'es', 'es-esre'], required=False)
     parser.add_argument('--output_ranks', '-o', default="", help="The output rank file.")
 
     parser.add_argument('--num_embeddings_deleted', '-n', type=int, default=100, )
@@ -82,11 +83,13 @@ def time_str(seconds: float) -> str:
     return f'{seconds:.1f} seconds'
 
 
-def report_time(last_time):
+def report_time(last_time, count=None):
     now = time.time()
     elapsed = now - last_time
-
-    print(f'took {time_str(elapsed)}')
+    res = f'took {time_str(elapsed)}'
+    if count is not None:
+        res += f" for {count} items - {count*1.0/elapsed:.1f} items/s"
+    print(res)
     return now
 
 
@@ -213,6 +216,9 @@ def main():
         "metric_type": "L2",
         "params": {"M": 8, "efConstruction": 64},
     }
+    if args.db_engine.startswith("es"):
+        import logging
+        logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
     query_vectors = []
     # === initialize index and engine
@@ -242,78 +248,8 @@ def main():
                 )
             # connect to the index
             index = pinecone.GRPCIndex(index_name)
-        elif args.db_engine == "pqa":
+        elif args.db_engine.startswith("pqa"):
             collection = SearchableCorpus(args.model_name, top_k=args.top_k, batch_size=64)
-            # from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer
-            # from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
-            # if args.model_name is None:
-            #     print("You need to specify the encoder if you're going to use PrimeQA: use --model_name|-m argument")
-            #     sys.exit(1)
-            #
-            # os.makedirs(output_dir, exist_ok=True)
-            # print(output_dir)
-            #
-            # index_args = [
-            #     "prog",
-            #     "--engine_type", "DPR",
-            #     "--do_index",
-            #     "--bsize", "16",
-            #     "--ctx_encoder_name_or_path", os.path.join(args.model_name,"ctx_encoder"),
-            #     "--embed", "1of1",
-            #     "--output_dir", os.path.join(output_dir, "index"),
-            #     "--shared_index",
-            #     "--collection", args.input_passages,
-            # ]
-            #
-            # with patch.object(sys, 'argv', index_args):
-            #     parser = HfArgumentParser(DPRIndexingArguments)
-            #     (dpr_args, remaining_args) = \
-            #         parser.parse_args_into_dataclasses(return_remaining_strings=True)
-            #     indexer = DPRIndexer(dpr_args)
-            #     indexer.index()
-        elif args.db_engine == "pqa_colbert":
-            collection = SearchableCorpus(args.model_name, top_k=args.top_k, batch_size=64)
-            # from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
-            # from primeqa.ir.dense.colbert_top.colbert.infra import Run, RunConfig
-            # from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
-            # from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
-            #
-            # colbert_parser = Arguments(description='ColBERT indexing')
-            #
-            # colbert_parser.add_model_parameters()
-            # colbert_parser.add_model_inference_parameters()
-            # colbert_parser.add_indexing_input()
-            # colbert_parser.add_compressed_index_input()
-            # colbert_parser.add_argument('--nway', dest='nway', default=2, type=int)
-            # cargs = None
-            # index_args = [
-            #     "prog",
-            #     "--engine_type", "ColBERT",
-            #     "--do_index",
-            #     "--amp",
-            #     "--bsize", "256",
-            #     "--mask-punctuation",
-            #     "--doc_maxlen", "180",
-            #     "--model_name_or_path", args.model_name,
-            #     "--index_name", os.path.join(output_dir, "index"),
-            #     "--root", args.colbert_root,
-            #     "--nbits", "4",
-            #     "--kmeans_niters", "20",
-            #     "--collection", args.input_passages,
-            # ]
-            #
-            # with patch.object(sys, 'argv', index_args):
-            #     cargs = colbert_parser.parse()
-            #
-            # args_dict = vars(cargs)
-            # # remove keys not in ColBERTConfig
-            # args_dict = {key: args_dict[key] for key in args_dict if key not in ['run', 'nthreads', 'distributed', 'compression_level', 'input_arguments']}
-            # # args_dict to ColBERTConfig
-            # colBERTConfig = ColBERTConfig(**args_dict)
-            #
-            # with Run().context(RunConfig(root=cargs.root, experiment=cargs.experiment, nranks=cargs.nranks, amp=cargs.amp)):
-            #     indexer = Indexer(cargs.checkpoint, colBERTConfig)
-            #     indexer.index(name=cargs.index_name, collection=cargs.collection, overwrite=True)
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
@@ -326,13 +262,27 @@ def main():
             #     collection = client.create_collection("vectordbtest")
         elif args.db_engine == "milvus":
             create_milvusdb()
-        elif args.db_engine == faiss:
+        elif args.db_engine == "faiss":
             pass
+        elif args.db_engine.startswith("es"):
+            from elasticsearch import Elasticsearch
+            ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+            client = Elasticsearch("https://localhost:9200",
+                                   ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+                                   basic_auth = ("elastic", ELASTIC_PASSWORD)
+                                   )
     else:
         if args.db_engine == 'pinecone':
             import pinecone
             # connect to the index
             index = pinecone.GRPCIndex(index_name)
+        elif args.db_engine.startswith("es"):
+            from elasticsearch import Elasticsearch
+            ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+            client = Elasticsearch("https://localhost:9200",
+                                   ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+                                   basic_auth = ("elastic", ELASTIC_PASSWORD)
+                                   )
 
     model = None
     # === create embeddings
@@ -464,6 +414,91 @@ def main():
             to_index = np.array(passage_vectors)
             index.train(to_index)
             index.add(to_index)
+        elif args.db_engine == "es":
+            mappings = {
+                "properties": {
+                    "title": {"type": "text", "analyzer": "english"},
+                    "text": {"type": "text", "analyzer": "english"},
+                    "vector": {"type": "dense_vector", "dims": hidden_dim,
+                               "similarity": "cosine", "index": "true"},
+                }
+            }
+            if client.indices.exists(index=index_name):
+                client.options(ignore_status=[400,404]).indices.delete(index=index_name)
+            client.indices.create(index=index_name, mappings=mappings)
+            import logging
+            logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
+            for ri, row in enumerate(input_passages):
+                doc = {'text': row['text'],
+                       'title': row['title'],
+                       'vector': passage_vectors[ri]}
+                client.index(index=index_name, id=row['id'], document=doc)
+        elif args.db_engine == "es-esre":
+            mappings = {
+                "properties": {
+                    "ml.tokens": {
+                        "type": "rank_features"
+                    },
+                    "title": {"type": "text", "analyzer": "english"},
+                    "text": {"type": "text", "analyzer": "english"},
+                }
+            }
+            mappings1 = {
+                "properties": {
+                    "title": {"type": "text", "analyzer": "english"},
+                    "text": {"type": "text", "analyzer": "english"},
+                }
+            }
+            processors = [
+                {
+                "inference": {
+                "model_id": ".elser_model_1",
+                "target_field": "ml",
+                "field_map": {
+                    "text": "text_field"
+                },
+                "inference_config": {
+                    "text_expansion": {
+                    "results_field": "tokens"
+                    }
+                }
+                }}
+            ]
+            bulk_batch = 20
+            from elasticsearch.helpers import bulk
+            if client.indices.exists(index=index_name):
+                client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
+            if client.indices.exists(index=f"{index_name}-tmp"):
+                client.options(ignore_status=[400, 404]).indices.delete(index=f"{index_name}-tmp")
+            client.indices.create(index=f"{index_name}-tmp", mappings=mappings1)
+            client.indices.create(index=f"{index_name}", mappings=mappings)
+            client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
+            actions = []
+            for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):
+                actions.append({
+                    "_index": index_name,
+                    "_id": row['id'],
+                    "_source": {
+                        'text': row['text'],
+                        'title': row['title']
+                    }
+                }
+                )
+                if ri % bulk_batch == bulk_batch-1:
+                    try:
+                        bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                    except Exception as e:
+                        print(f"Got an error in indexing: {e}, {len(actions)}")
+                    actions = []
+                try:
+                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                except Exception as e:
+                    print(f"Got an error in indexing: {e}, {len(actions)}")
+                # client.index(index=f"{index_name}-tmp", id=row['id'], document=doc)
+            # client.reindex(source={"index": f"{index_name}-tmp",
+            #                        "size": 50},
+            #                dest={"index": index_name,
+            #                      "pipeline": "elser-v1-test"})
         print('=== done creating index')
         last_time = report_time(last_time)
 
@@ -474,6 +509,9 @@ def main():
         if args.db_engine == 'pinecone':
             deleted_embedding_ids_str = [str(id) for id in deleted_embedding_ids]
             index.delete(ids=deleted_embedding_ids_str)  # , namespace='example-namespace')
+        elif args.db_engine == 'es':
+            for id in deleted_embedding_ids:
+                client.delete(index=index_name, id=id)
 
         print('=== done testing index items deletion')
         last_time = report_time(last_time)
@@ -485,6 +523,13 @@ def main():
                 metadatas = [input_passages[id] for id in deleted_embedding_ids]
                 records = zip(deleted_embedding_ids_str, vectors, metadatas)
                 index.upsert(vectors=records)
+            elif args.db_engine == 'es':
+                for id in deleted_embedding_ids:
+                    client.index(index=index_name,
+                                 id=id,
+                                 document={'text': input_passages[id]['text'],
+                                           'title': input_passages[id]['title'],
+                                           'vector': passage_vectors[id]})
 
             print('=== done testing index items insertion')
             last_time = report_time(last_time)
@@ -573,9 +618,43 @@ def main():
                 )
                 for rank, hit in enumerate(ann[0]):
                     out_ranks.append([input_queries[query_number]['id'], ids[hit], rank + 1, distances[0][rank]])
+        elif args.db_engine == 'es':
+            for query_number in tqdm(range(len(input_queries))):
+                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+                query = {
+                        "field": "vector",
+                        "query_vector": query_vector,
+                        "k": args.top_k,
+                        "num_candidates": 1000,
+                }
+                res = client.search(
+                    index=index_name,
+                    knn=query,
+                    source_excludes=['vector']
+                )
+                for rank, r in enumerate(res._body['hits']['hits']):
+                    out_ranks.append([input_queries[query_number]['id'], r['_id'], rank+1, r['_score']])
+        elif args.db_engine == 'es-esre':
+            for query_number in tqdm(range(len(input_queries))):
+                # query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+                query = {
+                        "text_expansion": {
+                            "ml.tokens": {
+                                "model_id": ".elser_model_1",
+                                "model_text": input_queries[query_number]['text']
+                            }
+                        }
+                }
+                res = client.search(
+                    index=index_name,
+                    query=query,
+                    size=args.top_k,
+                )
+                for rank, r in enumerate(res._body['hits']['hits']):
+                    out_ranks.append([input_queries[query_number]['id'], r['_id'], rank+1, r['_score']])
 
         print('=== done running retrieval')
-        last_time = report_time(last_time)
+        last_time = report_time(last_time, len(input_queries))
 
         with open(args.output_ranks, 'w') as out_file:
             tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
