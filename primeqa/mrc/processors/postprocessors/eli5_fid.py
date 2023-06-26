@@ -26,6 +26,8 @@ class ELI5FiDPostProcessor(AbstractPostProcessor):
         preds = predictions.predictions
         if isinstance(preds, tuple):
             preds = preds[0]
+        # Workaround after the transformers seq2seq trainer bug
+        preds[preds==-100]=self.tokenizer.pad_token_id
         decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
 
         # Build a map example to its corresponding features.

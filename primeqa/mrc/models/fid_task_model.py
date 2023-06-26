@@ -95,6 +95,10 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
     def generate(self, input_ids, **gen_kwargs):
         encoder = self.get_encoder()
         encoder.n_passages = input_ids.size(1)
+        # The trainer loop in pevious version of transformers used to remove the labels
+        # We remove the labels in generate as a workaround 
+        if 'labels' in gen_kwargs:
+            del gen_kwargs['labels']
         return super().generate(
             input_ids,
             **gen_kwargs
