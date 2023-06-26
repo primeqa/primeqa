@@ -211,7 +211,8 @@ class DPRIndexer(BaseIndexer):
             ctx_encoder_name_or_path=self.ctx_encoder_model_name_or_path,
             sharded_index=self.sharded_index,
         )
-        assert not self.vector_db is not 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
+        assert not self.vector_db != 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
+
 
         # Placeholder variables
         self._indexer = None

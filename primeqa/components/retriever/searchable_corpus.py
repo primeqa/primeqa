@@ -19,7 +19,6 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.components.indexer.dense import DPRIndexer
 from primeqa.components.retriever.dense import DPRRetriever
-from primeqa.ir.util.corpus_reader import DocumentCollection
 from transformers import (
     HfArgumentParser,
     DPRContextEncoderTokenizer
@@ -33,19 +32,34 @@ class SearchableCorpus:
     * SearchableCorpus.search(queries: List[AnyStr]) - retrieves documents that are relevant to a set of queries
 
     It currently wraps the DPR index, and it will support ColBERT with the same interface soon."""
-    def __init__(self, model_name, query_encoder_model_name_or_path, batch_size=64, top_k=10):
+
+    def __init__(self,
+                 context_encoder_name_or_path=None,
+                 query_encoder_name_or_path=None,
+                 model_name=None,
+                 batch_size=64,
+                 top_k=10):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
-        It will automatically detect the index type (DPR, ColBERT, etc).
+        It will automatically detect the index type (DPR, ColBERT, etc). Note: for DPR models, you need to
+        define the context_encoder_name_or_path and query_encoder_name_or_path variables, for all other models
+        you need to define the model_name parameter.
         Args:
-            * model_name: AnyStr -
+            :param model_name: AnyStr -
                  defines the model - it should either be a HuggingFace id or a directory
-            * batch_size: int
+            :param context_encoder_name_or_path: AnyStr - defines the context encoder. For DPR only.
+            :param query_encoder_name_or_path: AnyStr - defines the query encoder. For DPR only.
+            :param batch_size: int
                  defines the ingestion batch size.
-            * top_k: int
+            :param top_k: int
                  - defines the default number of retrieved answers. It can be changed in .search()
             """
+        self.ctx_encoder_name=context_encoder_name_or_path
+        self.qry_encoder_name=query_encoder_name_or_path
         self.model_name=model_name
-        self.qry_model_name=query_encoder_model_name_or_path
+        if self.model_name is None:
+            if self.ctx_encoder_name is None or self.qry_encoder_name is None:
+                raise RuntimeError("Error: in SearchableCorpus.__init__, if model_name is None, then both "
+                                   "context_encoder_name_or_path and query_encoder_name_or_path have to be defined!")
         self.output_dir = None
         self._is_dpr = True
         self.top_k = top_k
@@ -65,11 +79,11 @@ class SearchableCorpus:
         #     self._is_colbert = True
         # self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
         #     os.path.join(self.model_name,"ctx_encoder"))
-        # self.tmp_dir = None
-        # self.indexer = None
-        # self.searcher = None
-        # self.input_passages = None
-        # self.working_dir = None
+        self.tmp_dir = None
+        self.indexer = None
+        self.searcher = None
+        self.input_passages = None
+        self.working_dir = None
 
 
     def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
@@ -104,7 +118,7 @@ class SearchableCorpus:
             index_args = [
                 "prog",
                 "--bsize", "16",
-                "--ctx_encoder_name_or_path", os.path.join(self.model_name, "ctx_encoder"),
+                "--ctx_encoder_name_or_path", os.path.join(self.ctx_encoder_name, "ctx_encoder"),
                 "--embed", "1of1",
                 "--output_dir", os.path.join(self.output_dir, "index"),
                 "--collection", self.input_passages,
@@ -119,7 +133,7 @@ class SearchableCorpus:
             search_args = [
                 "prog",
                 "--engine_type", "DPR",
-                "--model_name_or_path", os.path.join(self.model_name, "qry_encoder"),
+                "--model_name_or_path", os.path.join(self.qry_encoder_name, "qry_encoder"),
                 "--bsize", "1",
                 "--index_location", os.path.join(self.output_dir, "index"),
                 "--top_k", str(self.top_k),
@@ -218,16 +232,20 @@ class SearchableCorpus:
 
 
     def add_documents(self,input_file):
-        doc_class = DocumentCollection(input_file)
-        self.tmp_dir = tempfile.TemporaryDirectory()
-        self.working_dir = self.tmp_dir.name
-        os.makedirs(os.path.join(self.working_dir, "processed_data"))
-        out_file= os.path.join(self.working_dir, "processed_data","processed_input.tsv")
-        output_file_path= doc_class.write_corpus_tsv(out_file)
-        dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.model_name, vector_db="FAISS")
-        dpr.index(output_file_path)
+        # doc_class = DocumentCollection(input_file)
+        # self.tmp_dir = tempfile.TemporaryDirectory()
+        # self.working_dir = self.tmp_dir.name
+        # os.makedirs(os.path.join(self.working_dir, "processed_data"))
+        # out_file= os.path.join(self.working_dir, "processed_data","processed_input.tsv")
+        # output_file_path= doc_class.write_corpus_tsv(out_file)
+        dpr = DPRIndexer(ctx_encoder_model_name_or_path=self.ctx_encoder_name, vector_db="FAISS")
+        dpr.index(input_file)
 
-        self.searcher = DPRRetriever(self.qry_model_name, indexer=dpr, index_name=dpr.index_name, max_num_documents=self.top_k)
+        self.searcher = DPRRetriever(index_root=dpr.index_root,
+                                     query_encoder_model_name_or_path=self.qry_encoder_name,
+                                     indexer=dpr,
+                                     index_name=dpr.index_name,
+                                     max_num_documents=self.top_k)
         #self.searcher=self.searcher.get_searcher()
 
 

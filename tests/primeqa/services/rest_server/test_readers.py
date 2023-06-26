@@ -25,6 +25,6 @@ def test_get_readers(mock_client):
     assert len(readers) == 3
     assert [
         "ExtractiveReader",
-        "GenerativeReader",
-        "PromptReader",
+        "GenerativeBaseReader",
+        "PromptBaseReader",
     ] == [reader["reader_id"] for reader in readers]
