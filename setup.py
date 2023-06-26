@@ -73,9 +73,9 @@ _deps = {
     "scikit-learn~=1.0.2": ["install", "gpu"],
     "signals~=0.0.2": ["install", "gpu"],
     "stanza~=1.4.0": ["install", "gpu"],
-    "torch~=1.11.0": ["install", "gpu"],
+    "torch~=2.0.1": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
-    "transformers~=4.24.0": ["install", "gpu"],
+    "transformers~=4.30.2": ["install", "gpu"],
     "sentence_transformers": ["install", "gpu"],
     "tensorboard":["install", "gpu"],
     "sentencepiece~=0.1.96": ["install", "gpu"],
@@ -99,7 +99,8 @@ _deps = {
     "cachetools~=5.2.0": ["install", "gpu"],
     "sqlitedict~=2.0.0": ["install", "gpu"],
     "openai~=0.27.0": ["install", "gpu"],
-    "nltk~=3.8.1": ["install", "gpu"]
+    "nltk~=3.8.1": ["install", "gpu"],
+    "accelerate~=0.20.3": ["install"]
 }
 
 extras_names = ["docs", "dev", "install", "notebooks", "tests", "gpu"]
