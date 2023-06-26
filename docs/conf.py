@@ -174,7 +174,7 @@ html_sidebars = {
         "tutorials/01_Index_Documents_with_DPR": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
-        "tutorials/02_RAG_Generator": [
+        "tutorials/02_Retrieve_and_Generate_Answers_to_Questions_with_RAG": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
         "tutorials/03_ReRank_search_results": [
