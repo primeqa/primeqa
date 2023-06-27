@@ -58,12 +58,14 @@ class DPRSearcher():
 
         self.opts.qry_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.qry_encoder_name_or_path)
 
-        self.qencoder = DPRContextEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
-        #self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+        if self.opts.single_encoder:
+            self.qencoder = DPRContextEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+            self.tokenizer = DPRContextEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
+        else:
+            self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
+            self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
         self.qencoder = self.qencoder.to(self.device)
         self.qencoder.eval()
-        #self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
-        self.tokenizer = DPRContextEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
 
         # from corpus_server_direct.run
         # we either have a single index.faiss or we have an index for each offsets/passages

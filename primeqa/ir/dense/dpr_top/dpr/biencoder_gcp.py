@@ -28,10 +28,15 @@ class BiEncoder(torch.nn.Module):
     def __init__(self, hypers: BiEncoderHypers):
         super().__init__()
         self.hypers = hypers
-        logger.info(f'BiEncoder: initializing from {hypers.ctx_encoder_name_or_path}')
-        #self.qry_model = EncoderWrapper(DPRQuestionEncoder.from_pretrained(hypers.qry_encoder_name_or_path))
-        self.ctx_model = EncoderWrapper(DPRContextEncoder.from_pretrained(hypers.ctx_encoder_name_or_path))
-        self.qry_model = self.ctx_model
+        if hypers.single_encoder:
+            logger.info(f' Single Encoder: initializing from {hypers.ctx_encoder_name_or_path}')
+            self.ctx_model = EncoderWrapper(DPRContextEncoder.from_pretrained(hypers.ctx_encoder_name_or_path))
+            self.qry_model = self.ctx_model
+        else:
+            logger.info(f'BiEncoder: initializing from {hypers.qry_encoder_name_or_path}, {hypers.ctx_encoder_name_or_path}')
+            self.qry_model = EncoderWrapper(DPRQuestionEncoder.from_pretrained(hypers.qry_encoder_name_or_path))
+            self.ctx_model = EncoderWrapper(DPRContextEncoder.from_pretrained(hypers.ctx_encoder_name_or_path))
+        
         self.saved_debug = False
 
     def encode(self, model, input_ids: torch.Tensor, attention_mask: torch.Tensor):
@@ -101,5 +106,6 @@ class BiEncoder(torch.nn.Module):
         return loss, accuracy
 
     def save(self, save_dir: Union[str, os.PathLike]):
-        #self.qry_model.encoder.save_pretrained(os.path.join(save_dir, 'qry_encoder'))
+        if not self.hypers.single_encoder:
+            self.qry_model.encoder.save_pretrained(os.path.join(save_dir, 'qry_encoder'))
         self.ctx_model.encoder.save_pretrained(os.path.join(save_dir, 'ctx_encoder'))

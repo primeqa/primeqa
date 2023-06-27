@@ -125,6 +125,10 @@ class DPRTrainingArguments:
             "help": "Warm-up instances fraction, only applies if warmup_instances <= 0"
         },
     )
+    
+    single_encoder: bool = field(
+        default=False, metadata={"help": "Use a single encoder for the query and context"}
+    )
 
 
 @dataclass
@@ -194,4 +198,8 @@ class DPRSearchArguments:
 
     top_k: int = field(
         default=10, metadata={"help": "Number of hits to return"}
+    )
+    
+    single_encoder: bool = field(
+        default=False, metadata={"help": "Use a single encoder for the query and context"}
     )
