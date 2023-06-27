@@ -72,6 +72,14 @@ New to PrimeQA? Check out the getting started guide.
 {fas}`arrow-right`
 :::
 
+:::{grid-item-card} {fas}`check` Tutorials
+:link: installation
+:link-type: doc
+Try out PrimeQA components via these tutorials for building your own search applications.
++++
+{fas}`arrow-right`
+:::
+
 :::{grid-item-card} {fas}`code` Development
 :link: development
 :link-type: doc
@@ -103,6 +111,7 @@ to erroneous or unexpected input argument.
     development
     testing
     api/index
+    tutorials/index
 ```
 <!-- END sphinx doc instructions - DO NOT MODIFY above code, please -->
 

@@ -16,6 +16,7 @@ corpus\_reader
       :nosignatures:
    
       corpus_reader
+      is_csv
       is_tsv
       list_corpus_files
       lookup_by_aliases

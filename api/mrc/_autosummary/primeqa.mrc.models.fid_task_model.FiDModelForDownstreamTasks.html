@@ -42,6 +42,7 @@
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/design-tabs.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
 <script async
@@ -107,6 +108,12 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../index.html">
   API
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../tutorials/index.html">
+  Tutorials
  </a>
 </li>
 
@@ -2687,7 +2694,7 @@ fully-qualified string.)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask">
-<span class="sig-name descname"><span class="pre">get_extended_attention_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">attention_mask:</span> <span class="pre">torch.Tensor,</span> <span class="pre">input_shape:</span> <span class="pre">typing.Tuple[int],</span> <span class="pre">device:</span> <span class="pre">&lt;property</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f5c0fad9c70&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_extended_attention_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">attention_mask:</span> <span class="pre">torch.Tensor,</span> <span class="pre">input_shape:</span> <span class="pre">typing.Tuple[int],</span> <span class="pre">device:</span> <span class="pre">&lt;property</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f5c33b91cc0&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="headerlink" href="#primeqa.mrc.models.fid_task_model.FiDModelForDownstreamTasks.get_extended_attention_mask" title="Permalink to this definition">#</a></dt>
 <dd><p>Makes broadcastable attention and causal masks so that future and masked tokens are ignored.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

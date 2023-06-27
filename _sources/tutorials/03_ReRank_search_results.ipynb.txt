@@ -1,0 +1,328 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "9e93a22f",
+   "metadata": {},
+   "source": [
+    "# Tutorial: Rerank search results using the ColBERT Reranker #\n",
+    "\n",
+    "In this tutorial, we will learn how to use a Neural Reranker to rerank results from a BM25 search.  The reranker is based on the ColBERT algorithm as described in Khattab et al., \"ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT\" [here](https://arxiv.org/pdf/2004.12832.pdf).\n",
+    "\n",
+    "For the purposes of making this tutorial easy to understand, we show the steps using a very small document collection. Note that this technique can be used to scale to millions of documents. We have tested upto 21 million Wikipedia passages!!!\n",
+    "\n",
+    "The tutorial will take you through these three steps:\n",
+    "\n",
+    "1. Build a BM25 index over a small sample collection\n",
+    "2. Query the BM25 index to obtain initial search results\n",
+    "3. Rerank the initial results with a neural reranker to obtain the final search results\n",
+    "\n",
+    "\n",
+    "## Step 0: Prepare a Colab Environment to run this tutorial on GPUs\n",
+    "Make sure to \"Enable GPU Runtime\" by following this [url](https://drive.google.com/file/d/1jhE8CkieQXoW0gvz9IherTDdJY54Q4Yz/view?usp=sharing). This step will make sure the tutorial runs faster.\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "690bd474",
+   "metadata": {},
+   "source": [
+    "## Step 1: Install PrimeQA ##\n",
+    "\n",
+    "First, we need to include the required modules."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3d39d213",
+   "metadata": {
+    "vscode": {
+     "languageId": "shellscript"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "!pip install --upgrade pip\n",
+    "\n",
+    "# install primeqa\n",
+    "!pip install --upgrade primeqa install-jdk gdown\n",
+    "\n",
+    "# Java 11 is required\n",
+    "import jdk\n",
+    "import os\n",
+    "if not os.path.exists(\"/tmp/primeqa-jdk/jdk-11.0.19+7/\"):\n",
+    "    jdk_dir = jdk.install('11', path=\"/tmp/primeqa-jdk\")\n",
+    "\n",
+    "# set the JAVA_HOME environment variable to point to Java 11\n",
+    "%env JAVA_HOME=/tmp/primeqa-jdk/jdk-11.0.19+7/\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ad12a576",
+   "metadata": {},
+   "source": [
+    "Next we set up some paths.  Please update the `output_dir` path to a location where you have write permissions."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "19a337e8",
+   "metadata": {
+    "vscode": {
+     "languageId": "shellscript"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# Setup paths \n",
+    "output_dir = \"/tmp/primeqa-tutorial\" \n",
+    "\n",
+    "import os\n",
+    "# create output directory if it does not exist\n",
+    "if not os.path.exists(output_dir):\n",
+    "    os.makedirs(output_dir)\n",
+    "\n",
+    "# setup some paths\n",
+    "downloaded_corpus_file = os.path.join(output_dir,\"sample-document-store.csv\")\n",
+    "collection_file = os.path.join(output_dir,\"sample_collection.tsv\")\n",
+    "reranker_model_path = os.path.join(output_dir, \"DrDecr.dnn\")\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8cbc1df4",
+   "metadata": {},
+   "source": [
+    "## Step2: Download the sample corpus and the ColBERT DrDecr model ##"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f72e6bdc",
+   "metadata": {
+    "vscode": {
+     "languageId": "shellscript"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "# download the sample collection\n",
+    "! gdown  --id 1LULJRPgN_hfuI2kG-wH4FUwXCCdDh9zh --output {output_dir}/\n",
+    "\n",
+    "# Download the reranker model\n",
+    "! wget -P {output_dir} https://huggingface.co/PrimeQA/DrDecr_XOR-TyDi_whitebox/resolve/main/DrDecr.dnn"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "958b8898",
+   "metadata": {},
+   "source": [
+    "## Step 3: Pre-process your document collection ##\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3288a0af",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Preprocess the document colletion\n",
+    "from primeqa.ir.util.corpus_reader import DocumentCollection\n",
+    "\n",
+    "collection = DocumentCollection(downloaded_corpus_file)\n",
+    "collection.write_corpus_tsv(collection_file)\n",
+    "\n",
+    "! head -2 {collection_file}"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1bd0acad",
+   "metadata": {},
+   "source": [
+    "## Step 4: Now we will use the PrimeQA BM25 Indexer to build an index ##"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "34b6bfc0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from primeqa.components.indexer.sparse import BM25Indexer\n",
+    "\n",
+    "# Instantiate and configure the indexer\n",
+    "indexer = BM25Indexer(index_root=output_dir, index_name=\"sample_index_bm25\")\n",
+    "indexer.load()   # IMPORTANT: required to configure\n",
+    "\n",
+    "# Index the collection\n",
+    "indexer.index(collection=collection_file, overwrite=True)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c76d8171",
+   "metadata": {},
+   "source": [
+    "## Step 5: Start asking Questions ##\n",
+    "\n",
+    "We're now ready to query the index we created.  \n",
+    "\n",
+    "Each search hit is a tuple consisting of `(document_id,score)`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d606ea2d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from primeqa.components.retriever.sparse  import BM25Retriever\n",
+    "import json\n",
+    "\n",
+    "# Exmaple questions\n",
+    "question = [\"Why was Einstein awarded the Nobel Prize?\"]\n",
+    "\n",
+    "# Instantiate and configure the retriever\n",
+    "retriever = BM25Retriever(index_root=output_dir, index_name=\"sample_index_bm25\", collection=None)\n",
+    "retriever.load()\n",
+    "\n",
+    "# Search\n",
+    "hits = retriever.predict(question, max_num_documents=5)\n",
+    "print(json.dumps(hits,indent=2))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9911fef9",
+   "metadata": {},
+   "source": [
+    "## Step 6: Rerank the BM25 search results with a Neural Reranker ##\n",
+    "\n",
+    "We will be using the DrDecr model trained on Natural Questions and XOR TyDI.  This is a model that has obtained SOTA results on the XORTyDI Retrieval task.  \n",
+    "\n",
+    "Here are the steps we will take:\n",
+    "\n",
+    "    1. Fetch the documents corresponding to the BM25 search hits\n",
+    "    2. Initialize the PrimeQA ColBERTReranker\n",
+    "    3. Rerank the BM25 search results"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4fd3719c",
+   "metadata": {},
+   "source": [
+    "\n",
+    "The reranker encodes the question and passage texts using the Reranker model and uses the representations to compute a similarity score.\n",
+    "\n",
+    "We will use the DocumentCollection instance to fetch the document corresponding to the BM25 search results."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "73632d26",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Fetch documents\n",
+    "hits_to_be_reranked = collection.add_document_text_to_hit(hits[0])\n",
+    "\n",
+    "print(json.dumps(hits_to_be_reranked,indent=2))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5db291f7",
+   "metadata": {},
+   "source": [
+    "## Step 7: Run the Reranker ##\n",
+    "Next we will initialize the ColBERT Reranker with the DrDecr model and rerank the BM25 search results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7d9a74bd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Import the ColBERT Reranker\n",
+    "from primeqa.components.reranker.colbert_reranker import ColBERTReranker\n",
+    "\n",
+    "# Instantiate the ColBERTReranker\n",
+    "reranker = ColBERTReranker(reranker_model_path)\n",
+    "reranker.load()\n",
+    "\n",
+    "# rerank the BM25 search result and output the top 3 hits\n",
+    "reranked_results = reranker.rerank(question, [hits_to_be_reranked], max_num_documents=3)\n",
+    "print(json.dumps(reranked_results,indent=2))\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "9977c06e",
+   "metadata": {},
+   "source": [
+    "## Step 8: Print the top ranked result before and after reranking ##"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9770e158",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# print top ranked results\n",
+    "print(f'QUESTON: {question}')\n",
+    "      \n",
+    "print(\"\\n========Top search result BEFORE reranking\")\n",
+    "print(hits_to_be_reranked[0]['document']['title'],  hits_to_be_reranked[0]['document']['text'])\n",
+    "\n",
+    "print(\"\\n========Top search result AFTER reranking\")\n",
+    "print(reranked_results[0][0]['document']['title'],  reranked_results[0][0]['document']['text'])\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d9fcf405",
+   "metadata": {},
+   "source": [
+    "### Congratulations !!! ### 🎉✨🎊🥳\n",
+    "\n",
+    "You have successfully completed the Reranker tutorial ! "
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
