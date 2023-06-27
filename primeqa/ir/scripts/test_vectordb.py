@@ -35,8 +35,8 @@ from primeqa.util import SearchableCorpus
 def handle_args():
     usage = 'usage'
     parser = argparse.ArgumentParser(usage)
-    parser.add_argument('--input_passage_vectors', '-p', required=True)
-    parser.add_argument('--input_query_vectors', '-q', required=True)
+    parser.add_argument('--input_passage_vectors', '-p', default=None)
+    parser.add_argument('--input_query_vectors', '-q', default=None)
     parser.add_argument('--input_passages', '-s', required=True)
     parser.add_argument('--input_queries', '-r', required=True)
 
@@ -59,6 +59,7 @@ def handle_args():
                         help="If present, evaluates the results based on test data, at the provided ranks.")
     parser.add_argument("--ranks", default="1,5,10,100", help="Defines the R@i evaluation ranks.")
     parser.add_argument("--colbert_root", default="", help="The root dir for the ColBERT model.")
+    parser.add_argument("--index_dir", default=None, help="The index directory, if the db supports it.")
 
     args = parser.parse_args()
     if args.output_ranks == "":
@@ -133,7 +134,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
     def encode(self, texts:Documents, batch_size=-1) -> Embeddings:
         # embed the documents somehow
         if not self.pqa:
-            embs = self.model.encode(texts)
+            embs = self.model.encode(texts, show_progress_bar=False if max(len(texts), batch_size) <= 1 else True)
         else:
             if batch_size < 0:
                 batch_size = self.batch_size
@@ -164,11 +165,13 @@ def main():
         working_dir = tempfile.TemporaryDirectory().name
         output_dir = os.path.join(working_dir, 'output_dir')
 
-    with open(args.input_passage_vectors, 'rb') as in_file:
-        passage_vectors = pickle.load(in_file)
+    if args.input_passage_vectors is not None:
+        with open(args.input_passage_vectors, 'rb') as in_file:
+            passage_vectors = pickle.load(in_file)
 
-    with open(args.input_query_vectors, 'rb') as in_file:
-        query_vectors = pickle.load(in_file)
+    if args.input_query_vectors is not None:
+        with open(args.input_query_vectors, 'rb') as in_file:
+            query_vectors = pickle.load(in_file)
 
     input_passages = read_data(args.input_passages, fields=["id", "text", "title"])
     if args.evaluate:
@@ -221,6 +224,7 @@ def main():
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
     query_vectors = []
+    already_ingested = False
     # === initialize index and engine
     if create_db:
         if args.db_engine == 'pinecone':
@@ -253,7 +257,16 @@ def main():
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
-            client = chromadb.Client()
+            if args.index_dir is not None:
+                _client_settings = chromadb.config.Settings()
+                _client_settings = chromadb.config.Settings(
+                    chroma_db_impl="duckdb+parquet",
+                    persist_directory=args.index_dir,
+                    )
+                client = chromadb.Client(_client_settings)
+                already_ingested = True
+            else:
+                client = chromadb.Client()
             # if os.path.exists(args.model_name):
             sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
             collection = client.create_collection("vectordbtest",
@@ -669,7 +682,7 @@ def main():
             lscores = {r:0 for r in ranks}
             gt = {}
             for q in input_queries:
-                gt[q['id']] = {id: 1 for id in q['relevant'].split(" ") if int(id)>=0}
+                gt[q['id']] = {id: 1 for id in q['relevant'].split(",")}
 
             def skip(out_ranks, record, rid):
                 qid = record[0]
@@ -695,14 +708,17 @@ def main():
             tmp_scores = scores.copy()
             tmp_lscores = lscores.copy()
             prev_id = -1
+            num_eval_questions = 0
             for rid, record in enumerate(out_ranks):
                 outr = record[0:3]
                 if prev_id != record[0]:
-                    for r in ranks:
-                        scores[r]  += int(tmp_scores[r]  >= 1)
-                        lscores[r] += int(tmp_lscores[r] >= 1)
-                    tmp_scores = {r:0 for r in ranks}
-                    tmp_lscores = {r:0 for r in ranks}
+                    if prev_id != -1 and '-1' not in gt[prev_id]:
+                        num_eval_questions += 1
+                        for r in ranks:
+                            scores[r]  += int(tmp_scores[r]  >= 1)
+                            lscores[r] += int(tmp_lscores[r] >= 1)
+                        tmp_scores = {r:0 for r in ranks}
+                        tmp_lscores = {r:0 for r in ranks}
                     prev_id = record[0]
                 if str(record[1]) in gt[record[0]]: # Great, we found a match.
                     update_scores(ranks, record[2], tmp_scores)
@@ -725,19 +741,18 @@ def main():
                     else:
                         outr.append(0)
                 out_ranks1.append(outr)
-                    # rid = skip(out_ranks, record, rid)
-                    # continue
-                # rid += 1
 
-            for r in ranks:
-                scores[r] += int(tmp_scores[r] >= 1)
-                lscores[r] += int(tmp_lscores[r] >= 1)
-            res = {"num_ranked_queries": len(input_queries),
-                   "num_judged_queries": len(input_queries),
+            if gt[prev_id] != -1:
+                num_eval_questions += 1
+                for r in ranks:
+                    scores[r] += int(tmp_scores[r] >= 1)
+                    lscores[r] += int(tmp_lscores[r] >= 1)
+            res = {"num_ranked_queries": num_eval_questions,
+                   "num_judged_queries": num_eval_questions,
                    "success__WARNING":
-                       {r:int(1000*scores[r]/len(input_queries))/1000.0 for r in ranks},
+                       {r:int(1000*scores[r]/num_eval_questions)/1000.0 for r in ranks},
                    "lienient_success__WARNING":
-                       {r:int(1000*lscores[r]/len(input_queries))/1000.0 for r in ranks}
+                       {r:int(1000*lscores[r]/num_eval_questions)/1000.0 for r in ranks}
                    }
             with open(args.output_ranks+".annotated.deb","w") as out_file:
                 tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
