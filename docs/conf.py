@@ -37,7 +37,8 @@ extensions = [
     'sphinx_design',
     # 'recommonmark',
     'edit_on_github',
-    'sphinx.ext.coverage'
+    'sphinx.ext.coverage',
+    'nbsphinx'
 ]
 
 # Enable myst extensions
@@ -167,6 +168,21 @@ html_sidebars = {
         "testing": [
             "search-field.html","custom-left-section.html"
         ],
+        "tutorials/index": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
+        "tutorials/01_Index_Documents_with_DPR": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
+        "tutorials/02_Retrieve_and_Generate_Answers_to_Questions_with_RAG": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
+        "tutorials/03_ReRank_search_results": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
+        "tutorials/04_Finetune_LLM_for_QA_with_QLORA": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
         "pull_request_template": [
             "search-field.html","custom-left-section.html"
         ],
@@ -210,3 +226,10 @@ html_sidebars = {
             "search-field.html","custom-left-section-api-pkg.html"
         ],
      }
+
+# do not try to provide a backend for jupyter notebooks
+nbsphinx_execute = 'never'
+
+# instruct nbsphinx to structure code cells with templates
+nbsphinx_templates_path = ['_templates']
+
