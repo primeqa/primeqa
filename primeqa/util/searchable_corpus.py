@@ -60,7 +60,8 @@ class SearchableCorpus:
         self.model_name = model_name
         if os.path.exists(os.path.join(model_name, "ctx_encoder")):  # Looks like a DPR model
             self._model_type = SearchableCorpus._DPR
-            self.ctxt_tokenizer = DPRContextEncoderTokenizer.from_pretrained(
+            from transformers import AutoTokenizer
+            self.ctxt_tokenizer = AutoTokenizer.from_pretrained(
                 os.path.join(self.model_name, "ctx_encoder"))
         else:
             self._model_type = SearchableCorpus._ColBERT

@@ -60,7 +60,8 @@ class DPRSearcher:
         self.qencoder = DPRQuestionEncoder.from_pretrained(self.opts.qry_encoder_name_or_path)
         self.qencoder = self.qencoder.to(self.device)
         self.qencoder.eval()
-        self.tokenizer = DPRQuestionEncoderTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
+        from transformers import AutoTokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(self.opts.qry_encoder_name_or_path)
 
         # from corpus_server_direct.run
         # we either have a single index.faiss or we have an index for each offsets/passages
