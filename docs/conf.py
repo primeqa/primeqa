@@ -183,6 +183,12 @@ html_sidebars = {
         "tutorials/04_Finetune_LLM_for_QA_with_QLORA": [
             "search-field.html","custom-left-section-tutorials.html"
         ],
+        "tutorials/05_Question_Generation": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
+        "tutorials/06_Table_QA_with_TAPEX": [
+            "search-field.html","custom-left-section-tutorials.html"
+        ],
         "pull_request_template": [
             "search-field.html","custom-left-section.html"
         ],
