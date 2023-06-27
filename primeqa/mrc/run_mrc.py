@@ -228,6 +228,18 @@ class DataTrainingArguments:
                   "choices": ['DirectRunner'],
                   }
     )
+    discard_duplicate_spans: bool = field(
+        default=False,
+        metadata={"help": "Only keep one answer in training if there are duplicate answer spans in multiple contexts due to stride"}
+    )
+    exclude_passage_answers : bool = field(
+        default=False,
+        metadata={"help": "exlude passage answers from training"}
+    )
+    long_answer_as_short_answer : bool = field(
+        default=False,
+        metadata={"help": "keep the long/boolean answer as a short answer by using the start and end offsets of the paragraph"}
+    )
 
 
 @dataclass
@@ -323,6 +335,10 @@ class TaskArguments:
                           "calibration features with dropout."
                   },
     )
+    two_way_loss: bool = field(
+        default=False,
+        metadata={"help": "2 way loss is start+end logits. 3 way loss includes target type"}
+    )
 
     def __post_init__(self):
         if not self.task_heads:
@@ -396,6 +412,7 @@ def main():
     config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
     config.output_dropout_rate = task_args.output_dropout_rate
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
+    config.two_way_loss = task_args.two_way_loss
 
     model_class = task_args.task_model
     model = model_class.from_config(
@@ -477,7 +494,10 @@ def main():
             max_q_char_len=data_args.max_q_char_len,
             single_context_multiple_passages=data_args.single_context_multiple_passages,
             max_contexts=data_args.max_contexts,
-            max_answer_len=data_args.max_answer_length
+            max_answer_len=data_args.max_answer_length,
+            discard_duplicate_spans = data_args.discard_duplicate_spans,
+            exclude_passage_answers = data_args.exclude_passage_answers,
+            long_answer_as_short_answer = data_args.long_answer_as_short_answer
         )
     for i, p in enumerate(validation_preprocessors):
         if isinstance(p, str):

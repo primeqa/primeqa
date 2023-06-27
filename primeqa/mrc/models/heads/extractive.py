@@ -26,6 +26,7 @@ class ExtractiveQAHead(AbstractTaskHead):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
+        self.two_way_loss = config.two_way_loss
 
         config_for_classification_head = deepcopy(config)
         if num_labels_override is None:
@@ -93,8 +94,12 @@ class ExtractiveQAHead(AbstractTaskHead):
             loss_fct = torch.nn.CrossEntropyLoss(ignore_index=ignored_index)
             start_loss = loss_fct(start_logits, start_positions)
             end_loss = loss_fct(end_logits, end_positions)
-            # answer_type_loss = loss_fct(answer_type_logits, target_type)
-            total_loss = (start_loss + end_loss) / 2 # + answer_type_loss) / 3
+
+            if self.two_way_loss:
+                total_loss = (start_loss + end_loss) /2
+            else:
+                answer_type_loss = loss_fct(answer_type_logits, target_type)
+                total_loss = (start_loss + end_loss + answer_type_loss) / 3
 
         # (loss), start_logits, end_logits, target_type_logits, (hidden_states), (attentions)
         return_dict = isinstance(model_outputs, ModelOutput)

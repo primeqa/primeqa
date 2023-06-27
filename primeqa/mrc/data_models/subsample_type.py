@@ -10,3 +10,4 @@ class SubsampleType(IntEnum):
     POSITIVE = 0
     NEGATIVE_HAS_ANSWER = 1
     NEGATIVE_NO_ANSWER = 2
+    EXCLUDE = 3

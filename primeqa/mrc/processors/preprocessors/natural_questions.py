@@ -214,11 +214,10 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             if len(start_byte) == 0:
                 start_byte = -1
                 end_byte = -1
-                candidate_index = -1
             else:
                 start_byte = start_byte[0]
                 end_byte = end_byte[0]
-                candidate_index = annotations['long_answer'][i]['candidate_index']
+            candidate_index = annotations['long_answer'][i]['candidate_index']
             if end_byte < start_byte:
                 self._logger.error("end_byte < start_byte")
 
