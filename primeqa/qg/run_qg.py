@@ -203,7 +203,10 @@ def main(raw_args):
     if data_args.eval_file is not None: 
         data_files['validation'] = glob.glob(data_args.eval_file)
     
-    dataset = load_dataset("json", data_files=data_files)
+    if data_files:
+        dataset = load_dataset("json", data_files=data_files)
+    else:
+        dataset = load_dataset(data_args.dataset_name)
     
     if training_args.do_train:
         if data_args.train_file is not None:

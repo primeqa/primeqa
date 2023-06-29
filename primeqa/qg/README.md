@@ -44,6 +44,7 @@ python primeqa/qg/run_qg.py \
     --modality table \
     --dataset_name wikisql \
     --do_train \
+    --do_eval \
     --max_len 200 \
     --target_max_len 40 \
     --output_dir  models/qg/$DIR_NAME \
