@@ -441,10 +441,9 @@
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 
-<span class="c1"># install primeqa</span>
-<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>primeqa<span class="w"> </span>install-jdk<span class="w"> </span>gdown
-
 <span class="c1"># Java 11 is required</span>
+<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>install-jdk<span class="w"> </span>gdown
+
 <span class="kn">import</span> <span class="nn">jdk</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/tmp/primeqa-jdk/jdk-11.0.19+7/&quot;</span><span class="p">):</span>
@@ -452,7 +451,10 @@
 
 <span class="c1"># set the JAVA_HOME environment variable to point to Java 11</span>
 <span class="o">%</span><span class="k">env</span> JAVA_HOME=/tmp/primeqa-jdk/jdk-11.0.19+7/
-<br/></pre></div>
+
+<span class="c1"># install primeqa</span>
+<span class="o">!</span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>primeqa
+</pre></div>
 </div>
 </div>
 <p>Next we set up some paths. Please update the <code class="docutils literal notranslate"><span class="pre">output_dir</span></code> path to a location where you have write permissions.</p>
