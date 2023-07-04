@@ -31,18 +31,19 @@ import chromadb
 import faiss
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.util import SearchableCorpus
+from libSIRE.timer import timer
 
 def handle_args():
     usage = 'usage'
     parser = argparse.ArgumentParser(usage)
     parser.add_argument('--input_passage_vectors', '-p', default=None)
     parser.add_argument('--input_query_vectors', '-q', default=None)
-    parser.add_argument('--input_passages', '-s', required=True)
-    parser.add_argument('--input_queries', '-r', required=True)
+    parser.add_argument('--input_passages', '-s', default=None)
+    parser.add_argument('--input_queries', '-r', default=None)
 
     parser.add_argument('--db_engine', '-e', default='pinecone',
                         choices=['pinecone', 'pqa', 'pqa_colbert', 'chromadb', 'milvus',
-                                 'faiss', 'es', 'es-esre'], required=False)
+                                 'faiss', 'es', 'es-esre', 'es-elser'], required=False)
     parser.add_argument('--output_ranks', '-o', default="", help="The output rank file.")
 
     parser.add_argument('--num_embeddings_deleted', '-n', type=int, default=100, )
@@ -60,6 +61,12 @@ def handle_args():
     parser.add_argument("--ranks", default="1,5,10,100", help="Defines the R@i evaluation ranks.")
     parser.add_argument("--colbert_root", default="", help="The root dir for the ColBERT model.")
     parser.add_argument("--index_dir", default=None, help="The index directory, if the db supports it.")
+    parser.add_argument("--max_doc_length", default=None, type=int, help="Trim the passages to the given length, if provided")
+    parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
+                                                               "file is assumed to be args.data/psgs.tsv and "
+                                                               "the question file is args.data/questions.tsv.")
+    parser.add_argument("-ingestion_batch_size", default=40, type=int, help="For elastic search only, sets the ingestion batch "
+                                                                            "size (default 40).")
 
     args = parser.parse_args()
     if args.output_ranks == "":
@@ -73,6 +80,23 @@ def handle_args():
                     break
                 i += 1
         print(f"Saving rank output to: {args.output_ranks}")
+    if args.db_engine == "es-esre":
+        args.db_engine = "es-elser"
+
+    if args.data is not None:
+        if args.input_passages is None:
+            args.input_passages = os.path.join(args.data, "psgs.tsv")
+        if args.input_queries is None:
+            args.input_queries = os.path.join(args.data, "questions.tsv")
+    else:
+        args.data = os.path.basename(os.path.dirname(args.inpu_passages))
+
+    if args.input_queries is None or args.input_passages is None:
+        print("You need to define either the data dir (with --data) or both the passage file (using --input_passages) "
+              "and the question file (using --input-queries")
+        print(parser.usage)
+        sys.exit(10)
+
     return args
 
 
@@ -95,7 +119,8 @@ def report_time(last_time, count=None):
 
 
 def normalize(passage_vectors):
-    return [v/np.linalg.norm(v) for v in passage_vectors if np.linalg.norm(v)>0]
+    return [v / np.linalg.norm(v) for v in passage_vectors if np.linalg.norm(v) > 0]
+
 
 class MyChromaEmbeddingFunction(EmbeddingFunction):
     def __init__(self, name, batch_size=128):
@@ -134,7 +159,12 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
     def encode(self, texts:Documents, batch_size=-1) -> Embeddings:
         # embed the documents somehow
         if not self.pqa:
-            embs = self.model.encode(texts, show_progress_bar=False if max(len(texts), batch_size) <= 1 else True)
+            embs = self.model.encode(texts,
+                                     show_progress_bar=False \
+                                         if isinstance(texts, str) or\
+                                            max(len(texts), batch_size) <= 1 \
+                                         else True
+                                     )
         else:
             if batch_size < 0:
                 batch_size = self.batch_size
@@ -152,13 +182,23 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
         return embs
 
 
+def trim_passages(input_passages, max_doc_length):
+    out = []
+    for passage in input_passages:
+        txt = passage['text']
+        a = txt.split(" ")
+        if len(a) > max_doc_length:
+            passage['text'] = " ".join(a[:max_doc_length])
+    return input_passages
+
+
 def main():
     random.seed(12345)
 
     last_time = time.time()
-
     # === read input files
     args = handle_args()
+    t = timer(f"VectorDB:{args.db_engine}")
     working_dir = None
     output_dir = None
     if args.db_engine in ["pqa", "pqa_colbert"]:
@@ -174,6 +214,8 @@ def main():
             query_vectors = pickle.load(in_file)
 
     input_passages = read_data(args.input_passages, fields=["id", "text", "title"])
+    if args.max_doc_length is not None:
+        input_passages = trim_passages(input_passages, args.max_doc_length)
     if args.evaluate:
         input_queries = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"])
     else:
@@ -192,7 +234,7 @@ def main():
     delete_items_db = 'd' in args.actions
     insert_deleted_items = 'I' in args.actions
     retrieve_items = 'r' in args.actions
-    index_name = (args.model_name + '__index').lower()
+    index_name = (f"{args.data}_{args.db_engine}_{args.model_name}_index").lower()
     index_name = re.sub('[^a-z0-9]', '-', index_name)
     if args.db_engine == "milvus":
         index_name = index_name.replace("-", "_")
@@ -226,6 +268,7 @@ def main():
     query_vectors = []
     already_ingested = False
     # === initialize index and engine
+    t.mark()
     if create_db:
         if args.db_engine == 'pinecone':
             import pinecone
@@ -280,9 +323,9 @@ def main():
         elif args.db_engine.startswith("es"):
             from elasticsearch import Elasticsearch
             ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-            client = Elasticsearch("https://localhost:9200",
-                                   ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
-                                   basic_auth = ("elastic", ELASTIC_PASSWORD)
+            client = Elasticsearch("https://cloud.elastic.co/",# "https://localhost:9200",
+                                   # ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+                                   basic_auth = ("stefan.diederichs@sap.com", ELASTIC_PASSWORD)
                                    )
     else:
         if args.db_engine == 'pinecone':
@@ -292,7 +335,7 @@ def main():
         elif args.db_engine.startswith("es"):
             from elasticsearch import Elasticsearch
             ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-            client = Elasticsearch("https://localhost:9200",
+            client = Elasticsearch("https://cloud.elastic.co/", # https://localhost:9200",
                                    ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
                                    basic_auth = ("elastic", ELASTIC_PASSWORD)
                                    )
@@ -409,8 +452,12 @@ def main():
             # create metadata batch
             text_vectors = [row['text'] for row in input_passages]
             # create embeddings
-
-            milvus1k.insert([ids, text_vectors, passage_vectors])
+            batch_size = 1000
+            for i in tqdm(range(0, len(text_vectors), batch_size), desc="Milvus index docs:"):
+                milvus1k.insert([ids[i:i+batch_size],
+                                 text_vectors[i:i+batch_size],
+                                 passage_vectors[i:i+batch_size]]
+                                )
             # index = {"index_type": "IVF_FLAT",
             #          "metric_type": "IP",
             #          "params": {"nlist": 128}}
@@ -446,7 +493,7 @@ def main():
                        'title': row['title'],
                        'vector': passage_vectors[ri]}
                 client.index(index=index_name, id=row['id'], document=doc)
-        elif args.db_engine == "es-esre":
+        elif args.db_engine == "es-elser":
             mappings = {
                 "properties": {
                     "ml.tokens": {
@@ -477,7 +524,7 @@ def main():
                 }
                 }}
             ]
-            bulk_batch = 20
+            bulk_batch = args.ingestion_batch_size
             from elasticsearch.helpers import bulk
             if client.indices.exists(index=index_name):
                 client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
@@ -499,22 +546,17 @@ def main():
                 )
                 if ri % bulk_batch == bulk_batch-1:
                     try:
-                        bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                        res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
                     except Exception as e:
-                        print(f"Got an error in indexing: {e}, {len(actions)}")
+                        print(f"Got an error in indexing: {e}, {len(actions)} {res}")
                     actions = []
-                try:
-                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
-                except Exception as e:
-                    print(f"Got an error in indexing: {e}, {len(actions)}")
-                # client.index(index=f"{index_name}-tmp", id=row['id'], document=doc)
-            # client.reindex(source={"index": f"{index_name}-tmp",
-            #                        "size": 50},
-            #                dest={"index": index_name,
-            #                      "pipeline": "elser-v1-test"})
+            try:
+                bulk(client=client, actions=actions, pipeline="elser-v1-test")
+            except Exception as e:
+                print(f"Got an error in indexing: {e}, {len(actions)}")
         print('=== done creating index')
         last_time = report_time(last_time)
-
+        t.add_timing("Create&Load")
     # === test index items deletion
     if delete_items_db:
         deleted_embedding_ids = [id for id in random.sample(range(len(input_passages)), args.num_embeddings_deleted)]
@@ -528,7 +570,7 @@ def main():
 
         print('=== done testing index items deletion')
         last_time = report_time(last_time)
-
+        t.add_timing("Remove")
         # === test index items insertion
         if insert_deleted_items:
             if args.db_engine == 'pinecone':
@@ -546,6 +588,7 @@ def main():
 
             print('=== done testing index items insertion')
             last_time = report_time(last_time)
+            t.add_timing("Reinsert")
 
     # === run retrieval
     out_ranks = []
@@ -611,7 +654,7 @@ def main():
                 query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
 
                 result = milvus1k.search(
-                    query_vector,
+                    [query_vector],
                     "embeddings",
                     search_params,
                     limit=args.top_k,
@@ -647,7 +690,7 @@ def main():
                 )
                 for rank, r in enumerate(res._body['hits']['hits']):
                     out_ranks.append([input_queries[query_number]['id'], r['_id'], rank+1, r['_score']])
-        elif args.db_engine == 'es-esre':
+        elif args.db_engine == 'es-elser':
             for query_number in tqdm(range(len(input_queries))):
                 # query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
                 query = {
@@ -672,7 +715,7 @@ def main():
         with open(args.output_ranks, 'w') as out_file:
             tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
             tsv_writer.writerows(out_ranks)
-
+        t.add_timing("Retrieve")
         if args.evaluate:
             if "relevant" not in input_queries[0] or input_queries[0]['relevant'] is None:
                 print("The input question file does not contain answers. Please fix that and restart.")
@@ -680,7 +723,7 @@ def main():
             ranks = [int(r) for r in args.ranks.split(",")]
             scores = {r:0 for r in ranks}
             lscores = {r:0 for r in ranks}
-            gt = {}
+            gt = {-1: -1}
             for q in input_queries:
                 gt[q['id']] = {id: 1 for id in q['relevant'].split(",")}
 
@@ -692,7 +735,7 @@ def main():
 
             def update_scores(ranks, rnk, scores):
                 j = 0
-                while ranks[j] < rnk:
+                while j<len(ranks) and ranks[j] < rnk:
                     j += 1
                 for k in ranks[j:]:
                     scores[k] += 1
@@ -764,6 +807,18 @@ def main():
     #     pinecone.delete_index(index_name)
         print('=== done computing scores')
         last_time = report_time(last_time)
+        # t.add_timing("Evaluate")
+    import io
+    from contextlib import redirect_stdout
+
+    # with open(args.output_ranks+".timing", "w") as sys.stdout:
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        timer.display_timing(t.milliseconds_since_beginning(), num_words=len(input_passages), num_chars=len(input_queries))
+    # timer.display_timing(t.milliseconds_since_beginning(), num_words=len(input_passages), num_chars=len(input_queries))
+    with open(args.output_ranks+".timing", "w") as out:
+        out.write(buf.getvalue())
+    print(buf.getvalue())
 
 
 def reverse_map(input_queries):
@@ -776,7 +831,7 @@ def reverse_map(input_queries):
 def compute_embedding(model, input_query, normalize_embs):
     query_vector = model.encode(input_query)
     if normalize_embs:
-        query_vector = normalize(query_vector)
+        query_vector = normalize([query_vector])[0]
     return query_vector
 
 def create_pqa_searcher(args, output_dir):
@@ -810,22 +865,40 @@ def read_data(input_file, fields=None):
     else:
         num_args = len(fields)
     with open(input_file) as in_file:
-        csv_reader = \
-            csv.DictReader(in_file, fieldnames=fields, delimiter="\t") \
-                if fields is not None \
-                else csv.DictReader(in_file, delimiter="\t")
-        next(csv_reader)
-        for row in csv_reader:
-            assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-            itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
-                             'id': row['id']}
-            if 'title'in row:
-                itm['title'] = row['title']
-            if 'relevant' in row:
-                itm['relevant'] = row['relevant']
-            if 'answers' in row:
-                itm['answers'] = row['answers'].split("::")
-            passages.append(itm)
+        if input_file.endswith(".tsv"):
+            # We'll assume this is the PrimeQA standard format
+            csv_reader = \
+                csv.DictReader(in_file, fieldnames=fields, delimiter="\t") \
+                    if fields is not None \
+                    else csv.DictReader(in_file, delimiter="\t")
+            next(csv_reader)
+            for row in csv_reader:
+                assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
+                itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
+                                 'id': row['id']}
+                if 'title'in row:
+                    itm['title'] = row['title']
+                if 'relevant' in row:
+                    itm['relevant'] = row['relevant']
+                if 'answers' in row:
+                    itm['answers'] = row['answers'].split("::")
+                passages.append(itm)
+        elif input_file.endswith('.json'):
+            # This should be the SAP json format
+            data = json.load(in_file)
+            for doc in data:
+                doc_id = doc['document_id']
+                title = doc['title']
+                for passage in doc['passages']:
+                    itm = {'title': passage['title']}
+                    itm['id'] = f"{doc_id}:{passage['passage_id']}"
+                    itm['text'] = passage['text']
+                    passages.append(itm)
+        elif input_file.endswith(".csv"):
+            import pandas as pd
+            queries = pd.read_csv(input_file, header=0)
+
+
     return passages
 
 # do main
