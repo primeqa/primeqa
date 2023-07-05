@@ -62,7 +62,8 @@ python primeqa/ir/run_ir.py \
     --maxsteps <number_of_training_steps> \
     --save_steps <number_of_training_steps_between_saving_checkpoins> \
     --lr <learnig_rate> \
-    --model_type xlm-roberta-base \
+    --checkpoint xlm-roberta-base \
+    --model_type xlm-roberta \
     --triples <training_data> \
     --root <experiments_root_directory> \
     --experiment <experiment_label>
@@ -134,6 +135,7 @@ python primeqa/ir/run_ir.py \
     --doc_maxlen <maximum_number_of_document_tokens> \
     --bsize <indexing_batch_size> \
     --model_name_or_path <model_checkpoint> \
+    --model_type <model type of the model_checkpoint> \
     --collection <document_collection> \
     --root <experiments_root_directory> \
     --experiment <experiment_label> \
@@ -192,6 +194,7 @@ python primeqa/ir/run_ir.py \
     --bsize <search_batch_size> \
     --queries <query_file> \
     --model_name_or_path <model_filename_or_directory> \
+    --model_type <model type of the encoder> \
     --index_location <directory_containing_index_files> \
     --top_k <number_of_items_per_query_retrieved> \
     --output_dir <output_directory>

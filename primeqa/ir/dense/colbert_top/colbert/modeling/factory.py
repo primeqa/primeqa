@@ -38,7 +38,8 @@ def get_colbert_from_pretrained(name, colbert_config):
         dnn_checkpoint = torch_load_dnn(name)
         config = dnn_checkpoint.get('config', None)
         if config:
-            delattr(PretrainedConfig, 'model_type')
+            if hasattr(PretrainedConfig, 'model_type'):
+                delattr(PretrainedConfig, 'model_type')
             config = PretrainedConfig.from_dict(config)
             if not hasattr(config, 'hidden_size'):
                 config.hidden_size = config.d_model
