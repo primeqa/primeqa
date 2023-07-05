@@ -17,5 +17,5 @@ No worries we got you covered. These tutorials will get you acquainted with the 
 | Bring your own search and re-rank with PrimeQA embeddings | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1zPypFF88PNEyFmi-CtQnVHYhZOMdzQVt)  | [03_ReRank_search_results.ipynb](03_ReRank_search_results.ipynb)
 | Build QA models by fine-tuning LLMs with QLORA algorithm | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1qkVvYJOUonE5eLQQozqTkZtHlCqfY6Un)  | [04_Finetune_LLM_for_QA_with_QLORA.ipynb](04_Finetune_LLM_for_QA_with_QLORA.ipynb)
 | Generate questions to be answered from a given document. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](add link here)  | [05_Question_Generation.ipynb](05_Question_Generation.ipynb)
-| Answer questions from a Table: TableQA| [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](add link here)  | [06_Table_QA_with_TAPEX.ipynb](06_Table_QA_with_TAPEX.ipynb)
+| Answer questions from a Table: TableQA| [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1nUROVMeTQW7Z_y86JxreTevMhYONusNc?usp=sharing)  | [06_Table_QA_with_TAPEX.ipynb](06_Table_QA_with_TAPEX.ipynb)
 
