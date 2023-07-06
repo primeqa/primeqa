@@ -50,7 +50,10 @@ class DPRIndexer():
         self.opts.ctx_encoder_name_or_path = re.sub('\/config\.json$', '', self.opts.ctx_encoder_name_or_path)
         self.ctx_encoder = DPRContextEncoder.from_pretrained(self.opts.ctx_encoder_name_or_path).to(device=self.device)
         self.ctx_encoder.eval()
-        self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.opts.ctx_encoder_name_or_path)
+        from transformers import AutoTokenizer
+        self.ctx_tokenizer = AutoTokenizer.from_pretrained(self.opts.ctx_encoder_name_or_path)
+        self.opts.d=self.ctx_encoder.ctx_encoder.embeddings_size
+        logger.info(f'embeddings size set to {self.opts.d}')
 
 
     def embed(self, doc_batch: List[Passage], ctx_encoder: DPRContextEncoder, ctx_tokenizer: DPRContextEncoderTokenizerFast) -> np.ndarray:

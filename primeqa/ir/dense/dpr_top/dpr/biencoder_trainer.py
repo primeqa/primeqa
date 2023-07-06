@@ -61,8 +61,9 @@ class BiEncoderTrainer():
                          'Train with a single GPU or with --encoder_gpu_train_limit 0')
             exit(1)
 
-        self.qry_tokenizer = DPRQuestionEncoderTokenizerFast.from_pretrained(self.args.qry_encoder_name_or_path)
-        self.ctx_tokenizer = DPRContextEncoderTokenizerFast.from_pretrained(self.args.ctx_encoder_name_or_path)
+        from transformers import AutoTokenizer
+        self.qry_tokenizer = AutoTokenizer.from_pretrained(self.args.qry_encoder_name_or_path)
+        self.ctx_tokenizer = AutoTokenizer.from_pretrained(self.args.ctx_encoder_name_or_path)
         self.model = BiEncoder(self.args)
         self.model.to(self.args.device)
         self.model.train()

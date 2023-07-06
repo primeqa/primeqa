@@ -119,7 +119,7 @@ class DPRTrainingArguments:
         default=0, metadata={"help": "Number of warm-up instances"}
     )
 
-    warmup_fraction: int = field(
+    warmup_fraction: float = field(
         default=0.0,
         metadata={
             "help": "Warm-up instances fraction, only applies if warmup_instances <= 0"
@@ -194,4 +194,9 @@ class DPRSearchArguments:
 
     top_k: int = field(
         default=10, metadata={"help": "Number of hits to return"}
+    )
+
+    query_file_type: str = field(
+        default="id_text",
+        metadata={"help": "Type of the query file"},
     )
