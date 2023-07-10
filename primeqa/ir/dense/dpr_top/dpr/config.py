@@ -119,11 +119,23 @@ class DPRTrainingArguments:
         default=0, metadata={"help": "Number of warm-up instances"}
     )
 
-    warmup_fraction: int = field(
+    warmup_fraction: float = field(
         default=0.0,
         metadata={
             "help": "Warm-up instances fraction, only applies if warmup_instances <= 0"
         },
+    )
+
+    fp16: bool = field(
+        default=False,
+        metadata={"help": "Whether to use fp16 16-bit (mixed) precision training instead of 32-bit training."}
+    )
+
+    fp16_opt_level: str = field(
+        default="O1",
+        metadata = {"help": "For `fp16` training, Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3'].See details on the"
+                            "[Apex documentation] (https: // nvidia.github.io/apex/amp)."
+                    }
     )
 
 

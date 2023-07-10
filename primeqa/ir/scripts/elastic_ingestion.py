@@ -8,9 +8,12 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
 import sys
+import pyizumo
 
 
-def split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
+nlp = None
+
+def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
         -> List[str]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -37,6 +40,67 @@ def split_passages(text: str, tokenizer, max_length: int = 512, stride: int = No
                 )
                 texts.append(tt)
             return texts
+
+def split_text(text: str, tokenizer, max_length: int = 512, stride: int = None) \
+        -> List[str]:
+    """
+    Method to split a text into pieces that are of a specified <max_length> length, with the
+    <stride> overlap, using a HF tokenizer.
+    :param text: str - the text to split
+    :param tokenizer: HF Tokenizer
+       - the tokenizer to do the work of splitting the words into word pieces
+    :param max_length: int - the maximum length of the resulting sequence
+    :param stride: int - the overlap between windows
+    """
+    text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
+    if max_length is not None:
+        res = tokenizer(text, max_length=max_length, stride=stride,
+                        return_overflowing_tokens=True, truncation=True)
+        if len(res['input_ids']) == 1:
+            return [text]
+        else:
+            if not nlp:
+                nlp = pyizumo.load("en")
+            texts = []
+            parsed_text = nlp(text)
+
+            start = 0
+            end = 0
+            length = 0
+            prev_end = -1
+            prev_start = -1
+            prev_len = -1
+            positions=[]
+            for sent in parsed_text.sentences:
+                stext = sent.text
+                res = tokenizer(stext, max_length=max_length, stride=stride,
+                        return_overflowing_tokens=True, truncation=True)
+                slen = len(res['input_ids'])
+                if length + slen < max_length:
+                    length += slen
+                    prev_end = sent.end
+                else:
+                    if length > 0: # There is at least something in the list
+                        texts.append(text[start:prev_end])
+                        positions.append([start, prev_end])
+                    if slen > max_length:
+                        print("We have a problem: {text}")
+                        continue
+                    start = sent.begin
+                    length = slen
+            if length>0:
+                texts.append(text[start:prev_end])
+                positions.append([start, prev_end])
+
+            # end = re.compile(f' {re.escape(tokenizer.sep_token)}$')
+
+            # for split_passage in res['input_ids']:
+            #     tt = end.sub(
+            #         "",
+            #         tokenizer.decode(split_passage).replace(f"{tokenizer.cls_token} ", "")
+            #     )
+            #     texts.append(tt)
+            return texts, positions
 
 
 def get_tokenized_length(tokenizer, text):
@@ -123,6 +187,8 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
             import pandas as pd
             data = pd.read_csv(in_file)
             passages = []
+            unmapped_ids = []
+            return_unmapped_ids = 'return_unmapped' in kwargs and kwargs['return_unmapped']
             docid_map = kwargs['docid_map'] if 'docid_map' in kwargs else {}
             for i in range(len(data)):
                 itm = {}
@@ -136,12 +202,16 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                         psgs.append(data[val][i])
                         loio_v = data[loio][i].replace('loio', '')
                         if loio_v in docid_map:
-                            ids.append(docid_map[loio_v])
+                            if docid_map[loio_v] not in ids:
+                                ids.append(docid_map[loio_v])
                         else:
                             ids.append(loio_v)
+                            unmapped_ids.append(loio_v)
                 itm['passages'] = psgs
                 itm['relevant'] = ids
                 passages.append(itm)
+            if return_unmapped_ids:
+                return passages, unmapped_ids
         else:
             raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
 
