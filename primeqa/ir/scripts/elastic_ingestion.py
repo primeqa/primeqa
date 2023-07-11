@@ -3,7 +3,7 @@ import logging
 from argparse import ArgumentParser
 from tqdm import tqdm
 import numpy as np
-from typing import List, Union
+from typing import List, Union, Tuple, Any
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
@@ -41,8 +41,8 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
                 texts.append(tt)
             return texts
 
-def split_text(text: str, tokenizer, max_length: int = 512, stride: int = None) \
-        -> List[str]:
+def split_text(text: str, tokenizer, title: str="", max_length: int = 512, stride: int = None) \
+        -> tuple[list[str], list[list[int | Any]]]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
     <stride> overlap, using a HF tokenizer.
@@ -52,58 +52,102 @@ def split_text(text: str, tokenizer, max_length: int = 512, stride: int = None) 
     :param max_length: int - the maximum length of the resulting sequence
     :param stride: int - the overlap between windows
     """
+    global nlp
     text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
     if max_length is not None:
-        res = tokenizer(text, max_length=max_length, stride=stride,
-                        return_overflowing_tokens=True, truncation=True)
-        if len(res['input_ids']) == 1:
-            return [text]
+        # res = tokenizer(text, max_length=max_length, stride=stride,
+        #                 return_overflowing_tokens=True, truncation=True)
+        tok_len = get_tokenized_length(tokenizer, text)
+        if tok_len <= max_length:
+            return [text], [[0, len(text)]]
         else:
+            if title: # make space for the title in each split text.
+                ltitle = get_tokenized_length(tokenizer, title)
+                max_length -= ltitle
+                ind = text.find(title)
+                if ind == 0:
+                    text = text[ind+len(title):]
+
             if not nlp:
                 nlp = pyizumo.load("en")
-            texts = []
             parsed_text = nlp(text)
 
-            start = 0
-            end = 0
-            length = 0
-            prev_end = -1
-            prev_start = -1
-            prev_len = -1
-            positions=[]
+            tsizes = []
+            begins = []
+            ends = []
             for sent in parsed_text.sentences:
                 stext = sent.text
-                res = tokenizer(stext, max_length=max_length, stride=stride,
-                        return_overflowing_tokens=True, truncation=True)
-                slen = len(res['input_ids'])
-                if length + slen < max_length:
-                    length += slen
-                    prev_end = sent.end
+                slen = get_tokenized_length(tokenizer, stext)
+                if slen > max_length:
+                    too_long = [[t for t in sent.tokens]]
+                    too_long[0].reverse()
+                    while len(too_long) > 0:
+                        tl = too_long.pop()
+                        ll = get_tokenized_length(tokenizer, text[tl[-1].begin:tl[0].end])
+                        if ll <= max_length:
+                            tsizes.append(ll)
+                            begins.append(tl[-1].begin)
+                            ends.append(tl[0].end)
+                        else:
+                            mid = int(len(tl) / 2)
+                            too_long.extend([tl[:mid], tl[mid:]])
                 else:
-                    if length > 0: # There is at least something in the list
-                        texts.append(text[start:prev_end])
-                        positions.append([start, prev_end])
-                    if slen > max_length:
-                        print("We have a problem: {text}")
-                        continue
-                    start = sent.begin
-                    length = slen
-            if length>0:
-                texts.append(text[start:prev_end])
-                positions.append([start, prev_end])
+                    tsizes.append(slen)
+                    begins.append(sent.begin)
+                    ends.append(sent.end)
 
-            # end = re.compile(f' {re.escape(tokenizer.sep_token)}$')
+            intervals = compute_intervals(tsizes, max_length, stride)
 
-            # for split_passage in res['input_ids']:
-            #     tt = end.sub(
-            #         "",
-            #         tokenizer.decode(split_passage).replace(f"{tokenizer.cls_token} ", "")
-            #     )
-            #     texts.append(tt)
+            positions = [[begins[p[0]], ends[p[1]]] for p in intervals]
+            texts = [text[p[0]:p[1]] for p in positions]
             return texts, positions
 
 
+def compute_intervals(tsizes: List[int], max_length: int, stride: int) -> List[List[int | Any]]:
+    """
+    Computes a list of breaking points that satisfy the constraints on the max_length and
+    stride (really, it's more of overlap).
+    :param tsizes: list[int] - the lenghts (in word pieces) for the document segments (most likely sentences).
+    :param max_length: int - the maximum length (in word pieces) for the each resulting text segment.
+    :param stride: int - the minimum overlap between consecutive segments.
+    :return: list[[int, int]] a list of start and end indices in the tsizes array, inclusive.
+    """
+    i = 1
+    sum = tsizes[0]
+    prev = 0
+    intervals = []
+    while i < len(tsizes):
+        if sum + tsizes[i] > max_length:
+            if len(intervals)>0 and intervals[-1][0] == prev:
+                raise RuntimeError("You have a problem with the splitting - it's cycling!: {intervals[-3:]}")
+            intervals.append([prev, i - 1])
+            if i > 1 and tsizes[i - 1] + tsizes[i] <= max_length:
+                j = i - 1
+                overlap = 0
+                max_length_tmp = max_length - tsizes[i] # the overlap + current size is not more than max_length
+                while j>0:
+                    overlap += tsizes[j]
+                    if overlap<stride and overlap + tsizes[j-1] <= max_length_tmp:
+                        j -= 1
+                    else:
+                        break
+                i = j
+            prev = i
+            sum = 0
+        else:
+            sum += tsizes[i]
+            i += 1
+    intervals.append([prev, len(tsizes) - 1])
+    return intervals
+
+
 def get_tokenized_length(tokenizer, text):
+    """
+    Returns the size of the <text> after being tokenized by <tokenizer>
+    :param tokenizer: Tokenizer - the tokenizer to convert text to word pieces
+    :param text: str - the input text
+    :return the length (in word pieces) of the tokenized text.
+    """
     if tokenizer is not None:
         toks = tokenizer(text)
         return len(toks['input_ids'])
@@ -111,20 +155,63 @@ def get_tokenized_length(tokenizer, text):
         return -1
 
 
+def process_text(id, title, text, max_doc_size, stride, remove_url=True, tokenizer=None, doc_url=None):
+    """
+    Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
+    :param id: str - the prefix of the id of the resulting piece/pieces
+    :param title: str - the title of the new piece
+    :param text: the input text to be split
+    :param max_doc_size: int - the maximum size (in word pieces) of the resulting sub-document/sub-passage texts
+    :param stride: int - the stride/overlap for consecutive pieces
+    :param remove_url: Boolean - if true, URL in the input text will be replaced with "URL"
+    :param tokenizer: Tokenizer - the tokenizer to use while splitting the text into pieces
+    :return - a list of indexable items, each containing a title, id, text, and url.
+    """
+    pieces = []
+    url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
+    if remove_url:
+        text = re.sub(url, 'URL', text)
+    if tokenizer is not None:
+        merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
+        if merged_length <= max_doc_size:
+            pieces.append(
+                {'id': f"{id}-0-{len(text)}", 'title': title, 'text': text, 'url': url}
+            )
+        else:
+            # title_len = get_tokenized_length(tokenizer=tokenizer, text=title)
+            maxl = max_doc_size  # - title_len
+            # psgs = split_passages(text=text, max_length=maxl, stride=stride, tokenizer=tokenizer)
+            psgs, inds = split_text(text=text, max_length=maxl, title=title,
+                                    stride=stride, tokenizer=tokenizer)
+            for pi, (p, index) in enumerate(zip(psgs, inds)):
+                pieces.append(
+                    {
+                        'id': f"{id}-{index[0]}-{index[1]}",
+                        'title': title,
+                        'text': f"{title}\n{p}",
+                        'url': doc_url,
+                    }
+                )
+    else:
+        pieces.append({'id': id, 'title': title, 'text': text, 'url': doc_url})
+    return pieces
+
+def get_attr(args, val, default=None):
+    if val in args and args[val] is not None:
+        return args[val]
+    else:
+        return default
+
+
 def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
-    url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     passages = []
+    doc_based = get_attr(kwargs, 'doc_based')
+    max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
     if fields is None:
         num_args = 3
     else:
         num_args = len(fields)
-    if 'max_num_documents' in kwargs:
-        max_num_documents = kwargs['max_num_documents']
-        if max_num_documents is None:
-            max_num_documents = 1000000000
-    else:
-        max_num_documents = 1000000000
     with open(input_file) as in_file:
         if input_file.endswith(".tsv"):
             # We'll assume this is the PrimeQA standard format
@@ -151,45 +238,47 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
         elif input_file.endswith('.json'):
             # This should be the SAP json format
             data = json.load(in_file)
-            for di, doc in tqdm(enumerate(data), total=min(max_num_documents, len(data)), desc="Reading json documents"):
+            for di, doc in tqdm(enumerate(data),
+                                total=min(max_num_documents, len(data)),
+                                desc="Reading json documents",
+                                smoothing=0.05):
                 doc_id = doc['document_id']
+                url = doc['document_url'] if 'document_url' in doc else ""
                 # doc_title = doc['title']
                 if di >= max_num_documents:
                     break
-                for passage in doc['passages']:
-                    itm = {}
-                    title = passage['title']
-                    id = f"{doc_id}-{passage['passage_id']}"
-                    text = passage['text']
-                    if remove_url:
-                        text = re.sub(url, 'URL', text)
-                    if tokenizer is not None:
-                        merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
-                        if merged_length <= max_doc_size:
-                            passages.append(
-                                {'id': id, 'title': title, 'text': text}
-                            )
-                        else:
-                            # title_len = get_tokenized_length(tokenizer=tokenizer, text=title)
-                            maxl = max_doc_size # - title_len
-                            psgs = split_passages(text=text, max_length=maxl, stride=stride, tokenizer=tokenizer)
-                            for pi, p in enumerate(psgs):
-                                passages.append(
-                                    {
-                                        'id': f"{id}-{pi}",
-                                        'title': title,
-                                        'text': f"{title}\n{p}"
-                                    }
-                                )
+                try:
+                    if doc_based:
+                        passages.extend(
+                            process_text(id=doc['document_id'],
+                                         title=fix_title(doc),
+                                         text=doc['document'],
+                                         max_doc_size=max_doc_size,
+                                         stride=stride,
+                                         remove_url=remove_url,
+                                         tokenizer=tokenizer,
+                                         doc_url=doc['document_url']))
                     else:
-                        passages.append({'id': id, 'title': title, 'text': text})
-        elif 'read_sap_qfile' in kwargs or input_file.endswith(".csv"):
+                        for passage in doc['passages']:
+                            passages.extend(
+                                process_text(id=f"{doc['document_id']}-{passage['passage_id']}",
+                                             title=passage['title'],
+                                             text=passage['text'],
+                                             max_doc_size=max_doc_size,
+                                             stride=stride,
+                                             remove_url=remove_url,
+                                             tokenizer=tokenizer,
+                                             doc_url=doc['document_url']))
+                except Exception as e:
+                    print(f"Error at line {di}: {e}")
+                    raise e
+        elif get_attr(kwargs, 'read_sap_qfile', default=False) or input_file.endswith(".csv"):
             import pandas as pd
             data = pd.read_csv(in_file)
             passages = []
             unmapped_ids = []
-            return_unmapped_ids = 'return_unmapped' in kwargs and kwargs['return_unmapped']
-            docid_map = kwargs['docid_map'] if 'docid_map' in kwargs else {}
+            return_unmapped_ids = get_attr(kwargs, 'return_unmapped')
+            docid_map = get_attr(kwargs, 'docid_map', default={})
             for i in range(len(data)):
                 itm = {}
                 itm['id'] = i
@@ -216,6 +305,10 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
             raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
 
     return passages
+
+
+def fix_title(doc):
+    return re.sub(r' {2,}', ' ', doc['title'].replace(" | SAP Help Portal", ""))
 
 
 def compute_embedding(model, input_query, normalize_embs):
@@ -390,6 +483,11 @@ def check_index_rebuild():
 
 
 if __name__ == '__main__':
+    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+    if ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == "":
+        print(f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
+        sys.exit(11)
+
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', default=None)
     parser.add_argument('--input_queries', '-q', default=None)
@@ -428,6 +526,9 @@ if __name__ == '__main__':
     parser.add_argument("-I", "--index_name", type=str, default=None,
                         help="Defines the index name to use. If not specified, it is built as " \
                              "{args.data}_{args.db_engine}_{args.model_name if args.db_engine=='es-dense' else 'elser'}_index")
+    parser.add_argument("--doc_based", action="store_true", default=False,
+                        help="If present, the document text will be ingested, otherwise the ingestion will be done"
+                             " at passage level.")
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -441,6 +542,7 @@ if __name__ == '__main__':
     do_ingest = 'i' in args.actions
     do_retrieve = 'r' in args.actions
     do_rerank = 'R' in args.actions
+    doc_based_ingestion = args.doc_based
 
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
@@ -455,14 +557,14 @@ if __name__ == '__main__':
         batch_size = 64
         model = MyEmbeddingFunction(args.model_name)
 
-    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == "":
-        print(f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
-        sys.exit(11)
     client = Elasticsearch(
         cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
         basic_auth=("elastic", ELASTIC_PASSWORD)
         )
+    # client = Elasticsearch("https://localhost:9200",
+    #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+    #                        basic_auth=("elastic", ELASTIC_PASSWORD)
+    #                        )
 
     if do_ingest:
         max_documents = args.max_num_documents
@@ -474,6 +576,7 @@ if __name__ == '__main__':
                                    stride=args.stride,
                                    tokenizer=model.tokenizer if model is not None else None,
                                    max_num_documents=max_documents,
+                                   doc_based=doc_based_ingestion,
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
@@ -493,6 +596,7 @@ if __name__ == '__main__':
                 "properties": {
                     "title": {"type": "text", "analyzer": "english"},
                     "text": {"type": "text", "analyzer": "english"},
+                    "url": {"type": "text", "analyzer": "english"},
                     "vector": {"type": "dense_vector", "dims": hidden_dim,
                                "similarity": "cosine", "index": "true"},
                 }
@@ -512,6 +616,7 @@ if __name__ == '__main__':
                          "_source": {
                              'text': row['text'],
                              'title': row['title'],
+                             'url': row['url'],
                              'vector': passage_vectors[pi+k]
                          }}
                         for pi, row in enumerate(input_passages[k:min(k+bulk_batch, num_passages)])
@@ -536,6 +641,7 @@ if __name__ == '__main__':
                     },
                     "title": {"type": "text", "analyzer": "english"},
                     "text": {"type": "text", "analyzer": "english"},
+                    "url": {"type": "text", "analyzer": "english"},
                 }
             }
             processors = [
@@ -566,7 +672,8 @@ if __name__ == '__main__':
                     "_id": row['id'],
                     "_source": {
                         'text': row['text'],
-                        'title': row['title']
+                        'title': row['title'],
+                        'url': row['url'],
                     }
                 }
                 )
@@ -616,6 +723,7 @@ if __name__ == '__main__':
                 res = client.search(
                     index=index_name,
                     knn=query,
+                    size=args.top_k,
                     source_excludes=['vector']
                 )
                 rout = []
