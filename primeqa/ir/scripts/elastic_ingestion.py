@@ -242,7 +242,7 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                                 total=min(max_num_documents, len(data)),
                                 desc="Reading json documents",
                                 smoothing=0.05):
-                doc_id = doc['document_id']
+                doc_id = doc['document_url']# doc['document_id']
                 url = doc['document_url'] if 'document_url' in doc else ""
                 # doc_title = doc['title']
                 if di >= max_num_documents:
@@ -250,7 +250,7 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                 try:
                     if doc_based:
                         passages.extend(
-                            process_text(id=doc['document_id'],
+                            process_text(id=doc['document_url'],
                                          title=fix_title(doc),
                                          text=doc['document'],
                                          max_doc_size=max_doc_size,
