@@ -250,7 +250,7 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                 try:
                     if doc_based:
                         passages.extend(
-                            process_text(id=doc['document_url'],
+                            process_text(id=doc['document_id'],
                                          title=fix_title(doc),
                                          text=doc['document'],
                                          max_doc_size=max_doc_size,
