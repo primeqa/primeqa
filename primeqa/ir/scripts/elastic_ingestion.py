@@ -175,7 +175,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True, tokeniz
         merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
         if merged_length <= max_doc_size:
             pieces.append(
-                {'id': f"{id}-0-{len(text)}", 'title': title, 'text': text, 'url': url}
+                {'id': f"{id}-0-{len(text)}", 'title': title, 'text': text, 'url': doc_url}
             )
         else:
             # title_len = get_tokenized_length(tokenizer=tokenizer, text=title)
