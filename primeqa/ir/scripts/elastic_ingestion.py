@@ -155,7 +155,10 @@ def get_tokenized_length(tokenizer, text):
         return -1
 
 
-def process_text(id, title, text, max_doc_size, stride, remove_url=True, tokenizer=None, doc_url=None):
+def process_text(id, title, text, max_doc_size, stride, remove_url=True,
+                 tokenizer=None,
+                 doc_url=None
+                 ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
     :param id: str - the prefix of the id of the resulting piece/pieces
@@ -168,32 +171,35 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True, tokeniz
     :return - a list of indexable items, each containing a title, id, text, and url.
     """
     pieces = []
+    fields = doc_url.split("/")
+    itm = {
+        'productID': fields[-3],
+        'deliverableLoio': fields[-2],
+        'filePath': fields[-1],
+        'title': title,
+        'url': doc_url,
+    }
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if remove_url:
         text = re.sub(url, 'URL', text)
     if tokenizer is not None:
         merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
         if merged_length <= max_doc_size:
-            pieces.append(
-                {'id': f"{id}-0-{len(text)}", 'title': title, 'text': text, 'url': doc_url}
-            )
+            itm.update({'id': f"{id}-0-{len(text)}", 'text': text})
+            pieces.append(itm.copy())
         else:
-            # title_len = get_tokenized_length(tokenizer=tokenizer, text=title)
             maxl = max_doc_size  # - title_len
-            # psgs = split_passages(text=text, max_length=maxl, stride=stride, tokenizer=tokenizer)
             psgs, inds = split_text(text=text, max_length=maxl, title=title,
                                     stride=stride, tokenizer=tokenizer)
             for pi, (p, index) in enumerate(zip(psgs, inds)):
-                pieces.append(
-                    {
+                itm.update({
                         'id': f"{id}-{index[0]}-{index[1]}",
-                        'title': title,
-                        'text': f"{title}\n{p}",
-                        'url': doc_url,
-                    }
-                )
+                        'text': f"{title}\n{p}"
+                    })
+                pieces.append(itm.copy())
     else:
-        pieces.append({'id': id, 'title': title, 'text': text, 'url': doc_url})
+        itm.update({'id': id, 'text': text})
+        pieces.append(itm.copy())
     return pieces
 
 def get_attr(args, val, default=None):
@@ -208,6 +214,8 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
     max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
+    url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
+
     if fields is None:
         num_args = 3
     else:
@@ -245,19 +253,25 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                 doc_id = doc['document_url']# doc['document_id']
                 url = doc['document_url'] if 'document_url' in doc else ""
                 # doc_title = doc['title']
+                docid = doc['document_id'].replace(".txt", "")
+                if docid in docname2url:
+                    url = docname2url[docid]
+                    title = docname2title[docid]
+
                 if di >= max_num_documents:
                     break
                 try:
                     if doc_based:
                         passages.extend(
                             process_text(id=doc['document_id'],
-                                         title=fix_title(doc),
+                                         title=fix_title(title),
                                          text=doc['document'],
                                          max_doc_size=max_doc_size,
                                          stride=stride,
                                          remove_url=remove_url,
                                          tokenizer=tokenizer,
-                                         doc_url=doc['document_url']))
+                                         doc_url=doc['document_url'])
+                        )
                     else:
                         for passage in doc['passages']:
                             passages.extend(
@@ -268,7 +282,8 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
                                              stride=stride,
                                              remove_url=remove_url,
                                              tokenizer=tokenizer,
-                                             doc_url=doc['document_url']))
+                                             doc_url=doc['document_url'])
+                        )
                 except Exception as e:
                     print(f"Error at line {di}: {e}")
                     raise e
@@ -307,8 +322,8 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
     return passages
 
 
-def fix_title(doc):
-    return re.sub(r' {2,}', ' ', doc['title'].replace(" | SAP Help Portal", ""))
+def fix_title(title):
+    return re.sub(r' {2,}', ' ', title.replace(" | SAP Help Portal", ""))
 
 
 def compute_embedding(model, input_query, normalize_embs):
@@ -529,6 +544,7 @@ if __name__ == '__main__':
     parser.add_argument("--doc_based", action="store_true", default=False,
                         help="If present, the document text will be ingested, otherwise the ingestion will be done"
                              " at passage level.")
+    parser.add_argument("--hana_file2url", type=str, default=None, help="The file mapping the docid to the url to the title")
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -543,6 +559,14 @@ if __name__ == '__main__':
     do_retrieve = 'r' in args.actions
     do_rerank = 'R' in args.actions
     doc_based_ingestion = args.doc_based
+    docname2url = {}
+    docname2title = {}
+    if args.hana_file2url is not None:
+        with open(args.hana_file2url) as inp:
+            fl = csv.reader(inp, delimiter="\t")
+            for line in fl:
+                docname2url[line[0]] = line[1]
+                docname2title[line[0]] = line[2].strip()
 
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
@@ -577,11 +601,14 @@ if __name__ == '__main__':
                                    tokenizer=model.tokenizer if model is not None else None,
                                    max_num_documents=max_documents,
                                    doc_based=doc_based_ingestion,
+                                   docname2url=docname2url,
+                                   docname2title=docname2title
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
 
         hidden_dim = -1
+        passage_vectors = []
         if args.db_engine == "es-dense":
             passage_vectors = model.encode([passage['text'] for passage in input_passages], batch_size=batch_size)
 
@@ -590,37 +617,184 @@ if __name__ == '__main__':
                 passage_vectors = normalize(passage_vectors)
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
-
-        if args.db_engine == "es-dense":
-            mappings = {
-                "properties": {
-                    "title": {"type": "text", "analyzer": "english"},
-                    "text": {"type": "text", "analyzer": "english"},
-                    "url": {"type": "text", "analyzer": "english"},
-                    "vector": {"type": "dense_vector", "dims": hidden_dim,
-                               "similarity": "cosine", "index": "true"},
+        settings = {
+            "number_of_replicas": 0,
+            "number_of_shards": 1,
+            "refresh_interval": "1m",
+            "analysis": {
+                "filter": {
+                    "possessive_english_stemmer": {
+                        "type": "stemmer",
+                        "language": "possessive_english"
+                    },
+                    "light_english_stemmer": {
+                        "type": "stemmer",
+                        "language": "light_english"
+                    },
+                    "english_stop": {
+                        "ignore_case": "true",
+                        "type": "stop",
+                        "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                      "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                      "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                      "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                      "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                      "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                      "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                      "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
+                    }
+                },
+                "analyzer": {
+                    "text_en_no_stop": {
+                        "filter": [
+                            "lowercase",
+                            "possessive_english_stemmer",
+                            "light_english_stemmer"
+                        ],
+                        "tokenizer": "standard"
+                    },
+                    "text_en_stop": {
+                        "filter": [
+                            "lowercase",
+                            "possessive_english_stemmer",
+                            "english_stop",
+                            "light_english_stemmer"
+                        ],
+                        "tokenizer": "standard"
+                    },
+                    "whitespace_lowercase": {
+                        "tokenizer": "whitespace",
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                },
+                "normalizer": {
+                    "keyword_lowercase": {
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
                 }
             }
+        }
+
+        coga_mappings = {
+            "_source": {
+                "enabled": "true"
+            },
+            "dynamic": "false",
+            "properties": {
+                "url": {
+                    "type": "text"
+                },
+                "title": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "fileTitle": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "title_paraphrases": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "productId": {
+                    "type": "keyword"
+                },
+                "deliverableLoio": {
+                    "type": "keyword",
+                },
+                "filePath": {
+                    "type": "keyword",
+                },
+                "text": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "plainTextContent": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "title_and_text": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "collection": {
+                    "type": "text",
+                    "fields": {
+                        "exact": {
+                            "normalizer": "keyword_lowercase",
+                            "type": "keyword",
+                            "doc_values": "false"
+                        }
+                    }
+                }            }
+        }
+
+        if args.db_engine == "es-dense":
+            mappings = coga_mappings
+            mappings['properties']["vector"]= {
+                "type": "dense_vector", "dims": hidden_dim,
+                "similarity": "cosine", "index": "true"
+            }
+
+            # mappings = {
+            #     "properties": {
+            #         "title": {"type": "text", "analyzer": "english"},
+            #         "text": {"type": "text", "analyzer": "english"},
+            #         "url": {"type": "text", "analyzer": "english"},
+            #         "vector": {"type": "dense_vector", "dims": hidden_dim,
+            #                    "similarity": "cosine", "index": "true"},
+            #     }
+            # }
             if client.indices.exists(index=index_name):
                 check_index_rebuild()
                 client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
-            client.indices.create(index=index_name, mappings=mappings)
+            client.indices.create(index=index_name, mappings=mappings, settings=settings)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
+            keys_to_index = ['title', 'id', 'url', 'productID',
+                             'filePath', 'deliverableLoio', 'text']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
-                actions = [{"_index": index_name,
-                         "_id": row['id'],
-                         "_source": {
-                             'text': row['text'],
-                             'title': row['title'],
-                             'url': row['url'],
-                             'vector': passage_vectors[pi+k]
-                         }}
-                        for pi, row in enumerate(input_passages[k:min(k+bulk_batch, num_passages)])
-                        ]
+                actions = [
+                    {
+                        "_index": index_name,
+                        "_id": row['id'],
+                        "_source": {k: row[k] for k in keys_to_index}
+                    }
+                    for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
+                ]
+                for pi, (action, row) in enumerate(zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
+                    action["_source"]['vector'] = passage_vectors[pi + k]
                 try:
                     bulk(client, actions=actions)
                 except Exception as e:
@@ -634,16 +808,19 @@ if __name__ == '__main__':
                 #        'vector': passage_vectors[ri]}
                 # client.index(index=index_name, id=row['id'], document=doc)
         elif args.db_engine == "es-elser":
-            mappings = {
-                "properties": {
-                    "ml.tokens": {
-                        "type": "rank_features"
-                    },
-                    "title": {"type": "text", "analyzer": "english"},
-                    "text": {"type": "text", "analyzer": "english"},
-                    "url": {"type": "text", "analyzer": "english"},
-                }
-            }
+            mappings = coga_mappings
+            mappings['properties']['ml.tokens'] = {"type": "rank_features"}
+
+            # mappings = {
+            #     "properties": {
+            #         "ml.tokens": {
+            #             "type": "rank_features"
+            #         },
+            #         "title": {"type": "text", "analyzer": "english"},
+            #         "text": {"type": "text", "analyzer": "english"},
+            #         "url": {"type": "text", "analyzer": "english"},
+            #     }
+            # }
             processors = [
                 {
                     "inference": {
@@ -663,30 +840,43 @@ if __name__ == '__main__':
             if client.indices.exists(index=index_name):
                 check_index_rebuild()
                 client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
-            client.indices.create(index=f"{index_name}", mappings=mappings)
+            client.indices.create(index=f"{index_name}", mappings=mappings, settings=settings)
             client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
             actions = []
-            for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):
-                actions.append({
-                    "_index": index_name,
-                    "_id": row['id'],
-                    "_source": {
-                        'text': row['text'],
-                        'title': row['title'],
-                        'url': row['url'],
+            keys_to_index = ['title', 'id', 'url', 'productID',
+                             'filePath', 'deliverableLoio', 'text']
+            num_passages = len(input_passages)
+            t = tqdm(total=num_passages, desc="Ingesting documents (w ELSER): ", smoothing=0.05)
+            # for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):
+            for k in range(0, num_passages, bulk_batch):
+                actions = [
+                    {
+                        "_index": index_name,
+                        "_id": row['id'],
+                        "_source": {k: row[k] for k in keys_to_index}
                     }
-                }
-                )
-                if ri % bulk_batch == bulk_batch - 1:
-                    failures = 0
-                    while failures < 5:
-                        try:
-                            res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
-                            break
-                        except Exception as e:
-                            print(f"Got an error in indexing: {e}, {len(actions)} {res}")
-                        failures += 5
-                    actions = []
+                    for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
+                ]
+
+                # actions.append({
+                #     "_index": index_name,
+                #     "_id": row['id'],
+                #     "_source": {
+                #         'text': row['text'],
+                #         'title': row['title'],
+                #         'url': row['url'],
+                #     }
+                # }
+                # )
+                failures = 0
+                while failures < 5:
+                    try:
+                        res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                        break
+                    except Exception as e:
+                        print(f"Got an error in indexing: {e}, {len(actions)} {res}")
+                    failures += 5
+
             if len(actions) > 0:
                 try:
                     bulk(client=client, actions=actions, pipeline="elser-v1-test")
