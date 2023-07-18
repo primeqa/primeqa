@@ -10,8 +10,8 @@ import logging
 import sys
 import pyizumo
 
-
 nlp = None
+
 
 def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
         -> List[str]:
@@ -41,7 +41,8 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
                 texts.append(tt)
             return texts
 
-def split_text(text: str, tokenizer, title: str="", max_length: int = 512, stride: int = None) \
+
+def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None) \
         -> tuple[list[str], list[list[int | Any]]]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -61,12 +62,12 @@ def split_text(text: str, tokenizer, title: str="", max_length: int = 512, strid
         if tok_len <= max_length:
             return [text], [[0, len(text)]]
         else:
-            if title: # make space for the title in each split text.
+            if title:  # make space for the title in each split text.
                 ltitle = get_tokenized_length(tokenizer, title)
                 max_length -= ltitle
                 ind = text.find(title)
                 if ind == 0:
-                    text = text[ind+len(title):]
+                    text = text[ind + len(title):]
 
             if not nlp:
                 nlp = pyizumo.load("en")
@@ -118,16 +119,16 @@ def compute_intervals(tsizes: List[int], max_length: int, stride: int) -> List[L
     intervals = []
     while i < len(tsizes):
         if sum + tsizes[i] > max_length:
-            if len(intervals)>0 and intervals[-1][0] == prev:
+            if len(intervals) > 0 and intervals[-1][0] == prev:
                 raise RuntimeError("You have a problem with the splitting - it's cycling!: {intervals[-3:]}")
             intervals.append([prev, i - 1])
             if i > 1 and tsizes[i - 1] + tsizes[i] <= max_length:
                 j = i - 1
                 overlap = 0
-                max_length_tmp = max_length - tsizes[i] # the overlap + current size is not more than max_length
-                while j>0:
+                max_length_tmp = max_length - tsizes[i]  # the overlap + current size is not more than max_length
+                while j > 0:
                     overlap += tsizes[j]
-                    if overlap<stride and overlap + tsizes[j-1] <= max_length_tmp:
+                    if overlap < stride and overlap + tsizes[j - 1] <= max_length_tmp:
                         j -= 1
                     else:
                         break
@@ -173,7 +174,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     pieces = []
     fields = doc_url.split("/")
     itm = {
-        'productID': fields[-3],
+        'productId': fields[-3] if fields[-3]!='#' else 'SAP_BUSINESS_ONE',
         'deliverableLoio': fields[-2],
         'filePath': fields[-1],
         'title': title,
@@ -193,14 +194,15 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                                     stride=stride, tokenizer=tokenizer)
             for pi, (p, index) in enumerate(zip(psgs, inds)):
                 itm.update({
-                        'id': f"{id}-{index[0]}-{index[1]}",
-                        'text': f"{title}\n{p}"
-                    })
+                    'id': f"{id}-{index[0]}-{index[1]}",
+                    'text': f"{title}\n{p}"
+                })
                 pieces.append(itm.copy())
     else:
         itm.update({'id': id, 'text': text})
         pieces.append(itm.copy())
     return pieces
+
 
 def get_attr(args, val, default=None):
     if val in args and args[val] is not None:
@@ -209,7 +211,7 @@ def get_attr(args, val, default=None):
         return default
 
 
-def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
+def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -220,104 +222,115 @@ def read_data(input_file, fields=None, remove_url=False, tokenizer=None,
         num_args = 3
     else:
         num_args = len(fields)
-    with open(input_file) as in_file:
-        if input_file.endswith(".tsv"):
-            # We'll assume this is the PrimeQA standard format
-            csv_reader = \
-                csv.DictReader(in_file, fieldnames=fields, delimiter="\t") \
-                    if fields is not None \
-                    else csv.DictReader(in_file, delimiter="\t")
-            next(csv_reader)
-            for ri, row in enumerate(csv_reader):
-                if ri >= max_num_documents:
-                    break
-                assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-                if remove_url:
-                    row['text'] = re.sub(url, 'URL', row['text'])
-                itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
-                       'id': row['id']}
-                if 'title' in row:
-                    itm['title'] = row['title']
-                if 'relevant' in row:
-                    itm['relevant'] = row['relevant']
-                if 'answers' in row:
-                    itm['answers'] = row['answers'].split("::")
-                passages.append(itm)
-        elif input_file.endswith('.json'):
-            # This should be the SAP json format
-            data = json.load(in_file)
-            for di, doc in tqdm(enumerate(data),
-                                total=min(max_num_documents, len(data)),
-                                desc="Reading json documents",
-                                smoothing=0.05):
-                doc_id = doc['document_url']# doc['document_id']
-                url = doc['document_url'] if 'document_url' in doc else ""
-                # doc_title = doc['title']
-                docid = doc['document_id'].replace(".txt", "")
-                if docid in docname2url:
-                    url = docname2url[docid]
-                    title = docname2title[docid]
+    if isinstance(input_files, list):
+        files = input_files
+    elif isinstance(input_files, str):
+        files = [input_files]
+    else:
+        raise RuntimeError(f"Unsupported type for {input_files}")
+    docs_read = 0
+    for input_file in files:
+        docs_read = 0
+        with open(input_file) as in_file:
+            if input_file.endswith(".tsv"):
+                # We'll assume this is the PrimeQA standard format
+                csv_reader = \
+                    csv.DictReader(in_file, fieldnames=fields, delimiter="\t") \
+                        if fields is not None \
+                        else csv.DictReader(in_file, delimiter="\t")
+                next(csv_reader)
+                for ri, row in enumerate(csv_reader):
+                    if ri >= max_num_documents:
+                        break
+                    assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
+                    if remove_url:
+                        row['text'] = re.sub(url, 'URL', row['text'])
+                    itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
+                           'id': row['id']}
+                    if 'title' in row:
+                        itm['title'] = row['title']
+                    if 'relevant' in row:
+                        itm['relevant'] = row['relevant']
+                    if 'answers' in row:
+                        itm['answers'] = row['answers'].split("::")
+                    passages.append(itm)
+            elif input_file.endswith('.json'):
+                # This should be the SAP json format
+                data = json.load(in_file)
+                for di, doc in tqdm(enumerate(data),
+                                    total=min(max_num_documents, len(data)),
+                                    desc="Reading json documents",
+                                    smoothing=0.05):
+                    if di >= max_num_documents:
+                        break
+                    doc_id = doc['document_url']  # doc['document_id']
+                    url = doc['document_url'] if 'document_url' in doc else ""
+                    title = doc['title']
+                    docid = doc['document_id'].replace(".txt", "")
+                    if docid in docname2url:
+                        url = docname2url[docid]
+                        title = docname2title[docid]
 
-                if di >= max_num_documents:
-                    break
-                try:
-                    if doc_based:
-                        passages.extend(
-                            process_text(id=doc['document_id'],
-                                         title=fix_title(title),
-                                         text=doc['document'],
-                                         max_doc_size=max_doc_size,
-                                         stride=stride,
-                                         remove_url=remove_url,
-                                         tokenizer=tokenizer,
-                                         doc_url=doc['document_url'])
-                        )
-                    else:
-                        for passage in doc['passages']:
+                    try:
+                        if doc_based:
                             passages.extend(
-                                process_text(id=f"{doc['document_id']}-{passage['passage_id']}",
-                                             title=passage['title'],
-                                             text=passage['text'],
+                                process_text(id=doc['document_id'],
+                                             title=fix_title(title),
+                                             text=doc['document'],
                                              max_doc_size=max_doc_size,
                                              stride=stride,
                                              remove_url=remove_url,
                                              tokenizer=tokenizer,
                                              doc_url=doc['document_url'])
-                        )
-                except Exception as e:
-                    print(f"Error at line {di}: {e}")
-                    raise e
-        elif get_attr(kwargs, 'read_sap_qfile', default=False) or input_file.endswith(".csv"):
-            import pandas as pd
-            data = pd.read_csv(in_file)
-            passages = []
-            unmapped_ids = []
-            return_unmapped_ids = get_attr(kwargs, 'return_unmapped')
-            docid_map = get_attr(kwargs, 'docid_map', default={})
-            for i in range(len(data)):
-                itm = {}
-                itm['id'] = i
-                itm['text'] = data.Question[i]
-                itm['answers'] = data['Gold answer'][i]
-                psgs = []
-                ids = []
-                for val, loio in [[f'passage {k}', f'loio {k}'] for k in range(1, 4)]:
-                    if type(data[val][i]) == str:
-                        psgs.append(data[val][i])
-                        loio_v = data[loio][i].replace('loio', '')
-                        if loio_v in docid_map:
-                            if docid_map[loio_v] not in ids:
-                                ids.append(docid_map[loio_v])
+                            )
                         else:
-                            ids.append(loio_v)
-                            unmapped_ids.append(loio_v)
-                itm['passages'] = psgs
-                itm['relevant'] = ids
-                passages.append(itm)
-            if return_unmapped_ids:
-                return passages, unmapped_ids
-        else:
-            raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
+                            for passage in doc['passages']:
+                                passages.extend(
+                                    process_text(id=f"{doc['document_id']}-{passage['passage_id']}",
+                                                 title=passage['title'],
+                                                 text=passage['text'],
+                                                 max_doc_size=max_doc_size,
+                                                 stride=stride,
+                                                 remove_url=remove_url,
+                                                 tokenizer=tokenizer,
+                                                 doc_url=doc['document_url'])
+                                )
+                    except Exception as e:
+                        print(f"Error at line {di}: {e}")
+                        raise e
+                    docs_read += 1
+            elif get_attr(kwargs, 'read_sap_qfile', default=False) or input_file.endswith(".csv"):
+                import pandas as pd
+                data = pd.read_csv(in_file)
+                passages = []
+                unmapped_ids = []
+                return_unmapped_ids = get_attr(kwargs, 'return_unmapped')
+                docid_map = get_attr(kwargs, 'docid_map', default={})
+                for i in range(len(data)):
+                    itm = {}
+                    itm['id'] = i
+                    itm['text'] = data.Question[i]
+                    itm['answers'] = data['Gold answer'][i]
+                    psgs = []
+                    ids = []
+                    for val, loio in [[f'passage {k}', f'loio {k}'] for k in range(1, 4)]:
+                        if type(data[val][i]) == str:
+                            psgs.append(data[val][i])
+                            loio_v = data[loio][i].replace('loio', '')
+                            if loio_v in docid_map:
+                                if docid_map[loio_v] not in ids:
+                                    ids.append(docid_map[loio_v])
+                            else:
+                                ids.append(loio_v)
+                                unmapped_ids.append(loio_v)
+                    itm['passages'] = psgs
+                    itm['relevant'] = ids
+                    passages.append(itm)
+                if return_unmapped_ids:
+                    return passages, unmapped_ids
+            else:
+                raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
+        max_num_documents -= docs_read
 
     return passages
 
@@ -497,14 +510,30 @@ def check_index_rebuild():
             print(f"Please type 'yes' or 'no', not {r}!")
 
 
+def create_update_index(index_name, do_update):
+    if client.indices.exists(index=index_name):
+        if not do_update:
+            check_index_rebuild()
+            client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
+        else:
+            print(f"Using existent index {index_name}.")
+    else:
+        if do_update:
+            print("You are trying to update an index that does not exist "
+                  "- will ignore your command and create the index.")
+    if not client.indices.exists(index=index_name):
+        client.indices.create(index=index_name, mappings=mappings, settings=settings)
+
+
 if __name__ == '__main__':
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
     if ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == "":
-        print(f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
+        print(
+            f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
         sys.exit(11)
 
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
-    parser.add_argument('--input_passages', '-p', default=None)
+    parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
 
     parser.add_argument('--db_engine', '-e', default='es-dense',
@@ -514,7 +543,7 @@ if __name__ == '__main__':
     parser.add_argument('--top_k', '-k', type=int, default=10, )
     parser.add_argument('--model_name', '-m', default='all-MiniLM-L6-v2')
     parser.add_argument('--actions', default="ir",
-                        help="The actions that can be done: i(ingest), r(retrieve), R(rerank)")
+                        help="The actions that can be done: i(ingest), r(retrieve), R(rerank), u(update)")
     parser.add_argument("--normalize_embs", action="store_true", help="If present, the embeddings are normalized.")
     parser.add_argument("--evaluate", action="store_true",
                         help="If present, evaluates the results based on test data, at the provided ranks.")
@@ -544,7 +573,8 @@ if __name__ == '__main__':
     parser.add_argument("--doc_based", action="store_true", default=False,
                         help="If present, the document text will be ingested, otherwise the ingestion will be done"
                              " at passage level.")
-    parser.add_argument("--hana_file2url", type=str, default=None, help="The file mapping the docid to the url to the title")
+    parser.add_argument("--hana_file2url", type=str, default=None,
+                        help="The file mapping the docid to the url to the title")
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -553,11 +583,13 @@ if __name__ == '__main__':
     else:
         index_name = args.index_name.lower()
 
+
     index_name = re.sub('[^a-z0-9]', '-', index_name)
 
     do_ingest = 'i' in args.actions
     do_retrieve = 'r' in args.actions
     do_rerank = 'R' in args.actions
+    do_update = 'u' in args.actions
     doc_based_ingestion = args.doc_based
     docname2url = {}
     docname2title = {}
@@ -584,13 +616,13 @@ if __name__ == '__main__':
     client = Elasticsearch(
         cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
         basic_auth=("elastic", ELASTIC_PASSWORD)
-        )
+    )
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
     #                        )
 
-    if do_ingest:
+    if do_ingest or do_update:
         max_documents = args.max_num_documents
 
         input_passages = read_data(args.input_passages,
@@ -754,12 +786,12 @@ if __name__ == '__main__':
                             "doc_values": "false"
                         }
                     }
-                }            }
+                }}
         }
 
         if args.db_engine == "es-dense":
             mappings = coga_mappings
-            mappings['properties']["vector"]= {
+            mappings['properties']["vector"] = {
                 "type": "dense_vector", "dims": hidden_dim,
                 "similarity": "cosine", "index": "true"
             }
@@ -773,15 +805,13 @@ if __name__ == '__main__':
             #                    "similarity": "cosine", "index": "true"},
             #     }
             # }
-            if client.indices.exists(index=index_name):
-                check_index_rebuild()
-                client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
-            client.indices.create(index=index_name, mappings=mappings, settings=settings)
+
+            create_update_index(index_name, do_update)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productID',
+            keys_to_index = ['title', 'id', 'url', 'productId',
                              'filePath', 'deliverableLoio', 'text']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
@@ -803,10 +833,10 @@ if __name__ == '__main__':
             t.close()
 
             # for ri, row in tqdm(enumerate(input_passages), desc="Indexing es-dense", total=len(input_passages)):
-                # doc = {'text': row['text'],
-                #        'title': row['title'],
-                #        'vector': passage_vectors[ri]}
-                # client.index(index=index_name, id=row['id'], document=doc)
+            # doc = {'text': row['text'],
+            #        'title': row['title'],
+            #        'vector': passage_vectors[ri]}
+            # client.index(index=index_name, id=row['id'], document=doc)
         elif args.db_engine == "es-elser":
             mappings = coga_mappings
             mappings['properties']['ml.tokens'] = {"type": "rank_features"}
@@ -837,13 +867,14 @@ if __name__ == '__main__':
                     }}
             ]
             bulk_batch = args.ingestion_batch_size
-            if client.indices.exists(index=index_name):
-                check_index_rebuild()
-                client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
-            client.indices.create(index=f"{index_name}", mappings=mappings, settings=settings)
+            create_update_index(index_name, do_update)
+            # if client.indices.exists(index=index_name):
+            #     check_index_rebuild()
+            #     client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
+            # client.indices.create(index=f"{index_name}", mappings=mappings, settings=settings)
             client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
             actions = []
-            keys_to_index = ['title', 'id', 'url', 'productID',
+            keys_to_index = ['title', 'id', 'url', 'productId',
                              'filePath', 'deliverableLoio', 'text']
             num_passages = len(input_passages)
             t = tqdm(total=num_passages, desc="Ingesting documents (w ELSER): ", smoothing=0.05)
@@ -858,16 +889,6 @@ if __name__ == '__main__':
                     for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
                 ]
 
-                # actions.append({
-                #     "_index": index_name,
-                #     "_id": row['id'],
-                #     "_source": {
-                #         'text': row['text'],
-                #         'title': row['title'],
-                #         'url': row['url'],
-                #     }
-                # }
-                # )
                 failures = 0
                 while failures < 5:
                     try:
@@ -876,6 +897,8 @@ if __name__ == '__main__':
                     except Exception as e:
                         print(f"Got an error in indexing: {e}, {len(actions)} {res}")
                     failures += 5
+                t.update(bulk_batch)
+            t.close()
 
             if len(actions) > 0:
                 try:

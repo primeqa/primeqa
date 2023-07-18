@@ -73,7 +73,7 @@ _deps = {
     "scikit-learn~=1.0.2": ["install", "gpu"],
     "signals~=0.0.2": ["install", "gpu"],
     "stanza~=1.4.0": ["install", "gpu"],
-    "torch~=1.11.0": ["install", "gpu"],
+    "torch>=2.0": ["install", "gpu"],
     "tox~=3.24.5": ["tests"],
     "transformers~=4.24.0": ["install", "gpu"],
     "sentence_transformers": ["install", "gpu"],
