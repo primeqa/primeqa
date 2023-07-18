@@ -76,6 +76,9 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     assert not ( config.use_ib_negatives and config.distill_query_passage_separately ) , \
                 f" Simultaneous use of --use_ib_negatives and --distill_query_passage_separately options is not supported (yet)"
 
+    if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
+        checkpoint = torch_load_dnn(config.checkpoint)
+
     random.seed(config.rng_seed)
     np.random.seed(config.rng_seed)
     torch.manual_seed(config.rng_seed)
