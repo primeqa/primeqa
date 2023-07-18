@@ -940,7 +940,7 @@ if __name__ == '__main__':
                     source_excludes=['vector']
                 )
                 rout = []
-                for rank, r in enumerate(res._body['hits']['hits']):
+                for rank, r in enumerate(res.body['hits']['hits']):
                     rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
                 result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
         elif args.db_engine == "es-elser":
@@ -960,7 +960,7 @@ if __name__ == '__main__':
                     size=args.top_k,
                 )
                 rout = []
-                for rank, r in enumerate(res._body['hits']['hits']):
+                for rank, r in enumerate(res.body['hits']['hits']):
                     rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
                 result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
 
