@@ -34,8 +34,7 @@ class EagerBatcher():
         self.position = 0
 
         self.triples = self._load_triples(triples, rank, nranks)
-        self.reader = open(triples, mode='r', encoding="utf-8")
-        self.length = len(self.reader.readlines())
+        self.length = len(self.triples)
 
     def shuffle(self):
         print_message("#> Shuffling triples...")
