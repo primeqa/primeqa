@@ -119,7 +119,7 @@ class DPRTrainingArguments:
         default=0, metadata={"help": "Number of warm-up instances"}
     )
 
-    warmup_fraction: int = field(
+    warmup_fraction: float = field(
         default=0.0,
         metadata={
             "help": "Warm-up instances fraction, only applies if warmup_instances <= 0"
