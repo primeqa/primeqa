@@ -36,13 +36,13 @@ class Arguments():
         # for handling models in local repository
         self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
 
+        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert', 'xlm-roberta', 'roberta', 'custom'], required=False)
+
     def add_model_training_parameters(self):
         # NOTE: Providing a checkpoint is one thing, --resume is another, --resume_optimizer is yet another.
         self.add_argument('--resume', dest='resume', default=False, action='store_true')
         self.add_argument('--resume_optimizer', dest='resume_optimizer', default=False, action='store_true')
         self.add_argument('--checkpoint', dest='checkpoint', default=None, required=False)
-
-        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert','xlm-roberta', 'roberta', 'custom'], required=False)
 
         self.add_argument('--lr', dest='lr', default=3e-06, type=float)
         self.add_argument('--maxsteps', dest='maxsteps', default=400000, type=int)
