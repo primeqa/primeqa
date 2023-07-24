@@ -1,5 +1,4 @@
 import os, re, json, csv
-import logging
 from argparse import ArgumentParser
 from tqdm import tqdm
 import numpy as np
@@ -174,7 +173,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     pieces = []
     fields = doc_url.split("/")
     itm = {
-        'productId': fields[-3] if fields[-3]!='#' else 'SAP_BUSINESS_ONE',
+        'productId': fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE',
         'deliverableLoio': fields[-2],
         'filePath': fields[-1],
         'title': title,
@@ -211,6 +210,17 @@ def get_attr(args, val, default=None):
         return default
 
 
+def remove_stopwords(text: str, do_replace: bool = False) -> str:
+    global stopwords, settings
+    if not do_replace:
+        return text
+    else:
+        if stopwords is None:
+            stopwords = re.compile("\\b(?:" + "|".join(settings["analysis"]["filter"]["english_stop"]["stopwords"]) + ")\\b",
+                                   re.IGNORECASE)
+        return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
+
+
 def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
@@ -229,6 +239,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
     else:
         raise RuntimeError(f"Unsupported type for {input_files}")
     docs_read = 0
+    remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
     for input_file in files:
         docs_read = 0
         with open(input_file) as in_file:
@@ -244,11 +255,11 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         break
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
                     if remove_url:
-                        row['text'] = re.sub(url, 'URL', row['text'])
+                        row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
                     itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
                            'id': row['id']}
                     if 'title' in row:
-                        itm['title'] = row['title']
+                        itm['title'] = remove_stopwords(row['title'], remv_stopwords)
                     if 'relevant' in row:
                         itm['relevant'] = row['relevant']
                     if 'answers' in row:
@@ -275,8 +286,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         if doc_based:
                             passages.extend(
                                 process_text(id=doc['document_id'],
-                                             title=fix_title(title),
-                                             text=doc['document'],
+                                             title=remove_stopwords(fix_title(title), remv_stopwords),
+                                             text=remove_stopwords(doc['document'], remv_stopwords),
                                              max_doc_size=max_doc_size,
                                              stride=stride,
                                              remove_url=remove_url,
@@ -287,8 +298,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                             for passage in doc['passages']:
                                 passages.extend(
                                     process_text(id=f"{doc['document_id']}-{passage['passage_id']}",
-                                                 title=passage['title'],
-                                                 text=passage['text'],
+                                                 title=remove_stopwords(passage['title'], remv_stopwords),
+                                                 text=remove_stopwords(passage['text'], remv_stopwords),
                                                  max_doc_size=max_doc_size,
                                                  stride=stride,
                                                  remove_url=remove_url,
@@ -309,7 +320,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                 for i in range(len(data)):
                     itm = {}
                     itm['id'] = i
-                    itm['text'] = data.Question[i]
+                    itm['text'] = remove_stopwords(data.Question[i], remv_stopwords)
                     itm['answers'] = data['Gold answer'][i]
                     psgs = []
                     ids = []
@@ -525,6 +536,158 @@ def create_update_index(index_name, do_update):
         client.indices.create(index=index_name, mappings=mappings, settings=settings)
 
 
+def init_settings():
+    global settings, coga_mappings, standard_mappings
+    standard_mappings = {
+        "properties": {
+            "ml.tokens": {
+                "type": "rank_features"
+            },
+            "title": {"type": "text", "analyzer": "english"},
+            "text": {"type": "text", "analyzer": "english"},
+            "url": {"type": "text", "analyzer": "english"},
+        }
+    }
+    settings = {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "refresh_interval": "1m",
+        "analysis": {
+            "filter": {
+                "possessive_english_stemmer": {
+                    "type": "stemmer",
+                    "language": "possessive_english"
+                },
+                "light_english_stemmer": {
+                    "type": "stemmer",
+                    "language": "light_english"
+                },
+                "english_stop": {
+                    "ignore_case": "true",
+                    "type": "stop",
+                    "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
+                }
+            },
+            "analyzer": {
+                "text_en_no_stop": {
+                    "filter": [
+                        "lowercase",
+                        "possessive_english_stemmer",
+                        "light_english_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "text_en_stop": {
+                    "filter": [
+                        "lowercase",
+                        "possessive_english_stemmer",
+                        "english_stop",
+                        "light_english_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "whitespace_lowercase": {
+                    "tokenizer": "whitespace",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            },
+            "normalizer": {
+                "keyword_lowercase": {
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    }
+    coga_mappings = {
+        "_source": {
+            "enabled": "true"
+        },
+        "dynamic": "false",
+        "properties": {
+            "url": {
+                "type": "text"
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "fileTitle": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_paraphrases": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "productId": {
+                "type": "keyword"
+            },
+            "deliverableLoio": {
+                "type": "keyword",
+            },
+            "filePath": {
+                "type": "keyword",
+            },
+            "text": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "plainTextContent": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_and_text": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "collection": {
+                "type": "text",
+                "fields": {
+                    "exact": {
+                        "normalizer": "keyword_lowercase",
+                        "type": "keyword",
+                        "doc_values": "false"
+                    }
+                }
+            }}
+    }
+
+
 if __name__ == '__main__':
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
     if ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == "":
@@ -575,6 +738,8 @@ if __name__ == '__main__':
                              " at passage level.")
     parser.add_argument("--hana_file2url", type=str, default=None,
                         help="The file mapping the docid to the url to the title")
+    parser.add_argument("--remove_stopwords", action="store_true", default=False,
+                        help="If defined, the stopwords are removed from text before indexing.")
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -582,7 +747,6 @@ if __name__ == '__main__':
             f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser'}_index").lower()
     else:
         index_name = args.index_name.lower()
-
 
     index_name = re.sub('[^a-z0-9]', '-', index_name)
 
@@ -621,7 +785,8 @@ if __name__ == '__main__':
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
     #                        )
-
+    init_settings()
+    stopwords = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
@@ -634,7 +799,8 @@ if __name__ == '__main__':
                                    max_num_documents=max_documents,
                                    doc_based=doc_based_ingestion,
                                    docname2url=docname2url,
-                                   docname2title=docname2title
+                                   docname2title=docname2title,
+                                   remove_stopwords=args.remove_stopwords
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
@@ -649,145 +815,6 @@ if __name__ == '__main__':
                 passage_vectors = normalize(passage_vectors)
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
-        settings = {
-            "number_of_replicas": 0,
-            "number_of_shards": 1,
-            "refresh_interval": "1m",
-            "analysis": {
-                "filter": {
-                    "possessive_english_stemmer": {
-                        "type": "stemmer",
-                        "language": "possessive_english"
-                    },
-                    "light_english_stemmer": {
-                        "type": "stemmer",
-                        "language": "light_english"
-                    },
-                    "english_stop": {
-                        "ignore_case": "true",
-                        "type": "stop",
-                        "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
-                                      "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
-                                      "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
-                                      "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
-                                      "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
-                                      "that", "the", "their", "then", "there", "these", "they", "this", "those",
-                                      "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
-                                      "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
-                    }
-                },
-                "analyzer": {
-                    "text_en_no_stop": {
-                        "filter": [
-                            "lowercase",
-                            "possessive_english_stemmer",
-                            "light_english_stemmer"
-                        ],
-                        "tokenizer": "standard"
-                    },
-                    "text_en_stop": {
-                        "filter": [
-                            "lowercase",
-                            "possessive_english_stemmer",
-                            "english_stop",
-                            "light_english_stemmer"
-                        ],
-                        "tokenizer": "standard"
-                    },
-                    "whitespace_lowercase": {
-                        "tokenizer": "whitespace",
-                        "filter": [
-                            "lowercase"
-                        ]
-                    }
-                },
-                "normalizer": {
-                    "keyword_lowercase": {
-                        "filter": [
-                            "lowercase"
-                        ]
-                    }
-                }
-            }
-        }
-
-        coga_mappings = {
-            "_source": {
-                "enabled": "true"
-            },
-            "dynamic": "false",
-            "properties": {
-                "url": {
-                    "type": "text"
-                },
-                "title": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "fileTitle": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "title_paraphrases": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "productId": {
-                    "type": "keyword"
-                },
-                "deliverableLoio": {
-                    "type": "keyword",
-                },
-                "filePath": {
-                    "type": "keyword",
-                },
-                "text": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "plainTextContent": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "title_and_text": {
-                    "type": "text",
-                    "analyzer": "text_en_no_stop",
-                    "search_analyzer": "text_en_stop",
-                    "term_vector": "with_positions_offsets",
-                    "index_options": "offsets",
-                    "store": "true"
-                },
-                "collection": {
-                    "type": "text",
-                    "fields": {
-                        "exact": {
-                            "normalizer": "keyword_lowercase",
-                            "type": "keyword",
-                            "doc_values": "false"
-                        }
-                    }
-                }}
-        }
 
         if args.db_engine == "es-dense":
             mappings = coga_mappings
@@ -795,16 +822,6 @@ if __name__ == '__main__':
                 "type": "dense_vector", "dims": hidden_dim,
                 "similarity": "cosine", "index": "true"
             }
-
-            # mappings = {
-            #     "properties": {
-            #         "title": {"type": "text", "analyzer": "english"},
-            #         "text": {"type": "text", "analyzer": "english"},
-            #         "url": {"type": "text", "analyzer": "english"},
-            #         "vector": {"type": "dense_vector", "dims": hidden_dim,
-            #                    "similarity": "cosine", "index": "true"},
-            #     }
-            # }
 
             create_update_index(index_name, do_update)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
@@ -831,26 +848,10 @@ if __name__ == '__main__':
                     print(f"Got an error in indexing: {e}")
                 t.update(bulk_batch)
             t.close()
-
-            # for ri, row in tqdm(enumerate(input_passages), desc="Indexing es-dense", total=len(input_passages)):
-            # doc = {'text': row['text'],
-            #        'title': row['title'],
-            #        'vector': passage_vectors[ri]}
-            # client.index(index=index_name, id=row['id'], document=doc)
         elif args.db_engine == "es-elser":
             mappings = coga_mappings
             mappings['properties']['ml.tokens'] = {"type": "rank_features"}
 
-            # mappings = {
-            #     "properties": {
-            #         "ml.tokens": {
-            #             "type": "rank_features"
-            #         },
-            #         "title": {"type": "text", "analyzer": "english"},
-            #         "text": {"type": "text", "analyzer": "english"},
-            #         "url": {"type": "text", "analyzer": "english"},
-            #     }
-            # }
             processors = [
                 {
                     "inference": {
@@ -918,9 +919,11 @@ if __name__ == '__main__':
 
         if args.evaluate:
             input_queries = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"],
-                                      docid_map=loio2docid)
+                                      docid_map=loio2docid,
+                                      remove_stopwords=args.remove_stopwords)
         else:
-            input_queries = read_data(args.input_queries, fields=["id", "text"])
+            input_queries = read_data(args.input_queries, fields=["id", "text"],
+                                      remove_stopwords=args.remove_stopwords)
 
         result = []
         if args.db_engine == "es-dense":
