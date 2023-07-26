@@ -178,8 +178,11 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         'filePath': fields[-1],
         'title': title,
         'url': doc_url,
+        'app_name': "",
     }
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
+    if text.find("With this app") >= 0 or text.find("App ID") >= 0:
+        itm['app_name'] = title
     if remove_url:
         text = re.sub(url, 'URL', text)
     if tokenizer is not None:
@@ -675,6 +678,14 @@ def init_settings():
                 "index_options": "offsets",
                 "store": "true"
             },
+            "app_name": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
             "collection": {
                 "type": "text",
                 "fields": {
@@ -829,7 +840,7 @@ if __name__ == '__main__':
 
             num_passages = len(input_passages)
             keys_to_index = ['title', 'id', 'url', 'productId',
-                             'filePath', 'deliverableLoio', 'text']
+                             'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
                 actions = [
@@ -876,7 +887,7 @@ if __name__ == '__main__':
             client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
             actions = []
             keys_to_index = ['title', 'id', 'url', 'productId',
-                             'filePath', 'deliverableLoio', 'text']
+                             'filePath', 'deliverableLoio', 'text', 'app_name']
             num_passages = len(input_passages)
             t = tqdm(total=num_passages, desc="Ingesting documents (w ELSER): ", smoothing=0.05)
             # for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):
