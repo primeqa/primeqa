@@ -12,7 +12,6 @@ from primeqa.ir.dense.dpr_top.dpr.simple_mmap_dataset import gzip_str
 from primeqa.ir.dense.dpr_top.dpr.faiss_index import build_index, IndexOptions
 
 from primeqa.ir.dense.dpr_top.util.reporting import Reporting
-from primeqa.ir.util.corpus_reader import corpus_reader, Passage
 from transformers import (
     DPRContextEncoder,
     DPRContextEncoderTokenizerFast,
@@ -20,6 +19,7 @@ from transformers import (
 
 from primeqa.ir.dense.dpr_top.util.args_help import fill_from_config
 from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+from primeqa.ir.util.corpus_reader import corpus_reader, Passage
 
 logger = logging.getLogger(__name__)
 

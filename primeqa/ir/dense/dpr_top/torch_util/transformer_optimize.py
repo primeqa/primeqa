@@ -87,6 +87,8 @@ class TransformerOptimize:
                 self.model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True,
             )
         # set_seed(args)
+        print(args.per_gpu_train_batch_size * (args.n_gpu if args.n_gpu > 0 else 1) * \
+               args.world_size * args.gradient_accumulation_steps, "--", args.bsize)
         assert args.per_gpu_train_batch_size * (args.n_gpu if args.n_gpu > 0 else 1) * \
                args.world_size * args.gradient_accumulation_steps == args.bsize
         logger.info("***** Running training *****")
