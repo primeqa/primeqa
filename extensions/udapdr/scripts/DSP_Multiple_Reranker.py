@@ -457,7 +457,7 @@ if __name__ == '__main__':
 
 	parser.add_argument("--sample_count", type=int, required=True)
 	parser.add_argument("--reranker_count", type=int, default=5, required=True)
-	parser.add_argument("--devices", type=list, default=["cuda:0", "cuda:1", "cuda:2", "cuda:3", "cuda:4"], required=False)
+	parser.add_argument("--devices", type=str, default="cuda:0,cuda:1,cuda:2,cuda:3,cuda:4", required=False)
 
 	parser.add_argument("--query_count", type=int, required=True)
 	parser.add_argument("--model_choice", type=str, required=True)
@@ -483,7 +483,7 @@ if __name__ == '__main__':
 	number_of_prompts = 5
 	prompts_to_use = [0, 1, 2, 3, 4]
 	reranker_count = args.reranker_count
-	devices = args.devices
+	devices = args.devices.split(",")
 
 	query_count = args.query_count
 	model_choice = args.model_choice
