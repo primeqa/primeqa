@@ -394,7 +394,7 @@ def end_to_end_reranker_training(given_prompt, given_device, given_process_numbe
 
 def combine_rerankers_and_evaluate(triples_and_queries_list):
 
-	distilled_checkpoint = "DSP_Experiments/msmarco.psg.kldR2.nway64.ib__colbert-400000"
+	distilled_checkpoint = "downloads/msmarco.psg.kldR2.nway64.ib__colbert-400000"
 	for triples_and_queries in triples_and_queries_list:
 
 		distilled_checkpoint = distill_triples_with_retriever(triples_and_queries[0], triples_and_queries[1], distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
@@ -410,29 +410,29 @@ def combine_rerankers_and_evaluate(triples_and_queries_list):
 	if LoTTE_or_BEIR == "LoTTE":
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 5, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 20, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 100, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 	
 	elif LoTTE_or_BEIR == "BEIR":
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 5, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 20, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 100, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
