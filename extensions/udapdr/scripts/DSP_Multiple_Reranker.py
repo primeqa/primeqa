@@ -377,7 +377,7 @@ def end_to_end_reranker_training(given_prompt, given_device, given_process_numbe
 
 	print("Completed step #3!")
 
-	reranker_performance, baseline_performance = evaluate_reranker(reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
+	reranker_performance, baseline_performance = evaluate_reranker(zeroshot_ranking, reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 	
 	print("reranker_performance: " + str(reranker_performance))
 	print("baseline_performance: " + str(baseline_performance))

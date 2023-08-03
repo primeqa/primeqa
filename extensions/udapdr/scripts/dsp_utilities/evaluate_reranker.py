@@ -41,7 +41,7 @@ os.environ['PYTHONHASHSEED'] = str(random_state)
 
 ############################################################
 
-def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chosen_set, device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
+def evaluate_reranker(zero_shot_ranking_filename, reranker_checkpoint_path, chosen_split, chosen_type, chosen_set, device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder):
 
 	class CustomBERTModel(nn.Module):
 	    def __init__(self, model_choice):
@@ -75,14 +75,6 @@ def evaluate_reranker(reranker_checkpoint_path, chosen_split, chosen_type, chose
 	    return tokenizer(examples["original"], padding="max_length", truncation=True)#.input_ids
 
     ############################################################
-
-	if LoTTE_or_BEIR == "LoTTE":
-		if chosen_type == "forum":
-			zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_ZeroShot:_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
-		elif chosen_type == "search":
-			zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_Zeroshot_Search_" + chosen_split.capitalize() + ".k=1000.device=gpu.ranking.tsv"
-	elif LoTTE_or_BEIR == "BEIR":
-		zero_shot_ranking_filename = downloads_folder + "/zeroshot_results/ColBERTv2_ZeroShot_BEIR_" + chosen_BEIR_set + ".k=1000.device=gpu.ranking.tsv"
 
 	zero_shot_ranking_results = pd.read_csv(zero_shot_ranking_filename, sep="\t", header=None)
 
