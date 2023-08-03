@@ -493,6 +493,9 @@ if __name__ == '__main__':
 	use_FLAN_for_all_synthetic_query_generation = args.use_FLAN_for_all_synthetic_query_generation
 	downloads_folder = args.downloads_folder
 
+	os.makedirs('checkpoints', exist_ok=True)
+	os.makedirs('datasets', exist_ok=True)
+
 	######################################################################
 
 	if use_FLAN_for_all_synthetic_query_generation:
