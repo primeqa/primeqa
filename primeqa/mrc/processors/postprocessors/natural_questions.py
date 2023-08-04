@@ -35,23 +35,37 @@ class NaturalQuestionsPostProcessor(ExtractivePostProcessor):
         for example in examples:
             example_id = example['example_id']
             for pred in predictions[example_id]:
+
+                # check if the cls is > offset (if it is set it as unanswerable)
+                if (pred['start_logit'][1] + pred['end_logit'][1])/2 < pred['cls_score'][1]:
+                    pred['span_answer']['orig_start_position'] = pred['span_answer']['start_position']
+                    pred['span_answer']['orig_end_position'] = pred['span_answer']['end_position']
+                    pred['span_answer']['start_position'] = -1
+                    pred['span_answer']['end_position'] = -1
+                    # pred['span_answer_score_sm'] = pred['cls_score'][1]
+
                 start_position = pred['span_answer']['start_position']
                 end_position = pred['span_answer']['end_position']
-                start_token_position = example['context_char_to_token'][start_position]
-                end_token_position = example['context_char_to_token'][end_position - 1]
-                new_start_position = example['document_tokens']['start_byte'][start_token_position]
-                new_end_position = example['document_tokens']['end_byte'][end_token_position]
-                pred['span_answer']['start_position'] = new_start_position
-                pred['span_answer']['end_position'] = new_end_position
+
+                # only update offsets if there is a char to token mismatch from original dataset
+                if 'context_char_to_token' in example:
+                    start_token_position = example['context_char_to_token'][start_position] if start_position != -1 else -1
+                    end_token_position = example['context_char_to_token'][end_position - 1] if end_position != -1 else -1
+                    new_start_position = example['document_tokens']['start_byte'][start_token_position] if start_token_position != -1 else -1
+                    new_end_position = example['document_tokens']['end_byte'][end_token_position] if end_token_position != -1 else -1
+                    pred['span_answer']['start_position'] = new_start_position
+                    pred['span_answer']['end_position'] = new_end_position
 
                 pred['passage_index'] = -1
-                passage_candidates = example['passage_candidates']
-                for context_idx in range(len(passage_candidates['start_positions'])):
-                    passage_start_position = passage_candidates['start_positions'][context_idx]
-                    passage_end_position = passage_candidates['end_positions'][context_idx]
-                    if passage_start_position <= new_start_position <= new_end_position <= passage_end_position:
-                        pred['passage_index'] = context_idx
-                        break
+
+                if pred['span_answer']['start_position'] > -1 and pred['span_answer']['end_position'] > -1:
+                    passage_candidates = example['passage_candidates']
+                    for context_idx in range(len(passage_candidates['start_positions'])):
+                        passage_start_position = passage_candidates['start_positions'][context_idx]
+                        passage_end_position = passage_candidates['end_positions'][context_idx]
+                        if passage_start_position <= pred['span_answer']['start_position'] <= pred['span_answer']['end_position'] <= passage_end_position:
+                            pred['passage_index'] = context_idx
+                            break
 
         return predictions
 

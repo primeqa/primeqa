@@ -13,12 +13,13 @@ def rank_by_confidence(results, data, alpha=.7, beta=.3):
     ranked_answers = []
     order_answers = []
 
+    qindex = 0
     for qid in results:
         seen_ids = set()
         answer_per_passage = []
-        # passage_scores = ast.literal_eval(data.iloc[int(qid)]['passage_scores'])
-        passage_scores = data.iloc[int(qid)]['normalized_passage_scores']
-        pids = ast.literal_eval(data.iloc[int(qid)]['document_ids'])
+        passage_scores = data.iloc[qindex]['normalized_passage_scores']
+        pids = ast.literal_eval(data.iloc[qindex]['document_ids'])
+
         for answer in results[qid]['answers']:
             answer['passage_score'] = passage_scores[pids.index(answer['passage_index'])]
             seen_ids.add(answer['passage_index'])
@@ -31,21 +32,25 @@ def rank_by_confidence(results, data, alpha=.7, beta=.3):
                 answer['passage_score'] = passage_scores[pids.index(pid)]
                 answer['cls_score'] = 0
                 answer['span_answer_score'] = 0
+                answer['span_answer_score_sm'] = 0
                 answer['confidence_score'] = 0
                 answer['example_id'] = qid
+                answer['start_logit'] = [0,0]
+                answer['end_logit'] = [0,0]
                 answer_per_passage.append(answer)
-        ranked = sorted(answer_per_passage, key=lambda x:(x['example_id'],[alpha*x['passage_score']+beta*x['confidence_score'],x['passage_score']]), reverse=True)
+        ranked = sorted(answer_per_passage, key=lambda x:(x['example_id'],[alpha*x['passage_score']+beta*(x['span_answer_score_sm']),x['passage_score']]), reverse=True)
 
-        order = [len(pids)]*(len(pids))
+        order = [len(pids)-1]*(len(pids))
         index = 0
         for answer in ranked:
-            if order[pids.index(answer['passage_index'])] == len(pids): 
+            if order[pids.index(answer['passage_index'])] == len(pids)-1: 
                order[pids.index(answer['passage_index'])] = index
                index += 1
             if index >= len(pids):
                 break
         ranked_answers.append(ranked)
         order_answers.append(order)
+        qindex += 1
     return ranked_answers, order_answers
 
 # compute original and new recall
@@ -88,7 +93,7 @@ def rank_by_confidence(results, data, alpha=.7, beta=.3):
 
 #     return orig_scores, rerank_scores
 
-def doc_match_at_k(row, k_params=[1, 3, 10, 40]):
+def doc_match_at_k(row, k_params=[1, 3, 5, 10, 40]):
 
 
     # update order of document_ids to match ['order']
@@ -138,9 +143,14 @@ def update_data(data, order_answers):
     #         # data.iloc[0]['order'] = str(order_answers[i])
     # return data            
 
-data_df = pd.read_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking/output/dataset-retrieval-reranking=none" + "/output.csv", header=0)
+# data_df = pd.read_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking_es_sap/output/dataset-retrieval-reranking=none" + "/output.csv", header=0)
+#perplexity_data_df = pd.read_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking_es_sap/output/dataset-retrieval-reranking=perplexity" + "/output.csv", header=0)
+# files = glob("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking_es_sap/output/dataset-retrieval-reranking=none/reader_answersftSAPlr4e-5negsnqformat.json")
 
-files = glob("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking/output/dataset-retrieval-reranking=none/reader_answers.json")
+perplexity_data_df = pd.read_csv("/dccstor/srosent3/reranking/mf-coga-new/mf-coga/experiments/output/sap/sap_reranking/task_output/dataset-retrieval-reranking=perplexity" + "/output.csv", header=0)
+data_df = pd.read_csv("/dccstor/srosent3/reranking/mf-coga-new/mf-coga/experiments/output/sap/sap_reranking/task_output/dataset-retrieval-reranking=none" + "/output.csv", header=0)
+files = glob("/dccstor/srosent3/reranking/mf-coga-new/mf-coga/experiments/output/sap/sap_reranking/task_output/dataset-retrieval-reranking=none/reader_answersnewftSAPlr4e-5negsnqformat.json")
+
 files.sort()
 print(files)
 
@@ -153,7 +163,7 @@ print(len(results))
 
 normalize_passage_scores(data_df)
 
-k_params=[1, 3, 10, 40]
+k_params=[1, 3, 5, 10, 40]
 means = {}
 for i in range(11):
     alpha = round(i*.10,2)
@@ -174,4 +184,19 @@ for k in k_params:
     for mean in means:
         k_means += f"{means[mean][k]},"
     print(k_means)
-# data_df.to_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking/output/dataset-retrieval-reranking=reader/" + "/output.csv", header=True)
+# data_df.to_csv("/dccstor/srosent3/reranking/mf-coga/experiments/sap_reranking_es_sap/output/dataset-retrieval-reranking=reader/" + "/output.csv", header=True)
+
+# compare perplexity and reranking
+count = 0 
+for i, reader_row in data_df.iterrows():
+    perplexity_row = perplexity_data_df[perplexity_data_df['query_id'] == reader_row['query_id']].iloc[0]
+
+    # perplexity got the gold answer in the first spot
+    if ast.literal_eval(perplexity_row['document_ids'])[0] == ast.literal_eval(perplexity_row['gold_document_ids'])[0]:
+        if ast.literal_eval(reader_row['gold_document_ids'])[0] not in ast.literal_eval(reader_row['document_ids']) or ast.literal_eval(reader_row['document_ids']).index(ast.literal_eval(reader_row['gold_document_ids'])[0]) > 5:
+            print(f"---- example {i} , {count}: -----")
+            print(f"== question: {perplexity_row['query']}")
+            print(f"== gold answer: \n {perplexity_row['gold_responses']}")
+            print(f"== gold/perplexity passage {ast.literal_eval(perplexity_row['document_ids'])[0]}:\n {ast.literal_eval(perplexity_row['gold_passages'])[0]}")
+            print(f"== reader passage {ast.literal_eval(reader_row['document_ids'])[0]}:\n {ast.literal_eval(reader_row['passages'])[0]}") 
+            count += 1

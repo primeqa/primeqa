@@ -15,7 +15,8 @@ collection_df = pd.read_csv(info_df['arguments']['collection'], delimiter="\t")
 # load model from model hub
 from primeqa.components.reader.extractive import ExtractiveReader
 
-reader = ExtractiveReader(model="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110", max_num_answers=100, scorer_type=SupportedSpanScorers.SCORE_DIFF_BASED.value)
+#reader = ExtractiveReader(model="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110", max_num_answers=100, scorer_type=SupportedSpanScorers.SCORE_DIFF_BASED.value)
+reader = ExtractiveReader(model="/dccstor/srosent2/primeqa/experiments/reader_reranker/2epochRoberta/exclude_passage_answers_discarddups_la_as_sa_moreneg0416_2wayloss/output/", max_num_answers=100, scorer_type=SupportedSpanScorers.SCORE_DIFF_BASED.value)
 reader.load()
 
 

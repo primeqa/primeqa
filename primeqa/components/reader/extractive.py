@@ -269,6 +269,9 @@ class ExtractiveReader(BaseReader):
                 processed_prediction["span_answer_score"] = raw_prediction[
                     "span_answer_score"
                 ]
+                processed_prediction["span_answer_score_sm"] = raw_prediction[
+                    "span_answer_score_sm"
+                ]
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]

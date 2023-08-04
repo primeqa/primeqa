@@ -81,7 +81,9 @@ class BasePreProcessor(AbstractPreProcessor):
         """
         Provides implementation for public processing methods.
         """
-        examples = self.adapt_dataset(examples, is_train)
+
+        if not self.adapted_on_disk:
+            examples = self.adapt_dataset(examples, is_train)
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
 
@@ -229,12 +231,11 @@ class BasePreProcessor(AbstractPreProcessor):
 
                     while token_start_index < len(offsets) and offsets[token_start_index][0] <= passage_start_position:
                         token_start_index += 1
-                    tokenized_examples["start_positions"].append(token_start_index - 1)
                     while offsets[token_end_index][1] >= passage_end_position:
                         token_end_index -= 1
 
-                    tokenized_examples["start_positions"].append(token_start_index)
-                    tokenized_examples["end_positions"].append(token_end_index)
+                    tokenized_examples["start_positions"].append(token_start_index-1)
+                    tokenized_examples["end_positions"].append(token_end_index+1)
                 else:
                     tokenized_examples["start_positions"].append(cls_index)
                     tokenized_examples["end_positions"].append(cls_index)

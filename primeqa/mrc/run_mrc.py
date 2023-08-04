@@ -12,7 +12,7 @@ from typing import Optional, Type, List
 from torch.utils.data import ConcatDataset
 
 import datasets
-from datasets import concatenate_datasets
+from datasets import concatenate_datasets, disable_caching
 
 import apache_beam as beam
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
@@ -422,7 +422,8 @@ def main():
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
-
+    data_args.adapted_on_disk = False
+    
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
@@ -439,26 +440,57 @@ def main():
             raw_datasets['validation'] = raw_validation_datasets
     else:
         logger.info('Loading dataset')        
+        from datasets import set_caching_enabled
+        set_caching_enabled(False)
+
         if data_args.train_file is not None or data_args.eval_file is not None:
             data_files = {}
             raw_datasets = {}
             # Load train and validation datasets separately because they might have different columns
-            if data_args.train_file is not None: 
-                data_files['train'] = glob.glob(data_args.train_file)
-                raw_datasets["train"] = datasets.load_dataset(
-                    data_args.data_file_format, 
-                    data_files={"train": data_files["train"]}, 
-                    split="train",
-                    cache_dir=model_args.cache_dir
-                 )
-            if data_args.eval_file is not None: 
-                data_files['validation'] = glob.glob(data_args.eval_file)
-                raw_datasets["validation"] = datasets.load_dataset(
-                    data_args.data_file_format, 
-                    data_files={"validation": data_files["validation"]}, 
-                    split="validation",
-                    cache_dir=model_args.cache_dir
-                 )        
+            # for natural_questions we can do some preprocessing offline to save on caching/time
+            if data_args.dataset_name == "natural_questions":
+                disable_caching()
+                data_args.adapted_on_disk = True
+
+                train_datasets = [] 
+                eval_datasets = [] 
+
+                if data_args.train_file is not None:
+                    data_files['train'] = glob.glob(data_args.train_file)
+                    for file in data_files['train']:
+                        d = datasets.load_from_disk(file)
+                        print(len(d))
+                        train_datasets.append(d)
+                    train_dataset = concatenate_datasets(train_datasets)
+                    print(len(train_dataset))
+                    raw_datasets['train'] = train_dataset
+                
+                if data_args.eval_file is not None:
+                    data_files['validation'] = glob.glob(data_args.eval_file)
+                    for file in data_files['validation']:
+                        d = datasets.load_from_disk(file)
+                        print(len(d))
+                        eval_datasets.append(d)
+                    eval_dataset = concatenate_datasets(eval_datasets)
+                    print(len(eval_dataset))
+                    raw_datasets['validation'] = eval_dataset
+            else:
+                if data_args.train_file is not None: 
+                    data_files['train'] = glob.glob(data_args.train_file)
+                    raw_datasets["train"] = datasets.load_dataset(
+                        data_args.data_file_format, 
+                        data_files={"train": data_files["train"]}, 
+                        split="train",
+                        cache_dir=model_args.cache_dir
+                    )
+                if data_args.eval_file is not None: 
+                    data_files['validation'] = glob.glob(data_args.eval_file)
+                    raw_datasets["validation"] = datasets.load_dataset(
+                        data_args.data_file_format, 
+                        data_files={"validation": data_files["validation"]}, 
+                        split="validation",
+                        cache_dir=model_args.cache_dir
+                    )        
         else:
             if data_args.dataset_name == "natural_questions":
                 raw_datasets = datasets.load_dataset(
@@ -497,7 +529,8 @@ def main():
             max_answer_len=data_args.max_answer_length,
             discard_duplicate_spans = data_args.discard_duplicate_spans,
             exclude_passage_answers = data_args.exclude_passage_answers,
-            long_answer_as_short_answer = data_args.long_answer_as_short_answer
+            long_answer_as_short_answer = data_args.long_answer_as_short_answer,
+            adapted_on_disk = data_args.adapted_on_disk
         )
     for i, p in enumerate(validation_preprocessors):
         if isinstance(p, str):
@@ -513,7 +546,8 @@ def main():
             max_q_char_len=data_args.max_q_char_len,
             single_context_multiple_passages=data_args.single_context_multiple_passages,
             max_contexts=data_args.max_contexts,
-            max_answer_len=data_args.max_answer_length
+            max_answer_len=data_args.max_answer_length,
+            adapted_on_disk = data_args.adapted_on_disk
         )
 
     # if filtering, check that both column name and column values are provided
@@ -531,6 +565,8 @@ def main():
                 train_examples = train_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
                 train_examples = train_examples.shuffle(seed=training_args.seed)
                 logger.info(f"Filtered TRAIN dataset size {train_examples.num_rows}")
+            else:
+                train_examples = train_examples.shuffle(seed=training_args.seed)
             train_examples = [train_examples]
         # Train feature creation
         _, train_datasets = process_raw_datasets(train_examples, train_preprocessors, training_args,
