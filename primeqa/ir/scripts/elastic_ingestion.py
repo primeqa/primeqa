@@ -821,11 +821,13 @@ if __name__ == '__main__':
         model = MyEmbeddingFunction(args.model_name)
 
     if args.server=="SAP":
+        print(f"Using the SAP server")
         client = Elasticsearch(
             cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
             basic_auth=("elastic", ELASTIC_PASSWORD)
         )
     elif args.server=="CONVAI":
+        print(f"Using the CONVAI server")
         client = Elasticsearch("https://9.59.196.68:9200",
                                ssl_assert_fingerprint=os.getenv("ES_SSH_FINGERPRINT"),
                                api_key=os.getenv("ES_API_KEY")
