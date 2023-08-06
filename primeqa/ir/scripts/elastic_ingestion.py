@@ -719,12 +719,6 @@ def init_settings():
 
 
 if __name__ == '__main__':
-    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == "":
-        print(
-            f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
-        sys.exit(11)
-
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
@@ -778,6 +772,13 @@ if __name__ == '__main__':
                         help="The server to connect to." )
 
     args = parser.parse_args()
+
+    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+    if args.server=="SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
+        print(
+            f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
+        sys.exit(11)
+
     if args.index_name is None:
         index_name = (
             f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser'}_index").lower()
