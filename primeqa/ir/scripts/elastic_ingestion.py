@@ -774,6 +774,8 @@ if __name__ == '__main__':
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
+    parser.add_argument("--server", default="SAP", chocices=['SAP', 'CONVAI'],
+                        help="The server to connect to." )
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -818,10 +820,16 @@ if __name__ == '__main__':
         batch_size = 64
         model = MyEmbeddingFunction(args.model_name)
 
-    client = Elasticsearch(
-        cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
-        basic_auth=("elastic", ELASTIC_PASSWORD)
-    )
+    if args.server=="SAP":
+        client = Elasticsearch(
+            cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
+            basic_auth=("elastic", ELASTIC_PASSWORD)
+        )
+    elif args.server=="CONVAI":
+        client = Elasticsearch("https://9.59.196.68:9200",
+                               ssl_assert_fingerprint=os.getenv("ES_SSH_FINGERPRINT"),
+                               api_key=os.getenv("ES_API_KEY")
+                               )
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
