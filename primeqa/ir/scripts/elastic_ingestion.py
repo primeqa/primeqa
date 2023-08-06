@@ -768,7 +768,7 @@ if __name__ == '__main__':
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="SAP", chocices=['SAP', 'CONVAI'],
+    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI'],
                         help="The server to connect to." )
 
     args = parser.parse_args()
