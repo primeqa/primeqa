@@ -18,6 +18,9 @@ from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.utils.parser import Arguments
 from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
+from primeqa.ir.sparse.retriever import PyseriniRetriever
+from primeqa.ir.sparse.indexer import PyseriniIndexer
+
 from transformers import (
     HfArgumentParser,
     DPRContextEncoderTokenizer
@@ -34,16 +37,19 @@ class SearchableCorpus:
     _UnknownModelType = 0
     _DPR = 1
     _ColBERT = 2
+    _BM25 = 3
 
     def __init__(self, model_name, batch_size=64, top_k=10, **kwargs):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
         It will automatically detect the index type (DPR, ColBERT, etc).
         Args:
-            * model_name: AnyStr -
+            :param model_name: AnyStr -
                  defines the model - it should either be a HuggingFace id or a directory
-            * batch_size: int
+            :param context_encoder_name_or_path: AnyStr - defines the context encoder. For DPR only.
+            :param query_encoder_name_or_path: AnyStr - defines the query encoder. For DPR only.
+            :param batch_size: int
                  defines the ingestion batch size.
-            * top_k: int
+            :param top_k: int
                  - defines the default number of retrieved answers. It can be changed in .search()
             """
         self.amp = None
@@ -55,16 +61,19 @@ class SearchableCorpus:
         self.top_k = top_k
         self.batch_size = batch_size
 
-        if not os.path.exists(model_name):  # Assume a HF model name
-            model_name = hf_hub_download(repo_id=model_name, filename="config.json")
         self.model_name = model_name
-        if os.path.exists(os.path.join(model_name, "ctx_encoder")):  # Looks like a DPR model
-            self._model_type = SearchableCorpus._DPR
-            from transformers import AutoTokenizer
-            self.ctxt_tokenizer = AutoTokenizer.from_pretrained(
-                os.path.join(self.model_name, "ctx_encoder"))
+        if model_name == "bm25":
+            self._model_type = SearchableCorpus._BM25
+        elif not os.path.exists(model_name):  # Assume a HF model name
+            model_name = hf_hub_download(repo_id=model_name, filename="config.json")
         else:
-            self._model_type = SearchableCorpus._ColBERT
+            if os.path.exists(os.path.join(model_name, "ctx_encoder")):  # Looks like a DPR model
+                self._model_type = SearchableCorpus._DPR
+                from transformers import AutoTokenizer
+                self.ctxt_tokenizer = AutoTokenizer.from_pretrained(
+                    os.path.join(self.model_name, "ctx_encoder"))
+            else:
+                self._model_type = SearchableCorpus._ColBERT
 
         self.tmp_dir = None
         self.indexer = None
@@ -76,7 +85,8 @@ class SearchableCorpus:
         else:
             self._colbert_index = None
 
-    def add(self, texts: Union[AnyStr, List[AnyStr]], titles: List[AnyStr] = None, ids: List[AnyStr] = None, **kwargs):
+
+    def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
         """
         Adds documents to the collection, including optionally the titles and the ids of the indexed items
         (possibly passages).
@@ -222,6 +232,13 @@ class SearchableCorpus:
                 # rankings = searcher.search_all(args.queries, args.topK)
                 # out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 # rankings.save(out_fn)
+        elif self._model_type == SearchableCorpus._BM25:
+            indexer = PyseriniIndexer()
+            index_path = os.path.join(self.output_dir, 'index')
+            indexer.index_collection(collection=self.input_passages,
+                                     index_path=index_path,
+                                     threads=10)
+            self.searcher = PyseriniRetriever(index_location=index_path, use_bm25=True)
         else:
             raise RuntimeError("Unknown indexer type.")
 
@@ -241,7 +258,8 @@ class SearchableCorpus:
             - is a list of document IDs per query and an associated list of scores per query, for all the queries.
             """
         call_funcs = {SearchableCorpus._DPR: self._dpr_search,
-                      SearchableCorpus._ColBERT: self._colbert_search}
+                      SearchableCorpus._ColBERT: self._colbert_search,
+                      SearchableCorpus._BM25: self._bm25_search}
         if self._model_type not in call_funcs:
             print("Unknown indexer type.")
             raise RuntimeError("Unknown indexer type.")
@@ -287,6 +305,15 @@ class SearchableCorpus:
                 )
                 passage_ids.append([str(p) for p in p_ids])
                 scores.append(scrs)
+        return passage_ids, scores
+
+    def _bm25_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        passage_ids = []
+        scores = []
+        for query_number, q in enumerate(input_queries):
+            res = self.searcher.retrieve(query=q, topK=self.top_k)
+            passage_ids.append([r['doc_id'] for r in res])
+            scores.append([r['score'] for r in res])
         return passage_ids, scores
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
@@ -394,7 +421,7 @@ def compute_score(input_queries, input_passages, answers, ranks=[1, 3, 5, 10], v
 
     gt = {}
     for q in input_queries:
-        gt[q['id']] = {id: 1 for id in q['relevant'].split(" ") if int(id) >= 0}
+        gt[q['id']] = {id: 1 for id in q['relevant'].split(",") if int(id) >= 0}
 
     def skip(out_ranks, record, rid):
         qid = record[0]
@@ -404,7 +431,7 @@ def compute_score(input_queries, input_passages, answers, ranks=[1, 3, 5, 10], v
 
     def update_scores(ranks, rnk, scores):
         j = 0
-        while ranks[j] < rnk:
+        while j<len(ranks) and ranks[j] < rnk:
             j += 1
         for k in ranks[j:]:
             scores[k] += 1
@@ -423,7 +450,7 @@ def compute_score(input_queries, input_passages, answers, ranks=[1, 3, 5, 10], v
         out_result = []
 
     for qi, q in tqdm(enumerate(input_queries)):
-        print(f"Processing query {qi}")
+        # print(f"Processing query {qi}")
         tmp_scores = {r: 0 for r in ranks}
         tmp_lscores = {r: 0 for r in ranks}
         qid = input_queries[qi]['id']

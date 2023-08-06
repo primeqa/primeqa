@@ -10,6 +10,7 @@ import sys
 import pyizumo
 
 nlp = None
+product_counts = {}
 
 
 def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
@@ -157,7 +158,8 @@ def get_tokenized_length(tokenizer, text):
 
 def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                  tokenizer=None,
-                 doc_url=None
+                 doc_url=None,
+                 uniform_product_name=None
                  ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -168,18 +170,30 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     :param stride: int - the stride/overlap for consecutive pieces
     :param remove_url: Boolean - if true, URL in the input text will be replaced with "URL"
     :param tokenizer: Tokenizer - the tokenizer to use while splitting the text into pieces
+    :param doc_url: str - the url of the document.
+    :param uniform_product_name: str - if not None, all documents will receive this productId
     :return - a list of indexable items, each containing a title, id, text, and url.
     """
+    global product_counts
     pieces = []
     fields = doc_url.split("/")
+    if uniform_product_name:
+        productId = uniform_product_name
+    else:
+        productId = fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE'
     itm = {
-        'productId': fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE',
+        'productId': productId,
         'deliverableLoio': fields[-2],
         'filePath': fields[-1],
         'title': title,
         'url': doc_url,
         'app_name': "",
     }
+    if productId not in product_counts:
+        product_counts[productId] = 1
+    else:
+        product_counts[productId] += 1
+
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
@@ -271,16 +285,19 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
             elif input_file.endswith('.json'):
                 # This should be the SAP json format
                 data = json.load(in_file)
+                uniform_product_name = get_attr(kwargs, 'uniform_product_name')
+                docid_filter = get_attr(kwargs, 'docid_filter', [])
                 for di, doc in tqdm(enumerate(data),
                                     total=min(max_num_documents, len(data)),
                                     desc="Reading json documents",
                                     smoothing=0.05):
                     if di >= max_num_documents:
                         break
-                    doc_id = doc['document_url']  # doc['document_id']
+                    docid = doc['document_id'].replace(".txt", "")
+                    if docid_filter != [] and docid not in docid_filter:
+                        continue
                     url = doc['document_url'] if 'document_url' in doc else ""
                     title = doc['title']
-                    docid = doc['document_id'].replace(".txt", "")
                     if docid in docname2url:
                         url = docname2url[docid]
                         title = docname2title[docid]
@@ -295,8 +312,9 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                              stride=stride,
                                              remove_url=remove_url,
                                              tokenizer=tokenizer,
-                                             doc_url=doc['document_url'])
-                            )
+                                             doc_url=url,
+                                             uniform_product_name=uniform_product_name
+                            ))
                         else:
                             for passage in doc['passages']:
                                 passages.extend(
@@ -307,8 +325,9 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                                  stride=stride,
                                                  remove_url=remove_url,
                                                  tokenizer=tokenizer,
-                                                 doc_url=doc['document_url'])
-                                )
+                                                 doc_url=url,
+                                                 uniform_product_name=uniform_product_name
+                                ))
                     except Exception as e:
                         print(f"Error at line {di}: {e}")
                         raise e
@@ -751,6 +770,10 @@ if __name__ == '__main__':
                         help="The file mapping the docid to the url to the title")
     parser.add_argument("--remove_stopwords", action="store_true", default=False,
                         help="If defined, the stopwords are removed from text before indexing.")
+    parser.add_argument("--docids_to_ingest", default=None, help="If provided, only the documents with the "
+                                                                 "ids in the file will be added.")
+    parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
+                                                             "for all documents")
 
     args = parser.parse_args()
     if args.index_name is None:
@@ -774,6 +797,13 @@ if __name__ == '__main__':
             for line in fl:
                 docname2url[line[0]] = line[1]
                 docname2title[line[0]] = line[2].strip()
+
+    docid_filter = []
+    if args.docids_to_ingest is not None:
+        with open(args.docids_to_ingest) as inp:
+            for line in inp:
+                line = line.replace(".txt", "").strip()
+                docid_filter.append(line)
 
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
@@ -811,7 +841,9 @@ if __name__ == '__main__':
                                    doc_based=doc_based_ingestion,
                                    docname2url=docname2url,
                                    docname2title=docname2title,
-                                   remove_stopwords=args.remove_stopwords
+                                   remove_stopwords=args.remove_stopwords,
+                                   docid_filter = docid_filter,
+                                   uniform_product_name=args.product_name
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
@@ -918,6 +950,10 @@ if __name__ == '__main__':
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
 
+        print(f"Product ID histogram:")
+        for k in sorted(product_counts.keys(), key=lambda x: product_counts[x], reverse=True):
+            print(f" {k}\t{product_counts[k]}")
+
     ### QUERY TIME
 
     if do_retrieve:
@@ -982,8 +1018,16 @@ if __name__ == '__main__':
             pass
 
         if args.output_file is not None:
-            with open(args.output_file, 'w') as out:
-                json.dump(result, out, indent=2)
+            if args.output_file.endswith(".json"):
+                with open(args.output_file, 'w') as out:
+                    json.dump(result, out, indent=2)
+            elif args.output_file.endswith(".jsonl"):
+                with open(args.output_file, 'w') as out:
+                    for r in result:
+                        json.dump(r, out)
+                        out.write("\n")
+                        # out.write(json.dumps())
+
 
         if args.evaluate:
             score = compute_score(input_queries, result)

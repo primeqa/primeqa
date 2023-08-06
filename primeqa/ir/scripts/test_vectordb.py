@@ -14,6 +14,7 @@ import tempfile
 import time
 from typing import List, Any
 from unittest.mock import patch
+import torch.nn as nn
 
 import numpy as np
 import transformers
@@ -30,7 +31,7 @@ from chromadb.utils import embedding_functions
 import chromadb
 import faiss
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
-from primeqa.util import SearchableCorpus
+from primeqa.util.searchable_corpus import SearchableCorpus
 from libSIRE.timer import timer
 
 def handle_args():
@@ -43,7 +44,7 @@ def handle_args():
 
     parser.add_argument('--db_engine', '-e', default='pinecone',
                         choices=['pinecone', 'pqa', 'pqa_colbert', 'chromadb', 'milvus',
-                                 'faiss', 'es', 'es-esre', 'es-elser'], required=False)
+                                 'faiss', 'es', 'es-esre', 'es-elser', 'bm25'], required=False)
     parser.add_argument('--output_ranks', '-o', default="", help="The output rank file.")
 
     parser.add_argument('--num_embeddings_deleted', '-n', type=int, default=100, )
@@ -65,8 +66,11 @@ def handle_args():
     parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
                                                                "file is assumed to be args.data/psgs.tsv and "
                                                                "the question file is args.data/questions.tsv.")
-    parser.add_argument("-ingestion_batch_size", default=40, type=int, help="For elastic search only, sets the ingestion batch "
+    parser.add_argument("--ingestion_batch_size", default=40, type=int, help="For elastic search only, sets the ingestion batch "
                                                                             "size (default 40).")
+    parser.add_argument("--max_num_docs", default=-1, type=int,
+                        help="If defined, only the given number of "
+                        "documents will be ingested (first <max_num_docs> documents).")
 
     args = parser.parse_args()
     if args.output_ranks == "":
@@ -123,7 +127,7 @@ def normalize(passage_vectors):
 
 
 class MyChromaEmbeddingFunction(EmbeddingFunction):
-    def __init__(self, name, batch_size=128):
+    def __init__(self, name, batch_size=128, model_type='pqa'):
         import torch
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         if device != 'cuda':
@@ -132,7 +136,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                   "clicking Runtime > Change runtime type > GPU.")
         self.pqa = False
         self.batch_size = batch_size
-        if os.path.exists(name):
+        if model_type=='pqa':
             from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
             self.queries_to_vectors = queries_to_vectors
             self.model = DPRQuestionEncoder.from_pretrained(
@@ -145,9 +149,10 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             self.model = self.model.half()
             self.model.to(device)
             self.pqa = True
-        else:
+        elif model_type == "chromadb":
             from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer(name, device=device)
+            self.model = SentenceTransformer(name, device=device).half()
+            # self.model = nn.DataParallel(self.model)
         print('=== done initializing model')
 
     def get_sentence_embedding_dimension(self):
@@ -156,10 +161,11 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
     def __call__(self, texts: Documents) -> Embeddings:
         return self.encode(texts)
 
-    def encode(self, texts:Documents, batch_size=-1) -> Embeddings:
+    def encode(self, texts:Documents, batch_size=-1, normalize_embeddings=False) -> Embeddings:
         # embed the documents somehow
         if not self.pqa:
             embs = self.model.encode(texts,
+                                     normalize_embeddings,
                                      show_progress_bar=False \
                                          if isinstance(texts, str) or\
                                             max(len(texts), batch_size) <= 1 \
@@ -179,6 +185,8 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                     embs.extend(tems)
             else:
                 embs = self.queries_to_vectors(self.tokenizer, self.model, texts, max_query_length=500).tolist()
+            if normalize_embeddings:
+                normalize(embs)
         return embs
 
 
@@ -201,7 +209,7 @@ def main():
     t = timer(f"VectorDB:{args.db_engine}")
     working_dir = None
     output_dir = None
-    if args.db_engine in ["pqa", "pqa_colbert"]:
+    if args.db_engine in ["pqa", "pqa_colbert", "bm25"]:
         working_dir = tempfile.TemporaryDirectory().name
         output_dir = os.path.join(working_dir, 'output_dir')
 
@@ -213,7 +221,7 @@ def main():
         with open(args.input_query_vectors, 'rb') as in_file:
             query_vectors = pickle.load(in_file)
 
-    input_passages = read_data(args.input_passages, fields=["id", "text", "title"])
+    input_passages = read_data(args.input_passages, fields=["id", "text", "title"], max_num_entries=args.max_num_docs)
     if args.max_doc_length is not None:
         input_passages = trim_passages(input_passages, args.max_doc_length)
     if args.evaluate:
@@ -311,7 +319,8 @@ def main():
             else:
                 client = chromadb.Client()
             # if os.path.exists(args.model_name):
-            sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64)
+            sentence_transformer_ef = MyChromaEmbeddingFunction(args.model_name, batch_size=64,
+                                                                model_type=args.db_engine)
             collection = client.create_collection("vectordbtest",
                                                   embedding_function=sentence_transformer_ef)
             # else:
@@ -327,6 +336,8 @@ def main():
                                    # ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
                                    basic_auth = ("stefan.diederichs@sap.com", ELASTIC_PASSWORD)
                                    )
+        elif args.db_engine == "bm25":
+            pass
     else:
         if args.db_engine == 'pinecone':
             import pinecone
@@ -354,22 +365,24 @@ def main():
                       "a CUDA-enabled GPU. If on Colab you can change this by "
                       "clicking Runtime > Change runtime type > GPU.")
 
-            batch_size = 64
-            model = MyChromaEmbeddingFunction(args.model_name)
+            batch_size = args.ingestion_batch_size
+            model = MyChromaEmbeddingFunction(args.model_name, model_type=args.db_engine)
 
             # hidden_dim = model.get_sentence_embedding_dimension()
 
             print('=== done initializing model')
             report_time(last_time)
 
-            passage_vectors = model.encode([passage['text'] for passage in input_passages], batch_size=batch_size)
+            passage_vectors = model.encode([passage['text'] for passage in input_passages],
+                                           normalize_embeddings=args.normalize_embs,
+                                           batch_size=batch_size)
             # for i in tqdm(range(0, len(input_passages), batch_size)):
             #     # find end of batch
             #     i_end = min(i + batch_size, len(input_passages))
             #     passage_vectors.extend(model.encode([passage['text'] for passage in input_passages[i:i_end]]))
             hidden_dim = len(passage_vectors[0])
-            if args.normalize_embs:
-                passage_vectors = normalize(passage_vectors)
+            # if args.normalize_embs:
+            #     passage_vectors = normalize(passage_vectors)
 
             print('=== done creating passage embeddings')
             report_time(last_time)
@@ -554,6 +567,13 @@ def main():
                 bulk(client=client, actions=actions, pipeline="elser-v1-test")
             except Exception as e:
                 print(f"Got an error in indexing: {e}, {len(actions)}")
+        elif args.db_engine == "bm25":
+            from ..sparse.indexer import PyseriniIndexer
+            from ..sparse.retriever import PyseriniRetriever
+            indexer = PyseriniIndexer()
+
+            indexer.index_collection()
+
         print('=== done creating index')
         last_time = report_time(last_time)
         t.add_timing("Create&Load")
@@ -829,9 +849,7 @@ def reverse_map(input_queries):
 
 
 def compute_embedding(model, input_query, normalize_embs):
-    query_vector = model.encode(input_query)
-    if normalize_embs:
-        query_vector = normalize([query_vector])[0]
+    query_vector = model.encode(input_query, normalize_embeddings=normalize_embs)
     return query_vector
 
 def create_pqa_searcher(args, output_dir):
@@ -858,7 +876,7 @@ def create_milvusdb():
     connections.connect("default", host="localhost", port="19530")
 
 
-def read_data(input_file, fields=None):
+def read_data(input_file, fields=None, max_num_entries: int=-1):
     passages = []
     if fields is None:
         num_args = 3
@@ -872,7 +890,9 @@ def read_data(input_file, fields=None):
                     if fields is not None \
                     else csv.DictReader(in_file, delimiter="\t")
             next(csv_reader)
-            for row in csv_reader:
+            for i, row in enumerate(csv_reader):
+                if 0 <= max_num_entries <= i:
+                    break
                 assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
                 itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
                                  'id': row['id']}

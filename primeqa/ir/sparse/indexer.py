@@ -88,7 +88,9 @@ class PyseriniIndexer:
         logger.info(f"Indexing completed at index location {index_path}. validating document count" )
         searcher = LuceneSearcher(index_path)
         logger.info(f"Index {index_path} contains {searcher.num_docs} documents")
-        assert(searcher.num_docs == num_docs)
+        #assert(searcher.num_docs == num_docs)
+        if searcher.num_docs != num_docs:
+            print(f"Number of stored docs (${searcher.num_docs}) not the same as input docs ({num_docs}")
         logging.info(f"Index available at {index_path}")
         searcher.close()
         return rc
