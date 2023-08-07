@@ -830,7 +830,7 @@ if __name__ == '__main__':
     elif args.server=="CONVAI":
         print(f"Using the CONVAI server")
         client = Elasticsearch("https://9.59.196.68:9200",
-                               ssl_assert_fingerprint=(os.getenv("ES_SSH_FINGERPRINT")),
+                               ssl_assert_fingerprint=(os.getenv("ES_SSL_FINGERPRINT")),
                                api_key=os.getenv("ES_API_KEY")
                                )
     # client = Elasticsearch("https://localhost:9200",
