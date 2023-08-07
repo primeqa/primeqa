@@ -833,6 +833,11 @@ if __name__ == '__main__':
                                ssl_assert_fingerprint=(os.getenv("ES_SSL_FINGERPRINT")),
                                api_key=os.getenv("ES_API_KEY")
                                )
+        try:
+            res = client.info()
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
