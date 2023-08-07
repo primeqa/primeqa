@@ -20,6 +20,7 @@ from primeqa.ir.dense.colbert_top.colbert.searcher import Searcher
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 from primeqa.ir.sparse.indexer import PyseriniIndexer
+import json
 
 from transformers import (
     HfArgumentParser,
@@ -38,6 +39,9 @@ class SearchableCorpus:
     _DPR = 1
     _ColBERT = 2
     _BM25 = 3
+    _ES_BM25 = 4
+    _ES_DENSE = 5
+    _ES_ELSER = 6
 
     def __init__(self, model_name, batch_size=64, top_k=10, **kwargs):
         """Creates a SearchableCorpus object from either a HuggingFace model id or a directory.
@@ -64,6 +68,12 @@ class SearchableCorpus:
         self.model_name = model_name
         if model_name == "bm25":
             self._model_type = SearchableCorpus._BM25
+        elif model_name == "es_bm25":
+            self._model_type = SearchableCorpus._ES_BM25
+        elif model_name == "es_dense":
+            self._model_type = SearchableCorpus._ES_DENSE
+        elif model_name == "es_elser":
+            self.model_name = SearchableCorpus._ES_ELSER
         elif not os.path.exists(model_name):  # Assume a HF model name
             model_name = hf_hub_download(repo_id=model_name, filename="config.json")
         else:
@@ -84,7 +94,40 @@ class SearchableCorpus:
             self._colbert_index = kwargs['colbert_index']
         else:
             self._colbert_index = None
+        if model_name in ['es_bm25', 'es_dense', 'es_elser']:
+            from elasticsearch import Elasticsearch
+            self.index_name = SearchableCorpus._get_args(kwargs, 'index_name')
+            self.fields = SearchableCorpus._get_args(kwargs, 'fields')
+            if self.fields is None:
+                # raise RuntimeError(f"For elasticsearch, you need to provide the search fields.")
+                print(f"The 'fields' param not defined, using ['text']")
+                self.fields=['text']
+            server = SearchableCorpus._get_args(kwargs, 'server')
+            ssl_fingerprint = SearchableCorpus._get_args(kwargs,
+                                                 'ES_SSL_FINGERPRINT',
+                                                 os.getenv("ES_SSL_FINGERPRINT"))
+            ssl_api_key = SearchableCorpus._get_args(kwargs,
+                                                     'ES_API_KEY',
+                                                     os.getenv('ES_API_KEY'))
+            es_passwd = SearchableCorpus._get_args(kwargs,
+                                                   'ES_PASSWORD',
+                                                   os.getenv('ES_PASSWORD'))
+            cloud_id = SearchableCorpus._get_args(kwargs, 'cloud_id')
+            if not server:
+                print(f"No server provided for model {model_name}")
+                raise RuntimeError(f"No server provided for model {model_name}")
+            if ssl_fingerprint and ssl_api_key:
+                self.client = Elasticsearch(self.server,
+                                            ssl_assert_fingerprint= ssl_fingerprint,
+                                            api_key=ssl_api_key)
+            elif es_passwd and cloud_id:
+                self.client = Elasticsearch(cloud_id=cloud_id, basic_auth=("elastic", es_passwd))
+            else:
+                print(f"No credentials provided for server {server}, model_name {model_name}")
 
+    @staticmethod
+    def _get_args(_dict, _val, _default=None):
+        return _dict[_val] if _val in _dict else _default
 
     def add(self, texts:Union[AnyStr, List[AnyStr]], titles:List[AnyStr]=None, ids:List[AnyStr]=None, **kwargs):
         """
@@ -259,12 +302,19 @@ class SearchableCorpus:
             """
         call_funcs = {SearchableCorpus._DPR: self._dpr_search,
                       SearchableCorpus._ColBERT: self._colbert_search,
-                      SearchableCorpus._BM25: self._bm25_search}
+                      SearchableCorpus._BM25: self._bm25_search,
+                      SearchableCorpus._ES_BM25: self._es_bm25_search,
+                      SearchableCorpus._ES_DENSE: self._es_dense_search,
+                      SearchableCorpus._ES_ELSER: self.es_elser_search}
         if self._model_type not in call_funcs:
             print("Unknown indexer type.")
             raise RuntimeError("Unknown indexer type.")
         else:
-            return call_funcs[self._model_type](input_queries, batch_size, **kwargs)
+            res = call_funcs[self._model_type](input_queries, batch_size, **kwargs)
+            if SearchableCorpus._get_args(kwargs, 'get_text'):
+                return res
+            else:
+                return res[0], res[1]
 
     # if self._model_type == SearchableCorpus._DPR:
     #     return self._dpr_search(input_queries, batch_size, **kwargs)
@@ -275,6 +325,7 @@ class SearchableCorpus:
     def _dpr_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         passage_ids = []
         scores = []
+        texts = []
 
         batch = 0
         while batch < len(input_queries):
@@ -286,6 +337,7 @@ class SearchableCorpus:
             )
             passage_ids.extend(p_ids)
             scores.extend([r['scores'] for r in response])
+            texts.extend([t['text'] for t in response])
             batch = batch_end
 
         return passage_ids, scores
@@ -305,16 +357,50 @@ class SearchableCorpus:
                 )
                 passage_ids.append([str(p) for p in p_ids])
                 scores.append(scrs)
-        return passage_ids, scores
+        return passage_ids, scores, []
 
     def _bm25_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         passage_ids = []
         scores = []
+        texts = []
         for query_number, q in enumerate(input_queries):
             res = self.searcher.retrieve(query=q, topK=self.top_k)
             passage_ids.append([r['doc_id'] for r in res])
             scores.append([r['score'] for r in res])
-        return passage_ids, scores
+            scores.append([r['text'] for r in res])
+        return passage_ids, scores, texts
+
+    def _es_bm25_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        passage_ids = []
+        scores = []
+        texts = []
+        for query_number, q in enumerate(input_queries):
+            es_query = {
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": q,
+                            "fields": self.fields
+                        }
+                    },
+                }
+            }
+            query = {
+                "size": self.top_k,
+                "query": es_query
+            }
+            res = self.client.search(index=self.index_name, query=query)
+            hits = res['hits']['hits']
+            passage_ids.extend(h['_passageId'] for h in hits)
+            scores.extend([h['score'] for h in hits])
+            texts.extend([h['_source']['text'] for h in hits])
+        return passage_ids, scores, texts
+
+    def _es_dense_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        pass
+
+    def _es_elser_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        pass
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
         """ Encodes a list of context documents, returning their dense representation.
