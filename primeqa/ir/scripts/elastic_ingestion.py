@@ -11,6 +11,9 @@ import pyizumo
 
 nlp = None
 product_counts = {}
+import urllib3
+
+urllib3.disable_warnings()
 
 
 def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
@@ -50,6 +53,7 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
     :param text: str - the text to split
     :param tokenizer: HF Tokenizer
        - the tokenizer to do the work of splitting the words into word pieces
+    :param title: str - the title of the document
     :param max_length: int - the maximum length of the resulting sequence
     :param stride: int - the overlap between windows
     """
@@ -233,8 +237,9 @@ def remove_stopwords(text: str, do_replace: bool = False) -> str:
         return text
     else:
         if stopwords is None:
-            stopwords = re.compile("\\b(?:" + "|".join(settings["analysis"]["filter"]["english_stop"]["stopwords"]) + ")\\b",
-                                   re.IGNORECASE)
+            stopwords = re.compile(
+                "\\b(?:" + "|".join(settings["analysis"]["filter"]["english_stop"]["stopwords"]) + ")\\b",
+                re.IGNORECASE)
         return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
 
 
@@ -267,7 +272,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         if fields is not None \
                         else csv.DictReader(in_file, delimiter="\t")
                 next(csv_reader)
-                for ri, row in enumerate(csv_reader):
+                for ri, row in tqdm(enumerate(csv_reader)):
                     if ri >= max_num_documents:
                         break
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
@@ -281,6 +286,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         itm['relevant'] = row['relevant']
                     if 'answers' in row:
                         itm['answers'] = row['answers'].split("::")
+                        itm['passages'] = itm['answers']
                     passages.append(itm)
             elif input_file.endswith('.json'):
                 # This should be the SAP json format
@@ -314,7 +320,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                              tokenizer=tokenizer,
                                              doc_url=url,
                                              uniform_product_name=uniform_product_name
-                            ))
+                                             ))
                         else:
                             for passage in doc['passages']:
                                 passages.extend(
@@ -327,7 +333,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                                  tokenizer=tokenizer,
                                                  doc_url=url,
                                                  uniform_product_name=uniform_product_name
-                                ))
+                                                 ))
                     except Exception as e:
                         print(f"Error at line {di}: {e}")
                         raise e
@@ -405,9 +411,6 @@ class MyEmbeddingFunction:
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(name, device=device)
         print('=== done initializing model')
-
-    def get_sentence_embedding_dimension(self):
-        return self._model_config.hidden_size
 
     def __call__(self, texts: Union[List[str], str]) -> \
             Union[Union[List[float], List[int]], List[Union[List[float], List[int]]]]:
@@ -493,13 +496,14 @@ def compute_score(input_queries, results):
     tmp_scores = scores.copy()
     tmp_pscores = pscores.copy()
     prev_id = -1
+    rqmap = reverse_map(input_queries)
 
     num_eval_questions = 0
     for rid, record in tqdm(enumerate(results),
                             total=len(results),
                             desc='Evaluating questions: '):
         qid = record['qid']
-        query = input_queries[qid]
+        query = input_queries[rqmap[qid]]
         if '-1' in gt[qid]:
             continue
         num_eval_questions += 1
@@ -531,9 +535,10 @@ def compute_score(input_queries, results):
     return res
 
 
-def check_index_rebuild():
+def check_index_rebuild(index_name):
     while True:
-        r = input("Are you sure you want to recreate the index? It might take a long time!! Say 'yes' or 'no':").strip()
+        r = input(
+            f"Are you sure you want to recreate the index {index_name}? It might take a long time!! Say 'yes' or 'no':").strip()
         if r == 'no':
             print("OK - exiting. Run with '--actions r'")
             sys.exit(0)
@@ -546,7 +551,7 @@ def check_index_rebuild():
 def create_update_index(index_name, do_update):
     if client.indices.exists(index=index_name):
         if not do_update:
-            check_index_rebuild()
+            check_index_rebuild(index_name)
             client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
         else:
             print(f"Using existent index {index_name}.")
@@ -769,12 +774,12 @@ if __name__ == '__main__':
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
     parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI'],
-                        help="The server to connect to." )
+                        help="The server to connect to.")
 
     args = parser.parse_args()
 
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if args.server=="SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
+    if args.server == "SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
         print(
             f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
         sys.exit(11)
@@ -821,13 +826,13 @@ if __name__ == '__main__':
         batch_size = 64
         model = MyEmbeddingFunction(args.model_name)
 
-    if args.server=="SAP":
+    if args.server == "SAP":
         print(f"Using the SAP server")
         client = Elasticsearch(
             cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
             basic_auth=("elastic", ELASTIC_PASSWORD)
         )
-    elif args.server=="CONVAI":
+    elif args.server == "CONVAI":
         print(f"Using the CONVAI server")
         client = Elasticsearch("https://9.59.196.68:9200",
                                ssl_assert_fingerprint=(os.getenv("ES_SSL_FINGERPRINT")),
@@ -858,7 +863,7 @@ if __name__ == '__main__':
                                    docname2url=docname2url,
                                    docname2title=docname2title,
                                    remove_stopwords=args.remove_stopwords,
-                                   docid_filter = docid_filter,
+                                   docid_filter=docid_filter,
                                    uniform_product_name=args.product_name
                                    )
         if max_documents is not None and max_documents > 0:
@@ -934,8 +939,14 @@ if __name__ == '__main__':
             # client.indices.create(index=f"{index_name}", mappings=mappings, settings=settings)
             client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
             actions = []
-            keys_to_index = ['title', 'id', 'url', 'productId',
-                             'filePath', 'deliverableLoio', 'text', 'app_name']
+            all_keys_to_index = ['title', 'id', 'url', 'productId',
+                                 'filePath', 'deliverableLoio', 'text', 'app_name']
+            keys_to_index = []
+            for k in all_keys_to_index:
+                if k not in input_passages[0]:
+                    print(f"Dropping key {k} - they are not in the passages")
+                else:
+                    keys_to_index.append(k)
             num_passages = len(input_passages)
             t = tqdm(total=num_passages, desc="Ingesting documents (w ELSER): ", smoothing=0.05)
             # for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):
@@ -1043,7 +1054,6 @@ if __name__ == '__main__':
                         json.dump(r, out)
                         out.write("\n")
                         # out.write(json.dumps())
-
 
         if args.evaluate:
             score = compute_score(input_queries, result)
