@@ -429,19 +429,19 @@ def main():
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
-    data_args.adapted_on_disk = False
+    adapted_on_disk_train = adapted_on_disk_validation = [False]
     
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
         raw_datasets = {}
         if data_args.train_fof is not None:
-            raw_train_datasets, train_preprocessors = get_raw_datasets(data_args.train_fof, data_args,
+            raw_train_datasets, train_preprocessors, adapted_on_disk_train = get_raw_datasets(data_args.train_fof, data_args,
                                                                        task_args, model_args.cache_dir,
                                                                        split='train')
             raw_datasets['train'] = raw_train_datasets
         if data_args.eval_fof is not None:            
-            raw_validation_datasets, validation_preprocessors = get_raw_datasets(data_args.eval_fof, data_args,
+            raw_validation_datasets, validation_preprocessors, adapted_on_disk_validation = get_raw_datasets(data_args.eval_fof, data_args,
                                                                                  task_args, model_args.cache_dir,
                                                                                  split='validation')
             raw_datasets['validation'] = raw_validation_datasets
@@ -457,7 +457,7 @@ def main():
             # for natural_questions we can do some preprocessing offline to save on caching/time
             if data_args.dataset_name == "natural_questions":
                 disable_caching()
-                data_args.adapted_on_disk = True
+                adapted_on_disk_train = adapted_on_disk_validation = [True]
 
                 train_datasets = [] 
                 eval_datasets = [] 
@@ -537,7 +537,7 @@ def main():
             discard_duplicate_spans = data_args.discard_duplicate_spans,
             exclude_passage_answers = data_args.exclude_passage_answers,
             long_answer_as_short_answer = data_args.long_answer_as_short_answer,
-            adapted_on_disk = data_args.adapted_on_disk
+            adapted_on_disk = adapted_on_disk_train[i]
         )
     for i, p in enumerate(validation_preprocessors):
         if isinstance(p, str):
@@ -554,7 +554,7 @@ def main():
             single_context_multiple_passages=data_args.single_context_multiple_passages,
             max_contexts=data_args.max_contexts,
             max_answer_len=data_args.max_answer_length,
-            adapted_on_disk = data_args.adapted_on_disk
+            adapted_on_disk = adapted_on_disk_validation[i]
         )
 
     # if filtering, check that both column name and column values are provided
