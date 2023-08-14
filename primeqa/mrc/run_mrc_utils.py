@@ -3,6 +3,9 @@ from importlib import import_module
 import datasets
 import json
 import random
+import glob
+from datasets import concatenate_datasets
+import os
 
 def object_reference(reference_as_str: str) -> object:
     """
@@ -105,6 +108,11 @@ def get_raw_datasets(fof, data_args, task_args, cache_dir, split='train'):
                 d_info['sampling_rate'] = columns[2]
             if len(columns) >= 4:
                 d_info['preprocessor'] = columns[3]
+            if len(columns) >= 5:
+                if columns[4] == 'True':
+                    d_info['adapted_on_disk'] = True
+                else:
+                    d_info['adapted_on_disk'] = False
             datasets_info.append(d_info)
 
     if len(datasets_info) == 0:
@@ -133,6 +141,7 @@ def get_raw_datasets(fof, data_args, task_args, cache_dir, split='train'):
 
     raw_datasets = []
     preprocessors = []
+    adapted_on_disk = []
     for i, d_info in enumerate(datasets_info):
         if d_info['dataset'] in datasets.list_datasets() or d_info['dataset'].endswith('.py'):
             if 'natural_questions' in d_info['dataset']:
@@ -151,6 +160,15 @@ def get_raw_datasets(fof, data_args, task_args, cache_dir, split='train'):
                     cache_dir=cache_dir,
                     split=split
                 )
+        elif len(glob.glob(d_info['dataset'])) > 0:
+                local_dataset = [] 
+
+                data_files = glob.glob(d_info['dataset'])
+                for file in data_files:
+                    d = datasets.load_from_disk(file)
+                    print(len(d))
+                    local_dataset.append(d)
+                raw_dataset = concatenate_datasets(local_dataset)
         else:
             data_files = {split: d_info['dataset']}
             raw_dataset = datasets.load_dataset(
@@ -167,8 +185,9 @@ def get_raw_datasets(fof, data_args, task_args, cache_dir, split='train'):
 
         raw_datasets.append(raw_dataset)
         preprocessors.append(d_info['preprocessor'])
+        adapted_on_disk.append(d_info['adapted_on_disk'])
 
-    return raw_datasets, preprocessors
+    return raw_datasets, preprocessors, adapted_on_disk
 
 
 def process_raw_datasets(raw_datasets, preprocessors, training_args, split='train', max_samples=None):
