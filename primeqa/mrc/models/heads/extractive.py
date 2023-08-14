@@ -26,7 +26,11 @@ class ExtractiveQAHead(AbstractTaskHead):
         super().__init__(config)
         self.num_labels = config.num_labels
         self.qa_outputs = torch.nn.Linear(config.hidden_size, self.num_labels)
-        self.two_way_loss = config.two_way_loss
+
+        try:
+            self.two_way_loss = config.two_way_loss
+        except:
+            self.two_way_loss = False
 
         config_for_classification_head = deepcopy(config)
         if num_labels_override is None:

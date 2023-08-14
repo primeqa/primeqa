@@ -135,10 +135,10 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         "end_logit": end_logits[0],
                     }
 
-                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1  : -1].tolist() #  -self._n_best_size - 1 
-                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1  : -1].tolist() #  -self._n_best_size - 1 
+                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 :  : -1].tolist() #  -self._n_best_size - 1 
+                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 :  : -1].tolist() #  -self._n_best_size - 1 
                 
-                # added_count = 0
+                added_count = 0
                 for start_index in start_indexes:
                     if (
                             start_index >= len(offset_mapping)
@@ -160,6 +160,9 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             continue
                         # Don't consider answers with a length that is either < 0 or > max_answer_length.
                         if end_index < start_index or end_index - start_index + 1 > self._max_answer_length:
+                            continue
+                        # Don't consider answers with a length that is either < 0 or < min_answer_length.
+                        if end_index - start_index + 1 < self._min_answer_length:
                             continue
                         # Don't consider answer that don't have the maximum context available (if such information is
                         # provided).
@@ -212,16 +215,16 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'query_passage_similarity': query_passage_similarity
                         }
                         )
-                    #     added_count += 1
-                    #     if self._n_best_size == added_count:
-                    #         break
-                    # if self._n_best_size == added_count:
-                    #     break
+                        added_count += 1
+                        if self._n_best_size == added_count:
+                            break
+                    if self._n_best_size == added_count:
+                        break
             example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score_sm'), reverse=True)
 
             # here let's discard overlapping spans (keep the first one only) 
             discard_overlaps = True
-            if self._n_best_size > 1 and discard_overlaps:
+            if discard_overlaps:
                 seen_start = {}
                 seen_end = {}
                 new_example_predictions = []

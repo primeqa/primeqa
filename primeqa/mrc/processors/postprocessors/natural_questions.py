@@ -55,6 +55,9 @@ class NaturalQuestionsPostProcessor(ExtractivePostProcessor):
                     new_end_position = example['document_tokens']['end_byte'][end_token_position] if end_token_position != -1 else -1
                     pred['span_answer']['start_position'] = new_start_position
                     pred['span_answer']['end_position'] = new_end_position
+                # else:
+                #     if pred['span_answer']['end_position'] != - 1:
+                #         pred['span_answer']['end_position'] = end_position - 1
 
                 pred['passage_index'] = -1
 

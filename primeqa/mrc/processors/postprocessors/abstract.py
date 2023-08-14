@@ -12,6 +12,7 @@ class AbstractPostProcessor(metaclass=ABCMeta):
     def __init__(self,
                  k: int,
                  max_answer_length: int, 
+                 min_answer_length: int, 
                  single_context_multiple_passages: bool = False,
                  **kwargs):
         """
@@ -24,6 +25,7 @@ class AbstractPostProcessor(metaclass=ABCMeta):
         self._k = k
 
         self._max_answer_length = max_answer_length
+        self._min_answer_length = min_answer_length
         self._single_context_multiple_passages = single_context_multiple_passages
 
     @abstractmethod

@@ -204,6 +204,13 @@ class DataTrainingArguments:
                     "and end predictions are not conditioned on one another."
         },
     )
+    min_answer_length: int = field(
+        default=0,
+        metadata={
+            "help": "The minimum length of an answer that can be generated. This is needed because the start "
+                    "and end predictions are not conditioned on one another."
+        },
+    )
     negative_sampling_prob_when_has_answer: float = field(
         default=0.01,
         metadata={
@@ -608,6 +615,7 @@ def main():
         k=data_args.n_best_logits,
         n_best_size=data_args.n_best_size,
         max_answer_length=data_args.max_answer_length,
+        min_answer_length=data_args.min_answer_length,
         scorer_type=SupportedSpanScorers(scorer_type),
         single_context_multiple_passages=train_preprocessors[0]._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,

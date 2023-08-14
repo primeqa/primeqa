@@ -93,6 +93,15 @@ class ExtractiveReader(BaseReader):
             "exclude_from_hash": True,
         },
     )
+    min_answer_length: int = field(
+        default=0,
+        metadata={
+            "name": "Maximum answer length",
+            "range": [2, 2000, 2],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
+    )
     scorer_type: str = field(
         default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
         metadata={
@@ -209,6 +218,12 @@ class ExtractiveReader(BaseReader):
             else self.max_answer_length
         )
 
+        min_answer_length = (
+            kwargs["min_answer_length"]
+            if "min_answer_length" in kwargs
+            else self.min_answer_length
+        )
+
         min_score_threshold = (
             kwargs["min_score_threshold"]
             if "min_score_threshold" in kwargs
@@ -220,6 +235,7 @@ class ExtractiveReader(BaseReader):
             k=max_num_answers,
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
+            min_answer_length=min_answer_length,
             scorer_type=self._scorer_type_as_enum,
         )
 
