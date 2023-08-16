@@ -12,7 +12,7 @@ class AbstractPostProcessor(metaclass=ABCMeta):
     def __init__(self,
                  k: int,
                  max_answer_length: int, 
-                 min_answer_length: int, 
+                 min_answer_length: int = 0, 
                  single_context_multiple_passages: bool = False,
                  **kwargs):
         """

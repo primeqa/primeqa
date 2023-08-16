@@ -74,8 +74,9 @@ class NQF1(datasets.Metric):
 
         # TODO: parameterize
         skip_missing_example_ids = False
-        long_non_null_threshold = kwargs['passage_non_null_threshold']
-        short_non_null_threshold = kwargs['span_non_null_threshold']
+        
+        long_non_null_threshold = kwargs['passage_non_null_threshold'] if 'passage_non_null_threshold' in kwargs else 2
+        short_non_null_threshold = kwargs['span_non_null_threshold'] if 'span_non_null_threshold' in kwargs else 2
 
         long_answer_stats, short_answer_stats = score_answers(
             gold_annotation_dict=references, pred_dict=predictions,

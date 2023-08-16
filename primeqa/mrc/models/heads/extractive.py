@@ -99,6 +99,7 @@ class ExtractiveQAHead(AbstractTaskHead):
             start_loss = loss_fct(start_logits, start_positions)
             end_loss = loss_fct(end_logits, end_positions)
 
+            # two way loss ignores the answer type logits
             if self.two_way_loss:
                 total_loss = (start_loss + end_loss) /2
             else:

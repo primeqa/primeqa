@@ -69,6 +69,7 @@ class SQUADPreprocessor(BasePreProcessor):
         target = example.pop('answers')
         target["start_positions"] = target.pop("answer_start")
         target["end_positions"] = [s + len(t) for (s,t) in zip(target["start_positions"],target["text"])]
+        # allow no answer by setting to -1 if no answer
         target["passage_indices"] = [0 if t >= 0 else -1 for t in target["start_positions"]]
         target["yes_no_answer"] = ['NONE' for _ in target["start_positions"]]
         example['target'] = target

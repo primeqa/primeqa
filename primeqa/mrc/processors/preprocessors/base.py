@@ -224,6 +224,7 @@ class BasePreProcessor(AbstractPreProcessor):
                     window_contains_correct_passage = passage_index == context_idx
 
             if window_contains_correct_passage and start_position == -1:  # Passage or Y/N Answer
+                # optional: when there is no short answer, make the long answer the short answer.
                 if self._long_answer_as_short_answer:
                     passage_candidates = examples['passage_candidates'][example_index]
                     passage_start_position = passage_candidates['start_positions'][passage_index]
@@ -302,6 +303,7 @@ class BasePreProcessor(AbstractPreProcessor):
 
         for i in range(len(tokenized_examples['input_ids'])):
             if tokenized_examples['target_type'][i] != TargetType.NO_ANSWER:
+                # optional: exclude passages that are part of the long answer and not the short answer  
                 if tokenized_examples['target_type'][i] == TargetType.PASSAGE_ANSWER and self._exclude_passage_answers:
                     st = SubsampleType.EXCLUDE
                 else:
@@ -324,7 +326,6 @@ class BasePreProcessor(AbstractPreProcessor):
                 else:
                     st = SubsampleType.NEGATIVE_NO_ANSWER
             tokenized_examples['subsample_type'].append(st)
-        self._logger.info(f"Duplicate Discard count: {discard_count}")
         return tokenized_examples
 
     def subsample_features(self, dataset: Dataset) -> Dataset:

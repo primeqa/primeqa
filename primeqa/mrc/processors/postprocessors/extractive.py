@@ -108,8 +108,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
                 offset_mapping = input_feature["offset_mapping"]
 
-                start_logits_sm = (np.exp(start_logits[:len(offset_mapping)])/(np.exp(start_logits[:len(offset_mapping)]).sum())).tolist()
-                end_logits_sm = (np.exp(end_logits[:len(offset_mapping)])/(np.exp(end_logits[:len(offset_mapping)]).sum())).tolist()
+                start_logits = (np.exp(start_logits[:len(offset_mapping)])/(np.exp(start_logits[:len(offset_mapping)]).sum())).tolist()
+                end_logits = (np.exp(end_logits[:len(offset_mapping)])/(np.exp(end_logits[:len(offset_mapping)]).sum())).tolist()
 
                 target_type_logits = example_targettype_preds[i].tolist()
 
@@ -125,8 +125,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
                 # Update minimum null prediction.
-                feature_null_score = start_logits[0] + end_logits[0]
-                feature_null_score_sm = start_logits_sm[0] + end_logits_sm[0]
+                feature_null_score = start_logits[0] * end_logits[0]
+                # feature_null_score_sm = start_logits_sm[0] + end_logits_sm[0]
                 if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
                     min_null_prediction = {
                         "offsets": (0, 0),
@@ -150,10 +150,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
                     # to part of the input_ids that are not in the context.
                         if (
-                            start_index >= len(offset_mapping)
-                            or end_index >= len(offset_mapping)
-                            or offset_mapping[start_index] is None
-                            or len(offset_mapping[start_index]) < 2
+                            end_index >= len(offset_mapping)
                             or offset_mapping[end_index] is None
                             or len(offset_mapping[end_index]) < 2
                         ):
@@ -189,23 +186,21 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         span_answer_text = passage_text[offset_mapping[start_index][0]:offset_mapping[end_index][1]]
                         span_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
                                                 feature_null_score, target_type_logits)
-                        span_answer_score_sm = self._score_calculator(start_logits_sm[start_index] + end_logits_sm[end_index],
-                                                feature_null_score_sm, target_type_logits)
+                        
                         prelim_predictions.append(
                         {
                             'example_id': input_feature['example_id'],
-                            'cls_score': [feature_null_score, feature_null_score_sm/2],
-                            'start_logit': [start_logits[start_index], start_logits_sm[start_index]],
-                            'end_logit': [end_logits[end_index], end_logits_sm[end_index]],
-                            'cls_logit': [start_logits_sm[0], end_logits_sm[0]],
+                            'cls_score': feature_null_score,
+                            'start_logit': start_logits[start_index],
+                            'end_logit': end_logits[end_index],
                             'span_answer': {
                                 "start_position": start_position,
                                 "end_position": end_position,
                             },
                             'span_answer_score' : span_answer_score,
-                            'span_answer_score_sm' : span_answer_score_sm,
                             'start_index': start_index,
                             'end_index':   end_index,
+                            'start_end_score': start_logits[start_index] * end_logits[end_index],
                             'passage_index' : context_idx,
                             'target_type_logits': target_type_logits,
                             'span_answer_text': span_answer_text,
@@ -220,7 +215,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             break
                     if self._n_best_size == added_count:
                         break
-            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score_sm'), reverse=True)
+            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)
 
             # here let's discard overlapping spans (keep the first one only) 
             discard_overlaps = True
@@ -271,13 +266,12 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 example_predictions.append( 
                     {
                         'example_id': example_id,
-                        'cls_score': [0.0,0.0],
-                        'start_logit': [0.0,0.0], 
-                        'end_logit': [0.0,0.0], 
-                        'cls_logit': [0.0,0.0], 
+                        'cls_score': 0.0,
+                        'start_logit': 0.0, 
+                        'end_logit': 0.0, 
                         'span_answer': {'start_position': -1, 'end_position': -1,},
                         'span_answer_score': 0.0,
-                        'span_answer_score_sm': span_answer_score_sm/2,
+                        'start_end_score': 0.0,
                         'span_answer_text': "empty", 
                         'start_index': -1,
                         'end_index':   -1,
@@ -341,6 +335,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'end_position': top_pred['span_answer']['end_position'],
                 'passage_index': top_pred['passage_index'],
                 'yes_no_answer': top_pred['yes_no_answer'],
+                'no_answer_score': top_pred['cls_score'],
+                'answer_score': top_pred['start_end_score'],
                 'confidence_score': top_pred['span_answer_score']
             }
             predictions_for_metric.append(prediction_for_metric)

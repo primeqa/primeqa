@@ -142,6 +142,14 @@ class DataTrainingArguments:
             "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
+    adapted_on_disk: bool = field(
+        default=False,
+        metadata={"help": "True if data has already been adapted to base format and saved. This is a big time saver for NQ"}
+    )
+    disable_dataset_caching: bool = field(
+        default=False,
+        metadata={"help": "disable caching to avoid issues with HF datasets caching too often and causes out of memory issues."}
+    )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
@@ -429,7 +437,11 @@ def main():
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
-    adapted_on_disk_train = adapted_on_disk_validation = [False]
+    adapted_on_disk_train = adapted_on_disk_validation = [data_args.adapted_on_disk]
+    
+    # avoid issues with HF datasets caching too often and causes out of memory issues.
+    if data_args.disable_dataset_caching:
+        disable_caching()
     
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
@@ -456,9 +468,6 @@ def main():
             # Load train and validation datasets separately because they might have different columns
             # for natural_questions we can do some preprocessing offline to save on caching/time
             if data_args.dataset_name == "natural_questions":
-                disable_caching()
-                adapted_on_disk_train = adapted_on_disk_validation = [True]
-
                 train_datasets = [] 
                 eval_datasets = [] 
 
