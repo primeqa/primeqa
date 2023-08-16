@@ -37,7 +37,7 @@ class NaturalQuestionsPostProcessor(ExtractivePostProcessor):
             for pred in predictions[example_id]:
 
                 # check if the cls is > offset (if it is set it as unanswerable)
-                if (pred['start_logit'][1] + pred['end_logit'][1])/2 < pred['cls_score'][1]:
+                if pred['start_end_score'] < pred['cls_score']:
                     pred['span_answer']['orig_start_position'] = pred['span_answer']['start_position']
                     pred['span_answer']['orig_end_position'] = pred['span_answer']['end_position']
                     pred['span_answer']['start_position'] = -1
