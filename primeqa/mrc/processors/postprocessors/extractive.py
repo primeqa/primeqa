@@ -15,6 +15,7 @@ from datetime import datetime
 import torch
 import logging
 from transformers import EvalPrediction
+import math
 
 from primeqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import initialize_scorer
@@ -125,7 +126,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
                 # Update minimum null prediction.
-                feature_null_score = start_logits[0] * end_logits[0]
+                feature_null_score = math.sqrt(start_logits[0] * end_logits[0])
                 # feature_null_score_sm = start_logits_sm[0] + end_logits_sm[0]
                 if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
                     min_null_prediction = {
@@ -200,7 +201,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'span_answer_score' : span_answer_score,
                             'start_index': start_index,
                             'end_index':   end_index,
-                            'start_end_score': start_logits[start_index] * end_logits[end_index],
+                            'start_end_score': math.sqrt(start_logits[start_index] * end_logits[end_index]),
                             'passage_index' : context_idx,
                             'target_type_logits': target_type_logits,
                             'span_answer_text': span_answer_text,
