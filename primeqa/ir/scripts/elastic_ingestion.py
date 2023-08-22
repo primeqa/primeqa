@@ -288,9 +288,12 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         itm['answers'] = row['answers'].split("::")
                         itm['passages'] = itm['answers']
                     passages.append(itm)
-            elif input_file.endswith('.json'):
+            elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
                 # This should be the SAP json format
-                data = json.load(in_file)
+                if input_file.endswith('.json'):
+                    data = json.load(in_file)
+                else:
+                    data = [json.loads(line) for line in open(input_file).readlines()]
                 uniform_product_name = get_attr(kwargs, 'uniform_product_name')
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
                 for di, doc in tqdm(enumerate(data),
@@ -304,6 +307,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         continue
                     url = doc['document_url'] if 'document_url' in doc else ""
                     title = doc['title']
+                    if title is None:
+                        title = ""
                     if docid in docname2url:
                         url = docname2url[docid]
                         title = docname2title[docid]
@@ -729,7 +734,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_queries', '-q', default=None)
 
     parser.add_argument('--db_engine', '-e', default='es-dense',
-                        choices=['es-dense', 'es-elser'], required=False)
+                        choices=['es-dense', 'es-elser', 'es-bm25'], required=False)
     parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
 
     parser.add_argument('--top_k', '-k', type=int, default=10, )
@@ -834,9 +839,11 @@ if __name__ == '__main__':
         )
     elif args.server == "CONVAI":
         print(f"Using the CONVAI server")
+        ES_SSL_FINGERPRINT=os.getenv("ES_SSL_FINGERPRINT")
+        ES_API_KEY = os.getenv("ES_API_KEY")
         client = Elasticsearch("https://9.59.196.68:9200",
-                               ssl_assert_fingerprint=(os.getenv("ES_SSL_FINGERPRINT")),
-                               api_key=os.getenv("ES_API_KEY")
+                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+                               api_key=ES_API_KEY
                                )
         try:
             res = client.info()
@@ -880,12 +887,13 @@ if __name__ == '__main__':
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
-        if args.db_engine == "es-dense":
+        if args.db_engine in ["es-dense", 'es-bm25']:
             mappings = coga_mappings
-            mappings['properties']["vector"] = {
-                "type": "dense_vector", "dims": hidden_dim,
-                "similarity": "cosine", "index": "true"
-            }
+            if args.db_engine == 'es-dense':
+                mappings['properties']["vector"] = {
+                    "type": "dense_vector", "dims": hidden_dim,
+                    "similarity": "cosine", "index": "true"
+                }
 
             create_update_index(index_name, do_update)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
@@ -904,8 +912,9 @@ if __name__ == '__main__':
                     }
                     for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
                 ]
-                for pi, (action, row) in enumerate(zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
-                    action["_source"]['vector'] = passage_vectors[pi + k]
+                if args.db_engine == 'es-dense':
+                    for pi, (action, row) in enumerate(zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
+                        action["_source"]['vector'] = passage_vectors[pi + k]
                 try:
                     bulk(client, actions=actions)
                 except Exception as e:
@@ -1000,7 +1009,7 @@ if __name__ == '__main__':
                                       remove_stopwords=args.remove_stopwords)
 
         result = []
-        if args.db_engine == "es-dense":
+        if args.db_engine in ["es-dense"]:
             for query_number in tqdm(range(len(input_queries))):
                 query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
                 qid = input_queries[query_number]['id']
@@ -1015,6 +1024,29 @@ if __name__ == '__main__':
                     knn=query,
                     size=args.top_k,
                     source_excludes=['vector']
+                )
+                rout = []
+                for rank, r in enumerate(res.body['hits']['hits']):
+                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
+                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
+        elif args.db_engine == 'es-bm25':
+            for query_number in tqdm(range(len(input_queries))):
+                qid = input_queries[query_number]['id']
+                query = {
+                    "bool": {
+                        "must": {
+                            "multi_match": {
+                                "query": input_queries[query_number]['text'],
+                                "fields": ['text']
+                            }
+                        },
+                    }
+                }
+
+                res = client.search(
+                    index=index_name,
+                    query=query,
+                    size=args.top_k,
                 )
                 rout = []
                 for rank, r in enumerate(res.body['hits']['hits']):
