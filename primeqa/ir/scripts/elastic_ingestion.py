@@ -1,5 +1,7 @@
 import os, re, json, csv
 from argparse import ArgumentParser
+
+from Cython.Includes.libcpp.vector import data
 from tqdm import tqdm
 import numpy as np
 from typing import List, Union, Tuple, Any
@@ -14,6 +16,64 @@ product_counts = {}
 import urllib3
 
 urllib3.disable_warnings()
+
+def setup_argparse():
+    parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
+    parser.add_argument('--input_passages', '-p', nargs="+", default=None)
+    parser.add_argument('--input_queries', '-q', default=None)
+
+    parser.add_argument('--db_engine', '-e', default='es-dense',
+                        choices=['es-dense', 'es-elser'], required=False)
+    parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
+
+    parser.add_argument('--top_k', '-k', type=int, default=10, )
+    parser.add_argument('--model_name', '-m', default='all-MiniLM-L6-v2')
+    parser.add_argument('--actions', default="ir",
+                        help="The actions that can be done: i(ingest), r(retrieve), R(rerank), u(update)")
+    parser.add_argument("--normalize_embs", action="store_true", help="If present, the embeddings are normalized.")
+    parser.add_argument("--evaluate", action="store_true",
+                        help="If present, evaluates the results based on test data, at the provided ranks.")
+    parser.add_argument("--ranks", default="1,5,10,100", help="Defines the R@i evaluation ranks.")
+    parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
+                                                               "file is assumed to be args.data/psgs.tsv and "
+                                                               "the question file is args.data/questions.tsv.")
+    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh']
+                        help=("The type of the dataset to use. If auto, then the type will be determined"
+                              "by the file extension: .tsv->pqa, .json|.jsonl -> sap, csv -> SAP question"))
+    parser.add_argument("--ingestion_batch_size", default=40, type=int,
+                        help="For elastic search only, sets the ingestion batch "
+                             "size (default 40).")
+    parser.add_argument("--replace_links", action="store_true", default=False,
+                        help="If turned on, it will replace urls in text with URL<no>")
+    parser.add_argument("--max_doc_length", type=int, default=None,
+                        help="If provided, the documents will be split into chunks of <max_doc_length> "
+                             "*word pieces* (in regular English text, about 2 word pieces for every word). "
+                             "If not provided, the passages in the file will be ingested, truncated.")
+    parser.add_argument("--stride", type=int, default=None,
+                        help="Argument that works in conjunction with --max_doc_length: it will define the "
+                             "increment of the window start while tiling the documents.")
+    parser.add_argument("--max_num_documents", type=int, default=None,
+                        help="If defined, it will restrict the ingestion to the first <max_num_documents> documents")
+    parser.add_argument("--docid_map", type=str, default=None,
+                        help="If defined, this provides a link to a file mapping docid values to loio values.")
+    parser.add_argument("-I", "--index_name", type=str, default=None,
+                        help="Defines the index name to use. If not specified, it is built as " \
+                             "{args.data}_{args.db_engine}_{args.model_name if args.db_engine=='es-dense' else 'elser'}_index")
+    parser.add_argument("--doc_based", action="store_true", default=False,
+                        help="If present, the document text will be ingested, otherwise the ingestion will be done"
+                             " at passage level.")
+    parser.add_argument("--hana_file2url", type=str, default=None,
+                        help="The file mapping the docid to the url to the title")
+    parser.add_argument("--remove_stopwords", action="store_true", default=False,
+                        help="If defined, the stopwords are removed from text before indexing.")
+    parser.add_argument("--docids_to_ingest", default=None, help="If provided, only the documents with the "
+                                                                 "ids in the file will be added.")
+    parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
+                                                             "for all documents")
+    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI'],
+                        help="The server to connect to.")
+
+    return parser
 
 
 def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
@@ -249,7 +309,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
     doc_based = get_attr(kwargs, 'doc_based')
     max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
-
+    data_type = get_attr(kwargs, 'auto')
     if fields is None:
         num_args = 3
     else:
@@ -289,24 +349,33 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         itm['passages'] = itm['answers']
                     passages.append(itm)
             elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
-                # This should be the SAP json format
+                # This should be the SAP or BEIR json format
                 if input_file.endswith('.json'):
                     data = json.load(in_file)
                 else:
                     data = [json.loads(line) for line in open(input_file).readlines()]
                 uniform_product_name = get_attr(kwargs, 'uniform_product_name')
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
+                if data_type in ['auto', 'sap']:
+                    txtname = "document"
+                    docidname = "document_id"
+                    titlename = "title"
+                elif data_type == "beir":
+                    txtname = "text"
+                    docidname = "_id"
+                    titlename = 'title'
+
                 for di, doc in tqdm(enumerate(data),
                                     total=min(max_num_documents, len(data)),
                                     desc="Reading json documents",
                                     smoothing=0.05):
                     if di >= max_num_documents:
                         break
-                    docid = doc['document_id'].replace(".txt", "")
+                    docid = doc[docidname].replace(".txt", "")
                     if docid_filter != [] and docid not in docid_filter:
                         continue
                     url = doc['document_url'] if 'document_url' in doc else ""
-                    title = doc['title']
+                    title = doc[titlename]
                     if title is None:
                         title = ""
                     if docid in docname2url:
@@ -316,9 +385,9 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     try:
                         if doc_based:
                             passages.extend(
-                                process_text(id=doc['document_id'],
+                                process_text(id=doc[docidname],
                                              title=remove_stopwords(fix_title(title), remv_stopwords),
-                                             text=remove_stopwords(doc['document'], remv_stopwords),
+                                             text=remove_stopwords(doc[txtname], remv_stopwords),
                                              max_doc_size=max_doc_size,
                                              stride=stride,
                                              remove_url=remove_url,
@@ -329,9 +398,9 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         else:
                             for passage in doc['passages']:
                                 passages.extend(
-                                    process_text(id=f"{doc['document_id']}-{passage['passage_id']}",
-                                                 title=remove_stopwords(passage['title'], remv_stopwords),
-                                                 text=remove_stopwords(passage['text'], remv_stopwords),
+                                    process_text(id=f"{doc[docidname]}-{passage['passage_id']}",
+                                                 title=remove_stopwords(passage[titlename], remv_stopwords),
+                                                 text=remove_stopwords(passage[textname], remv_stopwords),
                                                  max_doc_size=max_doc_size,
                                                  stride=stride,
                                                  remove_url=remove_url,
@@ -729,57 +798,7 @@ def init_settings():
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
-    parser.add_argument('--input_passages', '-p', nargs="+", default=None)
-    parser.add_argument('--input_queries', '-q', default=None)
-
-    parser.add_argument('--db_engine', '-e', default='es-dense',
-                        choices=['es-dense', 'es-elser', 'es-bm25'], required=False)
-    parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
-
-    parser.add_argument('--top_k', '-k', type=int, default=10, )
-    parser.add_argument('--model_name', '-m', default='all-MiniLM-L6-v2')
-    parser.add_argument('--actions', default="ir",
-                        help="The actions that can be done: i(ingest), r(retrieve), R(rerank), u(update)")
-    parser.add_argument("--normalize_embs", action="store_true", help="If present, the embeddings are normalized.")
-    parser.add_argument("--evaluate", action="store_true",
-                        help="If present, evaluates the results based on test data, at the provided ranks.")
-    parser.add_argument("--ranks", default="1,5,10,100", help="Defines the R@i evaluation ranks.")
-    parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
-                                                               "file is assumed to be args.data/psgs.tsv and "
-                                                               "the question file is args.data/questions.tsv.")
-    parser.add_argument("--ingestion_batch_size", default=40, type=int,
-                        help="For elastic search only, sets the ingestion batch "
-                             "size (default 40).")
-    parser.add_argument("--replace_links", action="store_true", default=False,
-                        help="If turned on, it will replace urls in text with URL<no>")
-    parser.add_argument("--max_doc_length", type=int, default=None,
-                        help="If provided, the documents will be split into chunks of <max_doc_length> "
-                             "*word pieces* (in regular English text, about 2 word pieces for every word). "
-                             "If not provided, the passages in the file will be ingested, truncated.")
-    parser.add_argument("--stride", type=int, default=None,
-                        help="Argument that works in conjunction with --max_doc_length: it will define the "
-                             "increment of the window start while tiling the documents.")
-    parser.add_argument("--max_num_documents", type=int, default=None,
-                        help="If defined, it will restrict the ingestion to the first <max_num_documents> documents")
-    parser.add_argument("--docid_map", type=str, default=None,
-                        help="If defined, this provides a link to a file mapping docid values to loio values.")
-    parser.add_argument("-I", "--index_name", type=str, default=None,
-                        help="Defines the index name to use. If not specified, it is built as " \
-                             "{args.data}_{args.db_engine}_{args.model_name if args.db_engine=='es-dense' else 'elser'}_index")
-    parser.add_argument("--doc_based", action="store_true", default=False,
-                        help="If present, the document text will be ingested, otherwise the ingestion will be done"
-                             " at passage level.")
-    parser.add_argument("--hana_file2url", type=str, default=None,
-                        help="The file mapping the docid to the url to the title")
-    parser.add_argument("--remove_stopwords", action="store_true", default=False,
-                        help="If defined, the stopwords are removed from text before indexing.")
-    parser.add_argument("--docids_to_ingest", default=None, help="If provided, only the documents with the "
-                                                                 "ids in the file will be added.")
-    parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
-                                                             "for all documents")
-    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI'],
-                        help="The server to connect to.")
+    parser = setup_argparse()
 
     args = parser.parse_args()
 
