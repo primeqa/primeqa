@@ -33,6 +33,7 @@ import faiss
 from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.util.searchable_corpus import SearchableCorpus
 from libSIRE.timer import timer
+from math import log2
 
 def handle_args():
     usage = 'usage'
@@ -149,9 +150,12 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             self.model = self.model.half()
             self.model.to(device)
             self.pqa = True
-        elif model_type == "chromadb":
+            self.emb_pool = None
+        elif model_type == "chromadb" or model_type=="faiss":
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(name, device=device).half()
+            if torch.cuda.device_count() > 1:
+                self.start_pool()
             # self.model = nn.DataParallel(self.model)
         print('=== done initializing model')
 
@@ -161,19 +165,34 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
     def __call__(self, texts: Documents) -> Embeddings:
         return self.encode(texts)
 
+    def start_pool(self):
+        self.emb_pool = self.model.start_multi_process_pool()
+
+    def stop_pool(self):
+        self.model.stop_multi_process_pool()
+
     def encode(self, texts:Documents, batch_size=-1, normalize_embeddings=False) -> Embeddings:
         # embed the documents somehow
+        if batch_size < 0:
+            batch_size = self.batch_size
         if not self.pqa:
-            embs = self.model.encode(texts,
-                                     normalize_embeddings,
-                                     show_progress_bar=False \
-                                         if isinstance(texts, str) or\
-                                            max(len(texts), batch_size) <= 1 \
-                                         else True
+            show_progress_bar=False if isinstance(texts, str) or max(len(texts), batch_size) <= 1 else True
+            # print(f"show_progress_bar={show_progress_bar}, len(texts)={len(texts)}, batch_size={batch_size}")
+            if isinstance(texts, list) and len(texts) > 30 and self.emb_pool is not None:
+                embs = self.model.encode_multi_process(
+                    pool=self.emb_pool,
+                    sentences=texts,
+                    batch_size=batch_size
+                )
+                if normalize_embeddings:
+                    embs = normalize(embs)
+            else:
+                embs = self.model.encode(sentences=texts,
+                                         normalize_embeddings=normalize_embeddings,
+                                         batch_size=batch_size,
+                                         show_progress_bar=show_progress_bar
                                      )
         else:
-            if batch_size < 0:
-                batch_size = self.batch_size
             if len(texts) > batch_size:
                 embs = []
                 for i in tqdm(range(0, len(texts), batch_size)):
@@ -753,12 +772,27 @@ def main():
                     rid += 1
                 return rid
 
-            def update_scores(ranks, rnk, scores):
+            def update_scores(ranks, rnk, scores, ndcg):
                 j = 0
                 while j<len(ranks) and ranks[j] < rnk:
                     j += 1
                 for k in ranks[j:]:
                     scores[k] += 1
+                    if ndcg is not None:
+                        ndcg[k] += 1/log2(rnk+1)
+
+            def compute_idcg(ranks, num_true):
+                idcg = {r: 0 for r in ranks}
+                val = 0
+                rid = 0
+                val = 0
+                rnk = [0]
+                for i in range(1, num_true+1):
+                    val += 1/log2(i+1)
+                    rnk.append(val)
+                for j in ranks:
+                    idcg[j] = rnk[j] if j<len(rnk) else rnk[-1]
+                return idcg
 
             rid = 0
             out_ranks1 = []
@@ -772,19 +806,26 @@ def main():
             tmp_lscores = lscores.copy()
             prev_id = -1
             num_eval_questions = 0
+            ndcg = {r:0 for r in ranks}
+            tmp_ndcg = {r:0 for r in ranks}
             for rid, record in enumerate(out_ranks):
                 outr = record[0:3]
                 if prev_id != record[0]:
                     if prev_id != -1 and '-1' not in gt[prev_id]:
                         num_eval_questions += 1
+                        idcg = compute_idcg(ranks, len(gt[prev_id]))
                         for r in ranks:
                             scores[r]  += int(tmp_scores[r]  >= 1)
                             lscores[r] += int(tmp_lscores[r] >= 1)
+                            ndcg[r] += tmp_ndcg[r] / idcg[r]
+                        # ndcg += tmp_ndcg
                         tmp_scores = {r:0 for r in ranks}
                         tmp_lscores = {r:0 for r in ranks}
+                        tmp_ndcg = {r:0 for r in ranks}
+
                     prev_id = record[0]
                 if str(record[1]) in gt[record[0]]: # Great, we found a match.
-                    update_scores(ranks, record[2], tmp_scores)
+                    update_scores(ranks, record[2], tmp_scores, tmp_ndcg)
                     outr.append(1)
                 else:
                     outr.append(0)
@@ -800,7 +841,7 @@ def main():
                             break
                     if (found):
                         outr.append(1)
-                        update_scores(ranks, record[2], tmp_lscores)
+                        update_scores(ranks, record[2], tmp_lscores, None)
                     else:
                         outr.append(0)
                 out_ranks1.append(outr)
@@ -813,9 +854,11 @@ def main():
             res = {"num_ranked_queries": num_eval_questions,
                    "num_judged_queries": num_eval_questions,
                    "success__WARNING":
-                       {r:int(1000*scores[r]/num_eval_questions)/1000.0 for r in ranks},
+                       {r:f"{scores[r]/num_eval_questions:.3}" for r in ranks},
                    "lienient_success__WARNING":
-                       {r:int(1000*lscores[r]/num_eval_questions)/1000.0 for r in ranks}
+                       {r:f"{lscores[r]/num_eval_questions:.3}" for r in ranks},
+                   "ndcg":
+                       {r: f"{ndcg[r]/num_eval_questions:.3}" for r in ranks}
                    }
             with open(args.output_ranks+".annotated.deb","w") as out_file:
                 tsv_writer = csv.writer(out_file, quoting=csv.QUOTE_MINIMAL, lineterminator='\n', delimiter='\t')
@@ -827,7 +870,7 @@ def main():
     #     pinecone.delete_index(index_name)
         print('=== done computing scores')
         last_time = report_time(last_time)
-        # t.add_timing("Evaluate")
+        t.add_timing("Evaluate")
     import io
     from contextlib import redirect_stdout
 
@@ -882,6 +925,7 @@ def read_data(input_file, fields=None, max_num_entries: int=-1):
         num_args = 3
     else:
         num_args = len(fields)
+    user_warned = False
     with open(input_file) as in_file:
         if input_file.endswith(".tsv"):
             # We'll assume this is the PrimeQA standard format
@@ -893,7 +937,9 @@ def read_data(input_file, fields=None, max_num_entries: int=-1):
             for i, row in enumerate(csv_reader):
                 if 0 <= max_num_entries <= i:
                     break
-                assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
+                if len(row) not in [2, 3, 4] and not user_warned:
+                    print(f'Invalid .tsv record (has to contain 2 or 3 fields): {row}')
+                    user_warned = True
                 itm = {'text': (row["title"] + ' '  if 'title' in row else '') + row["text"],
                                  'id': row['id']}
                 if 'title'in row:
