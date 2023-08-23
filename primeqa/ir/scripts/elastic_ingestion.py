@@ -223,7 +223,8 @@ def get_tokenized_length(tokenizer, text):
 def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                  tokenizer=None,
                  doc_url=None,
-                 uniform_product_name=None
+                 uniform_product_name=None,
+                 data_type="sap"
                  ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -240,11 +241,16 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     """
     global product_counts
     pieces = []
-    fields = doc_url.split("/")
-    if uniform_product_name:
-        productId = uniform_product_name
+    if data_type == "sap":
+        fields = doc_url.split("/")
+        if uniform_product_name:
+            productId = uniform_product_name
+        else:
+            productId = fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE'
     else:
-        productId = fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE'
+        productId = ""
+        fields = ["", "", "", "", "", ""]
+        doc_url = ""
     itm = {
         'productId': productId,
         'deliverableLoio': fields[-2],
@@ -356,10 +362,12 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     data = [json.loads(line) for line in open(input_file).readlines()]
                 uniform_product_name = get_attr(kwargs, 'uniform_product_name')
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
+                data_type = get_attr(kwargs, 'data_type', 'sap')
                 if data_type in ['auto', 'sap']:
                     txtname = "document"
                     docidname = "document_id"
                     titlename = "title"
+                    data_type = "sap"
                 elif data_type == "beir":
                     txtname = "text"
                     docidname = "_id"
@@ -393,7 +401,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                              remove_url=remove_url,
                                              tokenizer=tokenizer,
                                              doc_url=url,
-                                             uniform_product_name=uniform_product_name
+                                             uniform_product_name=uniform_product_name,
+                                             data_type=data_type
                                              ))
                         else:
                             for passage in doc['passages']:
@@ -406,7 +415,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                                  remove_url=remove_url,
                                                  tokenizer=tokenizer,
                                                  doc_url=url,
-                                                 uniform_product_name=uniform_product_name
+                                                 uniform_product_name=uniform_product_name,
+                                                 data_type=data_type
                                                  ))
                     except Exception as e:
                         print(f"Error at line {di}: {e}")
@@ -462,8 +472,8 @@ def compute_embedding(model, input_query, normalize_embs):
 class MyEmbeddingFunction:
     def __init__(self, name, batch_size=128):
         import torch
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        if device != 'cuda':
+        device = 'cuda' if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else 'cpu'
+        if device == 'cpu':
             print(f"You are using {device}. This is much slower than using "
                   "a CUDA-enabled GPU. If on Colab you can change this by "
                   "clicking Runtime > Change runtime type > GPU.")
@@ -804,9 +814,9 @@ if __name__ == '__main__':
 
     if args.data_type == "beir":
         if args.input_passages is None:
-            args.input_passages = os.path.join(args.data, "corpus.json")
+            args.input_passages = os.path.join(args.data, "corpus.jsonl")
         if args.input_queries is None:
-            args.input_queries = os.path.join(args.data, "queries.json")
+            args.input_queries = os.path.join(args.data, "queries.jsonl")
 
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
     if args.server == "SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
@@ -846,12 +856,6 @@ if __name__ == '__main__':
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
         import torch
-
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        if device != 'cuda':
-            print(f"You are using {device}. This is much slower than using "
-                  "a CUDA-enabled GPU. If on Colab you can change this by "
-                  "clicking Runtime > Change runtime type > GPU.")
 
         batch_size = 64
         model = MyEmbeddingFunction(args.model_name)
@@ -896,7 +900,8 @@ if __name__ == '__main__':
                                    docname2title=docname2title,
                                    remove_stopwords=args.remove_stopwords,
                                    docid_filter=docid_filter,
-                                   uniform_product_name=args.product_name
+                                   uniform_product_name=args.product_name,
+                                   data_type=args.data_type
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
