@@ -1,7 +1,6 @@
 import os, re, json, csv
 from argparse import ArgumentParser
 
-from Cython.Includes.libcpp.vector import data
 from tqdm import tqdm
 import numpy as np
 from typing import List, Union, Tuple, Any
@@ -17,13 +16,14 @@ import urllib3
 
 urllib3.disable_warnings()
 
+
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
 
     parser.add_argument('--db_engine', '-e', default='es-dense',
-                        choices=['es-dense', 'es-elser'], required=False)
+                        choices=['es-dense', 'es-elser', 'es-bm25'], required=False)
     parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
 
     parser.add_argument('--top_k', '-k', type=int, default=10, )
@@ -37,7 +37,7 @@ def setup_argparse():
     parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
                                                                "file is assumed to be args.data/psgs.tsv and "
                                                                "the question file is args.data/questions.tsv.")
-    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh']
+    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh'],
                         help=("The type of the dataset to use. If auto, then the type will be determined"
                               "by the file extension: .tsv->pqa, .json|.jsonl -> sap, csv -> SAP question"))
     parser.add_argument("--ingestion_batch_size", default=40, type=int,
@@ -802,6 +802,12 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    if args.data_type == "beir":
+        if args.input_passages is None:
+            args.input_passages = os.path.join(args.data, "corpus.json")
+        if args.input_queries is None:
+            args.input_queries = os.path.join(args.data, "queries.json")
+
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
     if args.server == "SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
         print(
@@ -858,7 +864,7 @@ if __name__ == '__main__':
         )
     elif args.server == "CONVAI":
         print(f"Using the CONVAI server")
-        ES_SSL_FINGERPRINT=os.getenv("ES_SSL_FINGERPRINT")
+        ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
         ES_API_KEY = os.getenv("ES_API_KEY")
         client = Elasticsearch("https://9.59.196.68:9200",
                                ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
@@ -932,7 +938,8 @@ if __name__ == '__main__':
                     for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
                 ]
                 if args.db_engine == 'es-dense':
-                    for pi, (action, row) in enumerate(zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
+                    for pi, (action, row) in enumerate(
+                            zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
                         action["_source"]['vector'] = passage_vectors[pi + k]
                 try:
                     bulk(client, actions=actions)

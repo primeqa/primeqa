@@ -52,7 +52,7 @@ _deps = {
     "bitarray~=2.3.7": ["install", "gpu"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install", "gpu"],
-    "datasets[apache-beam]~=2.3.2": ["install", "gpu"],
+    "datasets[apache-beam]": ["install", "gpu"],
     "faiss-cpu~=1.7.2": ["install", "gpu"],
     "faiss-gpu~=1.7.2": ["gpu"],
     "gitpython~=3.1.27": ["install", "gpu"],
