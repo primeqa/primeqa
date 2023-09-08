@@ -62,6 +62,8 @@ def process_data(data, valid_annotators=None, answer_field=""):
         for sentence in row['data']['long_answer']:
             if 'paragraph_sentences' in row['results']['judgments'][0]['data'] and sentence in row['results']['judgments'][0]['data']['paragraph_sentences']:
                 selected += 1
+                if sentence.endswith("&"):
+                    sentence = sentence[:-1]
                 selected_sentences.append(sentence)
                 if last_selected != -1 and last_selected != i-1:
                     is_nonconsecutive = True
@@ -93,14 +95,14 @@ def process_data(data, valid_annotators=None, answer_field=""):
 
             output['answer'] = ""
             output['selected_sentences'] = selected_sentences
-            output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']]], "has_minimal_answer": has_minimal_answer, 'non_consecutive': is_nonconsecutive}
+            output['meta'] = {"annotator": [judgement['worker_id']], "has_minimal_answer": has_minimal_answer, 'non_consecutive': is_nonconsecutive, "round": 1}
             
             if answer_type == 'complete' or answer_type == 'partial':
                 # error
                 if answer_field not in judgement['data']:
                     print(judgement)
                     continue
-                output['meta']['score'] = 3
+                # output['meta']['score'] = 3
                 is_answered = True
                 output['answer'] = judgement['data'][answer_field]
                 eli5_format['output'].append(output)
@@ -108,7 +110,7 @@ def process_data(data, valid_annotators=None, answer_field=""):
                 if is_nonconsecutive:
                     non_consecutive += 1
             elif answer_type == "skip" or answer_type == "bad_paragraph":
-                output['meta']['score'] = 3
+                # output['meta']['score'] = 3
                 output['answer'] = "NA"
                 eli5_format['output'].append(output)
                 skip_count += 1
@@ -158,12 +160,12 @@ def process_NA_data(data):
             answer_type = judgement['data']['how_would_you_describe_the_questionanswer']
 
             output['answer'] = ""
-            output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']],row['data']['worker']], "has_minimal_answer": None, 'non_consecutive': None}
+            output['meta'] = {"annotator": [judgement['worker_id'],row['data']['worker']], "has_minimal_answer": None, 'non_consecutive': None, "round": -1}
             
             if answer_type == 'complete' or answer_type == 'partial':
                 answered += 1
             elif answer_type == "skip" or answer_type == "bad_paragraph" or answer_type == "bad_question":
-                output['meta']['score'] = 3
+                # output['meta']['score'] = 3
                 output['answer'] = "NA"
                 eli5_format['output'].append(output)
                 skip_count += 1
@@ -218,23 +220,32 @@ def process_round2_data(eli5_formatted_data, data, answer_field=""):
 
             if 'minimal_text' in judgement['unit_data'] and judgement['unit_data']['minimal_text'] != '':
                 has_minimal_answer = True
+                
             
             if 'update_the_answer_here_if_needed' in judgement['data']:
+                if judgement['data']['paragraph_sentences'][0].endswith("&"):
+                        judgement['data']['paragraph_sentences'] = [x[:-1] for x in judgement['data']['paragraph_sentences']]
+
                 updated_answer = judgement['data']['update_the_answer_here_if_needed']
                 output['answer'] = updated_answer
                 output['selected_sentences'] = judgement['data']['paragraph_sentences']
-                output['meta'] = {"score":0, "annotator": [name[judgement['worker_id']]], "has_minimal_answer": has_minimal_answer}
-                output['meta']['score'] = 3
+                output['meta'] = {"annotator": [judgement['worker_id']], "has_minimal_answer": has_minimal_answer, "round": 2}
+                # output['meta']['score'] = 3
                 eli5_format['output'].append(output)
             elif is_answered:
+                if eli5_format['id'] not in eli5_formatted_data:
+                    eli5_formatted_data[eli5_format['id']] = {}
+                    eli5_formatted_data[eli5_format['id']]['output']
                 # add annotator to other answer
-                if len(eli5_formatted_data[eli5_format['id']]['output']) > 1:
+                if eli5_format['id'] in eli5_formatted_data and len(eli5_formatted_data[eli5_format['id']]['output']) > 1:
                     print("Multiple answers already")
                     print(eli5_format)
                 # keep selected sentences of second annotator
                 if 'paragraph_sentences' in judgement['data']:
+                    if judgement['data']['paragraph_sentences'][0].endswith("&"):
+                        judgement['data']['paragraph_sentences'] = [x[:-1] for x in judgement['data']['paragraph_sentences']]
                     eli5_formatted_data[eli5_format['id']]['output'][0]['selected_sentences'] = judgement['data']['paragraph_sentences']
-                eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['annotator'].append(name[judgement['worker_id']])
+                eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['annotator'].append(judgement['worker_id'])
         if is_answered:
             answered += 1
         eli5_formatted_data[eli5_format['id']] = eli5_format
@@ -248,6 +259,7 @@ def main():
     # "/dccstor/srosent2/generative/appen/round1_jobs/job_2006984.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2004889.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2084633.json"]
     # these are the round 2 files. 
     round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*json.zip")
+    round2_files.extend(glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/output/*json.zip"))
     # these are the NA files.
     if run_na:
         na_files = "/dccstor/srosent2/generative/appen/no_answer_round2/annotated/*"
@@ -277,12 +289,11 @@ def main():
     else:
         answer_field = "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"
         valid_annotators = None
-        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-6.27.23.json"
+        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-8.28.23.json"
 
         for input_file in file_names:
             
-            # 2145426 round 2 not ready
-            if "1999101" in input_file or "1988758" in input_file or "2145426" in input_file:
+            if "1999101" in input_file or "1988758" in input_file:
                 continue
             if "2004889" in input_file:
                 answer_field = "type_your_answer_here_keep_your_answer_as_close_to_the_passage_as_possible_"
@@ -315,7 +326,7 @@ def main():
                     continue
                 writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-6.27.23.json",'wb') as writer:
+        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-8.28.23.json",'wb') as writer:
             for data in two_annotator_data:
                 writer.write((json.dumps(data) + "\n").encode())
 
