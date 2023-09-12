@@ -246,6 +246,7 @@ def process_round2_data(eli5_formatted_data, data, answer_field=""):
                         judgement['data']['paragraph_sentences'] = [x[:-1] for x in judgement['data']['paragraph_sentences']]
                     eli5_formatted_data[eli5_format['id']]['output'][0]['selected_sentences'] = judgement['data']['paragraph_sentences']
                 eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['annotator'].append(judgement['worker_id'])
+                eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['round'] = 2
         if is_answered:
             answered += 1
         eli5_formatted_data[eli5_format['id']] = eli5_format
@@ -258,8 +259,8 @@ def main():
     file_names = glob.glob("/dccstor/srosent2/generative/appen/round1_jobs/*json.zip") #["/dccstor/srosent2/generative/appen/round1_jobs/job_2022794.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2035917.json", 
     # "/dccstor/srosent2/generative/appen/round1_jobs/job_2006984.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2004889.json", "/dccstor/srosent2/generative/appen/round1_jobs/job_2084633.json"]
     # these are the round 2 files. 
-    round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*json.zip")
-    round2_files.extend(glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/output/*json.zip"))
+    #round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/*json.zip")
+    round2_files = glob.glob("/dccstor/srosent2/generative/appen/round2_jobs*/output/*json.zip")
     # these are the NA files.
     if run_na:
         na_files = "/dccstor/srosent2/generative/appen/no_answer_round2/annotated/*"
@@ -289,7 +290,7 @@ def main():
     else:
         answer_field = "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"
         valid_annotators = None
-        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-8.28.23.json"
+        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-9.11.23.json"
 
         for input_file in file_names:
             
@@ -326,7 +327,7 @@ def main():
                     continue
                 writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-8.28.23.json",'wb') as writer:
+        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-9.11.23.json",'wb') as writer:
             for data in two_annotator_data:
                 writer.write((json.dumps(data) + "\n").encode())
 
