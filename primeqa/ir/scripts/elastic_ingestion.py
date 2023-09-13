@@ -154,8 +154,11 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                             begins.append(tl[-1].begin)
                             ends.append(tl[0].end)
                         else:
-                            mid = int(len(tl) / 2)
-                            too_long.extend([tl[:mid], tl[mid:]])
+                            if len(tl) > 1:  # Ignore really long words
+                                mid = int(len(tl) / 2)
+                                too_long.extend([tl[:mid], tl[mid:]])
+                            else:
+                                pass
                 else:
                     tsizes.append(slen)
                     begins.append(sent.begin)
