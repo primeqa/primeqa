@@ -85,14 +85,14 @@ def convert(example):
 
 def main():
 
-    files = glob("/dccstor/srosent2/generative/appen/final/longNQ*unanswerable_tydi.jsonl")
+    files = glob("/dccstor/srosent2/generative/appen/final/original_tydi/*/longNQ*unanswerable_tydi.jsonl")
 
     eli5data = []
 
     for file in files:
         lines = load_json_from_file(file)
 
-        with open(file.replace('tydi','eli5'),'wb') as writer:
+        with open(file.replace('tydi.','eli5.'),'wb') as writer:
             for line in lines:
                 writer.write((json.dumps(convert(json.loads(line))) + "\n").encode())
 
