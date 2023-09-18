@@ -247,6 +247,13 @@ def process_round2_data(eli5_formatted_data, data, answer_field=""):
                     eli5_formatted_data[eli5_format['id']]['output'][0]['selected_sentences'] = judgement['data']['paragraph_sentences']
                 eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['annotator'].append(judgement['worker_id'])
                 eli5_formatted_data[eli5_format['id']]['output'][0]['meta']['round'] = 2
+            # skip
+            else:
+                output['answer'] = None
+                output['selected_sentences'] = None
+                output['meta'] = {"annotator": [judgement['worker_id']], "has_minimal_answer": has_minimal_answer, "round": 2, "skip": True}
+                eli5_format['output'].append(output)
+
         if is_answered:
             answered += 1
         eli5_formatted_data[eli5_format['id']] = eli5_format
@@ -290,7 +297,7 @@ def main():
     else:
         answer_field = "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"
         valid_annotators = None
-        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-9.11.23.json"
+        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-9.15.23.json"
 
         for input_file in file_names:
             
@@ -320,14 +327,15 @@ def main():
         two_annotator_data = []
         with open(output_file,'wb') as writer:
             for data in fid_data:
-                if len(fid_data[data]['output']) > 1 or \
-                    len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1 or \
-                    fid_data[data]['output'][0]["meta"]["non_consecutive"]:
+                if fid_data[data]['output'][0]["meta"]["non_consecutive"]:
+                    # len(fid_data[data]['output']) > 1 or \
+                    # len(fid_data[data]['output'][0]["meta"]["annotator"]) > 1 or \
+                    
                     two_annotator_data.append(fid_data[data])
                     continue
                 writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-9.11.23.json",'wb') as writer:
+        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-9.15.23.json",'wb') as writer:
             for data in two_annotator_data:
                 writer.write((json.dumps(data) + "\n").encode())
 
