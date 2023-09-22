@@ -267,11 +267,13 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         'url': doc_url,
         'app_name': "",
     }
+
     if productId not in product_counts:
         product_counts[productId] = 1
     else:
         product_counts[productId] += 1
-
+    if productId.startswith("SAP_SUCCESSFACTORS"):
+        productId = "SAP_SUCCESSFACTORS"
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
@@ -418,7 +420,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                 passages.extend(
                                     process_text(id=f"{doc[docidname]}-{passage['passage_id']}",
                                                  title=remove_stopwords(passage[titlename], remv_stopwords),
-                                                 text=remove_stopwords(passage[textname], remv_stopwords),
+                                                 text=remove_stopwords(passage[txtname], remv_stopwords),
                                                  max_doc_size=max_doc_size,
                                                  stride=stride,
                                                  remove_url=remove_url,
