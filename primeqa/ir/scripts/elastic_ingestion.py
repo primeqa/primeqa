@@ -184,10 +184,15 @@ def compute_intervals(tsizes: List[int], max_length: int, stride: int) -> List[L
     sum = tsizes[0]
     prev = 0
     intervals = []
+    num_iters = 0
     while i < len(tsizes):
         if sum + tsizes[i] > max_length:
             if len(intervals) > 0 and intervals[-1][0] == prev:
                 raise RuntimeError("You have a problem with the splitting - it's cycling!: {intervals[-3:]}")
+            if num_iters > 10000:
+                print(f"Too many tried - probably something is wrong with the document.")
+                return intervals
+            num_iters += 1
             intervals.append([prev, i - 1])
             if i > 1 and tsizes[i - 1] + tsizes[i] <= max_length:
                 j = i - 1
@@ -333,6 +338,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
     for input_file in files:
         docs_read = 0
+        print(f"Reading {input_file}")
         with open(input_file) as in_file:
             if input_file.endswith(".tsv"):
                 # We'll assume this is the PrimeQA standard format
@@ -933,7 +939,7 @@ if __name__ == '__main__':
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId',
+            keys_to_index = ['title', 'id', 'url', 'productId', 'versionId'
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
