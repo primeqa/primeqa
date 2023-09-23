@@ -134,7 +134,7 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     text = text[ind + len(title):]
 
             if not nlp:
-                nlp = pyizumo.load("en")
+                nlp = pyizumo.load("en", parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
