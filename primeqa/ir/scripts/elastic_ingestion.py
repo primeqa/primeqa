@@ -9,6 +9,7 @@ from elasticsearch.helpers import bulk
 import logging
 import sys
 import pyizumo
+import unicodedata
 
 nlp = None
 product_counts = {}
@@ -278,7 +279,9 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
     if remove_url:
-        text = re.sub(url, 'URL', text)
+        # The normalization below deals with some issue in the re library - it would get stuck
+        # if the URL has some strange chars, like `\xa0`.
+        text = re.sub(url, 'URL', unicodedata.normalize("NFKD", text))
     if tokenizer is not None:
         merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
         if merged_length <= max_doc_size:
