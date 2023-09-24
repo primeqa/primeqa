@@ -260,6 +260,8 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         productId = ""
         fields = ["", "", "", "", "", ""]
         doc_url = ""
+    if productId.startswith("SAP_SUCCESSFACTORS"):
+        productId = "SAP_SUCCESSFACTORS"
     itm = {
         'productId': productId,
         'deliverableLoio': fields[-2],
@@ -273,8 +275,6 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         product_counts[productId] = 1
     else:
         product_counts[productId] += 1
-    if productId.startswith("SAP_SUCCESSFACTORS"):
-        productId = "SAP_SUCCESSFACTORS"
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
