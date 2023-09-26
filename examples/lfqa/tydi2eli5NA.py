@@ -85,7 +85,7 @@ def convert(example):
 
 def main():
 
-    files = glob("/dccstor/srosent2/generative/appen/final/original_tydi/*/longNQ*unanswerable_tydi.jsonl")
+    files = glob("/dccstor/srosent2/generative/appen/final/longNQ_test_unanswerable_tydi.jsonl")
 
     eli5data = []
 
