@@ -27,6 +27,18 @@ def get_colbert_from_pretrained(name, colbert_config):
 
     # currently, we support bert, xlmr and roberta model types ONLY.
 
+    model_type_mapping = {
+        'bert': 'bert',
+        'bert-base': 'bert',
+        'bert-large': 'bert',
+        'roberta': 'roberta',
+        'roberta-base': 'roberta',
+        'roberta-large': 'roberta',
+        'xlm-roberta': 'xlm-roberta',
+        'xlm-roberta-base': 'xlm-roberta',
+        'xlm-roberta-large': 'xlm-roberta',
+    }
+
     if name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
         config = dnn_checkpoint.get('config', None)
@@ -42,10 +54,19 @@ def get_colbert_from_pretrained(name, colbert_config):
         checkpoint_model_type = checkpoint_config.model_type
         config = None
 
+    assert checkpoint_model_type in model_type_mapping, f"Unknown model type {checkpoint_model_type}"
+    mapped_checkpoint_model_type = model_type_mapping[checkpoint_model_type]
+
+    if mapped_checkpoint_model_type != colbert_config.model_type:
+        print_message(f"Using model type: {mapped_checkpoint_model_type} instead of {colbert_config.model_type}")
+        colbert_config.model_type = mapped_checkpoint_model_type
+
+    '''
     assert checkpoint_model_type == colbert_config.model_type or \
             checkpoint_model_type.startswith(colbert_config.model_type), \
             f"Passed Model type {colbert_config.model_type} does \
             not match checkpoint Model type {checkpoint_model_type}"
+    '''
 
     model_type = colbert_config.model_type
     print_message(f"factory model type: {model_type}")

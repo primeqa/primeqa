@@ -36,7 +36,7 @@ class Arguments():
         # for handling models in local repository
         self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
 
-        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert', 'xlm-roberta', 'roberta', 'custom'], required=False)
+        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert', 'xlm-roberta', 'roberta'], required=False)
 
     def add_model_training_parameters(self):
         # NOTE: Providing a checkpoint is one thing, --resume is another, --resume_optimizer is yet another.

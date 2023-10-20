@@ -46,7 +46,7 @@ class ColBERTReranker(BaseReranker):
         },
     )
     model_type: str = field(
-        default="xlm-roberta",
+        default="roberta",
         metadata={
             "name": "Model Type",
             "api_support": True,
