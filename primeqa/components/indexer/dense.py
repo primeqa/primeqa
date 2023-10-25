@@ -43,14 +43,6 @@ class ColBERTIndexer(BaseIndexer):
             "api_support": True,
         },
     )
-    model_type: str = field(
-        default="roberta",
-        metadata={
-            "name": "Model Type",
-            "description": "Model Family name",
-            "api_support": True,
-        },
-    )
     similarity: str = field(
         default="cosine",
         metadata={
@@ -116,7 +108,6 @@ class ColBERTIndexer(BaseIndexer):
             index_path=f"{self.index_root}/{self.index_name}",
             similarity=self.similarity,
             dim=self.dim,
-            model_type=self.model_type,
             query_maxlen=self.query_maxlen,
             doc_maxlen=self.doc_maxlen,
             mask_punctuation=self.mask_punctuation,
