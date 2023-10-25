@@ -28,29 +28,12 @@ class ColBERTReranker(BaseReranker):
 
     """
 
-    '''checkpoint: str = field(
-        default=None,
-        metadata={
-            "name": "Checkpoint",
-            "description": "Path to checkpoint",
-        },
-    )
-    '''
-
     model: str = field(
         default="drdecr",
         metadata={
             "name": "Model",
             "api_support": True,
             "description": "Path to model",
-        },
-    )
-    model_type: str = field(
-        default="roberta",
-        metadata={
-            "name": "Model Type",
-            "api_support": True,
-            "description": "Type of encoder architecture",
         },
     )
 
@@ -77,7 +60,7 @@ class ColBERTReranker(BaseReranker):
             index_root=None,
             index_name=None,
             index_path=None,
-            model_type=self.model_type,
+            #model_type=self.model_type,
             doc_maxlen=self.doc_maxlen,
             query_maxlen = self.query_maxlen
         )

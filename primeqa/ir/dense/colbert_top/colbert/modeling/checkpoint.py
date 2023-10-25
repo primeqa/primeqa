@@ -23,13 +23,6 @@ class Checkpoint(ColBERT):
         super().__init__(name, colbert_config)
         assert self.training is False
 
-        # get model type from checkpoint
-        if name.endswith('.dnn') or name.endswith('.model'):
-            dnn_checkpoint = torch_load_dnn(colbert_config.checkpoint)
-            model_type = dnn_checkpoint['model_type']
-        else:
-            model_type=name
-
         self.query_tokenizer = get_query_tokenizer(name, colbert_config)
         self.doc_tokenizer = get_doc_tokenizer(name, colbert_config)
 

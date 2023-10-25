@@ -19,14 +19,7 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenizati
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 
 
-# Based on model type to associate to a proper model and tokennizers(query, doc)
-#----------------------------------------------------------------
-def get_colbert_from_pretrained(name, colbert_config):
-    # in V2, these come from
-    # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
-
-    # currently, we support bert, xlmr and roberta model types ONLY.
-
+def map_model_type(model_subtype):
     model_type_mapping = {
         'bert': 'bert',
         'bert-base': 'bert',
@@ -38,6 +31,19 @@ def get_colbert_from_pretrained(name, colbert_config):
         'xlm-roberta-base': 'xlm-roberta',
         'xlm-roberta-large': 'xlm-roberta',
     }
+
+    assert model_subtype in model_type_mapping, f"Unknown model type {model_subtype}"
+
+    return model_type_mapping[model_subtype]
+
+
+# Based on model type to associate to a proper model and tokenizers(query, doc)
+#----------------------------------------------------------------
+def get_colbert_from_pretrained(name, colbert_config):
+    # in V2, these come from
+    # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
+
+    # currently, we support bert, xlmr and roberta model types ONLY.
 
     if name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
@@ -54,19 +60,11 @@ def get_colbert_from_pretrained(name, colbert_config):
         checkpoint_model_type = checkpoint_config.model_type
         config = None
 
-    assert checkpoint_model_type in model_type_mapping, f"Unknown model type {checkpoint_model_type}"
-    mapped_checkpoint_model_type = model_type_mapping[checkpoint_model_type]
+    mapped_checkpoint_model_type = map_model_type(checkpoint_model_type)
 
     if mapped_checkpoint_model_type != colbert_config.model_type:
         print_message(f"Using model type: {mapped_checkpoint_model_type} instead of {colbert_config.model_type}")
         colbert_config.model_type = mapped_checkpoint_model_type
-
-    '''
-    assert checkpoint_model_type == colbert_config.model_type or \
-            checkpoint_model_type.startswith(colbert_config.model_type), \
-            f"Passed Model type {colbert_config.model_type} does \
-            not match checkpoint Model type {checkpoint_model_type}"
-    '''
 
     model_type = colbert_config.model_type
     print_message(f"factory model type: {model_type}")
@@ -96,7 +94,7 @@ def get_colbert_from_pretrained(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_query_tokenizer(name, colbert_config):
-    model_type = colbert_config.model_type
+    model_type = map_model_type(colbert_config.model_type)
     maxlen = colbert_config.query_maxlen
     attend_to_mask_tokens = colbert_config.attend_to_mask_tokens
 
@@ -113,7 +111,7 @@ def get_query_tokenizer(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(name, colbert_config, is_teacher=False):
-    model_type = colbert_config.model_type
+    model_type = map_model_type(colbert_config.model_type)
     maxlen = colbert_config.teacher_doc_maxlen if is_teacher else colbert_config.doc_maxlen
 
     print_message(f"factory model type: {model_type}")
