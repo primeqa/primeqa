@@ -29,8 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .[all]
           pip uninstall torch-scatter
-          # pip install torch-scatter==2.0.9 -f https://data.pyg.org/whl/torch-1.11.0+cpu.html
-          pip install torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+          pip install torch-scatter==2.0.9 -f https://data.pyg.org/whl/torch-1.11.0+cpu.html
           python -m nltk.downloader punkt
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
