@@ -21,12 +21,14 @@ from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 
 def map_model_type(model_subtype):
     model_type_mapping = {
+        'tinybert': 'bert',
         'bert': 'bert',
         'bert-base': 'bert',
         'bert-large': 'bert',
         'roberta': 'roberta',
         'roberta-base': 'roberta',
         'roberta-large': 'roberta',
+        'watbert': 'roberta',
         'xlm-roberta': 'xlm-roberta',
         'xlm-roberta-base': 'xlm-roberta',
         'xlm-roberta-large': 'xlm-roberta',
