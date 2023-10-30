@@ -19,7 +19,7 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenizati
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 
 
-def map_model_type(model_subtype):
+def map_model_type(model_subtype, strict=False):
     model_type_mapping = {
         'tinybert': 'bert',
         'bert': 'bert',
@@ -34,9 +34,10 @@ def map_model_type(model_subtype):
         'xlm-roberta-large': 'xlm-roberta',
     }
 
-    assert model_subtype in model_type_mapping, f"Unknown model type {model_subtype}"
+    if strict:
+        assert model_subtype in model_type_mapping, f"Unknown model type {model_subtype}"
 
-    return model_type_mapping[model_subtype]
+    return model_type_mapping[model_subtype] if model_subtype in model_type_mapping else None
 
 
 # Based on model type to associate to a proper model and tokenizers(query, doc)
@@ -62,7 +63,7 @@ def get_colbert_from_pretrained(name, colbert_config):
         checkpoint_model_type = checkpoint_config.model_type
         config = None
 
-    mapped_checkpoint_model_type = map_model_type(checkpoint_model_type)
+    mapped_checkpoint_model_type = map_model_type(checkpoint_model_type, strict=True)
 
     if mapped_checkpoint_model_type != colbert_config.model_type:
         print_message(f"Using model type: {mapped_checkpoint_model_type} instead of {colbert_config.model_type}")
@@ -96,7 +97,7 @@ def get_colbert_from_pretrained(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_query_tokenizer(name, colbert_config):
-    model_type = map_model_type(colbert_config.model_type)
+    model_type = map_model_type(name) if map_model_type(name) is not None else map_model_type(colbert_config.model_type)
     maxlen = colbert_config.query_maxlen
     attend_to_mask_tokens = colbert_config.attend_to_mask_tokens
 
@@ -113,7 +114,7 @@ def get_query_tokenizer(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(name, colbert_config, is_teacher=False):
-    model_type = map_model_type(colbert_config.model_type)
+    model_type = map_model_type(name) if map_model_type(name) is not None else map_model_type(colbert_config.model_type)
     maxlen = colbert_config.teacher_doc_maxlen if is_teacher else colbert_config.doc_maxlen
 
     print_message(f"factory model type: {model_type}")
