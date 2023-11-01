@@ -33,7 +33,7 @@ def get_model_type(name, return_config=False):
         else:
             state_dict = dnn_checkpoint['model_state_dict']
             oneparam = list(state_dict.keys())[0]
-            model_type = oneparam.split(".")[0]
+            model_type = oneparam.split(".")[1]
     else:
         checkpoint_config = AutoConfig.from_pretrained(name)
         model_type = checkpoint_config.model_type
