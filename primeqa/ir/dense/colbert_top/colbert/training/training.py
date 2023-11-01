@@ -89,6 +89,14 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
 
     print_message(f"Using config.bsize = {config.bsize} (per process) and config.accumsteps = {config.accumsteps}")
 
+    if not config.reranker:
+        colbert = ColBERT(name=config.checkpoint, colbert_config=config)
+
+        if config.teacher_checkpoint is not None:
+            teacher_colbert = ColBERT(name=config.teacher_checkpoint, colbert_config=config)
+    else:
+        colbert = ElectraReranker.from_pretrained(config.checkpoint)
+
     # the reader , the proper tokenizer is based on model type
     if collection is not None:
         if config.reranker:
@@ -101,15 +109,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
         if config.teacher_checkpoint is not None:
             teacher_reader = EagerBatcher(config, config.teacher_triples, (0 if config.rank == -1 else config.rank), config.nranks)
-
-    if not config.reranker:
-        colbert = ColBERT(name=config.checkpoint, colbert_config=config)
-
-        if config.teacher_checkpoint is not None:
-            teacher_colbert = ColBERT(name=config.teacher_checkpoint, colbert_config=config)
-
-    else:
-        colbert = ElectraReranker.from_pretrained(config.checkpoint)
 
     colbert = colbert.to(DEVICE)
     colbert.train()

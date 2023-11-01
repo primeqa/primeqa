@@ -19,35 +19,7 @@ from primeqa.ir.dense.colbert_top.colbert.modeling.tokenization.query_tokenizati
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 
 
-def map_model_type(model_subtype, strict=False):
-    model_type_mapping = {
-        'tinybert': 'bert',
-        'bert': 'bert',
-        'bert-base': 'bert',
-        'bert-large': 'bert',
-        'roberta': 'roberta',
-        'roberta-base': 'roberta',
-        'roberta-large': 'roberta',
-        'watbert': 'roberta',
-        'xlm-roberta': 'xlm-roberta',
-        'xlm-roberta-base': 'xlm-roberta',
-        'xlm-roberta-large': 'xlm-roberta',
-    }
-
-    if strict:
-        assert model_subtype in model_type_mapping, f"Unknown model type {model_subtype}"
-
-    return model_type_mapping[model_subtype] if model_subtype in model_type_mapping else None
-
-
-# Based on model type to associate to a proper model and tokenizers(query, doc)
-#----------------------------------------------------------------
-def get_colbert_from_pretrained(name, colbert_config):
-    # in V2, these come from
-    # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
-
-    # currently, we support bert, xlmr and roberta model types ONLY.
-
+def get_model_type(name, return_config=False):
     if name.endswith('.dnn') or name.endswith('.model'):
         dnn_checkpoint = torch_load_dnn(name)
         config = dnn_checkpoint.get('config', None)
@@ -57,19 +29,30 @@ def get_colbert_from_pretrained(name, colbert_config):
             config = PretrainedConfig.from_dict(config)
             if not hasattr(config, 'hidden_size'):
                 config.hidden_size = config.d_model
-        checkpoint_model_type = dnn_checkpoint['model_type']
+            model_type = config.model_type
+        else:
+            state_dict = dnn_checkpoint['model_state_dict']
+            oneparam = list(state_dict.keys())[0]
+            model_type = oneparam.split(".")[0]
     else:
         checkpoint_config = AutoConfig.from_pretrained(name)
-        checkpoint_model_type = checkpoint_config.model_type
+        model_type = checkpoint_config.model_type
         config = None
+    if return_config:
+        return model_type, config
+    else:
+        return model_type
 
-    mapped_checkpoint_model_type = map_model_type(checkpoint_model_type, strict=True)
+# Based on model type to associate to a proper model and tokenizers(query, doc)
+#----------------------------------------------------------------
+def get_colbert_from_pretrained(name, colbert_config):
+    # in V2, these come from
+    # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
 
-    if mapped_checkpoint_model_type != colbert_config.model_type:
-        print_message(f"Using model type: {mapped_checkpoint_model_type} instead of {colbert_config.model_type}")
-        colbert_config.model_type = mapped_checkpoint_model_type
+    # currently, we support bert, xlmr and roberta model types ONLY.
 
-    model_type = colbert_config.model_type
+    colbert_config.model_type, config = get_model_type(name, return_config=True)
+
     print_message(f"factory model type: {model_type}")
 
     if model_type == 'bert':
@@ -97,7 +80,7 @@ def get_colbert_from_pretrained(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_query_tokenizer(name, colbert_config):
-    model_type = map_model_type(name) if map_model_type(name) is not None else map_model_type(colbert_config.model_type)
+    model_type = get_model_type(name)
     maxlen = colbert_config.query_maxlen
     attend_to_mask_tokens = colbert_config.attend_to_mask_tokens
 
@@ -114,7 +97,7 @@ def get_query_tokenizer(name, colbert_config):
 
 #----------------------------------------------------------------
 def get_doc_tokenizer(name, colbert_config, is_teacher=False):
-    model_type = map_model_type(name) if map_model_type(name) is not None else map_model_type(colbert_config.model_type)
+    model_type = get_model_type(name)
     maxlen = colbert_config.teacher_doc_maxlen if is_teacher else colbert_config.doc_maxlen
 
     print_message(f"factory model type: {model_type}")
