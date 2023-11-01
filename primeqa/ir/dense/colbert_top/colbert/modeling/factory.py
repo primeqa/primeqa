@@ -48,7 +48,6 @@ def get_model_type(name, return_config=False):
 def get_colbert_from_pretrained(name, colbert_config):
     # in V2, these come from
     # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
-colbert_config.
     # currently, we support bert, xlmr and roberta model types ONLY.
 
     colbert_config.model_type, config = get_model_type(name, return_config=True)
