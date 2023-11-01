@@ -26,10 +26,10 @@ class EagerBatcher():
         # self.query_tokenizer = QueryTokenizer(config)
         # self.doc_tokenizer = DocTokenizer(config)
         self.query_tokenizer = get_query_tokenizer(\
-                    config.checkpoint if (not is_teacher or config.teacher_model_type is None)\
+                    config.checkpoint if not is_teacher \
                     else config.teacher_checkpoint, config)
         self.doc_tokenizer = get_doc_tokenizer(\
-                    config.checkpoint if (not is_teacher or config.teacher_model_type is None) \
+                    config.checkpoint if not is_teacher \
                     else config.teacher_checkpoint, config, is_teacher=is_teacher)
 
         self.tensorize_triples = partial(tensorize_triples, self.query_tokenizer, self.doc_tokenizer)

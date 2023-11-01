@@ -215,7 +215,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             this_batch_loss = 0.0
 
             for queries_passages, teacher_queries_passages in zip(BatchSteps, teacher_BatchSteps):
-                assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
+                #assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
+                assert(torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
 
                 with amp.context():
                     if config.distill_query_passage_separately :
@@ -297,7 +298,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 try:
                     exit_queue.get_nowait()
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                     sys.exit(0)
                 except Empty:
@@ -377,7 +378,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 try:
                     exit_queue.get_nowait()
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                     sys.exit(0)
                 except Empty:

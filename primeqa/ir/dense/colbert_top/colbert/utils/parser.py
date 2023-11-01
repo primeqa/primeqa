@@ -36,8 +36,6 @@ class Arguments():
         # for handling models in local repository
         self.add_argument('--local_models_repository', dest='local_models_repository', default=None, required=False)
 
-        self.add_argument('--model_type', dest='model_type', default='roberta', choices=['bert', 'xlm-roberta', 'roberta'], required=False)
-
     def add_model_training_parameters(self):
         # NOTE: Providing a checkpoint is one thing, --resume is another, --resume_optimizer is yet another.
         self.add_argument('--resume', dest='resume', default=False, action='store_true')
@@ -69,7 +67,6 @@ class Arguments():
         self.add_argument('--teacher_checkpoint', dest='teacher_checkpoint', default=None, required=False)
         self.add_argument('--student_teacher_temperature', dest='student_teacher_temperature', default=1.0, type=float)
         self.add_argument('--student_teacher_top_loss_weight', dest='student_teacher_top_loss_weight', default=0.5, type=float)
-        self.add_argument('--teacher_model_type', dest='teacher_model_type', choices=['bert', 'roberta','xlm-roberta'], default='xlm-roberta', required=False )
         self.add_argument('--teacher_doc_maxlen', dest='teacher_doc_maxlen', default=180, type=int)
         self.add_argument('--distill_query_passage_separately', dest='distill_query_passage_separately', default=False, required=False, type=bool)
         self.add_argument('--query_only', dest='query_only', default=False, required=False, type=bool)

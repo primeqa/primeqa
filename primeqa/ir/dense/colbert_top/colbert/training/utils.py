@@ -72,12 +72,12 @@ def manage_checkpoints_with_path_save(args, colbert, optimizer, amp, batch_idx, 
     # saving the last checkpoint, to be rewritten every args.save_steps
     if batch_idx % SAVED_STEPS_PROGRESS == 0:
         saved_name = prefix + f".progress.model"
-        save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
+        save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
 
     if args.save_epochs == -1:
         if batch_idx % args.save_steps == 0:
             saved_name = prefix + f".batch_{batch_idx}.model"
-            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
+            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
             # save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type, arguments)
 
             path_save = os.path.join(path, f"colbert-batch_{batch_idx}")
@@ -90,21 +90,21 @@ def manage_checkpoints_with_path_save(args, colbert, optimizer, amp, batch_idx, 
                 saved_name = prefix + f".epoch_{epoch_idx}_batch_{batch_idx}.model"
                 path_save = os.path.join(path, f"colbert-epoch_{epoch_idx}_batch_{batch_idx}")
 
-            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
+            save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
             # save_checkpoint(saved_name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type, arguments)
 
 
     if batch_idx in SAVED_CHECKPOINTS or batch_idx == args.maxsteps:
         name = prefix + f".batch_{batch_idx}.model"
         if not name == saved_name:
-            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
+            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
             # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type, arguments)
             path_save = os.path.join(path, f"colbert-batch_{batch_idx}")
 
     if (batch_idx * args.bsize * args.nranks) % (args.epochs * num_per_epoch) < args.bsize * args.nranks:
         name = prefix + f".epoch_{args.epochs - 1}.model"
         if not name == saved_name:
-            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type)
+            save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
             # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, args.model_type, arguments)
             path_save = os.path.join(path, f"colbert-epoch_{epoch_idx}_batch_{batch_idx}")
     try:
