@@ -48,33 +48,33 @@ def get_model_type(name, return_config=False):
 def get_colbert_from_pretrained(name, colbert_config):
     # in V2, these come from
     # training::colbert = ColBERT(name=config.checkpoint, colbert_config=config)
-
+colbert_config.
     # currently, we support bert, xlmr and roberta model types ONLY.
 
     colbert_config.model_type, config = get_model_type(name, return_config=True)
 
-    print_message(f"factory model type: {model_type}")
+    print_message(f"factory model type: {colbert_config.model_type}")
 
-    if model_type == 'bert':
+    if colbert_config.model_type == 'bert':
         if config:
             colbert = HF_ColBERT(config, colbert_config)
             colbert.load_state_dict(name)
         else:
             colbert = HF_ColBERT.from_pretrained(name, colbert_config)
-    elif model_type == 'xlm-roberta':
+    elif colbert_config.model_type == 'xlm-roberta':
         if config:
             colbert = HF_ColBERT_XLMR(config, colbert_config)
             colbert.load_state_dict(name)
         else:
             colbert = HF_ColBERT_XLMR.from_pretrained(name, colbert_config)
-    elif model_type == 'roberta':
+    elif colbert_config.model_type == 'roberta':
         if config:
             colbert = HF_ColBERT_Roberta(config, colbert_config)
             colbert.load_state_dict(name)
         else:
             colbert = HF_ColBERT_Roberta.from_pretrained(name, colbert_config)
     else:
-        raise NotImplementedError(f"Model type: {model_type} is not supported.")
+        raise NotImplementedError(f"Model type: {colbert_config.model_type} is not supported.")
 
     return colbert
 
