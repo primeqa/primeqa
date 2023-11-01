@@ -53,14 +53,10 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
             state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
 
             obj = super().from_pretrained(colbert_config.model_type, state_dict=state_dict, colbert_config=colbert_config)
-            #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
-            obj.base = base
 
             return obj
 
         obj = super().from_pretrained(name_or_path, colbert_config=colbert_config)  # <<<< HERE
-
-        obj.base = name_or_path
 
         return obj
 
@@ -74,7 +70,6 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
 
         state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
 
-        self.base = 'xlm-roberta-base'
         super().load_state_dict(state_dict)
 
     @staticmethod
@@ -84,12 +79,10 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
             base = dnn.get('arguments', {}).get('model',  'xlm-roberta-base')  # TODO: how about other lm-roberta-XXX?
 
             obj = AutoTokenizer.from_pretrained(base)
-            obj.base = base
 
             return obj
 
         obj = AutoTokenizer.from_pretrained(name_or_path)
-        obj.base = name_or_path
 
         return obj
 

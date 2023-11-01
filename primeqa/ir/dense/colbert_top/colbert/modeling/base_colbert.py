@@ -32,7 +32,7 @@ class BaseColBERT(torch.nn.Module):
         self.model = get_colbert_from_pretrained(name, colbert_config=self.colbert_config)
         self.config = self.model.config
 
-        self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)
+        self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model._name_or_path)
         # self.raw_tokenizer = None
         # TEMP fix
         # self.raw_tokenizer = get_doc_tokenizer(colbert_config.model_type, colbert_config.doc_maxlen)

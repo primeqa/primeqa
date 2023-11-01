@@ -41,13 +41,10 @@ class HF_ColBERT(BertPreTrainedModel):
 
             state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
             obj = super().from_pretrained(colbert_config.model_type, state_dict=state_dict, colbert_config=colbert_config)
-            #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
-            obj.base = base
 
             return obj
 
         obj = super().from_pretrained(name_or_path, colbert_config=colbert_config)
-        obj.base = name_or_path
 
         return obj
 
@@ -61,7 +58,6 @@ class HF_ColBERT(BertPreTrainedModel):
 
         state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
 
-        self.base = "bert-base-uncased"
         super().load_state_dict(state_dict)
 
     @staticmethod
@@ -71,12 +67,10 @@ class HF_ColBERT(BertPreTrainedModel):
             base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
 
             obj = AutoTokenizer.from_pretrained(base)
-            obj.base = base
 
             return obj
 
         obj = AutoTokenizer.from_pretrained(name_or_path)
-        obj.base = name_or_path
 
         return obj
 
