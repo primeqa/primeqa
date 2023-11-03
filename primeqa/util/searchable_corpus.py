@@ -21,6 +21,7 @@ from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.ir.sparse.retriever import PyseriniRetriever
 from primeqa.ir.sparse.indexer import PyseriniIndexer
 import json
+import numpy as np
 
 from transformers import (
     HfArgumentParser,
@@ -84,6 +85,9 @@ class SearchableCorpus:
                     os.path.join(self.model_name, "ctx_encoder"))
             else:
                 self._model_type = SearchableCorpus._ColBERT
+
+        if model_name.startswith("es_"):
+            self._init_ES_settings()
 
         self.tmp_dir = None
         self.indexer = None
@@ -288,6 +292,164 @@ class SearchableCorpus:
     def __del__(self):
         self.tmp_dir.cleanup()
 
+    def _init_ES_settings(self):
+        self.standard_mappings = {
+            "properties": {
+                "ml.tokens": {
+                    "type": "rank_features"
+                },
+                "title": {"type": "text", "analyzer": "english"},
+                "text": {"type": "text", "analyzer": "english"},
+                "url": {"type": "text", "analyzer": "english"},
+            }
+        }
+        self.settings = {
+            "number_of_replicas": 0,
+            "number_of_shards": 1,
+            "refresh_interval": "1m",
+            "analysis": {
+                "filter": {
+                    "possessive_english_stemmer": {
+                        "type": "stemmer",
+                        "language": "possessive_english"
+                    },
+                    "light_english_stemmer": {
+                        "type": "stemmer",
+                        "language": "light_english"
+                    },
+                    "english_stop": {
+                        "ignore_case": "true",
+                        "type": "stop",
+                        "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                      "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                      "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                      "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                      "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                      "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                      "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                      "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
+                    }
+                },
+                "analyzer": {
+                    "text_en_no_stop": {
+                        "filter": [
+                            "lowercase",
+                            "possessive_english_stemmer",
+                            "light_english_stemmer"
+                        ],
+                        "tokenizer": "standard"
+                    },
+                    "text_en_stop": {
+                        "filter": [
+                            "lowercase",
+                            "possessive_english_stemmer",
+                            "english_stop",
+                            "light_english_stemmer"
+                        ],
+                        "tokenizer": "standard"
+                    },
+                    "whitespace_lowercase": {
+                        "tokenizer": "whitespace",
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                },
+                "normalizer": {
+                    "keyword_lowercase": {
+                        "filter": [
+                            "lowercase"
+                        ]
+                    }
+                }
+            }
+        }
+        self.coga_mappings = {
+            "_source": {
+                "enabled": "true"
+            },
+            "dynamic": "false",
+            "properties": {
+                "url": {
+                    "type": "text"
+                },
+                "title": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "fileTitle": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "title_paraphrases": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "productId": {
+                    "type": "keyword"
+                },
+                "deliverableLoio": {
+                    "type": "keyword",
+                },
+                "filePath": {
+                    "type": "keyword",
+                },
+                "text": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "plainTextContent": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "title_and_text": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "app_name": {
+                    "type": "text",
+                    "analyzer": "text_en_no_stop",
+                    "search_analyzer": "text_en_stop",
+                    "term_vector": "with_positions_offsets",
+                    "index_options": "offsets",
+                    "store": "true"
+                },
+                "collection": {
+                    "type": "text",
+                    "fields": {
+                        "exact": {
+                            "normalizer": "keyword_lowercase",
+                            "type": "keyword",
+                            "doc_values": "false"
+                        }
+                    }
+                }}
+        }
+
     def search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
         """Retrieves the most relevant documents in the collection for a given set of queries.
         Args:
@@ -305,7 +467,7 @@ class SearchableCorpus:
                       SearchableCorpus._BM25: self._bm25_search,
                       SearchableCorpus._ES_BM25: self._es_bm25_search,
                       SearchableCorpus._ES_DENSE: self._es_dense_search,
-                      SearchableCorpus._ES_ELSER: self.es_elser_search}
+                      SearchableCorpus._ES_ELSER: self._es_elser_search}
         if self._model_type not in call_funcs:
             print("Unknown indexer type.")
             raise RuntimeError("Unknown indexer type.")
@@ -323,6 +485,17 @@ class SearchableCorpus:
     # else:
 
     def _dpr_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        """Retrieves the most relevant documents in the collection for a given set of queries.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
         passage_ids = []
         scores = []
         texts = []
@@ -343,6 +516,17 @@ class SearchableCorpus:
         return passage_ids, scores
 
     def _colbert_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        """Retrieves the most relevant documents in the collection for a given set of queries using ColBERT.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
         passage_ids = []
         scores = []
         with Run().context(
@@ -360,6 +544,18 @@ class SearchableCorpus:
         return passage_ids, scores, []
 
     def _bm25_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        """Retrieves the most relevant documents in the collection for a given set of queries
+           using pyserini BM25 search.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
         passage_ids = []
         scores = []
         texts = []
@@ -371,6 +567,18 @@ class SearchableCorpus:
         return passage_ids, scores, texts
 
     def _es_bm25_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
+        """Retrieves the most relevant documents in the collection for a given set of queries using ElasticSearch
+           BM25.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
         passage_ids = []
         scores = []
         texts = []
@@ -390,17 +598,93 @@ class SearchableCorpus:
                 "query": es_query
             }
             res = self.client.search(index=self.index_name, query=query)
-            hits = res['hits']['hits']
-            passage_ids.extend(h['_passageId'] for h in hits)
-            scores.extend([h['score'] for h in hits])
-            texts.extend([h['_source']['text'] for h in hits])
+            self._es_extract_results(res, passage_ids, scores, texts)
         return passage_ids, scores, texts
 
+    def _es_extract_results(self, res, passage_ids, scores, texts):
+        """Extracts the passage id, score and text out of the ElasticSearch response and adds the result to the
+        previous lists.
+        Args:
+            * res: ElasticSearch response
+            * passage_ids: List[str] - the list of passage ids so far
+            * scores: List[float] - the list of scores so far.
+            * texts: List[float]: the list of texts so far.
+        Returns:
+            nothing """
+        for rank, r in enumerate(res.body['hits']['hits']):
+            passage_ids.append(r['_id'])
+            scores.append(r['_score'])
+            texts.append(r['_source']['text'])
+
     def _es_dense_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
-        pass
+        """Retrieves the most relevant documents in the collection for a given set of queries using Elasticsearch
+           dense search.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
+        passage_ids = []
+        scores = []
+        texts = []
+        for query_number in tqdm(range(len(input_queries))):
+            query_vector = self._encode(self.model, input_queries[query_number]['text'],
+                                   normalize_embs=self._get_args(kwargs, 'normalize_embs', False))
+            qid = input_queries[query_number]['id']
+            query = {
+                "field": "vector",
+                "query_vector": query_vector,
+                "k": self.top_k,
+                "num_candidates": 1000,
+            }
+            res = self.client.search(
+                index=self.index_name,
+                knn=query,
+                size=self.top_k,
+                source_excludes=['vector']
+            )
+            self._es_extract_results(res, passage_ids, scores, texts)
+        return passage_ids, scores, texts
+
 
     def _es_elser_search(self, input_queries: List[AnyStr], batch_size=1, **kwargs):
-        pass
+        """Retrieves the most relevant documents in the collection for a given set of queries using ES ELSER search.
+        Args:
+            * input_queries: List[AnyStr]
+               - the list of input queries (strings)
+            * batch_size: int, default 1
+               - defines the number of documents to return for each question. Default is 1.
+            * kwargs might contain additional arguments going foward.
+        Returns:
+            Tuple[List[List[AnyStr]], List[List[Float]]]
+            - is a list of document IDs per query and an associated list of scores per query, for all the queries.
+            """
+        passage_ids = []
+        scores = []
+        texts = []
+        for query_number in tqdm(range(len(input_queries))):
+            qid = input_queries[query_number]['id']
+            query = {
+                "text_expansion": {
+                    "ml.tokens": {
+                        "model_id": ".elser_model_1",
+                        "model_text": input_queries[query_number]['text']
+                    }
+                }
+            }
+            res = self.client.search(
+                index=self.index_name,
+                source_excludes=['ml.tokens'],
+                size=self.top_k,
+            )
+            self._es_extract_results(res, passage_ids, scores, texts)
+        return passage_ids, scores, texts
+
 
     def encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
         """ Encodes a list of context documents, returning their dense representation.
@@ -434,6 +718,14 @@ class SearchableCorpus:
                 embs.extend(tems)
         return embs
 
+    def _encode(self, texts: Union[List[AnyStr], AnyStr], tokenizer, batch_size=64, **kwargs):
+        query_vector = self.model.encode(texts)
+        if 'normalize_embs' in kwargs and kwargs['normalize_embs']:
+            query_vector = self._normalize([query_vector])[0]
+        return query_vector
+
+    def _normalize(passage_vectors):
+        return [v / np.linalg.norm(v) for v in passage_vectors if np.linalg.norm(v) > 0]
 
 def read_tsv_data(input_file, fields=None):
     """
