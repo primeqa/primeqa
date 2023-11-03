@@ -1,3 +1,6 @@
+import re
+from collections import OrderedDict
+
 import torch.nn as nn
 
 from transformers import AutoTokenizer, XLMRobertaModel
@@ -43,16 +46,15 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
             dnn = torch_load_dnn(name_or_path)
             state_dict = dnn['model_state_dict']
 
-            import re
-            from collections import OrderedDict
-
-            # for reading V1
-            # state_dict = OrderedDict([(re.sub(r'^roberta.', 'bert.', key), value) for key, value in state_dict.items()])
+            base_default = 'xlm-roberta-base'
+            if (not dnn.get('arguments') or dnn.get('arguments').get('model')) and (not dnn.get('model_type')):
+                print_message(f"[WARNING] Using default model type (base) {base_default}")
+            base = dnn.get('arguments', {}).get('model', base_default) if dnn.get('arguments') else dnn.get('model_type', base_default)
 
             # for reading V2
             state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
 
-            obj = super().from_pretrained(colbert_config.model_type, state_dict=state_dict, colbert_config=colbert_config)
+            obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
 
             return obj
 
@@ -65,8 +67,6 @@ class HF_ColBERT_XLMR(XLMRobertaModel):
         dnn = torch_load_dnn(name)
         state_dict = dnn['model_state_dict']
 
-        import re
-        from collections import OrderedDict
 
         state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items() if 'bert.' not in key])
 
