@@ -3,7 +3,7 @@ from transformers import BatchEncoding
 from datasets import Dataset
 from typing import Tuple, List
 import torch
-
+import math
 from primeqa.mrc.processors.preprocessors.abstract import AbstractPreProcessor
 
 class ELI5FiDPreprocessor(AbstractPreProcessor):
@@ -99,10 +99,44 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
         n_doc = self._max_contexts
 
         def top_passages(ctx):
-            assert n_doc <= len(ctx) 
-            return [ctx[i]["text"] for i in range(n_doc)]
-        def append_question(passages, question):
-            return [f"question: {question} passage: {t}" for t in passages]
+            # assert n_doc <= len(ctx) 
+            return [ctx[i]["title"] for i in range(len(ctx))], [ctx[i]["text"] for i in range(len(ctx))]
+        def create_template(passages, question, titles):
+            if titles == None or len(titles) == 0:
+                return f"{' '.join(passages)}\n\n \
+                    Please answer a question about this article. If the question is unanswerable, say \"unanswerable\". {question}, answer:"
+            
+            data = [f"{t}:\n\n{d}" for t, d in zip(titles, passages)]
+            return f"{' '.join(data)}\n\n \
+                    Please answer a question about this article. If the question is unanswerable, say \"unanswerable\". {question}, answer:"
+        
+            # return [f"question: {question} passage: {t}" for t in passages]
+        def append_question(documents,question, titles):
+            max_new_tokens=50
+            prompt = create_template(titles,documents,question)
+            prompt_len = len(self._tokenizer(prompt)[0])
+            model_len = 512
+            if prompt_len+max_new_tokens > 512:
+                print("Input Prompt Length (with  max_new_tokens buffer):",prompt_len+max_new_tokens)
+                print("Model Supported Length:",model_len)
+                # approximate length so doesn't take a while.
+                diff_len = math.floor((prompt_len+max_new_tokens - model_len)*3)
+
+                if diff_len > len(" ".join(documents)):
+                    diff_len = math.floor((prompt_len+max_new_tokens - model_len)*2)
+
+                while prompt_len+max_new_tokens > model_len-1:
+
+                    # if multiple documents, remove the last one to shorten length
+                    if len(documents) > 1:
+                        documents = documents[:-1]
+                        titles = titles[:-1]
+                    # if there is only one document then make it smaller
+                    else:
+                        documents[0] = documents[0][:-diff_len]
+                    prompt = create_template(titles,documents,question)
+                    prompt_len = len(self._tokenizer(prompt)[0])
+            return prompt
         # multiple answers for training
         if mode == "train":
             answers = examples[self._answer_column]
@@ -112,21 +146,21 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                 if len(q) == 0: 
                     # Skip empty questions
                     continue
-                passages = top_passages(contexts[idx])
-                question_passages = append_question(passages, q)
+                titles, passages = top_passages(contexts[idx])
+                question_passages = append_question(passages, q, titles)
                 answer_list = answers[idx]
                 if len(answer_list) == 0:
                     inputs.append(question_passages)
-                    targets.append("")  
+                    targets.append("unanswerable")  
                     indices.append(examples["id"][idx])
                 else: # multiple answers
                     for answer_data in answer_list:
                         a = answer_data["answer"]
-                        answer_score = answer_data["meta"]["score"]     
-                        if answer_score >= 3: # only takes answers whose score>3
-                            inputs.append(question_passages)
-                            targets.append(a)
-                            indices.append(examples["id"][idx])
+                        # answer_score = answer_data["meta"]["score"]     
+                        # if answer_score >= 3: # only takes answers whose score>3
+                        inputs.append(question_passages)
+                        targets.append("unanswerable") if a == "" else targets.append(a)
+                        indices.append(examples["id"][idx])
                         
         elif mode == "eval": # for evaluation only take each question once
             inputs = []
@@ -135,8 +169,8 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
             else:
                 answers = []
             for idx,q in enumerate(questions):
-                passages = top_passages(contexts[idx])
-                question_passages = append_question(passages, q)
+                titles, passages = top_passages(contexts[idx])
+                question_passages = append_question(passages, q, titles)
                 inputs.append(question_passages)
                 indices.append(examples["id"][idx])
             targets = [answer[0]["answer"] if len(answer) > 0 else "" for answer in answers]
