@@ -71,7 +71,7 @@ def setup_argparse():
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI'],
+    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST'],
                         help="The server to connect to.")
 
     return parser
@@ -833,7 +833,7 @@ if __name__ == '__main__':
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if args.server == "SAP" and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
+    if args.server in ["SAP", 'SAP_TEST'] and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
         print(
             f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
         sys.exit(11)
@@ -874,14 +874,18 @@ if __name__ == '__main__':
         batch_size = 64
         model = MyEmbeddingFunction(args.model_name)
 
+    print(f"Using the {args.server}")
     if args.server == "SAP":
-        print(f"Using the SAP server")
         client = Elasticsearch(
             cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
             basic_auth=("elastic", ELASTIC_PASSWORD)
         )
+    elif args.server == "SAP_TEST":
+        client = Elasticsearch(
+            "https://esproxytestinghr716j372g.hana.ondemand.com:443",
+            basic_auth=("elastic", ELASTIC_PASSWORD)
+        )
     elif args.server == "CONVAI":
-        print(f"Using the CONVAI server")
         ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
         ES_API_KEY = os.getenv("ES_API_KEY")
         client = Elasticsearch("https://9.59.196.68:9200",
@@ -1020,7 +1024,7 @@ if __name__ == '__main__':
                         res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
                         break
                     except Exception as e:
-                        print(f"Got an error in indexing: {e}, {len(actions)} {res}")
+                        print(f"Got an error in indexing: {e}, {len(actions)}")
                     failures += 5
                 t.update(bulk_batch)
             t.close()
