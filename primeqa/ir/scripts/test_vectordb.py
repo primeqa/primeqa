@@ -75,7 +75,11 @@ def handle_args():
 
     args = parser.parse_args()
     if args.output_ranks == "":
-        args.output_ranks = f"tmp/{args.db_engine}_top{args.top_k}_{args.model_name}"
+        if os.path.isdir(args.model_name):
+            model_name = os.path.basename(args.model_name)
+        else:
+            model_name = args.model_name
+        args.output_ranks = f"tmp/{args.db_engine}_top{args.top_k}_{model_name}"
         if os.path.exists(args.output_ranks):
             i=0
             while True:
@@ -137,6 +141,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                   "clicking Runtime > Change runtime type > GPU.")
         self.pqa = False
         self.batch_size = batch_size
+        self.emb_pool = None
         if model_type=='pqa':
             from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
             self.queries_to_vectors = queries_to_vectors
@@ -150,8 +155,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             self.model = self.model.half()
             self.model.to(device)
             self.pqa = True
-            self.emb_pool = None
-        elif model_type == "chromadb" or model_type=="faiss":
+        elif model_type in ["chromadb", "milvus", "faiss"]:
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(name, device=device).half()
             if torch.cuda.device_count() > 1:
@@ -369,26 +373,26 @@ def main():
                                    ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
                                    basic_auth = ("elastic", ELASTIC_PASSWORD)
                                    )
+        elif args.db_engine == "milvus":
+            create_milvusdb()
 
     model = None
     # === create embeddings
+    if args.create_own_embeddings:
+        from sentence_transformers import SentenceTransformer
+        import torch
+
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        if device != 'cuda':
+            print(f"You are using {device}. This is much slower than using "
+                  "a CUDA-enabled GPU. If on Colab you can change this by "
+                  "clicking Runtime > Change runtime type > GPU.")
+
+        batch_size = args.ingestion_batch_size
+        model = MyChromaEmbeddingFunction(args.model_name, model_type=args.db_engine)
+
     if insert_db:
         if args.create_own_embeddings and args.db_engine not in ['pqa',"chromadb"]:
-            # if args.db_engine == 'pinecone' or args.db_engine == 'milvus':
-            from sentence_transformers import SentenceTransformer
-            import torch
-
-            device = 'cuda' if torch.cuda.is_available() else 'cpu'
-            if device != 'cuda':
-                print(f"You are using {device}. This is much slower than using "
-                      "a CUDA-enabled GPU. If on Colab you can change this by "
-                      "clicking Runtime > Change runtime type > GPU.")
-
-            batch_size = args.ingestion_batch_size
-            model = MyChromaEmbeddingFunction(args.model_name, model_type=args.db_engine)
-
-            # hidden_dim = model.get_sentence_embedding_dimension()
-
             print('=== done initializing model')
             report_time(last_time)
 
@@ -478,7 +482,7 @@ def main():
 
             schema = CollectionSchema(fields, "Test for speed.")
             print(fmt.format(f"Create collection `f{index_name}`"))
-            milvus1k = Collection(index_name, schema, consistency_level="Strong")
+            milvus1k = Collection(index_name, schema, consistency_level="Strong", index_file_size=128)
 
             ids = [int(row['id']) for row in input_passages]
             # create metadata batch
