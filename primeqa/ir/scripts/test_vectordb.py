@@ -72,13 +72,14 @@ def handle_args():
     parser.add_argument("--max_num_docs", default=-1, type=int,
                         help="If defined, only the given number of "
                         "documents will be ingested (first <max_num_docs> documents).")
+    parser.add_argument("--es_server", default="https://9.59.196.68:9020", help="The ElasticSearch server.")
 
     args = parser.parse_args()
     if args.output_ranks == "":
         if os.path.isdir(args.model_name):
             model_name = os.path.basename(args.model_name)
         else:
-            model_name = args.model_name
+            model_name = args.model_name.replace("/", "_")
         args.output_ranks = f"tmp/{args.db_engine}_top{args.top_k}_{model_name}"
         if os.path.exists(args.output_ranks):
             i=0
@@ -194,12 +195,12 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                 embs = self.model.encode(sentences=texts,
                                          normalize_embeddings=normalize_embeddings,
                                          batch_size=batch_size,
-                                         show_progress_bar=show_progress_bar
+                                         show_progress_bar=False
                                      )
         else:
             if len(texts) > batch_size:
                 embs = []
-                for i in tqdm(range(0, len(texts), batch_size)):
+                for i in tqdm(range(0, len(texts), batch_size), disable=True):
                     i_end = min(i + batch_size, len(texts))
                     tems = self.queries_to_vectors(self.tokenizer,
                                                    self.model,
@@ -354,11 +355,19 @@ def main():
             pass
         elif args.db_engine.startswith("es"):
             from elasticsearch import Elasticsearch
-            ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-            client = Elasticsearch("https://cloud.elastic.co/",# "https://localhost:9200",
-                                   # ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
-                                   basic_auth = ("stefan.diederichs@sap.com", ELASTIC_PASSWORD)
-                                   )
+            # ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+            # client = Elasticsearch("https://cloud.elastic.co/",# "https://localhost:9200",
+            #                        # ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+            #                        basic_auth = ("stefan.diederichs@sap.com", ELASTIC_PASSWORD)
+            #                        )
+            ssl_fingerprint = os.getenv("ES_SSL_FINGERPRINT")
+            ssl_api_key = os.getenv('ES_API_KEY')
+            es_passwd = os.getenv('ES_PASSWORD')
+
+            client = Elasticsearch(args.server,
+                                        ssl_assert_fingerprint=(ssl_fingerprint),
+                                        api_key=ssl_api_key)
+
         elif args.db_engine == "bm25":
             pass
     else:
@@ -368,11 +377,18 @@ def main():
             index = pinecone.GRPCIndex(index_name)
         elif args.db_engine.startswith("es"):
             from elasticsearch import Elasticsearch
-            ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-            client = Elasticsearch("https://cloud.elastic.co/", # https://localhost:9200",
-                                   ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
-                                   basic_auth = ("elastic", ELASTIC_PASSWORD)
-                                   )
+            # ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+            ssl_fingerprint = os.getenv("ES_SSL_FINGERPRINT")
+            ssl_api_key = os.getenv('ES_API_KEY')
+            # es_passwd = os.getenv('ES_PASSWORD')
+
+            client = Elasticsearch(args.server,
+                                        ssl_assert_fingerprint=ssl_fingerprint,
+                                        api_key=ssl_api_key)
+            # client = Elasticsearch("https://cloud.elastic.co/", # https://localhost:9200",
+            #                        ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
+            #                        basic_auth = ("elastic", ELASTIC_PASSWORD)
+            #                        )
         elif args.db_engine == "milvus":
             create_milvusdb()
 
@@ -690,7 +706,8 @@ def main():
             #     "metric_type": "L2",
             #     "params": {"ef": 10},
             # }
-            search_params = milvus_default_search_params["IVF_FLAT"]
+            # search_params = milvus_default_search_params["IVF_FLAT"]
+            search_params = milvus_default_search_params["HNSW"]
 
             for query_number in tqdm(range(len(input_queries))):
                 # for query_number in range(len(query_vectors)):
