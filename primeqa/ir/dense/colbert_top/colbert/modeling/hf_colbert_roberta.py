@@ -65,7 +65,7 @@ class HF_ColBERT_Roberta(RobertaModel):
     def raw_tokenizer_from_pretrained(name_or_path):
         if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
-            base = dnn.get('arguments', {}).get('model',  'roberta-base')  # TODO: how about other lm-roberta-XXX?
+            base = dnn.get('config', {}).get('_name_or_path', 'roberta-base')
 
             obj = AutoTokenizer.from_pretrained(base)
 
