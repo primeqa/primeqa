@@ -156,7 +156,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             self.model = self.model.half()
             self.model.to(device)
             self.pqa = True
-        elif model_type in ["chromadb", "milvus", "faiss"]:
+        elif model_type in ["chromadb", "milvus", "faiss", "es-dense"]:
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(name, device=device).half()
             if torch.cuda.device_count() > 1:
