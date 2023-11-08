@@ -45,7 +45,7 @@ def handle_args():
 
     parser.add_argument('--db_engine', '-e', default='pinecone',
                         choices=['pinecone', 'pqa', 'pqa_colbert', 'chromadb', 'milvus',
-                                 'faiss', 'es', 'es-esre', 'es-elser', 'bm25'], required=False)
+                                 'faiss', 'es', 'es-dense', 'es-elser', 'bm25'], required=False)
     parser.add_argument('--output_ranks', '-o', default="", help="The output rank file.")
 
     parser.add_argument('--num_embeddings_deleted', '-n', type=int, default=100, )
@@ -90,7 +90,7 @@ def handle_args():
                     break
                 i += 1
         print(f"Saving rank output to: {args.output_ranks}")
-    if args.db_engine == "es-esre":
+    if args.db_engine == "es-elser":
         args.db_engine = "es-elser"
 
     if args.data is not None:
@@ -293,7 +293,7 @@ def main():
         "metric_type": "L2",
         "params": {"M": 8, "efConstruction": 64},
     }
-    if args.db_engine.startswith("es"):
+    if args.db_engine.startswith("es-dense"):
         import logging
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
@@ -353,7 +353,7 @@ def main():
             create_milvusdb()
         elif args.db_engine == "faiss":
             pass
-        elif args.db_engine.startswith("es"):
+        elif args.db_engine.startswith("es-dense"):
             from elasticsearch import Elasticsearch
             # ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
             # client = Elasticsearch("https://cloud.elastic.co/",# "https://localhost:9200",
@@ -364,7 +364,7 @@ def main():
             ssl_api_key = os.getenv('ES_API_KEY')
             es_passwd = os.getenv('ES_PASSWORD')
 
-            client = Elasticsearch(args.server,
+            client = Elasticsearch(args.es_server,
                                         ssl_assert_fingerprint=(ssl_fingerprint),
                                         api_key=ssl_api_key)
 
@@ -375,14 +375,14 @@ def main():
             import pinecone
             # connect to the index
             index = pinecone.GRPCIndex(index_name)
-        elif args.db_engine.startswith("es"):
+        elif args.db_engine.startswith("es-dense"):
             from elasticsearch import Elasticsearch
             # ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
             ssl_fingerprint = os.getenv("ES_SSL_FINGERPRINT")
             ssl_api_key = os.getenv('ES_API_KEY')
             # es_passwd = os.getenv('ES_PASSWORD')
 
-            client = Elasticsearch(args.server,
+            client = Elasticsearch(args.es_server,
                                         ssl_assert_fingerprint=ssl_fingerprint,
                                         api_key=ssl_api_key)
             # client = Elasticsearch("https://cloud.elastic.co/", # https://localhost:9200",
@@ -526,7 +526,7 @@ def main():
             to_index = np.array(passage_vectors)
             index.train(to_index)
             index.add(to_index)
-        elif args.db_engine == "es":
+        elif args.db_engine == "es-dense":
             mappings = {
                 "properties": {
                     "title": {"type": "text", "analyzer": "english"},
