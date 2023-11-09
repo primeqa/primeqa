@@ -10,6 +10,7 @@ from primeqa.ir.dense.colbert_top.colbert.utils.utils import torch_load_dnn
 from primeqa.ir.dense.colbert_top.colbert.modeling.factory import get_query_tokenizer, get_doc_tokenizer
 from primeqa.ir.dense.colbert_top.colbert.utils.utils import print_message
 
+
 class Checkpoint(ColBERT):
     """
         Easy inference with ColBERT.
@@ -22,15 +23,8 @@ class Checkpoint(ColBERT):
         super().__init__(name, colbert_config)
         assert self.training is False
 
-        # get model type from checkpoint
-        if name.endswith('.dnn') or name.endswith('.model'):
-            dnn_checkpoint = torch_load_dnn(colbert_config.checkpoint)
-            model_type = dnn_checkpoint['model_type']
-        else:
-            model_type=name
-
-        self.query_tokenizer = get_query_tokenizer(model_type, colbert_config.query_maxlen, colbert_config.attend_to_mask_tokens)
-        self.doc_tokenizer = get_doc_tokenizer(model_type, colbert_config.doc_maxlen)
+        self.query_tokenizer = get_query_tokenizer(name, colbert_config)
+        self.doc_tokenizer = get_doc_tokenizer(name, colbert_config)
 
         self.amp_manager = MixedPrecisionManager(True)
 

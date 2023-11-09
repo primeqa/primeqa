@@ -95,6 +95,7 @@ _deps = {
     "grpcio~=1.48.1": ["install", "gpu"],
     "grpcio-tools~=1.48.1": ["install", "gpu"],
     "fastapi~=0.85.0": ["install", "gpu"],
+    "anyio<4.0.0": ["install", "gpu"],
     "uvicorn~=0.18.0": ["install", "gpu"],
     "cachetools~=5.2.0": ["install", "gpu"],
     "sqlitedict~=2.0.0": ["install", "gpu"],

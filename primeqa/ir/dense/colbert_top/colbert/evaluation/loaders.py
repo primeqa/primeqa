@@ -166,7 +166,7 @@ def load_collection(collection_path):
                 print(f'{line_idx // 1000 // 1000}M', end=' ', flush=True)
 
             pid = row["pid"]
-            assert pid == 'id' or int(pid) == line_idx
+            assert pid == 'id' or int(pid) == line_idx, f"pid: {pid}, line_idx: {line_idx}"
 
             passage = row["passage"]
             if row["title"] is not None:

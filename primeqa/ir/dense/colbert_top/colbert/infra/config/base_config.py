@@ -63,10 +63,6 @@ class BaseConfig(CoreConfig):
             dnn = torch_load_dnn(checkpoint_path)
             config, _ = cls.from_deprecated_args(dnn.get('arguments', {}))
 
-            # get model type from a dnn file
-            if dnn['model_type'] is not None:
-                config.set('model_type', dnn['model_type'])
-
             config.set('checkpoint', checkpoint_path)
 
             return config

@@ -1,3 +1,6 @@
+import re
+from collections import OrderedDict
+
 import torch.nn as nn
 
 from transformers import BertPreTrainedModel, BertModel, AutoTokenizer
@@ -16,6 +19,7 @@ class HF_ColBERT(BertPreTrainedModel):
     def __init__(self, config, colbert_config):
         super().__init__(config)
 
+        self.config = config
         self.dim = colbert_config.dim
         self.bert = BertModel(config)
         self.linear = nn.Linear(config.hidden_size, colbert_config.dim, bias=False)
@@ -33,41 +37,42 @@ class HF_ColBERT(BertPreTrainedModel):
     def from_pretrained(cls, name_or_path, colbert_config):
         if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
+            state_dict = dnn['model_state_dict']
 
             base_default = 'bert-base-uncased'
             if (not dnn.get('arguments') or dnn.get('arguments').get('model')) and (not dnn.get('model_type')):
                 print_message(f"[WARNING] Using default model type (base) {base_default}")
             base = dnn.get('arguments', {}).get('model', base_default) if dnn.get('arguments') else dnn.get('model_type', base_default)
 
-            state_dict=dnn['model_state_dict']
-            from collections import OrderedDict
-            import re
-            state_dict = OrderedDict([(re.sub(r'^model.bert.', 'bert.', key), value) for key, value in state_dict.items()])
-            state_dict = OrderedDict([(re.sub(r'^model.linear.', 'linear.', key), value) for key, value in state_dict.items()])
+            state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
             obj = super().from_pretrained(base, state_dict=state_dict, colbert_config=colbert_config)
-            #obj = super().from_pretrained(base, state_dict=dnn['model_state_dict'], colbert_config=colbert_config)
-            obj.base = base
 
             return obj
 
         obj = super().from_pretrained(name_or_path, colbert_config=colbert_config)
-        obj.base = name_or_path
 
         return obj
+
+    def load_state_dict(self, name):
+        assert name.endswith('dnn') or name.endswith('.model'), f"{name} is not valid colbert checkpoint ending with '.dnn' or '.model'"
+        dnn = torch_load_dnn(name)
+        state_dict = dnn['model_state_dict']
+
+        state_dict = OrderedDict([(re.sub(r'^model.', '', key), value) for key, value in state_dict.items()])
+
+        super().load_state_dict(state_dict)
 
     @staticmethod
     def raw_tokenizer_from_pretrained(name_or_path):
         if name_or_path.endswith('.dnn') or name_or_path.endswith('.model'):
             dnn = torch_load_dnn(name_or_path)
-            base = dnn.get('arguments', {}).get('model', 'bert-base-uncased')
+            base = dnn.get('config', {}).get('_name_or_path', 'bert-base-uncased')
 
             obj = AutoTokenizer.from_pretrained(base)
-            obj.base = base
 
             return obj
 
         obj = AutoTokenizer.from_pretrained(name_or_path)
-        obj.base = name_or_path
 
         return obj
 

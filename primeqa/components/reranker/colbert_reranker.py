@@ -29,15 +29,6 @@ class ColBERTReranker(BaseReranker):
 
     """
 
-    '''checkpoint: str = field(
-        default=None,
-        metadata={
-            "name": "Checkpoint",
-            "description": "Path to checkpoint",
-        },
-    )
-    '''
-
     model: str = field(
         default="drdecr",
         metadata={
@@ -70,6 +61,7 @@ class ColBERTReranker(BaseReranker):
             index_root=None,
             index_name=None,
             index_path=None,
+            #model_type=self.model_type,
             doc_maxlen=self.doc_maxlen,
             query_maxlen = self.query_maxlen
         )

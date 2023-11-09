@@ -87,7 +87,6 @@ class ColBERTRetriever(BaseRetriever):
             centroid_score_threshold=self.centroid_score_threshold,
             ndocs=self.ndocs,
         )
-
         # Placeholder variables
         self._searcher = None
 

@@ -21,7 +21,7 @@ class BaseColBERT(torch.nn.Module):
     def __init__(self, name, colbert_config=None):
         super().__init__()
 
-        print_message(f"#>>>>> at BaseColBERT name (model type) : {name}")
+        print_message(f"#>>>>> at BaseColBERT name (model name) : {name}")
 
         self.name = name
         self.colbert_config = ColBERTConfig.from_existing(ColBERTConfig.load_from_checkpoint(name), colbert_config)
@@ -30,8 +30,9 @@ class BaseColBERT(torch.nn.Module):
         # self.colbert_config.model_type = checkpoint_config.model_type
 
         self.model = get_colbert_from_pretrained(name, colbert_config=self.colbert_config)
+        self.config = self.model.config
 
-        self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.base)
+        self.raw_tokenizer = AutoTokenizer.from_pretrained(self.model.config._name_or_path)
         # self.raw_tokenizer = None
         # TEMP fix
         # self.raw_tokenizer = get_doc_tokenizer(colbert_config.model_type, colbert_config.doc_maxlen)

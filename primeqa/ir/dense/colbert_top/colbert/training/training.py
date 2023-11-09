@@ -73,27 +73,11 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     if config.rank < 1:
         config.help()
 
-    assert not ( config.use_ib_negatives and config.distill_query_passage_separately ) , f" Simultaneous use of --use_ib_negatives and --distill_query_passage_separately options is not supported (yet)"
+    assert not ( config.use_ib_negatives and config.distill_query_passage_separately ) , \
+                f" Simultaneous use of --use_ib_negatives and --distill_query_passage_separately options is not supported (yet)"
 
-    # When checkpoint specified, we need to get model_type from previous run if necessary or as a model type
-    if config.checkpoint is not None:
-        if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
-            # adding "or config.checkpoint.endswith('.model')" to be compatible with V1
-            checkpoint = torch_load_dnn(config.checkpoint)
-            # if checkpoint['model_type'] is not None:
-            assert 'model_type' in checkpoint and checkpoint['model_type'] is not None, f"missing or invalid  checkpoint type in {config.checkpoint}"
-            config.model_type = checkpoint['model_type']
-
-        # Use checkpoint as a model type
-        elif config.checkpoint == 'bert-base-uncased' or config.checkpoint =='bert-large-uncased' \
-                or config.checkpoint == 'xlm-roberta-base' or config.checkpoint == 'xlm-roberta-large' \
-                or config.checkpoint == 'roberta-base' or config.checkpoint == 'roberta-large':
-            config.model_type = config.checkpoint
-        else:
-            print_message(f"unsupported checkpoint type or format: {config.checkpoint}")
-            raise NotImplementedError
-
-    print_message(f"model type: {config.model_type}")
+    if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
+        checkpoint = torch_load_dnn(config.checkpoint)
 
     random.seed(config.rng_seed)
     np.random.seed(config.rng_seed)
@@ -103,7 +87,15 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
     assert config.bsize % config.nranks == 0, (config.bsize, config.nranks)
     config.bsize = config.bsize // config.nranks
 
-    print_message("Using config.bsize =", config.bsize, "(per process) and config.accumsteps =", config.accumsteps)
+    print_message(f"Using config.bsize = {config.bsize} (per process) and config.accumsteps = {config.accumsteps}")
+
+    if not config.reranker:
+        colbert = ColBERT(name=config.checkpoint, colbert_config=config)
+
+        if config.teacher_checkpoint is not None:
+            teacher_colbert = ColBERT(name=config.teacher_checkpoint, colbert_config=config)
+    else:
+        colbert = ElectraReranker.from_pretrained(config.checkpoint)
 
     # the reader , the proper tokenizer is based on model type
     if collection is not None:
@@ -117,45 +109,6 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
         reader = EagerBatcher(config, triples, (0 if config.rank == -1 else config.rank), config.nranks)
         if config.teacher_checkpoint is not None:
             teacher_reader = EagerBatcher(config, config.teacher_triples, (0 if config.rank == -1 else config.rank), config.nranks)
-
-    if not config.reranker:
-        colbert = ColBERT(name=config.model_type, colbert_config=config)
-
-        # add support pre-trained representation
-        if config.init_from_lm is not None and config.checkpoint is None:
-            # checkpoint should override init_from_lm since it continues an already init'd run
-            print_message(f"#> Load init from lm {config.init_from_lm}")
-            checkpoint = torch.load(config.init_from_lm, map_location='cpu')
-            checkpoint = OrderedDict([('model.' + key, value) for key, value in checkpoint.items()])
-            colbert.load_state_dict(checkpoint, strict=False)  # to allow loading from "bare" LM models
-
-        # load from checkpoint if checkpoint is an actual model
-        if config.checkpoint is not None:
-            if config.checkpoint.endswith('.dnn') or config.checkpoint.endswith('.model'):
-                print_message(f"#> Starting from checkpoint {config.checkpoint}")
-                checkpoint = torch.load(config.checkpoint, map_location='cpu')
-
-                try:
-                    colbert.load_state_dict(checkpoint['model_state_dict'])
-                except:
-                    print_message("[WARNING] Loading checkpoint with strict=False")
-                    colbert.load_state_dict(checkpoint['model_state_dict'], strict=False)
-
-        if config.teacher_checkpoint is not None:
-            teacher_colbert = ColBERT(name=config.teacher_model_type, colbert_config=config)
-
-            if config.teacher_checkpoint.endswith('.dnn') or config.teacher_checkpoint.endswith('.model'):
-                print_message(f"#> Loading teacher checkpoint {config.teacher_checkpoint}")
-                teacher_checkpoint = torch.load(config.teacher_checkpoint, map_location='cpu')
-
-                try:
-                    teacher_colbert.load_state_dict(teacher_checkpoint['model_state_dict'])
-                except:
-                    print_message("[WARNING] Loading checkpoint with strict=False")
-                    teacher_colbert.load_state_dict(teacher_checkpoint['model_state_dict'], strict=False)
-    else:
-        colbert = ElectraReranker.from_pretrained(config.checkpoint)
-
 
     colbert = colbert.to(DEVICE)
     colbert.train()
@@ -262,7 +215,8 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
             this_batch_loss = 0.0
 
             for queries_passages, teacher_queries_passages in zip(BatchSteps, teacher_BatchSteps):
-                assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
+                #assert(config.teacher_model_type is not None or torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
+                assert(torch.equal(queries_passages[1][0], teacher_queries_passages[1][0]))
 
                 with amp.context():
                     if config.distill_query_passage_separately :
@@ -278,11 +232,15 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                                 teacher_encoding = [teacher_queries, teacher_passages]
                                 teacher_scores, teacher_output_q, teacher_output_p  = teacher_colbert(*teacher_encoding)
 
-                            teacher_queries_toks_masks = (teacher_queries_passages[0][0].repeat_interleave(config.nway, dim=0).contiguous(), teacher_queries_passages[0][1].repeat_interleave(config.nway, dim=0).contiguous())
+                            teacher_queries_toks_masks = (
+                                                    teacher_queries_passages[0][0].repeat_interleave(config.nway, dim=0).contiguous(), 
+                                                    teacher_queries_passages[0][1].repeat_interleave(config.nway, dim=0).contiguous()
+                                                    )
                             teacher_queries = copy.deepcopy(teacher_queries_toks_masks)
                             maxlen = config.query_maxlen
                             align(maxlen, student_output_q, teacher_output_q, teacher_queries)
-                            loss = config.query_weight * student_teacher_loss_fct(student_output_q, teacher_output_q) + (1 - config.query_weight)*student_teacher_loss_fct(student_output_p, teacher_output_p)
+                            loss = config.query_weight * student_teacher_loss_fct(student_output_q, \
+                                        teacher_output_q) + (1 - config.query_weight)*student_teacher_loss_fct(student_output_p, teacher_output_p)
                     else:
                         try:
                             queries, passages, target_scores = queries_passages
@@ -340,7 +298,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 try:
                     exit_queue.get_nowait()
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                     sys.exit(0)
                 except Empty:
@@ -420,7 +378,7 @@ def train(config: ColBERTConfig, triples, queries=None, collection=None):
                 try:
                     exit_queue.get_nowait()
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, arguments)
-                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type)
+                    save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss)
                     # save_checkpoint(name, epoch_idx, batch_idx, colbert, optimizer, amp, train_loss, config.model_type, arguments)
                     sys.exit(0)
                 except Empty:

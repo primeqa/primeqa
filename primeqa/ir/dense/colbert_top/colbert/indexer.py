@@ -31,17 +31,9 @@ class Indexer:
         self.checkpoint = checkpoint
         self.checkpoint_config = ColBERTConfig.load_from_checkpoint(checkpoint)
 
-        # set model_type from checkpoint's config
-        # config.model_type = self.checkpoint_config.model_type
-
         self.config = ColBERTConfig.from_existing(Run().config, self.checkpoint_config, config)
 
-        # set model_type from checkpoint's config
-        # self.config.model_type = self.checkpoint_config.model_type
-
         self.configure(checkpoint=checkpoint)
-
-
 
     def configure(self, **kw_args):
         self.config.configure(**kw_args)

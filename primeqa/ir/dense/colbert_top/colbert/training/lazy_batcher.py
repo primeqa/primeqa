@@ -24,8 +24,11 @@ class LazyBatcher():
 
         # self.query_tokenizer = QueryTokenizer(config)
         # self.doc_tokenizer = DocTokenizer(config)
-        self.query_tokenizer = get_query_tokenizer(config.model_type, config.query_maxlen, config.attend_to_mask_tokens)
-        self.doc_tokenizer = get_doc_tokenizer(config.model_type, config.doc_maxlen)
+        #self.query_tokenizer = get_query_tokenizer(config.model_type, config.query_maxlen, config.attend_to_mask_tokens)
+        #self.doc_tokenizer = get_doc_tokenizer(config.model_type, config.doc_maxlen)
+
+        self.query_tokenizer = get_query_tokenizer(config.checkpoint, config)
+        self.doc_tokenizer = get_doc_tokenizer(config.checkpoint, config)
 
         self.tensorize_triples = partial(tensorize_triples, self.query_tokenizer, self.doc_tokenizer)
         self.position = 0

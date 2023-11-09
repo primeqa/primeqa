@@ -20,9 +20,9 @@ class ColBERT(BaseColBERT):
         This class handles the basic encoding and scoring operations in ColBERT. It is used for training.
     """
 
-    def __init__(self, name='bert-base-uncased', colbert_config=None):
+    def __init__(self, name=None, colbert_config=None):
 
-        print_message(f"#>>>>> at ColBERT name (model type) : {name}")
+        print_message(f"#>>>>> at ColBERT name (model name) : {name}")
 
         super().__init__(name, colbert_config)
         self.use_gpu = torch.cuda.is_available()

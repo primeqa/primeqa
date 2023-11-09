@@ -10,7 +10,6 @@ def main():
     parser.add_model_parameters()
     parser.add_model_training_parameters()
     parser.add_training_input()
-    # parser.add_argument('--model_type', dest='model_type', default='bert')
     # comment out as we define the argument at model training parameters
 
     args = parser.parse()
