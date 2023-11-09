@@ -29,7 +29,7 @@ class Component(ABC):
     @abstractmethod
     def predict(self, *args, **kwargs):
         pass
-
+    
 
 @dataclass(init=False, repr=False, eq=False)
 class Reader(Component):
@@ -106,7 +106,7 @@ class Retriever(Component):
     @abstractmethod
     def predict(self, input_texts: List[str], *args, **kwargs):
         pass
-
+    
 
 @dataclass(init=False, repr=False, eq=False)
 class Indexer:
@@ -156,6 +156,7 @@ class Indexer:
     def index(self, collection: Union[List[dict], str], *args, **kwargs):
         pass
     
+    
 @dataclass(init=False, repr=False, eq=False)
 class Reranker(Component):
     
@@ -182,7 +183,8 @@ class Reranker(Component):
         metadata={
             "name": "Include Title",
             "description": "Whether to concatenate text and title",
-            "choices": "True|False"
+            "choices": "True|False",
+            "exclude_from_hash": True,
         },
     )
 
@@ -204,7 +206,32 @@ class Reranker(Component):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, queries: List[str], 
+    def predict(self, queries: List[str],
+                    documents: List[List[Dict]],
+                    *args,
+                    **kwargs):
+        """
+        Args:
+            queries (List[str]): search queries
+            texts (List[List[Dict]]): For each query, a list of documents to rerank
+                where each document is a dictionary with the following structure:
+                {
+                    "document": {
+                        "text": "A man is eating food.",
+                        "document_id": "0",
+                        "title": "food"
+                    },
+                    "score": 1.4
+                }
+
+        Returns:
+            List[List[Dict]] For each query a list of reranked documents in the same
+            structure as the input documents with the score replace with the reranker score.
+        """
+        pass
+
+    @abstractmethod
+    def rerank(self, queries: List[str], 
                     documents: List[List[Dict]],
                     *args, 
                     **kwargs):
@@ -226,4 +253,98 @@ class Reranker(Component):
             List[List[Dict]] For each query a list of reranked documents in the same 
             structure as the input documents with the score replace with the reranker score.
         """
+        pass
+    
+    
+@dataclass(init=False, repr=False, eq=False)
+class Embeddings(Component):
+    
+    model: str = field(
+            metadata={
+                "name": "Model. This could be either a query or context DPR encoder model.",
+                "api_support": True,
+                "description": "Path to model",
+            },
+        )
+        
+    max_doc_length: int = field(
+            default=512,
+            metadata={
+                "name": "max_doc_length",
+                "api_support": True,
+                "description": "maximum document length (sub-word units)",
+            },
+        )
+    
+    batch_size: int = field(
+        default=128,
+        metadata={
+            "name": "batch_size",
+            "api_support": False,
+            "description": "batch size",
+        },
+    )
+    
+    embeddings_format: str = field(
+        default=None,
+        metadata={
+            "name": "embeddings_format",
+            "api_support": False,
+            "description": "embeddings_format, Choices: 'pt', 'np' - Default None returns vector as a list of floats ",
+            "choices": "'pt'|'np'| None"
+        }
+    )
+
+    @abstractmethod
+    def load(self, *args, **kwargs):
+            pass
+        
+    @abstractmethod
+    def __hash__(self) -> int:
+            """
+            Custom hashing function useful to compare instances of `Retriever`.
+
+            Raises:
+                NotImplementedError:
+
+            Returns:
+                int: hash value
+            """
+            raise NotImplementedError
+
+    @abstractmethod
+    def get_embeddings(self, input_texts: List[str], 
+                        *args, 
+                        **kwargs):
+        """
+            Returns embeddings for the input texts.
+            
+            Args:
+                input_texts List[str]: list of texts to be encoded
+            
+            Optional Args:
+                max_doc_length int: Default 512 maximum document length (sub-word units)
+                batch_size int: Default 128 batch size
+                embeddings_format: 
+                    Default None (list of floats), choices 'pt' (tensors), 'np' (numpy array), None
+                            
+            
+            Returns:
+                Dict
+                  {
+                      'embeddings': List[vectors]
+                      'model': str
+                  }
+                
+        """
+        pass
+        
+
+    def train(self, *args, **kwargs):
+        pass
+
+    def eval(self, *args, **kwargs):
+        pass
+
+    def predict(self, *args, **kwargs):
         pass

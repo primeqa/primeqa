@@ -147,7 +147,7 @@ class RerankerService(RerankerServiceServicer):
             queries = request_dict["queries"]
             documentsperquery = [queryhits["hits"] for queryhits in request_dict["hitsperquery"]]
 
-            results = instance.predict(queries=queries, documents=documentsperquery, **reranker_kwargs)
+            results = instance.rerank(queries=queries, documents=documentsperquery, **reranker_kwargs)
             
             self._logger.info(
                 "Applying '%s' reranker for queries = %s returns results = %s",

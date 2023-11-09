@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass, field
 import json
 import numpy as np
+import warnings
 import torch.nn.functional as F
 
 from primeqa.components.base import Reranker as BaseReranker
@@ -89,8 +90,15 @@ class SeqClassificationReranker(BaseReranker):
 
     def eval(self, *args, **kwargs):
         pass
-    
-    def predict(self, queries: List[str], 
+
+    def predict(self, queries: List[str],
+                    documents:  List[List[Dict]],
+                    *args,
+                    **kwargs):
+        warnings.warn("The 'predict' method is deprecated. Please use `rerank'", FutureWarning)
+        return self.rerank(queries, documents, *args, **kwargs)
+
+    def rerank(self, queries: List[str], 
                     documents:  List[List[Dict]],
                     *args, 
                     **kwargs):
@@ -130,7 +138,7 @@ class SeqClassificationReranker(BaseReranker):
             texts_a = [query] * len(docs)
             texts_b = []
             for p in docs:
-                if include_title and 'title' in p['document'] and len(p['document']['title'].strip()) > 0:
+                if include_title and 'title' in p['document'] and p['document']['title'] is not None and len(p['document']['title'].strip()) > 0:
                     texts_b.append(p['document']['title'] + '\n\n' + p['document']['text'])
                 else:
                     texts_b.append(p['document']['text'])

@@ -89,7 +89,7 @@ Usage:
     reranker = SeqClassificationReranker(model=model_name_or_path)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 
 ### ColBERT Reranker
@@ -102,12 +102,12 @@ The reranker requires a ColBERT checkpoint. A checkpoint can be downloaded from 
 
 Usage:
 ```
-    from primeqa.components.reranker.seq_classification_reranker import SeqClassificationReranker
+    from primeqa.components.reranker.colbert_reranker import ColBERTReranker
 
     reranker = ColBERTReranker(model=<path-to-colbert-checkpoint>)
     reranker.load()
 
-    reranked_results = reranker.predict([query], documents=[documents],max_num_documents=2)
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
 ```
 This will output:
 
@@ -134,6 +134,48 @@ This will output:
     ]
 ```
 
+### DPR Reranker
+
+The [DPRReranker](./reranker/dpr_reranker.py) computes representations of the input query and documents and computes the relevance scores using the DPR approach, as described in [Dense Passage Retrieval for Open-Domain Question Answering](https://arxiv.org/abs/2004.04906).
+The reranker requires models for query and document (context) representations.  Example models can be downloaded from HuggingFace model hub as follows:
+```
+    wget https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_qry_encoder
+    wget https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder
+```
+
+Usage:
+```
+    from primeqa.components.reranker.dpr_reranker import DPRReranker
+
+    reranker = ColBERTReranker(model=<path-to-models-directory>)
+    reranker.load()
+
+    reranked_results = reranker.rerank([query], documents=[documents],max_num_documents=2)
+```
+This will output:
+
+```
+    [
+    [
+        {
+        "document": {
+            "text": "A man is riding a white horse on an enclosed ground.",
+            "title": "riding",
+            "docid": "3"
+        },
+        "score": 82.11125946044922
+        },
+        {
+        "document": {
+            "text": "Someone in a gorilla costume is playing a set of drums.",
+            "title": "in",
+            "docid": "1"
+        },
+        "score": 75.18437194824219
+        }
+    ]
+    ]
+```
 
 ## Reader Components
 
@@ -241,4 +283,47 @@ context = [["""Chemtrail conspiracy theory The chemtrail conspiracy theory is ba
             as one possible cause of the increasing frequency and amount of cirrus"""]]
 answers = fid_reader.predict(question,context)  
 print(json.dumps(answers, indent=4)) 
+```
+
+
+## Embeddings Components
+
+The `Embeddings` component provides an API to obtain vector representations of given texts.
+
+The current implementation is based on [DPRContextEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRContextEncoder) and [DPRQuestionEncoder](https://huggingface.co/docs/transformers/model_doc/dpr#transformers.DPRQuestionEncoder).  The default model is [PrimeQA DPR ctx_encoder](https://huggingface.co/PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder) trained on XOR-TyDI English subset.
+
+The following shows how to use the component [DPREmbeddings](./embeddings/dpr_embeddings.py) to obtain vectors.
+
+The input is a list of texts. The `embeddings_format` argument can be used specify the format of the vectors. The options are `pt` to return tensors, `np` to return numpy arrays, `None` to return as a list of floats.  The default is `None`
+
+
+Usage:
+
+```
+    from primeqa.components.embeddings.dpr_embeddings import DPREmbeddings
+
+    model_name_or_path="PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder"
+
+    embedder = DPREmbeddings(model_name_or_path)
+    embedder.load()   # ***IMPORTANT***
+
+    input_texts = ["Florence Cathedral" + "[SEP]" + "The building of the cathedral had started in 1296 with the design of Arnolfo di Cambio and was completed in 1469"]
+    vectors = embedder.get_embeddings(input_texts, max_doc_length=512, embeddings_format=None)
+    print(json.dumps(vectors,indent=4))
+
+```
+
+This will output:
+
+```
+        {
+            "embeddings": [
+                [
+                    -0.42919921875,
+                    0.04327392578125,
+                    0.72998046875,
+                    -0.471435546875,...]]
+            "model": "PrimeQA/XOR-TyDi_monolingual_DPR_ctx_encoder"
+        }
+    
 ```

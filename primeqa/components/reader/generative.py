@@ -15,7 +15,7 @@ from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 
 
 @dataclass
-class GenerativeReader(BaseReader):
+class GenerativeBaseReader(BaseReader):
     """_summary_
 
     Args:
@@ -76,7 +76,7 @@ class GenerativeReader(BaseReader):
 
 
 @dataclass
-class GenerativeFiDReader(GenerativeReader):
+class GenerativeFiDReader(GenerativeBaseReader):
     model: str = field(
         default="PrimeQA/eli5-fid-bart-large-with-colbert-passages",
         metadata={"name": "Model"},
@@ -188,8 +188,8 @@ class GenerativeFiDReader(GenerativeReader):
     def predict(
         self,
         questions: List[str],
-        contexts: List[List[str]],
         *args,
+        contexts: List[List[str]] = None,
         example_ids: List[str] = None,
         **kwargs,
     ):
