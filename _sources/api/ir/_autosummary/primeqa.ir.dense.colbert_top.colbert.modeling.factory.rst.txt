@@ -17,6 +17,7 @@ factory
    
       get_colbert_from_pretrained
       get_doc_tokenizer
+      get_model_type
       get_query_tokenizer
    
    

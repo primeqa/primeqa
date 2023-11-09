@@ -107,6 +107,7 @@ primeqa.ir.dense.colbert\_top.colbert.modeling.hf\_colbert\_roberta.HF\_ColBERT\
       ~HF_ColBERT_Roberta.T_destination
       ~HF_ColBERT_Roberta.base_model
       ~HF_ColBERT_Roberta.base_model_prefix
+      ~HF_ColBERT_Roberta.bert
       ~HF_ColBERT_Roberta.device
       ~HF_ColBERT_Roberta.dtype
       ~HF_ColBERT_Roberta.dummy_inputs

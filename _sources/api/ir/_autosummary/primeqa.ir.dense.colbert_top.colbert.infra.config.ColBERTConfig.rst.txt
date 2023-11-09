@@ -60,7 +60,6 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.index_path_
       ~ColBERTConfig.index_root
       ~ColBERTConfig.index_root_
-      ~ColBERTConfig.init_from_lm
       ~ColBERTConfig.input_arguments
       ~ColBERTConfig.interaction
       ~ColBERTConfig.kmeans_niters
@@ -69,7 +68,6 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.lr
       ~ColBERTConfig.mask_punctuation
       ~ColBERTConfig.maxsteps
-      ~ColBERTConfig.model_type
       ~ColBERTConfig.name
       ~ColBERTConfig.nbits
       ~ColBERTConfig.ncells
@@ -102,7 +100,6 @@ primeqa.ir.dense.colbert\_top.colbert.infra.config.ColBERTConfig
       ~ColBERTConfig.student_teacher_top_loss_weight
       ~ColBERTConfig.teacher_checkpoint
       ~ColBERTConfig.teacher_doc_maxlen
-      ~ColBERTConfig.teacher_model_type
       ~ColBERTConfig.teacher_triples
       ~ColBERTConfig.topK
       ~ColBERTConfig.total_visible_gpus

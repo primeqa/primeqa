@@ -477,7 +477,8 @@ This table shows two lines from the file, with the positive and negative passage
 <span class="w">    </span>--maxsteps<span class="w"> </span>&lt;number_of_training_steps&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--save_steps<span class="w"> </span>&lt;number_of_training_steps_between_saving_checkpoins&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--lr<span class="w"> </span>&lt;learnig_rate&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--model_type<span class="w"> </span>xlm-roberta-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--checkpoint<span class="w"> </span>xlm-roberta-base<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_type<span class="w"> </span>xlm-roberta<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--triples<span class="w"> </span>&lt;training_data&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--root<span class="w"> </span>&lt;experiments_root_directory&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--experiment<span class="w"> </span>&lt;experiment_label&gt;
@@ -591,6 +592,7 @@ An example of a collection file is <a class="reference external" href="https://g
 <span class="w">    </span>--doc_maxlen<span class="w"> </span>&lt;maximum_number_of_document_tokens&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--bsize<span class="w"> </span>&lt;indexing_batch_size&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--model_name_or_path<span class="w"> </span>&lt;model_checkpoint&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_type<span class="w"> </span>&lt;model<span class="w"> </span><span class="nb">type</span><span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>model_checkpoint&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--collection<span class="w"> </span>&lt;document_collection&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--root<span class="w"> </span>&lt;experiments_root_directory&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--experiment<span class="w"> </span>&lt;experiment_label&gt;<span class="w"> </span><span class="se">\</span>
@@ -645,6 +647,7 @@ An example of a queries data file is <a class="reference external" href="https:/
 <span class="w">    </span>--bsize<span class="w"> </span>&lt;search_batch_size&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--queries<span class="w"> </span>&lt;query_file&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--model_name_or_path<span class="w"> </span>&lt;model_filename_or_directory&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model_type<span class="w"> </span>&lt;model<span class="w"> </span><span class="nb">type</span><span class="w"> </span>of<span class="w"> </span>the<span class="w"> </span>encoder&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--index_location<span class="w"> </span>&lt;directory_containing_index_files&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--top_k<span class="w"> </span>&lt;number_of_items_per_query_retrieved&gt;<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--output_dir<span class="w"> </span>&lt;output_directory&gt;

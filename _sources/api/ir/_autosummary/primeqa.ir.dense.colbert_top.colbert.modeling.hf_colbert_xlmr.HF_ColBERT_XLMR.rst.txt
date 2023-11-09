@@ -107,6 +107,7 @@ primeqa.ir.dense.colbert\_top.colbert.modeling.hf\_colbert\_xlmr.HF\_ColBERT\_XL
       ~HF_ColBERT_XLMR.T_destination
       ~HF_ColBERT_XLMR.base_model
       ~HF_ColBERT_XLMR.base_model_prefix
+      ~HF_ColBERT_XLMR.bert
       ~HF_ColBERT_XLMR.device
       ~HF_ColBERT_XLMR.dtype
       ~HF_ColBERT_XLMR.dummy_inputs
