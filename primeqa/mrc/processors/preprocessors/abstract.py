@@ -13,8 +13,8 @@ class AbstractPreProcessor(metaclass=ABCMeta):
     """
 
     def __init__(self,
-                 tokenizer: PreTrainedTokenizerFast,
-                 stride: int,
+                 tokenizer: Optional[PreTrainedTokenizerFast] = None,
+                 stride: Optional[int] = 128,
                  max_seq_len: Optional[int] = None,
                  negative_sampling_prob_when_has_answer: float = 0.01,
                  negative_sampling_prob_when_no_answer: float = 0.04,
@@ -23,7 +23,11 @@ class AbstractPreProcessor(metaclass=ABCMeta):
                  max_q_char_len: int = 128,
                  single_context_multiple_passages: bool = False,
                  max_contexts: Optional[int] = None,
-                 max_answer_len: Optional[int] = None):
+                 max_answer_len: Optional[int] = None,
+                 discard_duplicate_spans: bool = False,
+                 exclude_passage_answers: bool = False,
+                 long_answer_as_short_answer: bool = False,
+                 adapted_on_disk: bool = False):
         """
         Args:
             tokenizer:
@@ -69,6 +73,10 @@ class AbstractPreProcessor(metaclass=ABCMeta):
         self._single_context_multiple_passages = single_context_multiple_passages
         self._max_contexts = max_contexts
         self._max_answer_len = max_answer_len
+        self._discard_duplicate_spans = discard_duplicate_spans
+        self._exclude_passage_answers = exclude_passage_answers
+        self._long_answer_as_short_answer = long_answer_as_short_answer
+        self.adapted_on_disk = adapted_on_disk
 
         if not (0. <= self._negative_sampling_prob_when_has_answer <= 1.):
             raise ValueError(f"Expected 0 <= negative_sampling_prob_when_has_answer <= 1 but got: "

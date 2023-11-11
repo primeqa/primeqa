@@ -12,7 +12,7 @@ from typing import Optional, Type, List
 from torch.utils.data import ConcatDataset
 
 import datasets
-from datasets import concatenate_datasets
+from datasets import concatenate_datasets, disable_caching
 
 import apache_beam as beam
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
@@ -142,6 +142,14 @@ class DataTrainingArguments:
             "help": "Dataset column values to match when filtering e.g. 'SQuAD HotpotQA'"
         }
     )
+    adapted_on_disk: bool = field(
+        default=False,
+        metadata={"help": "True if data has already been adapted to base format and saved. This is a big time saver for NQ"}
+    )
+    disable_dataset_caching: bool = field(
+        default=False,
+        metadata={"help": "disable caching to avoid issues with HF datasets caching too often and causes out of memory issues."}
+    )
     overwrite_cache: bool = field(
         default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
     )
@@ -204,6 +212,13 @@ class DataTrainingArguments:
                     "and end predictions are not conditioned on one another."
         },
     )
+    min_answer_length: int = field(
+        default=0,
+        metadata={
+            "help": "The minimum length of an answer that can be generated. This is needed because the start "
+                    "and end predictions are not conditioned on one another."
+        },
+    )
     negative_sampling_prob_when_has_answer: float = field(
         default=0.01,
         metadata={
@@ -227,6 +242,18 @@ class DataTrainingArguments:
         metadata={"help": "The beam runner for loading large dataset.",
                   "choices": ['DirectRunner'],
                   }
+    )
+    discard_duplicate_spans: bool = field(
+        default=False,
+        metadata={"help": "Only keep one answer in training if there are duplicate answer spans in multiple contexts due to stride"}
+    )
+    exclude_passage_answers : bool = field(
+        default=False,
+        metadata={"help": "exlude passage answers from training"}
+    )
+    long_answer_as_short_answer : bool = field(
+        default=False,
+        metadata={"help": "keep the long/boolean answer as a short answer by using the start and end offsets of the paragraph"}
     )
 
 
@@ -323,6 +350,10 @@ class TaskArguments:
                           "calibration features with dropout."
                   },
     )
+    two_way_loss: bool = field(
+        default=False,
+        metadata={"help": "2 way loss is start+end logits. 3 way loss includes target type"}
+    )
 
     def __post_init__(self):
         if not self.task_heads:
@@ -396,6 +427,7 @@ def main():
     config.sep_token_id = tokenizer.convert_tokens_to_ids(tokenizer.sep_token)
     config.output_dropout_rate = task_args.output_dropout_rate
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
+    config.two_way_loss = task_args.two_way_loss
 
     model_class = task_args.task_model
     model = model_class.from_config(
@@ -405,43 +437,76 @@ def main():
         cache_dir=model_args.cache_dir,
     )
     model.set_task_head(next(iter(task_heads)))
-
+    adapted_on_disk_train = adapted_on_disk_validation = [data_args.adapted_on_disk]
+    
+    # avoid issues with HF datasets caching too often and causes out of memory issues.
+    if data_args.disable_dataset_caching:
+        disable_caching()
+    
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
         logger.info('Loading datasets')
         raw_datasets = {}
         if data_args.train_fof is not None:
-            raw_train_datasets, train_preprocessors = get_raw_datasets(data_args.train_fof, data_args,
+            raw_train_datasets, train_preprocessors, adapted_on_disk_train = get_raw_datasets(data_args.train_fof, data_args,
                                                                        task_args, model_args.cache_dir,
                                                                        split='train')
             raw_datasets['train'] = raw_train_datasets
         if data_args.eval_fof is not None:            
-            raw_validation_datasets, validation_preprocessors = get_raw_datasets(data_args.eval_fof, data_args,
+            raw_validation_datasets, validation_preprocessors, adapted_on_disk_validation = get_raw_datasets(data_args.eval_fof, data_args,
                                                                                  task_args, model_args.cache_dir,
                                                                                  split='validation')
             raw_datasets['validation'] = raw_validation_datasets
     else:
         logger.info('Loading dataset')        
+        from datasets import set_caching_enabled
+        set_caching_enabled(False)
+
         if data_args.train_file is not None or data_args.eval_file is not None:
             data_files = {}
             raw_datasets = {}
             # Load train and validation datasets separately because they might have different columns
-            if data_args.train_file is not None: 
-                data_files['train'] = glob.glob(data_args.train_file)
-                raw_datasets["train"] = datasets.load_dataset(
-                    data_args.data_file_format, 
-                    data_files={"train": data_files["train"]}, 
-                    split="train",
-                    cache_dir=model_args.cache_dir
-                 )
-            if data_args.eval_file is not None: 
-                data_files['validation'] = glob.glob(data_args.eval_file)
-                raw_datasets["validation"] = datasets.load_dataset(
-                    data_args.data_file_format, 
-                    data_files={"validation": data_files["validation"]}, 
-                    split="validation",
-                    cache_dir=model_args.cache_dir
-                 )        
+            # for natural_questions we can do some preprocessing offline to save on caching/time
+            if data_args.dataset_name == "natural_questions":
+                train_datasets = [] 
+                eval_datasets = [] 
+
+                if data_args.train_file is not None:
+                    data_files['train'] = glob.glob(data_args.train_file)
+                    for file in data_files['train']:
+                        d = datasets.load_from_disk(file)
+                        print(len(d))
+                        train_datasets.append(d)
+                    train_dataset = concatenate_datasets(train_datasets)
+                    print(len(train_dataset))
+                    raw_datasets['train'] = train_dataset
+                
+                if data_args.eval_file is not None:
+                    data_files['validation'] = glob.glob(data_args.eval_file)
+                    for file in data_files['validation']:
+                        d = datasets.load_from_disk(file)
+                        print(len(d))
+                        eval_datasets.append(d)
+                    eval_dataset = concatenate_datasets(eval_datasets)
+                    print(len(eval_dataset))
+                    raw_datasets['validation'] = eval_dataset
+            else:
+                if data_args.train_file is not None: 
+                    data_files['train'] = glob.glob(data_args.train_file)
+                    raw_datasets["train"] = datasets.load_dataset(
+                        data_args.data_file_format, 
+                        data_files={"train": data_files["train"]}, 
+                        split="train",
+                        cache_dir=model_args.cache_dir
+                    )
+                if data_args.eval_file is not None: 
+                    data_files['validation'] = glob.glob(data_args.eval_file)
+                    raw_datasets["validation"] = datasets.load_dataset(
+                        data_args.data_file_format, 
+                        data_files={"validation": data_files["validation"]}, 
+                        split="validation",
+                        cache_dir=model_args.cache_dir
+                    )        
         else:
             if data_args.dataset_name == "natural_questions":
                 raw_datasets = datasets.load_dataset(
@@ -477,7 +542,11 @@ def main():
             max_q_char_len=data_args.max_q_char_len,
             single_context_multiple_passages=data_args.single_context_multiple_passages,
             max_contexts=data_args.max_contexts,
-            max_answer_len=data_args.max_answer_length
+            max_answer_len=data_args.max_answer_length,
+            discard_duplicate_spans = data_args.discard_duplicate_spans,
+            exclude_passage_answers = data_args.exclude_passage_answers,
+            long_answer_as_short_answer = data_args.long_answer_as_short_answer,
+            adapted_on_disk = adapted_on_disk_train[i]
         )
     for i, p in enumerate(validation_preprocessors):
         if isinstance(p, str):
@@ -493,7 +562,8 @@ def main():
             max_q_char_len=data_args.max_q_char_len,
             single_context_multiple_passages=data_args.single_context_multiple_passages,
             max_contexts=data_args.max_contexts,
-            max_answer_len=data_args.max_answer_length
+            max_answer_len=data_args.max_answer_length,
+            adapted_on_disk = adapted_on_disk_validation[i]
         )
 
     # if filtering, check that both column name and column values are provided
@@ -511,6 +581,8 @@ def main():
                 train_examples = train_examples.filter(lambda example: example[data_args.dataset_filter_column_name] in (data_args.dataset_filter_column_values))
                 train_examples = train_examples.shuffle(seed=training_args.seed)
                 logger.info(f"Filtered TRAIN dataset size {train_examples.num_rows}")
+            else:
+                train_examples = train_examples.shuffle(seed=training_args.seed)
             train_examples = [train_examples]
         # Train feature creation
         _, train_datasets = process_raw_datasets(train_examples, train_preprocessors, training_args,
@@ -552,6 +624,7 @@ def main():
         k=data_args.n_best_logits,
         n_best_size=data_args.n_best_size,
         max_answer_length=data_args.max_answer_length,
+        min_answer_length=data_args.min_answer_length,
         scorer_type=SupportedSpanScorers(scorer_type),
         single_context_multiple_passages=train_preprocessors[0]._single_context_multiple_passages,
         confidence_model_path=model_args.confidence_model_path,

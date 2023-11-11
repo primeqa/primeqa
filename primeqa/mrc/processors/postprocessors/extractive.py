@@ -15,6 +15,7 @@ from datetime import datetime
 import torch
 import logging
 from transformers import EvalPrediction
+import math
 
 from primeqa.mrc.processors.postprocessors.abstract import AbstractPostProcessor
 from primeqa.mrc.processors.postprocessors.scorers import initialize_scorer
@@ -102,8 +103,15 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 if input_feature['example_id'] != example_id:
                     raise ValueError(f"Example id mismatch between example ({example_id}) "
                                  f"and feature ({input_feature['example_id']})")
+                
                 start_logits = example_start_logits[i].tolist()
                 end_logits = example_end_logits[i].tolist()
+
+                offset_mapping = input_feature["offset_mapping"]
+
+                start_logits = (np.exp(start_logits[:len(offset_mapping)])/(np.exp(start_logits[:len(offset_mapping)]).sum())).tolist()
+                end_logits = (np.exp(end_logits[:len(offset_mapping)])/(np.exp(end_logits[:len(offset_mapping)]).sum())).tolist()
+
                 target_type_logits = example_targettype_preds[i].tolist()
 
                 if example_start_stdev is not None and example_end_stdev is not None \
@@ -115,11 +123,11 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                     start_stdev = [0.0] * len(start_logits)
                     end_stdev = [0.0] * len(end_logits)
                     query_passage_similarity = 0.0
-                offset_mapping = input_feature["offset_mapping"]
 
                 token_is_max_context = input_feature.get("token_is_max_context", None)
                 # Update minimum null prediction.
-                feature_null_score = start_logits[0] + end_logits[0]
+                feature_null_score = math.sqrt(start_logits[0] * end_logits[0])
+                # feature_null_score_sm = start_logits_sm[0] + end_logits_sm[0]
                 if min_null_prediction is None or min_null_prediction["score"] > feature_null_score:
                     min_null_prediction = {
                         "offsets": (0, 0),
@@ -128,23 +136,31 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         "end_logit": end_logits[0],
                     }
 
-                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
-                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 : -self._n_best_size - 1 : -1].tolist()
+                start_indexes = np.argsort(start_logits[:len(offset_mapping)])[-1 :  : -1].tolist() #  -self._n_best_size - 1 
+                end_indexes = np.argsort(end_logits[:len(offset_mapping)])[-1 :  : -1].tolist() #  -self._n_best_size - 1 
+                
+                added_count = 0
                 for start_index in start_indexes:
+                    if (
+                            start_index >= len(offset_mapping)
+                            or offset_mapping[start_index] is None
+                            or len(offset_mapping[start_index]) < 2
+                        ):
+                            continue
                     for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
                     # to part of the input_ids that are not in the context.
                         if (
-                            start_index >= len(offset_mapping)
-                            or end_index >= len(offset_mapping)
-                            or offset_mapping[start_index] is None
-                            or len(offset_mapping[start_index]) < 2
+                            end_index >= len(offset_mapping)
                             or offset_mapping[end_index] is None
                             or len(offset_mapping[end_index]) < 2
                         ):
                             continue
                         # Don't consider answers with a length that is either < 0 or > max_answer_length.
                         if end_index < start_index or end_index - start_index + 1 > self._max_answer_length:
+                            continue
+                        # Don't consider answers with a length that is either < 0 or < min_answer_length.
+                        if end_index - start_index + 1 < self._min_answer_length:
                             continue
                         # Don't consider answer that don't have the maximum context available (if such information is
                         # provided).
@@ -171,6 +187,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         span_answer_text = passage_text[offset_mapping[start_index][0]:offset_mapping[end_index][1]]
                         span_answer_score = self._score_calculator(start_logits[start_index] + end_logits[end_index],
                                                 feature_null_score, target_type_logits)
+                        
                         prelim_predictions.append(
                         {
                             'example_id': input_feature['example_id'],
@@ -184,6 +201,7 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'span_answer_score' : span_answer_score,
                             'start_index': start_index,
                             'end_index':   end_index,
+                            'start_end_score': math.sqrt(start_logits[start_index] * end_logits[end_index]),
                             'passage_index' : context_idx,
                             'target_type_logits': target_type_logits,
                             'span_answer_text': span_answer_text,
@@ -192,8 +210,54 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                             'end_stdev': end_stdev[end_index],
                             'query_passage_similarity': query_passage_similarity
                         }
-                    )
-            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)[:self._k]
+                        )
+                        added_count += 1
+                        if self._n_best_size == added_count:
+                            break
+                    if self._n_best_size == added_count:
+                        break
+            example_predictions = sorted(prelim_predictions, key=itemgetter('span_answer_score'), reverse=True)
+
+            # here let's discard overlapping spans (keep the first one only) 
+            discard_overlaps = True
+            if discard_overlaps:
+                seen_start = {}
+                seen_end = {}
+                new_example_predictions = []
+                for example in example_predictions:
+                    add_new = True
+                    sort_position = 0
+                    if example['passage_index'] in seen_start:
+                        for index in range(len(seen_start[example['passage_index']])):
+                            if seen_start[example['passage_index']][index] < example['span_answer']['start_position']:
+                                sort_position = index
+                            # skip if any overlap
+                            if (example['span_answer']['start_position'] >= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] <= seen_end[example['passage_index']][index]) or \
+                                (example['span_answer']['start_position'] <= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] <= seen_end[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_start[example['passage_index']][index]) or \
+                                (example['span_answer']['start_position'] >= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_end[example['passage_index']][index] and \
+                                example['span_answer']['start_position'] <= seen_end[example['passage_index']][index] or \
+                                example['span_answer']['start_position'] <= seen_start[example['passage_index']][index] and \
+                                example['span_answer']['end_position'] >= seen_end[example['passage_index']][index]):
+                                add_new = False
+                                break
+                    if add_new:
+                        if example['passage_index'] not in seen_start:
+                            seen_start[example['passage_index']] = []
+                            seen_end[example['passage_index']] = []
+                        seen_start[example['passage_index']].append(example['span_answer']['start_position'])
+                        seen_end[example['passage_index']].append(example['span_answer']['end_position'])
+                        new_example_predictions.append(example)
+                    if len(new_example_predictions) >= self._k:
+                        example_predictions = new_example_predictions
+                        break
+                example_predictions = new_example_predictions[:self._k]
+            else:
+                example_predictions = example_predictions[:self._k]
+
             all_predictions[example_id] = example_predictions
 
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
@@ -207,7 +271,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                         'start_logit': 0.0, 
                         'end_logit': 0.0, 
                         'span_answer': {'start_position': -1, 'end_position': -1,},
-                        'span_answer_score': 0.0, 
+                        'span_answer_score': 0.0,
+                        'start_end_score': 0.0,
                         'span_answer_text': "empty", 
                         'start_index': -1,
                         'end_index':   -1,
@@ -271,6 +336,8 @@ class ExtractivePostProcessor(AbstractPostProcessor):
                 'end_position': top_pred['span_answer']['end_position'],
                 'passage_index': top_pred['passage_index'],
                 'yes_no_answer': top_pred['yes_no_answer'],
+                'no_answer_score': top_pred['cls_score'],
+                'answer_score': top_pred['start_end_score'],
                 'confidence_score': top_pred['span_answer_score']
             }
             predictions_for_metric.append(prediction_for_metric)
