@@ -1,0 +1,26 @@
+name: udapdr
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - cudatoolkit=11.3.1
+  - datasets
+  - faiss-gpu
+  - ipykernel
+  - ipywidgets
+  - jupyter
+  - numpy
+  - openai
+  - pandas
+  - pip=21.0
+  - pytorch=1.13.1
+  - scipy
+  - tqdm
+  - transformers
+  - pip:
+    - -e ../.. # primeqa
+    - dsp-ml==0.1.4
+

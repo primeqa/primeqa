@@ -12,19 +12,19 @@ from primeqa.ir.dense.colbert_top.colbert import Indexer, Searcher
 
 #############################################################################
 
-def evaluate(CKPT, experiment, chosen_collection, chosen_queries, index=True):
+def evaluate(CKPT, experiment_name, chosen_collection, chosen_queries, index=True):
     split = "dev"
     nbits = 2
     k = 1000
     collection = chosen_collection
     queries = chosen_queries
-    experiment = (f"{experiment}.nbits={nbits}",)
+    experiment = f"{experiment_name}.nbits={nbits}"
 
     if not os.path.exists(collection):
         print(f"No data found for {dataset} at {collection}, skipping...")
         return
     with Run().context(RunConfig(nranks=1)):
-        INDEX_NAME = f"{experiment}.nbits={nbits}.latest"
+        INDEX_NAME = f"{experiment_name}.nbits={nbits}.latest"
 
         if index:
             config = ColBERTConfig(
@@ -56,7 +56,7 @@ def evaluate(CKPT, experiment, chosen_collection, chosen_queries, index=True):
             device = "gpu"
         ranking = searcher.search_all(queries, k=k)
         ranking_output_path = ranking.save(
-            f"{experiment}.k=1000.device={device}.ranking.tsv"
+            f"{experiment_name}.k=1000.device={device}.ranking.tsv"
         )
         return ranking_output_path
 
@@ -65,11 +65,11 @@ def evaluate(CKPT, experiment, chosen_collection, chosen_queries, index=True):
 def generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, CKPT, chosen_split, chosen_type, chosen_set, given_process_number, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder, re_index=True):
 
 	if LoTTE_or_BEIR == "LoTTE":
-		experiment = "ColBERTv2_Zeroshot:_FLAN_XXL_" + chosen_split + "_" + chosen_type  + "_" + chosen_set +  "_" + str(given_process_number)
+		experiment_name = "ColBERTv2_Zeroshot:_FLAN_XXL_" + chosen_split + "_" + chosen_type  + "_" + chosen_set +  "_" + str(given_process_number)
 		chosen_collection = downloads_folder + "/lotte/" + chosen_split + "/" + chosen_set + "/collection.tsv" 
 		chosen_queries = downloads_folder + "/lotte/" + chosen_split + "/" + chosen_set + "/questions." + chosen_type + ".tsv"
 	elif LoTTE_or_BEIR == "BEIR":
-		experiment = "ColBERTv2_Zeroshot:_FLAN_XXL_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set  + "_" + chosen_BEIR_type +  "_" + str(given_process_number)
+		experiment_name = "ColBERTv2_Zeroshot:_FLAN_XXL_" + LoTTE_or_BEIR + "_" + chosen_BEIR_set  + "_" + chosen_BEIR_type +  "_" + str(given_process_number)
 		chosen_collection = downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/collection.tsv" 
 		chosen_queries = downloads_folder + "/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/questions.tsv"
 
@@ -81,7 +81,7 @@ def generate_ColBERTv2_zeroshot_results(synthetic_queries_filename, CKPT, chosen
 
 	print("About to start indexing function!")
 
-	ranking_output_path = evaluate(CKPT, experiment, chosen_collection, chosen_queries, index=re_index)
+	ranking_output_path = evaluate(CKPT, experiment_name, chosen_collection, chosen_queries, index=re_index)
 	return ranking_output_path
 
 
