@@ -47,7 +47,10 @@ def is_csv(filename: str):
     return any(filename.endswith(ext) for ext in
                ['.csv', '.csv.gz', '.csv.bz2'])
 
-
+def is_csv(filename: str):
+    return any(filename.endswith(ext) for ext in
+               ['.csv', '.csv.gz', '.csv.bz2'])
+    
 def list_corpus_files(*input_files: typing.Union[str, bytes, os.PathLike]):
     all_files = []
     for input_file in input_files:
