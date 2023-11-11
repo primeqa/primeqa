@@ -146,10 +146,26 @@ store
         ├── config.json
         ├── pytorch_model.bin
         └── tokenizer.json
+        └── confidence_model.bin
+
 ```
 ### Drop in a Reader model 
 
-Create a directory under `models` and copy `pytorch_model.bin`, `config.json` and `tokenizer.json` files into the direcotory.
+Create a directory under `models` and copy `pytorch_model.bin`, `config.json` and `tokenizer.json` files into the directory.
+
+### Drop in a Extractive Reader Confidence Model
+
+An confidence model is an optional model, specifically trained and evaluated with respect to a Extractive Reader model and must be setup and associated with the reader model in the store. 
+
+Create a directory under `models` with the same name as the reader model. 
+
+For example, if the reader model is called `PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110`, name the subdirectory
+`nq_tydi_sq1-reader-xlmr_large-20221110`.  
+
+Place the model trained using [Confidence Calibration](../calibration/README.md) in this subdirectory.  The model file must be named `confidence_model.bin`.
+
+
+
 
 ### Drop in a Reranker model 
 

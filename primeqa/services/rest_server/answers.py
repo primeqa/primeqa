@@ -24,9 +24,12 @@ from primeqa.services.factories import READERS_REGISTRY, ReaderFactory
 from primeqa.components.reader.extractive import ExtractiveReader
 from primeqa.components.reader.generative import GenerativeFiDReader
 from primeqa.services.rest_server.data_models import GetAnswersRequest, Answer
+from primeqa.services.store import StoreFactory
 
 router = APIRouter()
 
+# Fetch store instance
+STORE = StoreFactory.get_store()
 
 @router.post(
     "/GetAnswersRequest",
@@ -58,6 +61,12 @@ def get_answers(request: GetAnswersRequest):
         reader_kwargs = {
             k: v.default for k, v in reader.__dataclass_fields__.items() if v.init
         }
+        
+        confidence_model = STORE.get_confidence_model_file_path(
+            model_id=request.model
+        )
+        if os.path.exists(confidence_model):
+            reader_kwargs["confidence_model"] = confidence_model
 
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:

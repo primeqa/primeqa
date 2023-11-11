@@ -204,6 +204,11 @@ answers = reader.predict(question,context)
 print(json.dumps(answers, indent=4))  
 ```
 
+### Extractive Reader with Confidence Calibration
+
+Optionally, the `ExtractiveReader` can be configured to use a confidence calibration model via the `confidence_model` argument to the constructor.  
+Please see [Confidence Calibration](../calibration/README.md) on how to train a confidence model.
+
 ### Generative Reader
 
 A Generative Reader takes a question and uses a set of supporting passages to generate an answer. In contrast to the Extractive Reader, where the answers are usually short spans extracted from the input passages, the Generative Reader generates complex, multi-sentence answers.
