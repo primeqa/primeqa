@@ -86,7 +86,17 @@ class ROUGE(datasets.Metric):
         kilt_scores_for_ground_truths = []
         google_scores_for_ground_truths = []
         for ground_truth in ground_truths:
-            hf_score, kilt_score = self._rougel_score(prediction, ground_truth)
+            # no answer
+            if ground_truth == "":
+                if prediction == "unanswerable":
+                    hf_score = kilt_score = 1
+                else:
+                    hf_score = kilt_score = 0
+            # predicted no answer when there is one
+            elif prediction == "unanswerable":
+                hf_score = kilt_score = 0
+            else:
+                hf_score, kilt_score = self._rougel_score(prediction, ground_truth)
             google_scores_for_ground_truths.append(hf_score)
             kilt_scores_for_ground_truths.append(kilt_score)
         return max(google_scores_for_ground_truths), max(kilt_scores_for_ground_truths)

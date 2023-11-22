@@ -13,7 +13,7 @@ def load_json_from_file(gt_file_patterns):
         f = open(gt_file_patterns, 'rt', encoding='utf-8')
     return f.readlines()
 
-# spacy.cli.download('en_core_web_sm')
+spacy.cli.download('en_core_web_sm')
 
 '''
 {
@@ -61,7 +61,7 @@ def convert(example):
     # for dev set taking first one as answer (this may need to be different)
     annotation = example['annotations'][0]
 
-    passage_offsets = example['passage_answer_candidates'][annotation['passage_answer']['candidate_index']]
+    passage_offsets = example['passage_answer_candidates'][annotation['neg_candidate_passage']]
     passage_text = example['document_plaintext'].encode('utf-8')[passage_offsets['plaintext_start_byte']:passage_offsets['plaintext_end_byte']].decode('utf-8')
     
     passage_sentences = ""
@@ -79,20 +79,20 @@ def convert(example):
     passage["text"] = passage_text
     passage['sentences'] = split_sentences
     eli5_format['passages'] = [passage]
-    eli5_format['output'] = [{'answer': None, 'meta':None}]
+    eli5_format['output'] = [{'answer': None, 'meta': {"skip": False, "non_consecutive": False, "round": 0, "annotator": [], "has_minimal_answer": False}, "selected_sentences": []}]
 
     return eli5_format
 
 def main():
 
-    files = glob("/dccstor/srosent2/generative/appen/final/longNQ_test_unanswerable_tydi.jsonl")
+    files = glob("/dccstor/srosent2/generative/appen/final/original_tydi/*/longNQ_*_unanswerable_tydi.jsonl")
 
     eli5data = []
 
     for file in files:
         lines = load_json_from_file(file)
 
-        with open(file.replace('tydi.','eli5.'),'wb') as writer:
+        with open(file.replace('_tydi.','.').replace('original_tydi','longNQ'),'wb') as writer:
             for line in lines:
                 writer.write((json.dumps(convert(json.loads(line))) + "\n").encode())
 

@@ -3,6 +3,7 @@ from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredicti
 from transformers import PreTrainedTokenizerFast
 from datasets import Dataset
 from typing import List, Dict, Any, Tuple
+import numpy as np
 
 class ELI5FiDPostProcessor(AbstractPostProcessor):
     """
@@ -26,6 +27,7 @@ class ELI5FiDPostProcessor(AbstractPostProcessor):
         preds = predictions.predictions
         if isinstance(preds, tuple):
             preds = preds[0]
+        preds = np.where(preds != -100, preds, self.tokenizer.pad_token_id)
         decoded_preds = self.tokenizer.batch_decode(preds, skip_special_tokens=True)
 
         # Build a map example to its corresponding features.

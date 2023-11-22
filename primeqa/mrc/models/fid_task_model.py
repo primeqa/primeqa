@@ -95,6 +95,8 @@ class FiDModelForDownstreamTasks(PreTrainedModel):
     def generate(self, input_ids, **gen_kwargs):
         encoder = self.get_encoder()
         encoder.n_passages = input_ids.size(1)
+        if 'labels' in gen_kwargs:
+            del gen_kwargs['labels']
         return super().generate(
             input_ids,
             **gen_kwargs

@@ -18,6 +18,9 @@ import apache_beam as beam
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments, DataCollatorWithPadding, AutoConfig, AutoTokenizer
 from transformers.trainer_utils import get_last_checkpoint, set_seed
 
+from peft import LoraConfig, get_peft_model, prepare_model_for_int8_training, TaskType
+from peft import PeftModel, PeftConfig
+
 from primeqa.mrc.data_models.eval_prediction_with_processing import EvalPredictionWithProcessing
 from primeqa.mrc.metrics.tydi_f1.tydi_f1 import TyDiF1
 from primeqa.mrc.metrics.mlqa.mlqa import MLQA
@@ -49,7 +52,7 @@ from primeqa.text_classification.run_nway_classifier import main as cls_main
 from primeqa.mrc.trainers.seq2seq_mrc import MRCSeq2SeqTrainer
 from primeqa.boolqa.run_score_normalizer import main as sn_main
 from run_mrc_utils import object_reference, get_raw_datasets, process_raw_datasets
-from primeqa.tableqa.run_tableqa import run_table_qa
+#from primeqa.tableqa.run_tableqa import run_table_qa
 
 
 
@@ -78,6 +81,19 @@ class ModelArguments:
     confidence_model_path: str = field(
         default=None,
         metadata={"help": "Path to the confidence calibration model"}
+    )
+    use_lora: bool = field(
+        default=False, metadata={"help": "Use LoRA for fine tuning"}
+    )
+    lora_id: str = field(
+        default="lora", metadata={"help": "id for saving fine tuned LoRA model"}
+    )
+    use_int8: bool = field(
+        default=False, metadata={"help": "Use int8 to quantize LM"}
+    )
+    target_modules: str = field(
+        default="q_v",
+        metadata={"help": "Target modules in LoRA config"}
     )
 
 @dataclass
@@ -377,9 +393,9 @@ def main():
             )
 
     # Run Table Question Answering        
-    if task_args.modality=="table":
-        run_table_qa(data_args,model_args,training_args)
-        sys.exit(0)
+    #if task_args.modality=="table":
+    #    run_table_qa(data_args,model_args,training_args)
+    #    sys.exit(0)
 
     task_heads = task_args.task_heads
     config = AutoConfig.from_pretrained(
@@ -398,13 +414,75 @@ def main():
     config.decoding_times_with_dropout = task_args.decoding_times_with_dropout
 
     model_class = task_args.task_model
-    model = model_class.from_config(
-        config,
-        model_args.model_name_or_path,
-        task_heads=task_heads,
-        cache_dir=model_args.cache_dir,
-    )
+    if model_args.use_int8:
+        model = model_class.from_config(
+            config,
+            model_args.model_name_or_path,
+            task_heads=task_heads,
+            cache_dir=model_args.cache_dir,
+            load_in_8bit=True,
+            device_map="auto",
+        )
+    else:
+        model = model_class.from_config(
+            config,
+            model_args.model_name_or_path,
+            task_heads=task_heads,
+            cache_dir=model_args.cache_dir,
+        )
     model.set_task_head(next(iter(task_heads)))
+
+    if model_args.use_lora:
+        logger.info("Using LoRA")
+#        logger.info("Freeze base model ...")
+#        for param in model.parameters():
+#            param.requires_grad = False
+        #print("base model")
+        #print(model, flush=True)
+        if model_args.use_int8:
+            # prepare int-8 model for training
+            model = prepare_model_for_int8_training(model)
+
+        if os.path.isdir(model_args.lora_id):
+            lora_config_path = model_args.lora_id
+        elif os.path.isdir(os.path.join(model_args.model_name_or_path, model_args.lora_id)):
+            lora_config_path = os.path.join(model_args.model_name_or_path, model_args.lora_id)
+        else:
+            lora_config_path = None
+#       print("lora config path", lora_config_path)
+        if lora_config_path is not None and os.path.isfile(os.path.join(lora_config_path, "adapter_config.json")) \
+            and os.path.isfile(os.path.join(lora_config_path, "adapter_model.bin")):
+            logger.info(f"Found LoRA config and model files in {lora_config_path}")
+            model = PeftModel.from_pretrained(model, lora_config_path)
+        else:
+            logger.info("Create LoRA config")
+            # Define LoRA Config
+            if model_args.target_modules == "q_v":
+                target_modules = ["q", "v"]
+            elif model_args.target_modules == "q_k_v":
+                target_modules = ["q", "k", "v"]
+            elif model_args.target_modules == "q_k_v_o":
+                target_modules = ["q", "k", "v", "o"]
+            elif model_args.target_modules == "wi":
+                target_modules = ["wi_0", "wi_1"]
+            elif model_args.target_modules == "wi_wo":
+                target_modules = ["wi_0", "wi_1", "wo"]
+            elif model_args.target_modules == "all":
+                target_modules = ["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
+                    #["q_proj", "k_proj", "v_proj", "out_proj", "fc_in", "fc_out"]
+                    #["q", "k", "v", "o", "wi_0", "wi_1", "wo"]
+            print("target_modules:", target_modules)
+            lora_config = LoraConfig(
+                r=16,
+                lora_alpha=32,
+                target_modules=target_modules,
+                lora_dropout=0.05,
+                bias='none',
+                task_type=TaskType.CAUSAL_LM #SEQ_2_SEQ_LM
+            )
+            # add LoRA adaptor
+            model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
     # load data
     if data_args.train_fof is not None or data_args.eval_fof is not None:
@@ -589,6 +667,14 @@ def main():
     # training
     if training_args.do_train:
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        if model_args.use_lora:
+            lora_path = os.path.join(training_args.output_dir, model_args.lora_id)
+            # Save our LoRA model & tokenizer results
+            logger.info("Save LoRA model")
+            trainer.model.save_pretrained(lora_path)
+            tokenizer.save_pretrained(lora_path)
+            # if you want to save the base model to call
+            #trainer.model.base_model.save_pretrained(lora_path)
         trainer.save_model()  # Saves the tokenizer too for easy upload
 
         metrics = train_result.metrics
@@ -600,11 +686,13 @@ def main():
 
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
+
         trainer.save_state()
 
     # validation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
+        print(trainer.model, flush=True)
         metrics = trainer.evaluate()
 
         if data_args.eval_fof is None:
@@ -613,6 +701,30 @@ def main():
 
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
+
+        output_file = os.path.join(training_args.output_dir, "model_generate.eval_set")
+        OUT = open(output_file, "w")
+        answers = []
+        for i in range(len(eval_dataset)):
+            id = eval_dataset[i]['example_id']
+            input_ids = torch.LongTensor(eval_dataset[i]['input_ids']).unsqueeze(0).to(device='cuda')
+            attention_mask = torch.LongTensor(eval_dataset[i]['attention_mask']).unsqueeze(0).to(device='cuda')
+            outputs = model.generate(input_ids,
+                                     attention_mask=attention_mask,
+                                     max_length=256,
+                                     min_length=40,
+                                     num_beams=1,
+                                     repetition_penalty=2.5,
+                                     length_penalty=1.0,
+                                     early_stopping=True,
+                                     use_cache=False,
+                                     eos_token_id=tokenizer.convert_tokens_to_ids(tokenizer.eos_token))
+            prediction_text = " ".join(tokenizer.decode(outputs[0], skip_special_tokens=True).strip().split())
+            answers.append({
+                "id": id,
+                "prediction_text": prediction_text,
+            })
+        json.dump(answers, OUT, indent=4)
 
     if task_args.do_boolean:
         logger.info("Processing of boolean questions")
