@@ -7,8 +7,8 @@ from rouge_score import rouge_scorer
 
 rouge = rouge_scorer.RougeScorer(rouge_types=['rouge1',], split_summaries=False)
 
-do_corpus = False
-do_questions = True
+do_corpus = True
+do_questions = False
 unique_passages = None
 
 if do_corpus:
@@ -181,15 +181,17 @@ if do_corpus:
     print(f"{passages_with_questions} passages with {num_questions} questions and {num_passages} selected passages.")
     print(f"Num unique passages: {len(unique_passages)}/{count}")
     # dump passages to tsv
-    pd.DataFrame.from_dict(unique_passages, orient='index', columns=["id","text","title", "example_ids", "splits"]).drop(columns=["example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t")
-    pd.DataFrame.from_dict(unique_passages, orient='index', columns=["id","text","title","example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t")
+    unique_passages_df = pd.DataFrame.from_dict(unique_passages, orient='index', columns=["text","title", "example_ids", "splits"])
+    unique_passages_df.index.name = 'id'
+    unique_passages_df.drop(columns=["example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t")
+    unique_passages_df.to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t")
 
 if do_questions:
     # questions.tsv: <id> <question> <doc-id-list> <answers>
     # load longNQ data - make sep files for train, dev, test incorporate doc-ids and doc-passage-ids from above
 
     if unique_passages is None:
-        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","_","text","title","example_ids","splits"])
+        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
 
     data_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/*/*.jsonl")
 
