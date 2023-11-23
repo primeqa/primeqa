@@ -356,18 +356,29 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     if ri >= max_num_documents:
                         break
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-                    if remove_url:
-                        row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
-                    itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
-                           'id': row['id']}
-                    if 'title' in row:
-                        itm['title'] = remove_stopwords(row['title'], remv_stopwords)
-                    if 'relevant' in row:
-                        itm['relevant'] = row['relevant']
-                    if 'answers' in row:
-                        itm['answers'] = row['answers'].split("::")
-                        itm['passages'] = itm['answers']
-                    passages.append(itm)
+                    # if remove_url:
+                    #     row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
+                    # itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
+                    #        'id': row['id']}
+                    # if 'title' in row:
+                    #     itm['title'] = remove_stopwords(row['title'], remv_stopwords)
+                    # if 'relevant' in row:
+                    #     itm['relevant'] = row['relevant']
+                    # if 'answers' in row:
+                    #     itm['answers'] = row['answers'].split("::")
+                    #     itm['passages'] = itm['answers']
+                    # passages.append(itm)
+                    process_text(id=row['id'],
+                                             title=remove_stopwords(fix_title(row['title']), remv_stopwords),
+                                             text=remove_stopwords(row['text'], remv_stopwords),
+                                             max_doc_size=max_doc_size,
+                                             stride=stride,
+                                             remove_url=remove_url,
+                                             tokenizer=tokenizer,
+                                             doc_url=url,
+                                             uniform_product_name=uniform_product_name,
+                                             data_type=data_type
+                                             )
             elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
                 # This should be the SAP or BEIR json format
                 if input_file.endswith('.json'):
@@ -882,17 +893,17 @@ if __name__ == '__main__':
         )
     elif args.server == "CONVAI":
         print(f"Using the CONVAI server")
-        ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
-        ES_API_KEY = os.getenv("ES_API_KEY")
-        client = Elasticsearch("https://9.59.196.68:9200",
-                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                               api_key=ES_API_KEY
-                               )
-        try:
-            res = client.info()
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
+        # ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
+        # ES_API_KEY = os.getenv("ES_API_KEY")
+        # client = Elasticsearch("https://9.59.196.68:9200",
+        #                        ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+        #                        api_key=ES_API_KEY
+        #                        )
+        # try:
+        #     res = client.info()
+        # except Exception as e:
+        #     print(f"Error: {e}")
+        #     raise e
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
