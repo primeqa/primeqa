@@ -255,7 +255,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         if uniform_product_name:
             productId = uniform_product_name
         else:
-            productId = fields[-3] if fields[-3] != '#' else 'SAP_BUSINESS_ONE'
+            productId = "" if len(fields)==0 else fields[-3] if (len(fields)>3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
     else:
         productId = ""
         fields = ["", "", "", "", "", ""]
@@ -264,8 +264,8 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         productId = "SAP_SUCCESSFACTORS"
     itm = {
         'productId': productId,
-        'deliverableLoio': fields[-2],
-        'filePath': fields[-1],
+        'deliverableLoio': ("" if doc_url=="" else fields[-2]),
+        'filePath': "" if doc_url=="" else fields[-1],
         'title': title,
         'url': doc_url,
         'app_name': "",
@@ -282,10 +282,11 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         # The normalization below deals with some issue in the re library - it would get stuck
         # if the URL has some strange chars, like `\xa0`.
         text = re.sub(url, 'URL', unicodedata.normalize("NFKD", text))
+    expanded_text = f"{title}\n{text}"
     if tokenizer is not None:
-        merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
+        merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
         if merged_length <= max_doc_size:
-            itm.update({'id': f"{id}-0-{len(text)}", 'text': text})
+            itm.update({'id': f"{id}-0-{len(text)}", 'text': expanded_text})
             pieces.append(itm.copy())
         else:
             maxl = max_doc_size  # - title_len
@@ -298,7 +299,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                 })
                 pieces.append(itm.copy())
     else:
-        itm.update({'id': id, 'text': text})
+        itm.update({'id': id, 'text': expanded_text})
         pieces.append(itm.copy())
     return pieces
 
@@ -578,7 +579,7 @@ def compute_score(input_queries, results):
 
     def update_scores(ranks, rnk, val, op, scores):
         j = 0
-        while j < len(ranks) and ranks[j] < rnk:
+        while j < len(ranks) and ranks[j] <= rnk:
             j += 1
         for k in ranks[j:]:
             # scores[k] += 1
@@ -970,6 +971,11 @@ if __name__ == '__main__':
                     print(f"Got an error in indexing: {e}")
                 t.update(bulk_batch)
             t.close()
+            if len(actions) > 0:
+                try:
+                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                except Exception as e:
+                    print(f"Got an error in indexing: {e}, {len(actions)}")
         elif args.db_engine == "es-elser":
             mappings = coga_mappings
             mappings['properties']['ml.tokens'] = {"type": "rank_features"}

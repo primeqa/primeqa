@@ -34,6 +34,7 @@ from primeqa.ir.dense.dpr_top.dpr.dpr_util import queries_to_vectors
 from primeqa.util.searchable_corpus import SearchableCorpus
 from libSIRE.timer import timer
 from math import log2
+from functools import partial
 
 def handle_args():
     usage = 'usage'
@@ -72,7 +73,7 @@ def handle_args():
     parser.add_argument("--max_num_docs", default=-1, type=int,
                         help="If defined, only the given number of "
                         "documents will be ingested (first <max_num_docs> documents).")
-    parser.add_argument("--es_server", default="https://9.59.196.68:9020", help="The ElasticSearch server.")
+    parser.add_argument("--es_server", default="https://9.59.196.68:9200", help="The ElasticSearch server.")
 
     args = parser.parse_args()
     if args.output_ranks == "":
@@ -99,7 +100,7 @@ def handle_args():
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "questions.tsv")
     else:
-        args.data = os.path.basename(os.path.dirname(args.inpu_passages))
+        args.data = os.path.basename(os.path.dirname(args.input_passages))
 
     if args.input_queries is None or args.input_passages is None:
         print("You need to define either the data dir (with --data) or both the passage file (using --input_passages) "
@@ -158,7 +159,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
             self.pqa = True
         elif model_type in ["chromadb", "milvus", "faiss", "es-dense"]:
             from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer(name, device=device).half()
+            self.model = SentenceTransformer(name, device=device)
             if torch.cuda.device_count() > 1:
                 self.start_pool()
             # self.model = nn.DataParallel(self.model)
@@ -195,7 +196,7 @@ class MyChromaEmbeddingFunction(EmbeddingFunction):
                 embs = self.model.encode(sentences=texts,
                                          normalize_embeddings=normalize_embeddings,
                                          batch_size=batch_size,
-                                         show_progress_bar=False
+                                         show_progress_bar=show_progress_bar
                                      )
         else:
             if len(texts) > batch_size:
@@ -222,6 +223,192 @@ def trim_passages(input_passages, max_doc_length):
         if len(a) > max_doc_length:
             passage['text'] = " ".join(a[:max_doc_length])
     return input_passages
+
+
+def create_update_index(client, mappings, settings, index_name, do_update):
+    def check_index_rebuild(index_name):
+        while True:
+            r = input(
+                f"Are you sure you want to recreate the index {index_name}? It might take a long time!! Say 'yes' or 'no':").strip()
+            if r == 'no':
+                print("OK - exiting. Run with '--actions r'")
+                sys.exit(0)
+            elif r == 'yes':
+                break
+            else:
+                print(f"Please type 'yes' or 'no', not {r}!")
+
+    if client.indices.exists(index=index_name):
+        if not do_update:
+            check_index_rebuild(index_name)
+            client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
+        else:
+            print(f"Using existent index {index_name}.")
+    else:
+        if do_update:
+            print("You are trying to update an index that does not exist "
+                  "- will ignore your command and create the index.")
+    if not client.indices.exists(index=index_name):
+        client.indices.create(index=index_name, mappings=mappings, settings=settings)
+
+def init_settings():
+    global settings, coga_mappings, standard_mappings
+    standard_mappings = {
+        "properties": {
+            "ml.tokens": {
+                "type": "rank_features"
+            },
+            "title": {"type": "text", "analyzer": "english"},
+            "text": {"type": "text", "analyzer": "english"},
+            "url": {"type": "text", "analyzer": "english"},
+        }
+    }
+    settings = {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "refresh_interval": "1m",
+        "analysis": {
+            "filter": {
+                "possessive_english_stemmer": {
+                    "type": "stemmer",
+                    "language": "possessive_english"
+                },
+                "light_english_stemmer": {
+                    "type": "stemmer",
+                    "language": "light_english"
+                },
+                "english_stop": {
+                    "ignore_case": "true",
+                    "type": "stop",
+                    "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
+                }
+            },
+            "analyzer": {
+                "text_en_no_stop": {
+                    "filter": [
+                        "lowercase",
+                        "possessive_english_stemmer",
+                        "light_english_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "text_en_stop": {
+                    "filter": [
+                        "lowercase",
+                        "possessive_english_stemmer",
+                        "english_stop",
+                        "light_english_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "whitespace_lowercase": {
+                    "tokenizer": "whitespace",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            },
+            "normalizer": {
+                "keyword_lowercase": {
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    }
+    coga_mappings = {
+        "_source": {
+            "enabled": "true"
+        },
+        "dynamic": "false",
+        "properties": {
+            "url": {
+                "type": "text"
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "fileTitle": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_paraphrases": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "productId": {
+                "type": "keyword"
+            },
+            "deliverableLoio": {
+                "type": "keyword",
+            },
+            "filePath": {
+                "type": "keyword",
+            },
+            "text": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "plainTextContent": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_and_text": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "app_name": {
+                "type": "text",
+                "analyzer": "text_en_no_stop",
+                "search_analyzer": "text_en_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "collection": {
+                "type": "text",
+                "fields": {
+                    "exact": {
+                        "normalizer": "keyword_lowercase",
+                        "type": "keyword",
+                        "doc_values": "false"
+                    }
+                }
+            }}
+    }
 
 
 def main():
@@ -263,10 +450,11 @@ def main():
     last_time = report_time(last_time)
     create_db = 'c' in args.actions
     insert_db = 'i' in args.actions
+    do_update = 'u' in args.actions
     delete_items_db = 'd' in args.actions
     insert_deleted_items = 'I' in args.actions
     retrieve_items = 'r' in args.actions
-    index_name = (f"{args.data}_{args.db_engine}_{args.model_name}_index").lower()
+    index_name = (f"{os.path.basename(args.data)}_{args.db_engine}_{os.path.basename(args.model_name)}").lower()
     index_name = re.sub('[^a-z0-9]', '-', index_name)
     if args.db_engine == "milvus":
         index_name = index_name.replace("-", "_")
@@ -332,6 +520,7 @@ def main():
         elif args.db_engine == "chromadb":
             # sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
             #     model_name=args.model_name, device="cuda")
+            init_settings()
             if args.index_dir is not None:
                 _client_settings = chromadb.config.Settings()
                 _client_settings = chromadb.config.Settings(
@@ -353,8 +542,10 @@ def main():
             create_milvusdb()
         elif args.db_engine == "faiss":
             pass
-        elif args.db_engine.startswith("es-dense"):
+        elif args.db_engine.startswith("es-"):
             from elasticsearch import Elasticsearch
+            from elasticsearch.helpers import bulk
+
             # ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
             # client = Elasticsearch("https://cloud.elastic.co/",# "https://localhost:9200",
             #                        # ca_certs = "/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
@@ -527,6 +718,7 @@ def main():
             index.train(to_index)
             index.add(to_index)
         elif args.db_engine == "es-dense":
+            init_settings()
             mappings = {
                 "properties": {
                     "title": {"type": "text", "analyzer": "english"},
@@ -535,16 +727,49 @@ def main():
                                "similarity": "cosine", "index": "true"},
                 }
             }
-            if client.indices.exists(index=index_name):
-                client.options(ignore_status=[400,404]).indices.delete(index=index_name)
-            client.indices.create(index=index_name, mappings=mappings)
+
+            create_update_index(client, mappings, settings, index_name, do_update)
+            # if client.indices.exists(index=index_name):
+            #     client.options(ignore_status=[400,404]).indices.delete(index=index_name)
+            # client.indices.create(index=index_name, mappings=mappings)
+            bulk_batch = args.ingestion_batch_size
+
+            num_passages = len(input_passages)
+
             import logging
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
-            for ri, row in enumerate(input_passages):
-                doc = {'text': row['text'],
-                       'title': row['title'],
-                       'vector': passage_vectors[ri]}
-                client.index(index=index_name, id=row['id'], document=doc)
+            keys_to_index = ['title','text']
+
+            tq = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
+            for k in range(0, num_passages, bulk_batch):
+                actions = [
+                    {
+                        "_index": index_name,
+                        "_id": row['id'],
+                        "_source": {k: row[k] for k in keys_to_index}
+                    }
+                    for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
+                ]
+                if args.db_engine == 'es-dense':
+                    for pi, (action, row) in enumerate(
+                            zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
+                        action["_source"]['vector'] = passage_vectors[pi + k]
+                try:
+                    bulk(client, actions=actions)
+                except Exception as e:
+                    print(f"Got an error in indexing: {e}")
+                tq.update(bulk_batch)
+            tq.close()
+            if len(actions) > 0:
+                try:
+                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                except Exception as e:
+                    print(f"Got an error in indexing: {e}, {len(actions)}")
+            # for ri, row in tqdm(enumerate(input_passages), desc="Indexing documents:"):
+            #     doc = {'text': row['text'],
+            #            'title': row['title'],
+            #            'vector': passage_vectors[ri]}
+            #     client.index(index=index_name, id=row['id'], document=doc)
         elif args.db_engine == "es-elser":
             mappings = {
                 "properties": {
@@ -606,6 +831,7 @@ def main():
                 bulk(client=client, actions=actions, pipeline="elser-v1-test")
             except Exception as e:
                 print(f"Got an error in indexing: {e}, {len(actions)}")
+            rr = client.indices.refresh(index=index_name)
         elif args.db_engine == "bm25":
             from ..sparse.indexer import PyseriniIndexer
             from ..sparse.retriever import PyseriniRetriever
@@ -734,22 +960,21 @@ def main():
                 )
                 for rank, hit in enumerate(ann[0]):
                     out_ranks.append([input_queries[query_number]['id'], ids[hit], rank + 1, distances[0][rank]])
-        elif args.db_engine == 'es':
-            for query_number in tqdm(range(len(input_queries))):
-                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
-                query = {
-                        "field": "vector",
-                        "query_vector": query_vector,
-                        "k": args.top_k,
-                        "num_candidates": 1000,
-                }
-                res = client.search(
-                    index=index_name,
-                    knn=query,
-                    source_excludes=['vector']
-                )
+        elif args.db_engine == 'es-dense':
+            rr = client.indices.refresh(index=index_name)
+            print(rr)
+            client.indices.flush(index=index_name)
+            search = partial(es_dense_search, args, model, client, index_name)
+            res1 = search(
+                input_query={'id': 0,
+                             'text': "This is just a query",
+                             'title': 'Random title'},
+                             )
+            for input_query in tqdm(input_queries):
+                res = search(input_query)
                 for rank, r in enumerate(res._body['hits']['hits']):
-                    out_ranks.append([input_queries[query_number]['id'], r['_id'], rank+1, r['_score']])
+                    out_ranks.append([input_query['id'], r['_id'], rank + 1, r['_score']])
+
         elif args.db_engine == 'es-elser':
             for query_number in tqdm(range(len(input_queries))):
                 # query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
@@ -795,7 +1020,7 @@ def main():
 
             def update_scores(ranks, rnk, scores, ndcg):
                 j = 0
-                while j<len(ranks) and ranks[j] < rnk:
+                while j<len(ranks) and ranks[j] <= rnk:
                     j += 1
                 for k in ranks[j:]:
                     scores[k] += 1
@@ -890,20 +1115,38 @@ def main():
     # if args.db_engine == 'pinecone':
     #     pinecone.delete_index(index_name)
         print('=== done computing scores')
-        last_time = report_time(last_time)
-        t.add_timing("Evaluate")
+        #last_time = report_time(last_time)
+        #t.add_timing("Evaluate")
     import io
     from contextlib import redirect_stdout
 
     # with open(args.output_ranks+".timing", "w") as sys.stdout:
     buf = io.StringIO()
     with redirect_stdout(buf):
-        timer.display_timing(t.milliseconds_since_beginning(), num_words=len(input_passages), num_chars=len(input_queries))
+        timer.display_timing(t.milliseconds_since_beginning(),
+                             num_words=len(input_passages),
+                             num_chars=len(input_queries))*1000
     # timer.display_timing(t.milliseconds_since_beginning(), num_words=len(input_passages), num_chars=len(input_queries))
     with open(args.output_ranks+".timing", "w") as out:
         out.write(buf.getvalue())
     print(buf.getvalue())
 
+
+def es_dense_search(args, model, client, index_name, input_query):
+    query_vector = compute_embedding(model, input_query['text'], args.normalize_embs)
+    query = {
+        "field": "vector",
+        "query_vector": query_vector,
+        "k": args.top_k,
+        "num_candidates": 1000,
+    }
+    res = client.search(
+        index=index_name,
+        knn=query,
+        size=args.top_k
+        # source_excludes=['vector']
+    )
+    return res
 
 def reverse_map(input_queries):
     rq_map = {}
