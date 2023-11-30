@@ -563,7 +563,10 @@ def compute_score(input_queries, results):
     pscores = {r: 0 for r in ranks}  # passage scores
     gt = {-1: -1}
     for q in input_queries:
-        gt[q['id']] = {id: 1 for id in q['relevant']}
+        if isinstance(q['relevant'], list):
+            gt[q['id']] = {id: 1 for id in q['relevant']}
+        else:
+            gt[q['id']] = {q['relevant']: 1}
 
     def skip(out_ranks, record, rid):
         qid = record[0]
@@ -586,9 +589,14 @@ def compute_score(input_queries, results):
             scores[k] = op([scores[k], val])
 
     def get_doc_id(label):
-        index = label.find("-")
+        index = label.rfind("-")
         if index >= 0:
-            return label[:index]
+            index = label.rfind("-", 0, index)
+            if index >= 0:
+                return label[:index]
+            else:
+                return label
+            # return label[:index]
         else:
             return label
 
