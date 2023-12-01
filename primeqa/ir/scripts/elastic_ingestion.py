@@ -329,7 +329,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
     doc_based = get_attr(kwargs, 'doc_based')
     max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
-    data_type = get_attr(kwargs, 'auto')
+    data_type = get_attr(kwargs, 'data_type')
     if fields is None:
         num_args = 3
     else:
@@ -391,7 +391,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     data = [json.loads(line) for line in open(input_file).readlines()]
                 uniform_product_name = get_attr(kwargs, 'uniform_product_name')
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
-                data_type = get_attr(kwargs, 'data_type', 'sap')
+                # data_type = get_attr(kwargs, 'data_type', 'sap')
                 if data_type in ['auto', 'sap']:
                     txtname = "document"
                     docidname = "document_id"
@@ -408,11 +408,15 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                     smoothing=0.05):
                     if di >= max_num_documents:
                         break
-                    docid = doc[docidname].replace(".txt", "")
+                    docid = doc[docidname]
+                    
+                    if ".txt" in docid:
+                        docid.replace(".txt", "")
+
                     if docid_filter != [] and docid not in docid_filter:
                         continue
                     url = doc['document_url'] if 'document_url' in doc else ""
-                    title = doc[titlename]
+                    title = doc[titlename] if 'title' in doc else None
                     if title is None:
                         title = ""
                     if docid in docname2url:
@@ -1076,10 +1080,10 @@ if __name__ == '__main__':
         if args.evaluate:
             input_queries = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"],
                                       docid_map=loio2docid,
-                                      remove_stopwords=args.remove_stopwords)
+                                      remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
         else:
             input_queries = read_data(args.input_queries, fields=["id", "text"],
-                                      remove_stopwords=args.remove_stopwords)
+                                      remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
 
         result = []
         if args.db_engine in ["es-dense"]:
