@@ -283,9 +283,9 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         # if the URL has some strange chars, like `\xa0`.
         text = re.sub(url, 'URL', unicodedata.normalize("NFKD", text))
     if tokenizer is not None:
-        merged_length = get_tokenized_length(tokenizer=tokenizer, text=text)
+        merged_length = get_tokenized_length(tokenizer=tokenizer, text=f"{title}\n{text}")
         if merged_length <= max_doc_size:
-            itm.update({'id': f"{id}-0-{len(text)}", 'text': text})
+            itm.update({'id': f"{id}-0-{len(text)}", 'text': f"{title}\n{text}"})
             pieces.append(itm.copy())
         else:
             maxl = max_doc_size  # - title_len
@@ -298,7 +298,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                 })
                 pieces.append(itm.copy())
     else:
-        itm.update({'id': id, 'text': text})
+        itm.update({'id': id, 'text': f"{title}\n{text}"})
         pieces.append(itm.copy())
     return pieces
 
@@ -356,29 +356,32 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     if ri >= max_num_documents:
                         break
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
-                    # if remove_url:
-                    #     row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
-                    # itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
-                    #        'id': row['id']}
-                    # if 'title' in row:
-                    #     itm['title'] = remove_stopwords(row['title'], remv_stopwords)
-                    # if 'relevant' in row:
-                    #     itm['relevant'] = row['relevant']
-                    # if 'answers' in row:
-                    #     itm['answers'] = row['answers'].split("::")
-                    #     itm['passages'] = itm['answers']
-                    # passages.append(itm)
-                    process_text(id=row['id'],
-                                             title=remove_stopwords(fix_title(row['title']), remv_stopwords),
-                                             text=remove_stopwords(row['text'], remv_stopwords),
-                                             max_doc_size=max_doc_size,
-                                             stride=stride,
-                                             remove_url=remove_url,
-                                             tokenizer=tokenizer,
-                                             doc_url=url,
-                                             uniform_product_name=uniform_product_name,
-                                             data_type=data_type
-                                             )
+                    if 'answers' in row:
+                        if remove_url:
+                            row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
+                        itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
+                               'id': row['id']}
+                        if 'title' in row:
+                            itm['title'] = remove_stopwords(row['title'], remv_stopwords)
+                        if 'relevant' in row:
+                            itm['relevant'] = row['relevant'].split(",")
+                        if 'answers' in row:
+                            itm['answers'] = row['answers'].split("::")
+                            itm['passages'] = itm['answers']
+                        passages.append(itm)
+                    else:
+                        passages.extend(
+                        process_text(id=row['id'],
+                            title=remove_stopwords(fix_title(row['title']), remv_stopwords) if 'title' in row else '',
+                            text=remove_stopwords(row['text'], remv_stopwords),
+                            max_doc_size=max_doc_size,
+                            stride=stride,
+                            remove_url=remove_url,
+                            tokenizer=tokenizer,
+                            doc_url=url,
+                            uniform_product_name=None,
+                            data_type=data_type
+                            ))
             elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
                 # This should be the SAP or BEIR json format
                 if input_file.endswith('.json'):
@@ -589,14 +592,15 @@ def compute_score(input_queries, results):
 
     def update_scores(ranks, rnk, val, op, scores):
         j = 0
-        while j < len(ranks) and ranks[j] < rnk:
+        while j < len(ranks) and ranks[j] <= rnk:
             j += 1
         for k in ranks[j:]:
             # scores[k] += 1
             scores[k] = op([scores[k], val])
 
     def get_doc_id(label):
-        index = label.find("-")
+        # find - from right side because id may have -
+        index = label.rfind("-",0,label.rfind("-")) # label.find("-")
         if index >= 0:
             return label[:index]
         else:
@@ -893,17 +897,17 @@ if __name__ == '__main__':
         )
     elif args.server == "CONVAI":
         print(f"Using the CONVAI server")
-        # ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
-        # ES_API_KEY = os.getenv("ES_API_KEY")
-        # client = Elasticsearch("https://9.59.196.68:9200",
-        #                        ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-        #                        api_key=ES_API_KEY
-        #                        )
-        # try:
-        #     res = client.info()
-        # except Exception as e:
-        #     print(f"Error: {e}")
-        #     raise e
+        ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
+        ES_API_KEY = os.getenv("ES_API_KEY")
+        client = Elasticsearch("https://9.59.196.68:9200",
+                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+                               api_key=ES_API_KEY
+                               )
+        try:
+            res = client.info()
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
@@ -955,7 +959,7 @@ if __name__ == '__main__':
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId', 'versionId'
+            keys_to_index = ['title', 'id', 'url', 'productId', #'versionId',
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
