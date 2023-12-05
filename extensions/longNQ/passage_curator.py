@@ -7,8 +7,9 @@ from rouge_score import rouge_scorer
 
 rouge = rouge_scorer.RougeScorer(rouge_types=['rouge1',], split_summaries=False)
 
-do_corpus = True
+do_corpus = False
 do_questions = False
+convert_to_beir = True
 unique_passages = None
 
 if do_corpus:
@@ -223,3 +224,26 @@ if do_questions:
                 print("error")
         print(file_name)
         pd.DataFrame(questions, columns=["id","question","doc-id-list","answers"]).to_csv(f"/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/question_{split}_{answerable}.tsv","\t", index=False)
+
+
+# to beir format (not done)
+# if convert_to_beir:
+#     passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", names=["_id","text","title"], delimiter="\t")
+#     questions_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/*/*.tsv")
+
+#     # corpus.jsonl 
+#     # {"_id": "3", "title": "", "text": "I'm not saying I don't like the idea ", "metadata": {}}
+#     passages["metadata"] = {}
+
+#     passages.to_json("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/beir_format/corpus.jsonl", lines=True, orient="records")
+
+#     # queries.jsonl (need to sep for train/dev and test to keep anonymity)
+#     # {"_id": "0", "text": "What is considered a business expense on a business trip?", "metadata": {}}
+
+#     for question_file in questions_files:
+#             questions = pd.read_csv(question_file, names=["_id","text","doc-id-list","answers"], delimiter="\t")
+
+#     # qrels test.tsv
+#     # query-id        corpus-id       score
+#     # 8       566392  1
+
