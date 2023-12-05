@@ -22,7 +22,7 @@ def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
-
+    
     parser.add_argument('--db_engine', '-e', default='es-dense',
                         choices=['es-dense', 'es-elser', 'es-bm25'], required=False)
     parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
@@ -135,7 +135,7 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     text = text[ind + len(title):]
 
             if not nlp:
-                nlp = pyizumo.load("en", parsers=['token', 'sentence'])
+                nlp = pyizumo.load("es", parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
@@ -505,7 +505,7 @@ def compute_embedding(model, input_query, normalize_embs):
 class MyEmbeddingFunction:
     def __init__(self, name, batch_size=128):
         import torch
-        device = 'cuda' if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else 'cpu'
+        device = 'cuda' if torch.cuda.is_available() else 'cpu' #"mps" if torch.backends.mps.is_available() else 'cpu'
         if device == 'cpu':
             print(f"You are using {device}. This is much slower than using "
                   "a CUDA-enabled GPU. If on Colab you can change this by "
@@ -843,6 +843,151 @@ def init_settings():
             }}
     }
 
+def init_settings_es():
+    global settings, coga_mappings, standard_mappings
+    standard_mappings = {
+        "properties": {
+            "ml.tokens": {
+                "type": "rank_features"
+            },
+            "title": {"type": "text", "analyzer": "spanish"},
+            "text": {"type": "text", "analyzer": "spanish"},
+            "url": {"type": "text", "analyzer": "spanish"},
+        }
+    }
+    settings = {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "refresh_interval": "1m",
+        "analysis": {
+            "filter": {
+                "light_stemmer": {
+                    "type": "stemmer",
+                    "language": "light_spanish"
+                },
+                "spanish_stop": {
+                    "ignore_case": "true",
+                    "type": "stop",
+                    "stopwords": ["_spanish_"]
+                }
+            },
+            "analyzer": {
+                "text_no_stop": {
+                    "filter": [
+                        "lowercase",
+                        "light_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "text_stop": {
+                    "filter": [
+                        "lowercase",
+                        "spanish_stop",
+                        "light_stemmer"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "whitespace_lowercase": {
+                    "tokenizer": "whitespace",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            },
+            "normalizer": {
+                "keyword_lowercase": {
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    }
+    coga_mappings = {
+        "_source": {
+            "enabled": "true"
+        },
+        "dynamic": "false",
+        "properties": {
+            "url": {
+                "type": "text"
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "fileTitle": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_paraphrases": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "productId": {
+                "type": "keyword"
+            },
+            "deliverableLoio": {
+                "type": "keyword",
+            },
+            "filePath": {
+                "type": "keyword",
+            },
+            "text": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "plainTextContent": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_and_text": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "app_name": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "collection": {
+                "type": "text",
+                "fields": {
+                    "exact": {
+                        "normalizer": "keyword_lowercase",
+                        "type": "keyword",
+                        "doc_values": "false"
+                    }
+                }
+            }}
+    }
 
 if __name__ == '__main__':
     parser = setup_argparse()
@@ -924,7 +1069,7 @@ if __name__ == '__main__':
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
     #                        )
-    init_settings()
+    init_settings_es()
     stopwords = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
@@ -974,6 +1119,7 @@ if __name__ == '__main__':
             keys_to_index = ['title', 'id', 'url', 'productId', #'versionId',
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
+            print (input_passages[0].keys())
             for k in range(0, num_passages, bulk_batch):
                 actions = [
                     {
