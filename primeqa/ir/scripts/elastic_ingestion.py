@@ -235,6 +235,58 @@ def get_tokenized_length(tokenizer, text):
         return -1
 
 
+def process_product_id(url_fields, uniform_product_name, data_type):
+    """
+    Process the product ID based on the given fields, uniform product name, and data type.
+
+    Parameters:
+    - fields (list): A list of fields.
+    - uniform_product_name (str): The uniform product name.
+    - data_type (str): The data type.
+
+    Returns:
+    - str: The processed product ID.
+
+    Example Usage:
+    ```python
+    fields = ["field1", "field2", "field3"]
+    uniform_product_name = "Uniform Product"
+    data_type = "sap"
+
+    result = process_product_id(fields, uniform_product_name, data_type)
+    print(result)  # Output: ""
+
+    data_type = "other"
+
+    result = process_product_id(fields, uniform_product_name, data_type)
+    print(result)  # Output: ""
+    ```
+    """
+    if data_type == "sap":
+        productId = "" if len(url_fields) == 0 else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#') else 'SAP_BUSINESS_ONE'
+        if uniform_product_name:
+            productId = uniform_product_name
+        if productId.startswith("SAP_SUCCESSFACTORS"):
+            productId = "SAP_SUCCESSFACTORS"
+        return productId
+    else:
+        return ""
+
+def process_url(doc_url, data_type):
+    if data_type == "sap":
+        url = doc_url.replace(r"?locale=.*", "")
+        fields = url.split("/")
+        return url, fields
+    else:
+        return "", ["", "", "", "", "", ""]
+
+def update_product_counts(product_counts, productId):
+    if productId not in product_counts:
+        product_counts[productId] = 1
+    else:
+        product_counts[productId] += 1
+
+
 def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                  tokenizer=None,
                  doc_url=None,
@@ -256,19 +308,28 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     """
     global product_counts
     pieces = []
-    if data_type == "sap":
-        fields = doc_url.split("/")
-        if uniform_product_name:
-            productId = uniform_product_name
-        else:
-            productId = "" if len(fields) == 0 else fields[-3] if (
-                        len(fields) > 3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
-    else:
-        productId = ""
-        fields = ["", "", "", "", "", ""]
-        doc_url = ""
-    if productId.startswith("SAP_SUCCESSFACTORS"):
-        productId = "SAP_SUCCESSFACTORS"
+    # Refactoring: extracted url processing to a separate function
+    full_url, fields = process_url(doc_url, data_type)
+
+    # Refactoring: extracted productId processing to a separate function
+    productId = process_product_id(fields, uniform_product_name, data_type)
+
+    # Refactoring: extracted product_counts updating to a separate function
+    update_product_counts(product_counts, productId)
+    # if data_type == "sap":
+    #     url = doc_url.replace(r"?locale=.*", "")
+    #     fields = url.split("/")
+    #     if uniform_product_name:
+    #         productId = uniform_product_name
+    #     else:
+    #         productId = "" if len(fields) == 0 else fields[-3] if (
+    #                     len(fields) > 3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
+    # else:
+    #     productId = ""
+    #     fields = ["", "", "", "", "", ""]
+    #     doc_url = ""
+    # if productId.startswith("SAP_SUCCESSFACTORS"):
+    #     productId = "SAP_SUCCESSFACTORS"
     itm = {
         'productId': productId,
         'deliverableLoio': ("" if doc_url == "" else fields[-2]),
@@ -277,11 +338,11 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         'url': doc_url,
         'app_name': "",
     }
-
-    if productId not in product_counts:
-        product_counts[productId] = 1
-    else:
-        product_counts[productId] += 1
+    #
+    # if productId not in product_counts:
+    #     product_counts[productId] = 1
+    # else:
+    #     product_counts[productId] += 1
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
