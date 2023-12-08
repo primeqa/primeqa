@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 from tqdm import tqdm
 import numpy as np
-from typing import List, Union, Tuple, Any
+from typing import List, Union, Any
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
@@ -16,6 +16,11 @@ product_counts = {}
 import urllib3
 
 urllib3.disable_warnings()
+
+languages = ['en', 'es', 'fr', 'pt', 'ja', 'de']
+
+settings = {}
+coga_mappings = {}
 
 
 def setup_argparse():
@@ -71,8 +76,9 @@ def setup_argparse():
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST'],
+    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
                         help="The server to connect to.")
+    parser.add_argument("--lang", default="en", choices=languages)
 
     return parser
 
@@ -255,7 +261,8 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         if uniform_product_name:
             productId = uniform_product_name
         else:
-            productId = "" if len(fields)==0 else fields[-3] if (len(fields)>3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
+            productId = "" if len(fields) == 0 else fields[-3] if (
+                        len(fields) > 3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
     else:
         productId = ""
         fields = ["", "", "", "", "", ""]
@@ -264,8 +271,8 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         productId = "SAP_SUCCESSFACTORS"
     itm = {
         'productId': productId,
-        'deliverableLoio': ("" if doc_url=="" else fields[-2]),
-        'filePath': "" if doc_url=="" else fields[-1],
+        'deliverableLoio': ("" if doc_url == "" else fields[-2]),
+        'filePath': "" if doc_url == "" else fields[-1],
         'title': title,
         'url': doc_url,
         'app_name': "",
@@ -311,19 +318,19 @@ def get_attr(args, val, default=None):
         return default
 
 
-def remove_stopwords(text: str, do_replace: bool = False) -> str:
+def remove_stopwords(text: str, lang, do_replace: bool = False) -> str:
     global stopwords, settings
     if not do_replace:
         return text
     else:
         if stopwords is None:
             stopwords = re.compile(
-                "\\b(?:" + "|".join(settings["analysis"]["filter"]["english_stop"]["stopwords"]) + ")\\b",
+                "\\b(?:" + "|".join(settings["analysis"]["filter"][f"{lang}_stop"]["stopwords"]) + ")\\b",
                 re.IGNORECASE)
         return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
 
 
-def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
+def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -359,11 +366,11 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
                     if 'answers' in row:
                         if remove_url:
-                            row['text'] = remove_stopwords(re.sub(url, 'URL', row['text']), remv_stopwords)
+                            row['text'] = remove_stopwords(re.sub(url, lang, 'URL', row['text']), remv_stopwords)
                         itm = {'text': (row["title"] + ' ' if 'title' in row else '') + row["text"],
                                'id': row['id']}
                         if 'title' in row:
-                            itm['title'] = remove_stopwords(row['title'], remv_stopwords)
+                            itm['title'] = remove_stopwords(row['title'], lang, remv_stopwords)
                         if 'relevant' in row:
                             itm['relevant'] = row['relevant'].split(",")
                         if 'answers' in row:
@@ -372,17 +379,18 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         passages.append(itm)
                     else:
                         passages.extend(
-                        process_text(id=row['id'],
-                            title=remove_stopwords(fix_title(row['title']), remv_stopwords) if 'title' in row else '',
-                            text=remove_stopwords(row['text'], remv_stopwords),
-                            max_doc_size=max_doc_size,
-                            stride=stride,
-                            remove_url=remove_url,
-                            tokenizer=tokenizer,
-                            doc_url=url,
-                            uniform_product_name=None,
-                            data_type=data_type
-                            ))
+                            process_text(id=row['id'],
+                                         title=remove_stopwords(fix_title(row['title']), lang,
+                                                                remv_stopwords) if 'title' in row else '',
+                                         text=remove_stopwords(row['text'], lang, remv_stopwords),
+                                         max_doc_size=max_doc_size,
+                                         stride=stride,
+                                         remove_url=remove_url,
+                                         tokenizer=tokenizer,
+                                         doc_url=url,
+                                         uniform_product_name=None,
+                                         data_type=data_type
+                                         ))
             elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
                 # This should be the SAP or BEIR json format
                 if input_file.endswith('.json'):
@@ -409,7 +417,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     if di >= max_num_documents:
                         break
                     docid = doc[docidname]
-                    
+
                     if ".txt" in docid:
                         docid.replace(".txt", "")
 
@@ -427,7 +435,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         if doc_based:
                             passages.extend(
                                 process_text(id=doc[docidname],
-                                             title=remove_stopwords(fix_title(title), remv_stopwords),
+                                             title=remove_stopwords(fix_title(title), args.lang, remv_stopwords),
                                              text=remove_stopwords(doc[txtname], remv_stopwords),
                                              max_doc_size=max_doc_size,
                                              stride=stride,
@@ -537,17 +545,18 @@ class MyEmbeddingFunction:
     def tokenizer(self):
         return self.model.tokenizer
 
-    def encode(self, texts: Union[str, List[str]], batch_size: int = -1) -> \
+    def encode(self, texts: Union[str, List[str]], _batch_size: int = -1) -> \
             Union[Union[List[float], List[int]], List[Union[List[float], List[int]]]]:
-        if batch_size == -1:
-            batch_size = self.batch_size
+        embs = []
+        if _batch_size == -1:
+            _batch_size = self.batch_size
         if not self.pqa:
             embs = self.model.encode(texts,
                                      show_progress_bar=False \
                                          if isinstance(texts, str) or \
-                                            max(len(texts), batch_size) <= 1 \
+                                            max(len(texts), _batch_size) <= 1 \
                                          else True
-                                     )
+                                     ).tolist()
         else:
             raise NotImplemented
             # if batch_size < 0:
@@ -608,15 +617,12 @@ def compute_score(input_queries, results):
 
     def get_doc_id(label):
         # find - from right side because id may have -
-        index = label.rfind("-",0,label.rfind("-"))
+        index = label.rfind("-", 0, label.rfind("-"))
         if index >= 0:
             return label[:index]
         else:
             return label
 
-    tmp_scores = scores.copy()
-    tmp_pscores = pscores.copy()
-    prev_id = -1
     rqmap = reverse_map(input_queries)
 
     num_eval_questions = 0
@@ -646,14 +652,14 @@ def compute_score(input_queries, results):
             scores[r] += int(tmp_scores[r] >= 1)
             pscores[r] += tmp_pscores[r]
 
-    res = {"num_ranked_queries": num_eval_questions,
-           "num_judged_queries": num_eval_questions,
-           "doc_scores":
-               {r: int(1000 * scores[r] / num_eval_questions) / 1000.0 for r in ranks},
-           "passage_scores":
-               {r: int(1000 * pscores[r] / num_eval_questions) / 1000.0 for r in ranks}
-           }
-    return res
+    _result = {"num_ranked_queries": num_eval_questions,
+               "num_judged_queries": num_eval_questions,
+               "doc_scores":
+                   {r: int(1000 * scores[r] / num_eval_questions) / 1000.0 for r in ranks},
+               "passage_scores":
+                   {r: int(1000 * pscores[r] / num_eval_questions) / 1000.0 for r in ranks}
+               }
+    return _result
 
 
 def check_index_rebuild(index_name):
@@ -669,7 +675,7 @@ def check_index_rebuild(index_name):
             print(f"Please type 'yes' or 'no', not {r}!")
 
 
-def create_update_index(index_name, do_update):
+def create_update_index(index_name, lang, do_update):
     if client.indices.exists(index=index_name):
         if not do_update:
             check_index_rebuild(index_name)
@@ -681,167 +687,32 @@ def create_update_index(index_name, do_update):
             print("You are trying to update an index that does not exist "
                   "- will ignore your command and create the index.")
     if not client.indices.exists(index=index_name):
-        client.indices.create(index=index_name, mappings=mappings, settings=settings)
+        client.indices.create(index=index_name, mappings=mappings[lang], settings=settings[lang])
 
 
 def init_settings():
+    def union(a, b):
+        if a == {}:
+            return b.deepcopy()
+        else:
+            c = a.deepcopy()
+            for k in b.keys():
+                if k in a:
+                    c[k] = union(a[k], b[k])
+                else:
+                    c[k] = b[k].deepcopy()
+        return c
+
     global settings, coga_mappings, standard_mappings
-    standard_mappings = {
-        "properties": {
-            "ml.tokens": {
-                "type": "rank_features"
-            },
-            "title": {"type": "text", "analyzer": "english"},
-            "text": {"type": "text", "analyzer": "english"},
-            "url": {"type": "text", "analyzer": "english"},
-        }
-    }
-    settings = {
-        "number_of_replicas": 0,
-        "number_of_shards": 1,
-        "refresh_interval": "1m",
-        "analysis": {
-            "filter": {
-                "possessive_english_stemmer": {
-                    "type": "stemmer",
-                    "language": "possessive_english"
-                },
-                "light_english_stemmer": {
-                    "type": "stemmer",
-                    "language": "light_english"
-                },
-                "english_stop": {
-                    "ignore_case": "true",
-                    "type": "stop",
-                    "stopwords": ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
-                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
-                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
-                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
-                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
-                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
-                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
-                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"]
-                }
-            },
-            "analyzer": {
-                "text_en_no_stop": {
-                    "filter": [
-                        "lowercase",
-                        "possessive_english_stemmer",
-                        "light_english_stemmer"
-                    ],
-                    "tokenizer": "standard"
-                },
-                "text_en_stop": {
-                    "filter": [
-                        "lowercase",
-                        "possessive_english_stemmer",
-                        "english_stop",
-                        "light_english_stemmer"
-                    ],
-                    "tokenizer": "standard"
-                },
-                "whitespace_lowercase": {
-                    "tokenizer": "whitespace",
-                    "filter": [
-                        "lowercase"
-                    ]
-                }
-            },
-            "normalizer": {
-                "keyword_lowercase": {
-                    "filter": [
-                        "lowercase"
-                    ]
-                }
-            }
-        }
-    }
-    coga_mappings = {
-        "_source": {
-            "enabled": "true"
-        },
-        "dynamic": "false",
-        "properties": {
-            "url": {
-                "type": "text"
-            },
-            "title": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "fileTitle": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "title_paraphrases": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "productId": {
-                "type": "keyword"
-            },
-            "deliverableLoio": {
-                "type": "keyword",
-            },
-            "filePath": {
-                "type": "keyword",
-            },
-            "text": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "plainTextContent": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "title_and_text": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "app_name": {
-                "type": "text",
-                "analyzer": "text_en_no_stop",
-                "search_analyzer": "text_en_stop",
-                "term_vector": "with_positions_offsets",
-                "index_options": "offsets",
-                "store": "true"
-            },
-            "collection": {
-                "type": "text",
-                "fields": {
-                    "exact": {
-                        "normalizer": "keyword_lowercase",
-                        "type": "keyword",
-                        "doc_values": "false"
-                    }
-                }
-            }}
-    }
+    config = json.load(open(f"{os.path.join(os.path.dirname(__file__), 'config.json')}"))
+    standard_mappings = config['settings']['standard']
+    for lang in languages:
+        settings[lang] = union(config['settings']['common'],
+                               config['settings'][lang if lang in config['settings'] else 'en']
+                               )
+        coga_mappings[lang] = union(config['mappings']['common'],
+                                    config['mappings'][lang if lang in config['mappings'] else 'en']
+                                    )
 
 
 if __name__ == '__main__':
@@ -894,7 +765,7 @@ if __name__ == '__main__':
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
         import torch
 
-        batch_size = 64
+        batch_size: int = 64
         model = MyEmbeddingFunction(args.model_name)
 
     print(f"Using the {args.server}")
@@ -920,16 +791,31 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Error: {e}")
             raise e
+    elif args.server == "AILANG":
+        ES_SSL_FINGERPRINT = os.getenv("AILANG_SSL_FINGERPRINT")
+        ES_API_KEY = os.getenv("AILANG_API_KEY")
+        client = Elasticsearch("https://9.59.195.60:9200",
+                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+                               api_key=ES_API_KEY
+                               )
+        try:
+            res = client.info()
+        except Exception as e:
+            print(f"Error: {e}")
+            raise e
+
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
     #                        )
     init_settings()
     stopwords = None
+    client = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
         input_passages = read_data(args.input_passages,
+                                   lang=args.lang,
                                    fields=["id", "text", "title"],
                                    remove_url=args.replace_links,
                                    max_doc_size=args.max_doc_length,
@@ -950,7 +836,7 @@ if __name__ == '__main__':
         hidden_dim = -1
         passage_vectors = []
         if args.db_engine == "es-dense":
-            passage_vectors = model.encode([passage['text'] for passage in input_passages], batch_size=batch_size)
+            passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
 
             hidden_dim = len(passage_vectors[0])
             if args.normalize_embs:
@@ -959,7 +845,7 @@ if __name__ == '__main__':
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
         if args.db_engine in ["es-dense", 'es-bm25']:
-            mappings = coga_mappings
+            mappings = coga_mappings[args.lang]
             if args.db_engine == 'es-dense':
                 mappings['properties']["vector"] = {
                     "type": "dense_vector", "dims": hidden_dim,
@@ -971,7 +857,7 @@ if __name__ == '__main__':
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId', #'versionId',
+            keys_to_index = ['title', 'id', 'url', 'productId',  # 'versionId',
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
             for k in range(0, num_passages, bulk_batch):
@@ -999,7 +885,7 @@ if __name__ == '__main__':
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
         elif args.db_engine == "es-elser":
-            mappings = coga_mappings
+            mappings = coga_mappings[args.lang]
             mappings['properties']['ml.tokens'] = {"type": "rank_features"}
 
             processors = [
@@ -1018,7 +904,7 @@ if __name__ == '__main__':
                     }}
             ]
             bulk_batch = args.ingestion_batch_size
-            create_update_index(index_name, do_update)
+            create_update_index(index_name, args.lang, do_update)
             # if client.indices.exists(index=index_name):
             #     check_index_rebuild()
             #     client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
@@ -1078,12 +964,20 @@ if __name__ == '__main__':
                     loio2docid[a[1]] = a[0]
 
         if args.evaluate:
-            input_queries = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"],
+            input_queries = read_data(args.input_queries,
+                                      lang=args.lang,
+                                      fields=["id", "text", "relevant", "answers"],
                                       docid_map=loio2docid,
-                                      remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
+                                      remove_stopwords=args.remove_stopwords,
+                                      data_type=args.data_type,
+                                      doc_based=doc_based_ingestion)
         else:
-            input_queries = read_data(args.input_queries, fields=["id", "text"],
-                                      remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
+            input_queries = read_data(args.input_queries,
+                                      ang=args.lang,
+                                      fields=["id", "text"],
+                                      remove_stopwords=args.remove_stopwords,
+                                      data_type=args.data_type,
+                                      doc_based=doc_based_ingestion)
 
         result = []
         if args.db_engine in ["es-dense"]:
