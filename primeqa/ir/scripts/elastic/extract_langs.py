@@ -36,6 +36,8 @@ if __name__ == '__main__':
         for line in tqdm(f, desc="Processing lines: "):
             data = json.loads(line)
             id = data['document_id'].replace(".txt", "")
+            if data['document'].find("Sign In ") >= 0:
+                continue
             if id in lang_map:
                 file[lang_map[id]].write(json.dumps(data, ensure_ascii=False)+"\n")
             else:

@@ -800,7 +800,7 @@ if __name__ == '__main__':
         if args.server == "CONVAI":
             args.host = "convaidp-nlp.sl.cloud9.ibm.com"
         elif args.server == "AILANG":
-            args.host = "convaidp-nlp.sl.cloud9.ibm.com"
+            args.host = "ai-lang-conv-es.sl.cloud9.ibm.com"
 
 
     if args.index_name is None:
