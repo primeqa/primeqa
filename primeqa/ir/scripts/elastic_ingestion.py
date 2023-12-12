@@ -10,6 +10,7 @@ import logging
 import sys
 import pyizumo
 import unicodedata
+import copy
 
 nlp = None
 product_counts = {}
@@ -79,6 +80,9 @@ def setup_argparse():
     parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
                         help="The server to connect to.")
     parser.add_argument("--lang", default="en", choices=languages)
+    parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
+                                                     "override the defaults based on --server")
+
 
     return parser
 
@@ -140,8 +144,6 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                 if ind == 0:
                     text = text[ind + len(title):]
 
-            if not nlp:
-                nlp = pyizumo.load("en", parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
@@ -274,8 +276,9 @@ def process_product_id(url_fields, uniform_product_name, data_type):
 
 def process_url(doc_url, data_type):
     if data_type == "sap":
-        url = doc_url.replace(r"?locale=.*", "")
+        url = re.sub(r'\?locale=.*', "", doc_url)
         fields = url.split("/")
+        fields[-1] = fields[-1].replace(".html", "")
         return url, fields
     else:
         return "", ["", "", "", "", "", ""]
@@ -702,11 +705,14 @@ def compute_score(input_queries, results):
 
             if str(docid) in gt[qid]:  # Great, we found a match.
                 update_scores(ranks, aid, 1, sum, tmp_scores)
-            scr = max(
-                [
-                    scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
-                ]
-            )
+            if len(query['passages']) > 0:
+                scr = max(
+                    [
+                        scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
+                    ]
+                )
+            else:
+                scr = 0
             update_scores(ranks, aid, scr, max, tmp_pscores)
 
         for r in ranks:
@@ -736,7 +742,7 @@ def check_index_rebuild(index_name):
             print(f"Please type 'yes' or 'no', not {r}!")
 
 
-def create_update_index(index_name, lang, do_update):
+def create_update_index(client, index_name, settings, mappings, do_update):
     if client.indices.exists(index=index_name):
         if not do_update:
             check_index_rebuild(index_name)
@@ -748,24 +754,24 @@ def create_update_index(index_name, lang, do_update):
             print("You are trying to update an index that does not exist "
                   "- will ignore your command and create the index.")
     if not client.indices.exists(index=index_name):
-        client.indices.create(index=index_name, mappings=mappings[lang], settings=settings[lang])
+        client.indices.create(index=index_name, mappings=mappings, settings=settings)
 
 
 def init_settings():
     def union(a, b):
         if a == {}:
-            return b.deepcopy()
+            return copy.deepcopy(b)
         else:
-            c = a.deepcopy()
+            c = copy.deepcopy(a)
             for k in b.keys():
                 if k in a:
                     c[k] = union(a[k], b[k])
                 else:
-                    c[k] = b[k].deepcopy()
+                    c[k] = copy.deepcopy(b[k])
         return c
 
     global settings, coga_mappings, standard_mappings
-    config = json.load(open(f"{os.path.join(os.path.dirname(__file__), 'config.json')}"))
+    config = json.load(open(f"{os.path.join(os.path.dirname(__file__), 'elastic_config.json')}"))
     standard_mappings = config['settings']['standard']
     for lang in languages:
         settings[lang] = union(config['settings']['common'],
@@ -787,19 +793,26 @@ if __name__ == '__main__':
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
-    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if args.server in ["SAP", 'SAP_TEST'] and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
-        print(
-            f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
-        sys.exit(11)
+    if args.host is None:
+        if args.server == "SAP" or args.server == "SAP_TEST":
+            print("The SAP server has been retired. Use CONVAI or AILANG")
+            sys.exit(33)
+        if args.server == "CONVAI":
+            args.host = "convaidp-nlp.sl.cloud9.ibm.com"
+        elif args.server == "AILANG":
+            args.host = "convaidp-nlp.sl.cloud9.ibm.com"
+
 
     if args.index_name is None:
         index_name = (
-            f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser'}_index").lower()
+            f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser' if args.db_engine=='es-elser' else 'bm25'}_index").lower()
     else:
         index_name = args.index_name.lower()
 
     index_name = re.sub('[^a-z0-9]', '-', index_name)
+
+    if not nlp:
+        nlp = pyizumo.load(args.lang, parsers=['token', 'sentence'])
 
     do_ingest = 'i' in args.actions
     do_retrieve = 'r' in args.actions
@@ -843,7 +856,7 @@ if __name__ == '__main__':
     elif args.server == "CONVAI":
         ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
         ES_API_KEY = os.getenv("ES_API_KEY")
-        client = Elasticsearch("https://9.59.196.68:9200",
+        client = Elasticsearch(f"https://{args.host}:9200",
                                ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
                                api_key=ES_API_KEY
                                )
@@ -855,7 +868,7 @@ if __name__ == '__main__':
     elif args.server == "AILANG":
         ES_SSL_FINGERPRINT = os.getenv("AILANG_SSL_FINGERPRINT")
         ES_API_KEY = os.getenv("AILANG_API_KEY")
-        client = Elasticsearch("https://9.59.195.60:9200",
+        client = Elasticsearch(f"https://{args.host}:9200",
                                ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
                                api_key=ES_API_KEY
                                )
@@ -871,7 +884,7 @@ if __name__ == '__main__':
     #                        )
     init_settings()
     stopwords = None
-    client = None
+    # client = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
@@ -913,7 +926,9 @@ if __name__ == '__main__':
                     "similarity": "cosine", "index": "true"
                 }
 
-            create_update_index(index_name, do_update)
+            create_update_index(client, index_name, settings=settings[args.lang],
+                                mappings=mappings,
+                                do_update=do_update)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
 
@@ -965,11 +980,12 @@ if __name__ == '__main__':
                     }}
             ]
             bulk_batch = args.ingestion_batch_size
-            create_update_index(index_name, args.lang, do_update)
-            # if client.indices.exists(index=index_name):
-            #     check_index_rebuild()
-            #     client.options(ignore_status=[400, 404]).indices.delete(index=index_name)
-            # client.indices.create(index=f"{index_name}", mappings=mappings, settings=settings)
+            create_update_index(client,
+                                index_name=index_name,
+                                settings=settings[args.lang],
+                                mappings=mappings,
+                                do_update=do_update)
+
             client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
             actions = []
             all_keys_to_index = ['title', 'id', 'url', 'productId',
