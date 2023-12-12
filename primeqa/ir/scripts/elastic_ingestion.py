@@ -843,6 +843,7 @@ if __name__ == '__main__':
         model = MyEmbeddingFunction(args.model_name)
 
     print(f"Using the {args.server}")
+    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
     if args.server == "SAP":
         client = Elasticsearch(
             cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
@@ -1050,7 +1051,7 @@ if __name__ == '__main__':
                                       doc_based=doc_based_ingestion)
         else:
             input_queries = read_data(args.input_queries,
-                                      ang=args.lang,
+                                      lang=args.lang,
                                       fields=["id", "text"],
                                       remove_stopwords=args.remove_stopwords,
                                       data_type=args.data_type,
