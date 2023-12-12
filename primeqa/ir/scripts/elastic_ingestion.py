@@ -73,6 +73,8 @@ def setup_argparse():
                                                              "for all documents")
     parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST'],
                         help="The server to connect to.")
+    parser.add_argument("--language_code", type=str, default='en',
+                        help="The language code for the data")
 
     return parser
 
@@ -106,7 +108,7 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
             return texts
 
 
-def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None) \
+def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code = 'en') \
         -> tuple[list[str], list[list[int | Any]]]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -135,7 +137,7 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     text = text[ind + len(title):]
 
             if not nlp:
-                nlp = pyizumo.load("es", parsers=['token', 'sentence'])
+                nlp = pyizumo.load(language_code, parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
@@ -233,7 +235,8 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
                  tokenizer=None,
                  doc_url=None,
                  uniform_product_name=None,
-                 data_type="sap"
+                 data_type="sap",
+                 language_code='en'
                  ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -282,7 +285,10 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         # The normalization below deals with some issue in the re library - it would get stuck
         # if the URL has some strange chars, like `\xa0`.
         text = re.sub(url, 'URL', unicodedata.normalize("NFKD", text))
-    expanded_text = f"{title}\n{text}"
+    if not text.startswith(title):
+        expanded_text = f"{title}\n{text}"
+    else:
+        expanded_text = text
     if tokenizer is not None:
         merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
         if merged_length <= max_doc_size:
@@ -291,7 +297,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         else:
             maxl = max_doc_size  # - title_len
             psgs, inds = split_text(text=text, max_length=maxl, title=title,
-                                    stride=stride, tokenizer=tokenizer)
+                                    stride=stride, tokenizer=tokenizer, language_code=language_code)
             for pi, (p, index) in enumerate(zip(psgs, inds)):
                 itm.update({
                     'id': f"{id}-{index[0]}-{index[1]}",
@@ -327,6 +333,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
+    docid_map = get_attr(kwargs, 'docid_map', default={})
     max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     data_type = get_attr(kwargs, 'data_type')
@@ -423,6 +430,10 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         url = docname2url[docid]
                         title = docname2title[docid]
 
+                    if len(docid_map) >0 and docid not in docid_map:
+                        # print (f"Skiping {docid} as duplicate")
+                        continue 
+
                     try:
                         if doc_based:
                             passages.extend(
@@ -465,7 +476,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                 for i in range(len(data)):
                     itm = {}
                     itm['id'] = i
-                    itm['text'] = remove_stopwords(data.Question[i], remv_stopwords)
+                    itm['text'] = remove_stopwords(data.Question[i].strip(), remv_stopwords)
                     itm['answers'] = data['Gold answer'][i]
                     psgs = []
                     ids = []
@@ -546,7 +557,8 @@ class MyEmbeddingFunction:
                                      show_progress_bar=False \
                                          if isinstance(texts, str) or \
                                             max(len(texts), batch_size) <= 1 \
-                                         else True
+                                         else True,
+                                     normalize_embeddings = True
                                      )
         else:
             raise NotImplemented
@@ -635,11 +647,14 @@ def compute_score(input_queries, results):
 
             if str(docid) in gt[qid]:  # Great, we found a match.
                 update_scores(ranks, aid, 1, sum, tmp_scores)
-            scr = max(
-                [
-                    scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
-                ]
-            )
+            if len(query['passages']) == 0:
+                scr = 0.
+            else:
+                scr = max(
+                    [
+                        scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
+                    ]
+                )
             update_scores(ranks, aid, scr, max, tmp_pscores)
 
         for r in ranks:
@@ -843,18 +858,32 @@ def init_settings():
             }}
     }
 
-def init_settings_es():
-    global settings, coga_mappings, standard_mappings
-    standard_mappings = {
-        "properties": {
-            "ml.tokens": {
-                "type": "rank_features"
-            },
-            "title": {"type": "text", "analyzer": "spanish"},
-            "text": {"type": "text", "analyzer": "spanish"},
-            "url": {"type": "text", "analyzer": "spanish"},
-        }
+def init_settings_lang(lang):
+    global settings, coga_mappings
+
+    lang_stemmer = {
+        'es': "light_spanish",
+        'fr': "light_french",
+        'en': "light_english",
+        'de': "light_german",
+        'pt': "light_portuguese",
     }
+
+    lang_stop = {
+        'es': "_spanish_",
+        'fr': "_french_",
+        'en': ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"],
+        'de': "_german_",
+        'pt': "_portuguese_",
+    }
+    
     settings = {
         "number_of_replicas": 0,
         "number_of_shards": 1,
@@ -863,12 +892,12 @@ def init_settings_es():
             "filter": {
                 "light_stemmer": {
                     "type": "stemmer",
-                    "language": "light_spanish"
+                    "language": lang_stemmer[lang]
                 },
                 "spanish_stop": {
                     "ignore_case": "true",
                     "type": "stop",
-                    "stopwords": ["_spanish_"]
+                    "stopwords": lang_stop[lang]
                 }
             },
             "analyzer": {
@@ -1035,6 +1064,13 @@ if __name__ == '__main__':
                 line = line.replace(".txt", "").strip()
                 docid_filter.append(line)
 
+    docid2loio = {}
+    if args.docid_map is not None:
+        with open(args.docid_map) as inp:
+            for line in inp:
+                a = line.split()
+                docid2loio[a[0]] = a[1]
+
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
         import torch
@@ -1069,7 +1105,9 @@ if __name__ == '__main__':
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
     #                        basic_auth=("elastic", ELASTIC_PASSWORD)
     #                        )
-    init_settings_es()
+    #init_settings()
+    init_settings_lang(args.language_code)
+
     stopwords = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
@@ -1087,7 +1125,8 @@ if __name__ == '__main__':
                                    remove_stopwords=args.remove_stopwords,
                                    docid_filter=docid_filter,
                                    uniform_product_name=args.product_name,
-                                   data_type=args.data_type
+                                   data_type=args.data_type,
+                                   docid_map=docid2loio,
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
@@ -1110,7 +1149,7 @@ if __name__ == '__main__':
                     "type": "dense_vector", "dims": hidden_dim,
                     "similarity": "cosine", "index": "true"
                 }
-
+  
             create_update_index(index_name, do_update)
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
@@ -1223,10 +1262,12 @@ if __name__ == '__main__':
                     a = line.split()
                     loio2docid[a[1]] = a[0]
 
+
         if args.evaluate:
-            input_queries = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"],
-                                      docid_map=loio2docid,
+            input_queries, unmapped_ids = read_data(args.input_queries, fields=["id", "text", "relevant", "answers"],
+                                      docid_map=loio2docid, return_unmapped=True,
                                       remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
+            print ("Unmapped ids:", unmapped_ids)
         else:
             input_queries = read_data(args.input_queries, fields=["id", "text"],
                                       remove_stopwords=args.remove_stopwords, data_type=args.data_type, doc_based=doc_based_ingestion)
