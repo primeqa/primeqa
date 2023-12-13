@@ -411,6 +411,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
         files = [input_files]
     else:
         raise RuntimeError(f"Unsupported type for {input_files}")
+    if 'docname2url' in kwargs:
+        docname2url = get_attr(kwargs, 'docname2url')
     docs_read = 0
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
     for input_file in files:
@@ -487,11 +489,12 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
 
                     if docid_filter != [] and docid not in docid_filter:
                         continue
-                    url = doc['document_url'] if 'document_url' in doc else ""
+                    url = doc['document_url'] if 'document_url' in doc else \
+                        doc['url'] if 'url' in doc else ""
                     title = doc[titlename] if 'title' in doc else None
                     if title is None:
                         title = ""
-                    if docid in docname2url:
+                    if docname2url and docid in docname2url:
                         url = docname2url[docid]
                         title = docname2title[docid]
 
@@ -499,7 +502,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                         if doc_based:
                             passages.extend(
                                 process_text(id=doc[docidname],
-                                             title=remove_stopwords(fix_title(title), args.lang, remv_stopwords),
+                                             title=remove_stopwords(fix_title(title), lang, remv_stopwords),
                                              text=remove_stopwords(doc[txtname], remv_stopwords),
                                              max_doc_size=max_doc_size,
                                              stride=stride,
