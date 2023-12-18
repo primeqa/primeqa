@@ -8,8 +8,8 @@ from rouge_score import rouge_scorer
 rouge = rouge_scorer.RougeScorer(rouge_types=['rouge1',], split_summaries=False)
 
 do_corpus = False
-do_questions = False
-convert_to_beir = True
+do_questions = True
+# convert_to_beir = True
 unique_passages = None
 
 if do_corpus:
@@ -194,12 +194,14 @@ if do_questions:
     if unique_passages is None:
         unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
 
-    data_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/*/*.jsonl")
+    data_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/dev/*dev_a*le.jsonl")
 
     dfs = []
 
     # make questions.tsv for each split
     for file_name in data_files:
+        if "wdev" in file_name:
+            continue
         answerable = "answerable"
         if "unanswerable" in file_name:
             answerable = "unanswerable"
