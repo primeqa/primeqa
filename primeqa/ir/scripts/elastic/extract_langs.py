@@ -39,20 +39,22 @@ def get_lang_map(tsv_file):
 
 def process_multifile(file_map, multifile, output):
     """
-    @param output: the output file template
-    @param multifile: The file containing all the documents from the SAP dump
-    @param file_map: A dictionary that maps language identifiers to file objects. Each file object is used to write
-    the processed data for a specific language. @param multifile: The path to the input file containing the data to
-    be processed. @param output: The path to the output file where the processed data will be written.
-
-    @return: None
-
     This method processes a multifile containing data and writes separate output files for each language found in the
     data. The file_map parameter is used to map each language identifier * to a corresponding file object. After
     processing each line in the multifile, the data is checked for a language identifier. If the language identifier
     is found in the file_map, the * data is written to the corresponding output file for that language. If the
     language identifier is not found in the file_map, a message is printed indicating that the language for the *
     document could not be found. Finally, the file objects in the file_map are closed.
+
+    Arguments:
+        @param output: the output file template
+        @param multifile: The file containing all the documents from the SAP dump
+        @param file_map: A dictionary that maps language identifiers to file objects. Each file object is used to write
+        the processed data for a specific language. @param multifile: The path to the input file containing the data to
+        be processed. @param output: The path to the output file where the processed data will be written.
+
+        @return: None
+
     """
     for l in file_map.keys():
         file_map[l] = open(output.replace(".jsonl", f"-{l}.jsonl"), 'w')
