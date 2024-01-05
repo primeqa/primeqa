@@ -113,10 +113,10 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
             # return [f"question: {question} passage: {t}" for t in passages]
         def append_question(documents,question, titles):
             max_new_tokens=50
-            prompt = create_template(titles,documents,question)
+            prompt = create_template(documents,question,titles)
             prompt_len = len(self._tokenizer(prompt)[0])
-            model_len = 512
-            if prompt_len+max_new_tokens > 512:
+            model_len = 4096
+            if prompt_len+max_new_tokens > 4096:
                 print("Input Prompt Length (with  max_new_tokens buffer):",prompt_len+max_new_tokens)
                 print("Model Supported Length:",model_len)
                 # approximate length so doesn't take a while.
@@ -153,15 +153,16 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                     inputs.append(question_passages)
                     targets.append("unanswerable")  
                     indices.append(examples["id"][idx])
-                else: # multiple answers
-                    for answer_data in answer_list:
-                        a = answer_data["answer"]
-                        # answer_score = answer_data["meta"]["score"]     
-                        # if answer_score >= 3: # only takes answers whose score>3
-                        inputs.append(question_passages)
-                        targets.append("unanswerable") if a == "" else targets.append(a)
-                        indices.append(examples["id"][idx])
-                        
+                else: # multiple answers - keep last only for LongNQ
+                    answer_data = answer_list[-1]
+                    # for answer_data in answer_list:
+                    a = answer_data["answer"]
+                    # answer_score = answer_data["meta"]["score"]     
+                    # if answer_score >= 3: # only takes answers whose score>3
+                    inputs.append(question_passages)
+                    targets.append("unanswerable") if a == "" else targets.append(a)
+                    indices.append(examples["id"][idx])
+                    
         elif mode == "eval": # for evaluation only take each question once
             inputs = []
             if self._answer_column in examples:
@@ -173,7 +174,7 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                 question_passages = append_question(passages, q, titles)
                 inputs.append(question_passages)
                 indices.append(examples["id"][idx])
-            targets = [answer[0]["answer"] if len(answer) > 0 else "" for answer in answers]
+            targets = [answer[0]["answer"] if len(answer[0]["answer"]) > 0 else "unanswerable" for answer in answers]
         else:
             raise ValueError("mode requires eval or train")
 

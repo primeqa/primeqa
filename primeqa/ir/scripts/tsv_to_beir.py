@@ -8,7 +8,7 @@ import glob
 passages_file = "/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv"
 
 passages_df = pd.read_csv(passages_file, delimiter='\t', names=["_id", "text", "title"], header=0, dtype=str)
-passages_df['metadata'] = {}
+passages_df['metadata'] = [{} for _ in range(passages_df.shape[0])]
 passages_df.to_json("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/beir_format/corpus.jsonl", lines=True, orient="records")
 
 questions_file = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/*/*answerable.tsv")

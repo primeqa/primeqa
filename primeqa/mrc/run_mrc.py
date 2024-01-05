@@ -478,7 +478,7 @@ def main():
                 target_modules=target_modules,
                 lora_dropout=0.05,
                 bias='none',
-                task_type=TaskType.CAUSAL_LM #SEQ_2_SEQ_LM
+                task_type=TaskType.SEQ_2_SEQ_LM # .CAUSAL_LM #
             )
             # add LoRA adaptor
             model = get_peft_model(model, lora_config)
@@ -674,9 +674,9 @@ def main():
             trainer.model.save_pretrained(lora_path)
             tokenizer.save_pretrained(lora_path)
             # if you want to save the base model to call
-            #trainer.model.base_model.save_pretrained(lora_path)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
-
+            trainer.model.base_model.save_pretrained(lora_path)
+        # trainer.save_model()  # Saves the tokenizer too for easy upload
+        
         metrics = train_result.metrics
         if data_args.train_fof is None:
             max_train_samples = (

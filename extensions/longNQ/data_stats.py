@@ -8,6 +8,10 @@ import spacy
 nlp = spacy.load('en_core_web_sm')
 nlp.add_pipe('sentencizer')
 
+from rouge_score import rouge_scorer
+
+rouge = rouge_scorer.RougeScorer(rouge_types=['rougeLsum'], split_summaries=True)
+
 
 def load_json_from_file(gt_file_patterns, count=None):
     data = []
@@ -48,6 +52,8 @@ def compute_stats(data):
     stats['passages'] = 0
     stats['unanswerable'] = 0
     stats['first_word'] = {}
+    stats['iaa'] = 0
+    stats['iaa_count'] = 0
 
     for i in tqdm.tqdm(range(len(data))):
                        
@@ -99,6 +105,28 @@ def compute_stats(data):
             stats['a_sentences'] += sentence_count
             stats['a_per_q'] += 1
 
+        # the inter-annotator agreement as per ASQA paper:
+        # that we measure as the mean ROUGE-L F1 score
+        # between each pair of annotations for the same question. 
+        scores = 0
+        count = 0
+        for j in range(len(example['output'])):
+            # if 'annotator' in example['output'][j]['meta'] and len(example['output'][j]['meta']['annotator']) > 1:
+            #     scores += len(example['output'][j]['meta']['annotator'])
+            #     count += len(example['output'][j]['meta']['annotator'])
+            for k in range(j+1, len(example['output'])):
+                # someone skipped
+                if example['output'][j]['answer'] == None or example['output'][k]['answer'] == None \
+                    or example['output'][j]['answer'] == "" or example['output'][k]['answer'] == "":
+                    continue
+                count += 1
+                scores += rouge.score(example['output'][j]['answer'], example['output'][k]['answer'])['rougeLsum'][2]
+        if count == 0:
+            continue
+        scores = scores/count
+        stats['iaa'] += scores
+        stats['iaa_count'] += 1
+
     # print(stats)
     print(f"Queries\t{len(data)}")
     print(f"A per Q\t{stats['a_per_q']/len(data)}")
@@ -110,8 +138,12 @@ def compute_stats(data):
         print(f"WORDS in P\t{stats['p_words']/stats['passages']}")
         print(f"S per P\t{stats['s_per_p']/stats['passages']}")
     print(f"Unanswerable\t{stats['unanswerable']}")
+    if stats['iaa'] == 0:
+        print(f"IAA: NA")
+    else:
+        print(f"IAA: {stats['iaa']/stats['iaa_count']}")
 
-    aggegrated_stats = [len(data),stats['a_per_q']/len(data),stats['q_words']/len(data),stats['a_words']/stats['a_per_q'] if stats['a_per_q'] > 0 else 0, stats['a_sentences']/stats['a_per_q'] if stats['a_per_q'] > 0 else 0,stats['unanswerable']]
+    aggegrated_stats = [len(data),stats['a_per_q']/len(data),stats['q_words']/len(data),stats['a_words']/stats['a_per_q'] if stats['a_per_q'] > 0 else 0, stats['a_sentences']/stats['a_per_q'] if stats['a_per_q'] > 0 else 0,stats['iaa']/stats['iaa_count'] if stats['iaa'] > 0 else 0,stats['unanswerable']]
 
     for word in stats['first_word']:
         if stats['first_word'][word] > 10:
@@ -158,7 +190,7 @@ for data_file in all_data_files:
     print(data_file)
     all_stats[data_file[len("/dccstor/srosent2/generative/external_datasets/"):]] = compute_stats(load_data(data_file))
 
-print("Queries,A per Q,WORDS in Q,WORDS in A,SENTENCES in A, UNANSWERABLE")
+print("Queries,A per Q,WORDS in Q,WORDS in A,SENTENCES in A, IAA, UNANSWERABLE")
 for stat in all_stats:
     s=[str(i) for i in all_stats[stat]]
     stats_as_string = ','.join(s)

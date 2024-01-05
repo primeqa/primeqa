@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import glob
 
-name = {47200615:"Hee Dong", 46545976: "Eva Maria", 46092070: "Sara", 45676624: "Mohamed", 46373812: "Chie", 46545946: "Joekie", 46954475: "Arafat", 46994197: "Salim"}
+name = {47200615:"Hee Dong", 46545976: "Eva Maria", 46092070: "Sara", 45676624: "Mohamed", 46373812: "Chie", 46545946: "Joekie", 46954475: "Arafat", 46994197: "Salim", 46542882: "Roxana", 46544861: "Marina"}
 
 '''
 ELI5 Format
@@ -298,7 +298,7 @@ def main():
     else:
         answer_field = "type_your_answer_here_it_should_be_concise_and_only_come_from_the_passagetitle_"
         valid_annotators = None
-        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-11.16.23.json"
+        output_file = "/dccstor/srosent2/generative/appen/NQ_formatted_answered_single-12.20.23_wbool.json"
 
         for input_file in file_names:
             
@@ -336,7 +336,7 @@ def main():
                     continue
                 writer.write((json.dumps(fid_data[data]) + "\n").encode())
 
-        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-11.16.23.json",'wb') as writer:
+        with open("/dccstor/srosent2/generative/appen/NQ_formatted_answered_multiple-12.20.23_wbool.json",'wb') as writer:
             for data in two_annotator_data:
                 writer.write((json.dumps(data) + "\n").encode())
 
