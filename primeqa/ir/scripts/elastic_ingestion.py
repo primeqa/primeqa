@@ -77,7 +77,7 @@ def setup_argparse():
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
+    parser.add_argument("--server", default="CONVAI", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
                         help="The server to connect to.")
     parser.add_argument("--lang", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
@@ -786,6 +786,10 @@ def init_settings():
 
 
 if __name__ == '__main__':
+    from datetime import datetime
+    with open("logfile", "a") as cmdlog:
+        cmdlog.write(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - {os.getenv('USER')} - "
+                     f"{' '.join(sys.argv)}\n")
     parser = setup_argparse()
 
     args = parser.parse_args()
@@ -1130,12 +1134,12 @@ if __name__ == '__main__':
 
         if args.output_file is not None:
             if args.output_file.endswith(".json"):
-                with open(args.output_file, 'w') as out:
-                    json.dump(result, out, indent=2)
+                with open(args.output_file, 'w', encoding="utf8") as out:
+                    json.dump(result, out, indent=2, ensure_ascii=False)
             elif args.output_file.endswith(".jsonl"):
-                with open(args.output_file, 'w') as out:
+                with open(args.output_file, 'w', encoding="utf8") as out:
                     for r in result:
-                        json.dump(r, out)
+                        json.dump(r, out, ensure_ascii=False)
                         out.write("\n")
                         # out.write(json.dumps())
 
