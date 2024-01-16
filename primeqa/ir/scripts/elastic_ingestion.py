@@ -18,11 +18,11 @@ import urllib3
 
 urllib3.disable_warnings()
 
-languages = ['en', 'es', 'fr', 'pt', 'ja', 'de']
+languages = ['en', 'es', 'fr', 'pt', 'ja', 'de', 'ja-new']
 
 settings = {}
 coga_mappings = {}
-
+docname2url = {}
 
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
@@ -180,47 +180,56 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
             return texts, positions
 
 
-def compute_intervals(tsizes: List[int], max_length: int, stride: int) -> List[List[int | Any]]:
-    """
-    Computes a list of breaking points that satisfy the constraints on the max_length and
-    stride (really, it's more of overlap).
-    :param tsizes: list[int] - the lenghts (in word pieces) for the document segments (most likely sentences).
-    :param max_length: int - the maximum length (in word pieces) for the each resulting text segment.
-    :param stride: int - the minimum overlap between consecutive segments.
-    :return: list[[int, int]] a list of start and end indices in the tsizes array, inclusive.
-    """
-    i = 1
-    sum = tsizes[0]
-    prev = 0
-    intervals = []
-    num_iters = 0
-    while i < len(tsizes):
-        if sum + tsizes[i] > max_length:
-            if len(intervals) > 0 and intervals[-1][0] == prev:
-                raise RuntimeError("You have a problem with the splitting - it's cycling!: {intervals[-3:]}")
-            if num_iters > 10000:
-                print(f"Too many tried - probably something is wrong with the document.")
-                return intervals
-            num_iters += 1
-            intervals.append([prev, i - 1])
-            if i > 1 and tsizes[i - 1] + tsizes[i] <= max_length:
-                j = i - 1
+MAX_TRIED = 10000
+
+
+def compute_intervals(segment_lengths: List[int], max_length: int, stride: int) -> List[List[int | Any]]:
+    def check_for_cycling(segments: List[List[int | Any]], prev_start_index: int) -> None:
+        if len(segments) > 0 and segments[-1][0] == prev_start_index:
+            raise RuntimeError(f"You have a problem with the splitting - it's cycling!: {segments[-3:]}")
+
+    def check_excessive_tries(number_of_tries: int) -> bool:
+        if number_of_tries > MAX_TRIED:
+            print(f"Too many tried - probably something is wrong with the document.")
+            return True
+        else:
+            return False
+
+    current_index = 1
+    current_total_length = segment_lengths[0]
+    prev_start_index = 0
+    segments = []
+    number_of_tries = 0
+
+    while current_index < len(segment_lengths):
+        if current_total_length + segment_lengths[current_index] > max_length:
+            check_for_cycling(segments, prev_start_index)
+            if check_excessive_tries(number_of_tries):
+                return segments
+            if segments is None:
+                break
+            number_of_tries += 1
+            segments.append([prev_start_index, current_index - 1])
+
+            if current_index > 1 and segment_lengths[current_index - 1] + segment_lengths[current_index] <= max_length:
+                overlap_index = current_index - 1
                 overlap = 0
-                max_length_tmp = max_length - tsizes[i]  # the overlap + current size is not more than max_length
-                while j > 0:
-                    overlap += tsizes[j]
-                    if overlap < stride and overlap + tsizes[j - 1] <= max_length_tmp:
-                        j -= 1
+                max_length_tmp = max_length - segment_lengths[current_index]
+                while overlap_index > 0:
+                    overlap += segment_lengths[overlap_index]
+                    if overlap < stride and overlap + segment_lengths[overlap_index - 1] <= max_length_tmp:
+                        overlap_index -= 1
                     else:
                         break
-                i = j
-            prev = i
-            sum = 0
+                current_index = overlap_index
+            prev_start_index = current_index
+            current_total_length = 0
         else:
-            sum += tsizes[i]
-            i += 1
-    intervals.append([prev, len(tsizes) - 1])
-    return intervals
+            current_total_length += segment_lengths[current_index]
+            current_index += 1
+    segments.append([prev_start_index, len(segment_lengths) - 1])
+
+    return segments
 
 
 def get_tokenized_length(tokenizer, text):
@@ -319,20 +328,6 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
 
     # Refactoring: extracted product_counts updating to a separate function
     update_product_counts(product_counts, productId)
-    # if data_type == "sap":
-    #     url = doc_url.replace(r"?locale=.*", "")
-    #     fields = url.split("/")
-    #     if uniform_product_name:
-    #         productId = uniform_product_name
-    #     else:
-    #         productId = "" if len(fields) == 0 else fields[-3] if (
-    #                     len(fields) > 3 and fields[-3] != '#') else 'SAP_BUSINESS_ONE'
-    # else:
-    #     productId = ""
-    #     fields = ["", "", "", "", "", ""]
-    #     doc_url = ""
-    # if productId.startswith("SAP_SUCCESSFACTORS"):
-    #     productId = "SAP_SUCCESSFACTORS"
     itm = {
         'productId': productId,
         'deliverableLoio': ("" if doc_url == "" else fields[-2]),
@@ -342,10 +337,6 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
         'app_name': "",
     }
     #
-    # if productId not in product_counts:
-    #     product_counts[productId] = 1
-    # else:
-    #     product_counts[productId] += 1
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
@@ -848,6 +839,8 @@ if __name__ == '__main__':
 
         batch_size: int = 64
         model = MyEmbeddingFunction(args.model_name)
+    else:
+        batch_size: int = 1
 
     print(f"Using the {args.server}")
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")

@@ -37,7 +37,7 @@ def get_lang_map(tsv_file):
             yield _id, lang
 
 
-def process_multifile(file_map, multifile, output):
+def process_multifile(seen, lang_map, multifile, output):
     """
     This method processes a multifile containing data and writes separate output files for each language found in the
     data. The file_map parameter is used to map each language identifier * to a corresponding file object. After
@@ -47,25 +47,31 @@ def process_multifile(file_map, multifile, output):
     document could not be found. Finally, the file objects in the file_map are closed.
 
     Arguments:
+        @param seen: dictionary of the seen languages
         @param output: the output file template
         @param multifile: The file containing all the documents from the SAP dump
-        @param file_map: A dictionary that maps language identifiers to file objects. Each file object is used to write
+        @param lang_map: A dictionary that maps language identifiers to file objects. Each file object is used to write
         the processed data for a specific language. @param multifile: The path to the input file containing the data to
         be processed. @param output: The path to the output file where the processed data will be written.
 
         @return: None
 
     """
-    for l in file_map.keys():
+    file_map = {}
+    for l in seen.keys():
         file_map[l] = open(output.replace(".jsonl", f"-{l}.jsonl"), 'w')
     with open(multifile, 'r', encoding="utf8") as f:
-        for line in tqdm(f, desc="Processing lines"):
+        for line in tqdm(f, desc="Processing entries", total=len(lang_map)):
             data = json.loads(line)
             id = data['document_id'].replace(".txt", "")
             if data['document'].find("Sign In ") >= 0:
                 continue
-            if id in file_map:
-                file_map[id].write(json.dumps(data, ensure_ascii=False) + "\n")
+            if id in lang_map:
+                lang = lang_map[id]
+                if 'url' in data and 'document_url' not in data:
+                    data['document_url'] = data['url']
+                    del data['url']
+                file_map[lang].write(json.dumps(data, ensure_ascii=False) + "\n")
             else:
                 print(f"Could not find the language for document {id}")
     close_files(file_map)
@@ -92,7 +98,7 @@ def main():
         lang_map[_id] = lang
         seen[lang] = 1
 
-    process_multifile(lang_map, args.multifile, args.output)
+    process_multifile(seen, lang_map, args.multifile, args.output)
 
 
 if __name__ == '__main__':

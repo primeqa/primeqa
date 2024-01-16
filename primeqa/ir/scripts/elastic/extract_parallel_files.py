@@ -32,7 +32,7 @@ if __name__ == '__main__':
                 filePath = p['filePath']
                 if filePath in en_loios:
                     en_passage =  en_passages[en_loios[filePath]]
-                    en.write(json.dumps({'id':en_passage['id'], 'text':en_passage['text']},
+                    en.write(json.dumps({'id':filePath, 'hid':en_passage['id'], 'text':en_passage['text']},
                                         ensure_ascii=False)+"\n")
-                    foreign.write(json.dumps({'id':p['id'], 'text':p['text']},
+                    foreign.write(json.dumps({'id':filePath, 'hid': p['id'], 'text':p['text']},
                                              ensure_ascii=False)+"\n")
