@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 from tqdm import tqdm
 import numpy as np
-from typing import List, Union, Any
+from typing import List, Union, Tuple, Any
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
@@ -30,11 +30,11 @@ def setup_argparse():
     parser.add_argument('--input_queries', '-q', default=None)
 
     parser.add_argument('--db_engine', '-e', default='es-dense',
-                        choices=['es-dense', 'es-elser', 'es-bm25'], required=False)
+                        choices=['es-dense', 'es-elser', 'es-bm25', 'es-hybrid'], required=False)
     parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
 
     parser.add_argument('--top_k', '-k', type=int, default=10, )
-    parser.add_argument('--model_name', '-m', default='all-MiniLM-L6-v2')
+    parser.add_argument('--model_name', '-m')
     parser.add_argument('--actions', default="ir",
                         help="The actions that can be done: i(ingest), r(retrieve), R(rerank), u(update)")
     parser.add_argument("--normalize_embs", action="store_true", help="If present, the embeddings are normalized.")
@@ -79,7 +79,7 @@ def setup_argparse():
                                                              "for all documents")
     parser.add_argument("--server", default="CONVAI", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
                         help="The server to connect to.")
-    parser.add_argument("--lang", default="en", choices=languages)
+    parser.add_argument("--lang", "--language_code", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
                                                      "override the defaults based on --server")
 
@@ -116,7 +116,7 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
             return texts
 
 
-def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None) \
+def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code = 'en') \
         -> tuple[list[str], list[list[int | Any]]]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -144,6 +144,8 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                 if ind == 0:
                     text = text[ind + len(title):]
 
+            if not nlp:
+                nlp = pyizumo.load("en", parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
@@ -172,6 +174,8 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     tsizes.append(slen)
                     begins.append(sent.begin)
                     ends.append(sent.end)
+            if len(tsizes) == 0:
+                print (f"line 170:split_text {parsed_text.sentences}")
 
             intervals = compute_intervals(tsizes, max_length, stride)
 
@@ -389,6 +393,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
+    docid_map = get_attr(kwargs, 'docid_map', default={})
     max_num_documents = get_attr(kwargs, 'max_num_documents', default=1000000000)
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     data_type = get_attr(kwargs, 'data_type')
@@ -474,9 +479,9 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                     if di >= max_num_documents:
                         break
                     docid = doc[docidname]
-
+                    
                     if ".txt" in docid:
-                        docid.replace(".txt", "")
+                        docid = docid.replace(".txt", "")
 
                     if docid_filter != [] and docid not in docid_filter:
                         continue
@@ -531,7 +536,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                 for i in range(len(data)):
                     itm = {}
                     itm['id'] = i
-                    itm['text'] = remove_stopwords(data.Question[i], remv_stopwords)
+                    itm['text'] =  remove_stopwords(data.Question[i].strip(), remv_stopwords)
                     itm['answers'] = data['Gold answer'][i]
                     psgs = []
                     ids = []
@@ -571,7 +576,7 @@ def compute_embedding(model, input_query, normalize_embs):
 class MyEmbeddingFunction:
     def __init__(self, name, batch_size=128):
         import torch
-        device = 'cuda' if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else 'cpu'
+        device = 'cuda' if torch.cuda.is_available() else 'cpu' #"mps" if torch.backends.mps.is_available() else 'cpu'
         if device == 'cpu':
             print(f"You are using {device}. This is much slower than using "
                   "a CUDA-enabled GPU. If on Colab you can change this by "
@@ -613,7 +618,8 @@ class MyEmbeddingFunction:
                                      show_progress_bar=False \
                                          if isinstance(texts, str) or \
                                             max(len(texts), _batch_size) <= 1 \
-                                         else True
+                                         else True,
+                                     normalize_embeddings = True
                                      ).tolist()
         else:
             raise NotImplemented
@@ -699,14 +705,14 @@ def compute_score(input_queries, results):
 
             if str(docid) in gt[qid]:  # Great, we found a match.
                 update_scores(ranks, aid, 1, sum, tmp_scores)
-            if len(query['passages']) > 0:
+            if len(query['passages']) == 0:
+                scr = 0.
+            else:
                 scr = max(
                     [
                         scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
                     ]
                 )
-            else:
-                scr = 0
             update_scores(ranks, aid, scr, max, tmp_pscores)
 
         for r in ranks:
@@ -736,7 +742,7 @@ def check_index_rebuild(index_name):
             print(f"Please type 'yes' or 'no', not {r}!")
 
 
-def create_update_index(client, index_name, settings, mappings, do_update):
+def create_update_index(client, index_name, settings, mappings, do_update=False):
     if client.indices.exists(index=index_name):
         if not do_update:
             check_index_rebuild(index_name)
@@ -775,6 +781,178 @@ def init_settings():
                                     config['mappings'][lang if lang in config['mappings'] else 'en']
                                     )
 
+def init_settings_lang(lang):
+    global settings, coga_mappings
+
+    lang_stemmer = {
+        'es': "light_spanish",
+        'fr': "light_french",
+        'en': "light_english",
+        'de': "light_german",
+        'pt': "light_portuguese",
+    }
+
+    lang_stop = {
+        'es': "_spanish_",
+        'fr': "_french_",
+        'en': ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
+                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
+                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"],
+        'de': "_german_",
+        'pt': "_portuguese_",
+    }
+
+    settings = {
+        "number_of_replicas": 0,
+        "number_of_shards": 1,
+        "refresh_interval": "1m",
+        "analysis": {
+            "filter": {
+                "light_stemmer": {
+                    "type": "stemmer",
+                    "language": lang_stemmer[lang]
+                },
+                "lang_stop": {
+                    "ignore_case": "true",
+                    "type": "stop",
+                    "stopwords": lang_stop[lang]
+                }
+            },
+            "char_filter": {
+                "icu_normalize": {
+                    "type": "icu_normalizer",
+                    "name": "nfkc",
+                    "mode": "compose"
+                }
+            },
+            "analyzer": {
+                "text_no_stop": {
+                    "filter": [
+                        "lowercase",
+                        "light_stemmer"
+                    ],
+                    "tokenizer": "standard",
+                    "char_filter": [
+                        "icu_normalize"
+                    ],
+                },
+                "text_stop": {
+                    "filter": [
+                        "lowercase",
+                        "lang_stop",
+                        "light_stemmer"
+                    ],
+                    "tokenizer": "standard",
+                    "char_filter": [
+                        "icu_normalize"
+                    ],
+                },
+                "whitespace_lowercase": {
+                    "tokenizer": "whitespace",
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            },
+            "normalizer": {
+                "keyword_lowercase": {
+                    "filter": [
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    }
+    coga_mappings = {
+        "_source": {
+            "enabled": "true"
+        },
+        "dynamic": "false",
+        "properties": {
+            "url": {
+                "type": "text"
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "fileTitle": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_paraphrases": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "productId": {
+                "type": "keyword"
+            },
+            "deliverableLoio": {
+                "type": "keyword",
+            },
+            "filePath": {
+                "type": "keyword",
+            },
+            "text": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "plainTextContent": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "title_and_text": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "app_name": {
+                "type": "text",
+                "analyzer": "text_no_stop",
+                "search_analyzer": "text_stop",
+                "term_vector": "with_positions_offsets",
+                "index_options": "offsets",
+                "store": "true"
+            },
+            "collection": {
+                "type": "text",
+                "fields": {
+                    "exact": {
+                        "normalizer": "keyword_lowercase",
+                        "type": "keyword",
+                        "doc_values": "false"
+                    }
+                }
+            }}
+    }
 
 if __name__ == '__main__':
     from datetime import datetime
@@ -784,6 +962,13 @@ if __name__ == '__main__':
     parser = setup_argparse()
 
     args = parser.parse_args()
+
+    if not args.model_name:
+        if args.db_engine == 'es-elser':
+            args.model_name = ".elser_model_1"
+        elif args.db_engine == 'es-dense':
+            args.model_name = 'all-MiniLM-L6-v2'
+
 
     if args.data_type == "beir":
         if args.input_passages is None:
@@ -821,8 +1006,9 @@ if __name__ == '__main__':
     docname2title = {}
     if args.hana_file2url is not None:
         with open(args.hana_file2url) as inp:
-            fl = csv.reader(inp, delimiter="\t")
-            for line in fl:
+            # fl = csv.reader(inp, delimiter="\t")
+            for ln in inp.readlines():
+                line = ln.strip().split("\t")
                 docname2url[line[0]] = line[1]
                 docname2title[line[0]] = line[2].strip()
 
@@ -833,14 +1019,22 @@ if __name__ == '__main__':
                 line = line.replace(".txt", "").strip()
                 docid_filter.append(line)
 
-    model = None
-    if args.db_engine == "es-dense" or args.max_doc_length is not None:
-        import torch
+    docid2loio = {}
+    if args.docid_map is not None:
+        with open(args.docid_map) as inp:
+            for line in inp:
+                a = line.split()
+                docid2loio[a[0]] = a[1]
 
-        batch_size: int = 64
-        model = MyEmbeddingFunction(args.model_name)
-    else:
-        batch_size: int = 1
+    model = None
+    if args.db_engine in ['es-dense', 'es-hybrid'] or args.max_doc_length is not None:
+        import torch
+        batch_size = 64
+
+        if args.db_engine == 'es-elser':
+            model = MyEmbeddingFunction('all-MiniLM-L6-v2')
+        else:
+            model = MyEmbeddingFunction(args.model_name)
 
     print(f"Using the {args.server}")
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
@@ -859,7 +1053,8 @@ if __name__ == '__main__':
         ES_API_KEY = os.getenv("ES_API_KEY")
         client = Elasticsearch(f"https://{args.host}:9200",
                                ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                               api_key=ES_API_KEY
+                               api_key=ES_API_KEY,
+                               request_timeout=60
                                )
         try:
             res = client.info()
@@ -871,7 +1066,8 @@ if __name__ == '__main__':
         ES_API_KEY = os.getenv("AILANG_API_KEY")
         client = Elasticsearch(f"https://{args.host}:9200",
                                ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                               api_key=ES_API_KEY
+                               api_key=ES_API_KEY,
+                               request_timeout=60
                                )
         try:
             res = client.info()
@@ -885,7 +1081,6 @@ if __name__ == '__main__':
     #                        )
     init_settings()
     stopwords = None
-    # client = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
@@ -903,14 +1098,15 @@ if __name__ == '__main__':
                                    remove_stopwords=args.remove_stopwords,
                                    docid_filter=docid_filter,
                                    uniform_product_name=args.product_name,
-                                   data_type=args.data_type
+                                   data_type=args.data_type,
+                                   docid_map=docid2loio,
                                    )
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
 
         hidden_dim = -1
         passage_vectors = []
-        if args.db_engine == "es-dense":
+        if args.db_engine in ['es-dense', 'es-hybrid']:
             passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
 
             hidden_dim = len(passage_vectors[0])
@@ -919,9 +1115,9 @@ if __name__ == '__main__':
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
-        if args.db_engine in ["es-dense", 'es-bm25']:
+        if args.db_engine in ['es-dense', 'es-bm25', 'es-hybrid']:
             mappings = coga_mappings[args.lang]
-            if args.db_engine == 'es-dense':
+            if args.db_engine in ['es-dense', 'es-hybrid']:
                 mappings['properties']["vector"] = {
                     "type": "dense_vector", "dims": hidden_dim,
                     "similarity": "cosine", "index": "true"
@@ -934,9 +1130,10 @@ if __name__ == '__main__':
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId',  # 'versionId',
+            keys_to_index = ['title', 'id', 'url', 'productId', #'versionId',
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
+            print (input_passages[0].keys())
             for k in range(0, num_passages, bulk_batch):
                 actions = [
                     {
@@ -946,7 +1143,7 @@ if __name__ == '__main__':
                     }
                     for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
                 ]
-                if args.db_engine == 'es-dense':
+                if args.db_engine in ['es-dense', 'es-hybrid']:
                     for pi, (action, row) in enumerate(
                             zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
                         action["_source"]['vector'] = passage_vectors[pi + k]
@@ -958,7 +1155,7 @@ if __name__ == '__main__':
             t.close()
             if len(actions) > 0:
                 try:
-                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                    bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
         elif args.db_engine == "es-elser":
@@ -968,7 +1165,7 @@ if __name__ == '__main__':
             processors = [
                 {
                     "inference": {
-                        "model_id": ".elser_model_1",
+                        "model_id": args.model_name,
                         "target_field": "ml",
                         "field_map": {
                             "text": "text_field"
@@ -987,7 +1184,7 @@ if __name__ == '__main__':
                                 mappings=mappings,
                                 do_update=do_update)
 
-            client.ingest.put_pipeline(processors=processors, id='elser-v1-test')
+            client.ingest.put_pipeline(processors=processors, id=args.model_name+"-test")
             actions = []
             all_keys_to_index = ['title', 'id', 'url', 'productId',
                                  'filePath', 'deliverableLoio', 'text', 'app_name']
@@ -1013,7 +1210,7 @@ if __name__ == '__main__':
                 failures = 0
                 while failures < 5:
                     try:
-                        res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                        res = bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
                         break
                     except Exception as e:
                         print(f"Got an error in indexing: {e}, {len(actions)}")
@@ -1023,7 +1220,7 @@ if __name__ == '__main__':
 
             if len(actions) > 0:
                 try:
-                    bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                    bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
 
@@ -1041,14 +1238,16 @@ if __name__ == '__main__':
                     a = line.split()
                     loio2docid[a[1]] = a[0]
 
+
         if args.evaluate:
-            input_queries = read_data(args.input_queries,
+            input_queries, unmapped_ids = read_data(args.input_queries,
                                       lang=args.lang,
                                       fields=["id", "text", "relevant", "answers"],
-                                      docid_map=loio2docid,
+                                      docid_map=loio2docid, return_unmapped=True,
                                       remove_stopwords=args.remove_stopwords,
                                       data_type=args.data_type,
                                       doc_based=doc_based_ingestion)
+            print ("Unmapped ids:", unmapped_ids)
         else:
             input_queries = read_data(args.input_queries,
                                       lang=args.lang,
@@ -1086,7 +1285,7 @@ if __name__ == '__main__':
                         "must": {
                             "multi_match": {
                                 "query": input_queries[query_number]['text'],
-                                "fields": ['text']
+                                "fields": ['text', 'title']
                             }
                         },
                     }
@@ -1107,7 +1306,7 @@ if __name__ == '__main__':
                 query = {
                     "text_expansion": {
                         "ml.tokens": {
-                            "model_id": ".elser_model_1",
+                            "model_id": args.model_name,
                             "model_text": input_queries[query_number]['text']
                         }
                     }
@@ -1115,6 +1314,42 @@ if __name__ == '__main__':
                 res = client.search(
                     index=index_name,
                     query=query,
+                    size=args.top_k,
+                )
+                rout = []
+                for rank, r in enumerate(res.body['hits']['hits']):
+                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
+                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
+
+        elif args.db_engine == "es-hybrid":
+            for query_number in tqdm(range(len(input_queries))):
+                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
+                qid = input_queries[query_number]['id']
+                knn = {
+                    "field": "vector",
+                    "query_vector": query_vector,
+                    "k": args.top_k,
+                    "num_candidates": 1000,
+                }
+                query = {
+                    "bool": {
+                        "must": {
+                            "multi_match": {
+                                "query": input_queries[query_number]['text'],
+                                "fields": ['text', 'title']
+                            }
+                        },
+                    }
+                }
+                rank =  {"rrf": {
+                    "window_size": 50
+                }}
+
+                res = client.search(
+                    index=index_name,
+                    knn=knn,
+                    query=query,
+                    rank = rank,
                     size=args.top_k,
                 )
                 rout = []
