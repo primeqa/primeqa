@@ -164,8 +164,8 @@
     "ja-new": {
       "analysis": {
         "char_filter": {
-          "normalize": {
-            "type": "icu_normalizer",
+          "icu_normalize": {
+            "type": "normalizer",
             "name": "nfkc",
             "mode": "compose"
           }
@@ -361,7 +361,7 @@
           "ja_kuromoji_index_analyzer": {
             "type": "custom",
             "char_filter": [
-              "normalize"
+              "icu_normalize"
             ],
             "tokenizer": "ja_kuromoji_tokenizer",
             "filter": [
@@ -377,7 +377,7 @@
           "ja_kuromoji_search_analyzer": {
             "type": "custom",
             "char_filter": [
-              "normalize"
+              "icu_normalize"
             ],
             "tokenizer": "ja_kuromoji_tokenizer",
             "filter": [
@@ -393,7 +393,7 @@
           "ja_ngram_index_analyzer": {
             "type": "custom",
             "char_filter": [
-              "normalize"
+              "icu_normalize"
             ],
             "tokenizer": "ja_ngram_tokenizer",
             "filter": [
@@ -403,7 +403,7 @@
           "ja_ngram_search_analyzer": {
             "type": "custom",
             "char_filter": [
-              "normalize"
+              "icu_normalize"
             ],
             "tokenizer": "ja_ngram_tokenizer",
             "filter": [
@@ -441,7 +441,7 @@
     "ja": {
       "analysis": {
         "char_filter": {
-          "normalize": {
+          "icu_normalize": {
             "type": "icu_normalizer",
             "name": "nfkc",
             "mode": "compose"
