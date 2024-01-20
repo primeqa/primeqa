@@ -77,7 +77,8 @@ def setup_argparse():
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="CONVAI", choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG'],
+    parser.add_argument("--server", default="CONVAI",
+                        choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG', 'local'],
                         help="The server to connect to.")
     parser.add_argument("--lang", "--language_code", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
@@ -411,6 +412,9 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
         docname2url = get_attr(kwargs, 'docname2url')
     docs_read = 0
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
+    unmapped_ids = []
+    return_unmapped_ids = get_attr(kwargs, 'return_unmapped')
+
     for input_file in files:
         docs_read = 0
         print(f"Reading {input_file}")
@@ -530,8 +534,6 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                 import pandas as pd
                 data = pd.read_csv(in_file)
                 passages = []
-                unmapped_ids = []
-                return_unmapped_ids = get_attr(kwargs, 'return_unmapped')
                 docid_map = get_attr(kwargs, 'docid_map', default={})
                 for i in range(len(data)):
                     itm = {}
@@ -559,7 +561,10 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                 raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
         max_num_documents -= docs_read
 
-    return passages
+    if return_unmapped_ids:
+        return passages, unmapped_ids
+    else:
+        return passages
 
 
 def fix_title(title):
@@ -583,21 +588,21 @@ class MyEmbeddingFunction:
                   "clicking Runtime > Change runtime type > GPU.")
         self.pqa = False
         self.batch_size = batch_size
-        if os.path.exists(name):
-            raise NotImplemented
-            # from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
-            # self.queries_to_vectors = None # queries_to_vectors
-            # self.model = DPRQuestionEncoder.from_pretrained(
-            #     pretrained_model_name_or_path=name,
-            #     from_tf = False,
-            #     cache_dir=None,)
-            # self.model.eval()
-            # self.model = self.model.half()
-            # self.model.to(device)
-            # self.pqa = True
-        else:
-            from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer(name, device=device)
+        # if os.path.exists(name):
+        #     raise NotImplemented
+        #     # from transformers import DPRQuestionEncoder, DPRQuestionEncoderTokenizer, AutoConfig
+        #     # self.queries_to_vectors = None # queries_to_vectors
+        #     # self.model = DPRQuestionEncoder.from_pretrained(
+        #     #     pretrained_model_name_or_path=name,
+        #     #     from_tf = False,
+        #     #     cache_dir=None,)
+        #     # self.model.eval()
+        #     # self.model = self.model.half()
+        #     # self.model.to(device)
+        #     # self.pqa = True
+        # else:
+        from sentence_transformers import SentenceTransformer
+        self.model = SentenceTransformer(name, device=device)
         print('=== done initializing model')
 
     def __call__(self, texts: Union[List[str], str]) -> \
@@ -701,6 +706,8 @@ def compute_score(input_queries, results):
         tmp_scores = {r: 0 for r in ranks}
         tmp_pscores = {r: 0 for r in ranks}
         for aid, answer in enumerate(record['answers']):
+            if aid>=ranks[-1]:
+                break
             docid = get_doc_id(answer['id'])
 
             if str(docid) in gt[qid]:  # Great, we found a match.
@@ -710,7 +717,7 @@ def compute_score(input_queries, results):
             else:
                 scr = max(
                     [
-                        scorer.score(passage, answer['text'])['rouge1'].fmeasure for passage in query['passages']
+                        scorer.score(passage, answer['text'])['rouge1'].recall for passage in query['passages']
                     ]
                 )
             update_scores(ranks, aid, scr, max, tmp_pscores)
@@ -954,6 +961,18 @@ def init_settings_lang(lang):
             }}
     }
 
+
+def create_es_client(fingerprint, api_key, host):
+    global ES_SSL_FINGERPRINT, ES_API_KEY, client
+    ES_SSL_FINGERPRINT = os.getenv(fingerprint)
+    ES_API_KEY = os.getenv(api_key)
+    client = Elasticsearch(f"https://{host}:9200",
+                           ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+                           api_key=ES_API_KEY,
+                           request_timeout=60
+                           )
+    return client
+
 if __name__ == '__main__':
     from datetime import datetime
     with open("logfile", "a") as cmdlog:
@@ -984,6 +1003,8 @@ if __name__ == '__main__':
             args.host = "convaidp-nlp.sl.cloud9.ibm.com"
         elif args.server == "AILANG":
             args.host = "ai-lang-conv-es.sl.cloud9.ibm.com"
+        elif args.server == "local":
+            args.host = "localhost"
 
 
     if args.index_name is None:
@@ -1049,31 +1070,17 @@ if __name__ == '__main__':
             basic_auth=("elastic", ELASTIC_PASSWORD)
         )
     elif args.server == "CONVAI":
-        ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
-        ES_API_KEY = os.getenv("ES_API_KEY")
-        client = Elasticsearch(f"https://{args.host}:9200",
-                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                               api_key=ES_API_KEY,
-                               request_timeout=60
-                               )
-        try:
-            res = client.info()
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
+        client = create_es_client("CONVAI_SSL_FINGERPRINT", "CONVAI_API_KEY", args.host)
     elif args.server == "AILANG":
-        ES_SSL_FINGERPRINT = os.getenv("AILANG_SSL_FINGERPRINT")
-        ES_API_KEY = os.getenv("AILANG_API_KEY")
-        client = Elasticsearch(f"https://{args.host}:9200",
-                               ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                               api_key=ES_API_KEY,
-                               request_timeout=60
-                               )
-        try:
-            res = client.info()
-        except Exception as e:
-            print(f"Error: {e}")
-            raise e
+        client = create_es_client("AILANG_SSL_FINGERPRINT", "AILANG_API_KEY", args.host)
+    elif args.server == "local":
+        client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
+
+    try:
+        res = client.info()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise e
 
     # client = Elasticsearch("https://localhost:9200",
     #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
@@ -1342,7 +1349,7 @@ if __name__ == '__main__':
                     }
                 }
                 rank =  {"rrf": {
-                    "window_size": 50
+                    "window_size": 200
                 }}
 
                 res = client.search(
