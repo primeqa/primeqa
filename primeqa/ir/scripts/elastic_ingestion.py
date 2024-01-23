@@ -24,6 +24,7 @@ settings = {}
 coga_mappings = {}
 docname2url = {}
 
+
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
@@ -78,12 +79,11 @@ def setup_argparse():
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
     parser.add_argument("--server", default="CONVAI",
-                        choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG', 'local'],
+                        choices=['SAP', 'CONVAI', 'SAP_TEST', 'AILANG', 'local', 'RESCONVAI'],
                         help="The server to connect to.")
     parser.add_argument("--lang", "--language_code", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
                                                      "override the defaults based on --server")
-
 
     return parser
 
@@ -117,7 +117,7 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
             return texts
 
 
-def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code = 'en') \
+def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code='en') \
         -> tuple[list[str], list[list[int | Any]]]:
     """
     Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -176,7 +176,7 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     begins.append(sent.begin)
                     ends.append(sent.end)
             if len(tsizes) == 0:
-                print (f"line 170:split_text {parsed_text.sentences}")
+                print(f"line 170:split_text {parsed_text.sentences}")
 
             intervals = compute_intervals(tsizes, max_length, stride)
 
@@ -279,7 +279,9 @@ def process_product_id(url_fields, uniform_product_name, data_type):
     ```
     """
     if data_type == "sap":
-        productId = "" if len(url_fields) == 0 else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#') else 'SAP_BUSINESS_ONE'
+        productId = "" if len(url_fields) == 0 \
+            else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#')\
+            else 'SAP_BUSINESS_ONE'
         if uniform_product_name:
             productId = uniform_product_name
         if productId.startswith("SAP_SUCCESSFACTORS"):
@@ -287,6 +289,7 @@ def process_product_id(url_fields, uniform_product_name, data_type):
         return productId
     else:
         return ""
+
 
 def process_url(doc_url, data_type):
     if data_type == "sap":
@@ -296,6 +299,7 @@ def process_url(doc_url, data_type):
         return url, fields
     else:
         return "", ["", "", "", "", "", ""]
+
 
 def update_product_counts(product_counts, productId):
     if productId not in product_counts:
@@ -483,7 +487,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                     if di >= max_num_documents:
                         break
                     docid = doc[docidname]
-                    
+
                     if ".txt" in docid:
                         docid = docid.replace(".txt", "")
 
@@ -538,7 +542,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                 for i in range(len(data)):
                     itm = {}
                     itm['id'] = i
-                    itm['text'] =  remove_stopwords(data.Question[i].strip(), remv_stopwords)
+                    itm['text'] = remove_stopwords(data.Question[i].strip(), remv_stopwords)
                     itm['answers'] = data['Gold answer'][i]
                     psgs = []
                     ids = []
@@ -581,7 +585,7 @@ def compute_embedding(model, input_query, normalize_embs):
 class MyEmbeddingFunction:
     def __init__(self, name, batch_size=128):
         import torch
-        device = 'cuda' if torch.cuda.is_available() else 'cpu' #"mps" if torch.backends.mps.is_available() else 'cpu'
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'  # "mps" if torch.backends.mps.is_available() else 'cpu'
         if device == 'cpu':
             print(f"You are using {device}. This is much slower than using "
                   "a CUDA-enabled GPU. If on Colab you can change this by "
@@ -624,7 +628,7 @@ class MyEmbeddingFunction:
                                          if isinstance(texts, str) or \
                                             max(len(texts), _batch_size) <= 1 \
                                          else True,
-                                     normalize_embeddings = True
+                                     normalize_embeddings=True
                                      ).tolist()
         else:
             raise NotImplemented
@@ -706,7 +710,7 @@ def compute_score(input_queries, results):
         tmp_scores = {r: 0 for r in ranks}
         tmp_pscores = {r: 0 for r in ranks}
         for aid, answer in enumerate(record['answers']):
-            if aid>=ranks[-1]:
+            if aid >= ranks[-1]:
                 break
             docid = get_doc_id(answer['id'])
 
@@ -788,6 +792,7 @@ def init_settings():
                                     config['mappings'][lang if lang in config['mappings'] else 'en']
                                     )
 
+
 def init_settings_lang(lang):
     global settings, coga_mappings
 
@@ -803,13 +808,13 @@ def init_settings_lang(lang):
         'es': "_spanish_",
         'fr': "_french_",
         'en': ["a", "about", "all", "also", "am", "an", "and", "any", "are", "as", "at",
-                                  "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
-                                  "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
-                                  "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
-                                  "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
-                                  "that", "the", "their", "then", "there", "these", "they", "this", "those",
-                                  "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
-                                  "which", "while", "why", "will", "with", "would", "you", "your", "yours"],
+               "be", "been", "but", "by", "can", "de", "did", "do", "does", "for", "from",
+               "had", "has", "have", "he", "her", "him", "his", "how", "if", "in", "into",
+               "is", "it", "its", "more", "my", "nbsp", "new", "no", "non", "not", "of",
+               "on", "one", "or", "other", "our", "she", "so", "some", "such", "than",
+               "that", "the", "their", "then", "there", "these", "they", "this", "those",
+               "thus", "to", "up", "us", "use", "was", "we", "were", "what", "when", "where",
+               "which", "while", "why", "will", "with", "would", "you", "your", "yours"],
         'de': "_german_",
         'pt': "_portuguese_",
     }
@@ -963,18 +968,20 @@ def init_settings_lang(lang):
 
 
 def create_es_client(fingerprint, api_key, host):
-    global ES_SSL_FINGERPRINT, ES_API_KEY, client
+    # global ES_SSL_FINGERPRINT, ES_API_KEY, client
     ES_SSL_FINGERPRINT = os.getenv(fingerprint)
     ES_API_KEY = os.getenv(api_key)
-    client = Elasticsearch(f"https://{host}:9200",
-                           ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
-                           api_key=ES_API_KEY,
-                           request_timeout=60
-                           )
-    return client
+    _client = Elasticsearch(f"https://{host}:9200",
+                            ssl_assert_fingerprint=(ES_SSL_FINGERPRINT),
+                            api_key=ES_API_KEY,
+                            request_timeout=60
+                            )
+    return _client
+
 
 if __name__ == '__main__':
     from datetime import datetime
+
     with open("logfile", "a") as cmdlog:
         cmdlog.write(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - {os.getenv('USER')} - "
                      f"{' '.join(sys.argv)}\n")
@@ -988,28 +995,32 @@ if __name__ == '__main__':
         elif args.db_engine == 'es-dense':
             args.model_name = 'all-MiniLM-L6-v2'
 
-
     if args.data_type == "beir":
         if args.input_passages is None:
             args.input_passages = os.path.join(args.data, "corpus.jsonl")
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
+    server_map = {
+        'CONVAI': "convaidp-nlp.sl.cloud9.ibm.com",
+        'AILANG': "ai-lang-conv-es.sl.cloud9.ibm.com",
+        'local': "localhost",
+        'RESCONVAI': "convai.sl.res.ibm.com"
+    }
+
     if args.host is None:
         if args.server == "SAP" or args.server == "SAP_TEST":
             print("The SAP server has been retired. Use CONVAI or AILANG")
             sys.exit(33)
-        if args.server == "CONVAI":
-            args.host = "convaidp-nlp.sl.cloud9.ibm.com"
-        elif args.server == "AILANG":
-            args.host = "ai-lang-conv-es.sl.cloud9.ibm.com"
-        elif args.server == "local":
-            args.host = "localhost"
-
+        if args.server in server_map.keys():
+            args.host = server_map[args.server]
+        else:
+            print(f"Server {args.server} is not known!")
+            sys.exit(12)
 
     if args.index_name is None:
         index_name = (
-            f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser' if args.db_engine=='es-elser' else 'bm25'}_index").lower()
+            f"{args.data}_{args.db_engine}_{args.model_name if args.db_engine == 'es-dense' else 'elser' if args.db_engine == 'es-elser' else 'bm25'}_index").lower()
     else:
         index_name = args.index_name.lower()
 
@@ -1050,6 +1061,7 @@ if __name__ == '__main__':
     model = None
     if args.db_engine in ['es-dense', 'es-hybrid'] or args.max_doc_length is not None:
         import torch
+
         batch_size = 64
 
         if args.db_engine == 'es-elser':
@@ -1057,22 +1069,14 @@ if __name__ == '__main__':
         else:
             model = MyEmbeddingFunction(args.model_name)
 
-    print(f"Using the {args.server}")
-    ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
-    if args.server == "SAP":
-        client = Elasticsearch(
-            cloud_id="sap-deployment:dXMtZWFzdC0xLmF3cy5mb3VuZC5pbzo0NDMkOGYwZTRiNTBmZGI1NGNiZGJhYTk3NjhkY2U4N2NjZTAkODViMzExOTNhYTQwNDgyN2FhNGE0MmRiYzg5ZDc4ZjE=",
-            basic_auth=("elastic", ELASTIC_PASSWORD)
-        )
-    elif args.server == "SAP_TEST":
-        client = Elasticsearch(
-            "https://esproxytestinghr716j372g.hana.ondemand.com:443",
-            basic_auth=("elastic", ELASTIC_PASSWORD)
-        )
-    elif args.server == "CONVAI":
+    print(f"Using the {args.server} server at {args.host}")
+
+    if args.server == "CONVAI":
         client = create_es_client("CONVAI_SSL_FINGERPRINT", "CONVAI_API_KEY", args.host)
     elif args.server == "AILANG":
         client = create_es_client("AILANG_SSL_FINGERPRINT", "AILANG_API_KEY", args.host)
+    elif args.server == "RESCONVAI":
+        client = create_es_client("RESCONVAI_SSL_FINGERPRINT", "RESCONVAI_API_KEY", args.host)
     elif args.server == "local":
         client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
 
@@ -1114,6 +1118,7 @@ if __name__ == '__main__':
         hidden_dim = -1
         passage_vectors = []
         if args.db_engine in ['es-dense', 'es-hybrid']:
+            print("Encoding corpus documents:")
             passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
 
             hidden_dim = len(passage_vectors[0])
@@ -1137,10 +1142,10 @@ if __name__ == '__main__':
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId', #'versionId',
+            keys_to_index = ['title', 'id', 'url', 'productId',  # 'versionId',
                              'filePath', 'deliverableLoio', 'text', 'app_name']
             t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
-            print (input_passages[0].keys())
+            print(input_passages[0].keys())
             for k in range(0, num_passages, bulk_batch):
                 actions = [
                     {
@@ -1162,7 +1167,7 @@ if __name__ == '__main__':
             t.close()
             if len(actions) > 0:
                 try:
-                    bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
+                    bulk(client=client, actions=actions, pipeline=args.model_name + "-test")
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
         elif args.db_engine == "es-elser":
@@ -1191,7 +1196,7 @@ if __name__ == '__main__':
                                 mappings=mappings,
                                 do_update=do_update)
 
-            client.ingest.put_pipeline(processors=processors, id=args.model_name+"-test")
+            client.ingest.put_pipeline(processors=processors, id=args.model_name + "-test")
             actions = []
             all_keys_to_index = ['title', 'id', 'url', 'productId',
                                  'filePath', 'deliverableLoio', 'text', 'app_name']
@@ -1217,7 +1222,7 @@ if __name__ == '__main__':
                 failures = 0
                 while failures < 5:
                     try:
-                        res = bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
+                        res = bulk(client=client, actions=actions, pipeline=args.model_name + "-test")
                         break
                     except Exception as e:
                         print(f"Got an error in indexing: {e}, {len(actions)}")
@@ -1227,7 +1232,7 @@ if __name__ == '__main__':
 
             if len(actions) > 0:
                 try:
-                    bulk(client=client, actions=actions, pipeline=args.model_name+"-test")
+                    bulk(client=client, actions=actions, pipeline=args.model_name + "-test")
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
 
@@ -1245,16 +1250,15 @@ if __name__ == '__main__':
                     a = line.split()
                     loio2docid[a[1]] = a[0]
 
-
         if args.evaluate:
             input_queries, unmapped_ids = read_data(args.input_queries,
-                                      lang=args.lang,
-                                      fields=["id", "text", "relevant", "answers"],
-                                      docid_map=loio2docid, return_unmapped=True,
-                                      remove_stopwords=args.remove_stopwords,
-                                      data_type=args.data_type,
-                                      doc_based=doc_based_ingestion)
-            print ("Unmapped ids:", unmapped_ids)
+                                                    lang=args.lang,
+                                                    fields=["id", "text", "relevant", "answers"],
+                                                    docid_map=loio2docid, return_unmapped=True,
+                                                    remove_stopwords=args.remove_stopwords,
+                                                    data_type=args.data_type,
+                                                    doc_based=doc_based_ingestion)
+            print("Unmapped ids:", unmapped_ids)
         else:
             input_queries = read_data(args.input_queries,
                                       lang=args.lang,
@@ -1348,7 +1352,7 @@ if __name__ == '__main__':
                         },
                     }
                 }
-                rank =  {"rrf": {
+                rank = {"rrf": {
                     "window_size": 200
                 }}
 
@@ -1356,7 +1360,7 @@ if __name__ == '__main__':
                     index=index_name,
                     knn=knn,
                     query=query,
-                    rank = rank,
+                    rank=rank,
                     size=args.top_k,
                 )
                 rout = []
