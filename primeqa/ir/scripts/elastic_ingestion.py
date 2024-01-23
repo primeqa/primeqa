@@ -23,13 +23,14 @@ languages = ['en', 'es', 'fr', 'pt', 'ja', 'de', 'ja-new']
 settings = {}
 coga_mappings = {}
 docname2url = {}
+normalize_text = False
 
 
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
-
+    
     parser.add_argument('--db_engine', '-e', default='es-dense',
                         choices=['es-dense', 'es-elser', 'es-bm25', 'es-hybrid'], required=False)
     parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
@@ -84,6 +85,8 @@ def setup_argparse():
     parser.add_argument("--lang", "--language_code", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
                                                      "override the defaults based on --server")
+    parser.add_argument("-N", "--normalize_text", default=False, help="If provided, the text is normalized "
+                                                                      "for UTF8 encoding.")
 
     return parser
 
@@ -116,6 +119,31 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
                 texts.append(tt)
             return texts
 
+def get_pyizumo_tokenized_text(text=None, tokenized_text=None, language_code=None):
+    tok_text = []
+
+    if not tokenized_text:
+        if text == None or language_code == None:
+            raise RuntimeError("text and language_code needed if tokenized_text not provided")
+        global nlp
+        if not nlp:
+            nlp = pyizumo.load(language_code, parsers=['token', 'sentence'])
+        tokenized_text = nlp(text)
+
+    for sent in tokenized_text.sentences:
+        sent_tokens = []
+        for tok in sent.tokens:
+            if 'components' in tok.properties:
+                for part in tok.properties['components']:
+                    sent_tokens.append(part['text'])
+            else:
+                sent_tokens.append(tok.text)
+        tok_text.append(" ".join(sent_tokens))
+
+    token_text = "\n".join(tok_text)
+
+    return token_text
+
 
 def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code='en') \
         -> tuple[list[str], list[list[int | Any]]]:
@@ -146,12 +174,13 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     text = text[ind + len(title):]
 
             if not nlp:
-                nlp = pyizumo.load("en", parsers=['token', 'sentence'])
+                nlp = pyizumo.load(language_code, parsers=['token', 'sentence'])
             parsed_text = nlp(text)
 
             tsizes = []
             begins = []
             ends = []
+            tokens = []
             for sent in parsed_text.sentences:
                 stext = sent.text
                 slen = get_tokenized_length(tokenizer, stext)
@@ -175,8 +204,6 @@ def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, str
                     tsizes.append(slen)
                     begins.append(sent.begin)
                     ends.append(sent.end)
-            if len(tsizes) == 0:
-                print(f"line 170:split_text {parsed_text.sentences}")
 
             intervals = compute_intervals(tsizes, max_length, stride)
 
@@ -327,7 +354,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     :param uniform_product_name: str - if not None, all documents will receive this productId
     :return - a list of indexable items, each containing a title, id, text, and url.
     """
-    global product_counts
+    global product_counts, normalize_text
     pieces = []
     # Refactoring: extracted url processing to a separate function
     full_url, fields = process_url(doc_url, data_type)
@@ -349,11 +376,19 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
         itm['app_name'] = title
+    if not text.startswith(title):
+        expanded_text = f"{title}\n{text}"
+    else:
+        expanded_text = text
+
     if remove_url:
         # The normalization below deals with some issue in the re library - it would get stuck
         # if the URL has some strange chars, like `\xa0`.
-        text = re.sub(url, 'URL', unicodedata.normalize("NFKD", text))
-    expanded_text = f"{title}\n{text}"
+        if normalize_text:
+            text = re.sub(url, 'URL', unicodedata.normalize("NFKC", text))
+        else:
+            text = re.sub(url, 'URL', text)
+
     if tokenizer is not None:
         merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
         if merged_length <= max_doc_size:
@@ -848,7 +883,7 @@ def init_settings_lang(lang):
                         "lowercase",
                         "light_stemmer"
                     ],
-                    "tokenizer": "standard",
+                    "tokenizer": "whitespace" if args.pyizumo_tokenization else "standard",
                     "char_filter": [
                         "icu_normalize"
                     ],
@@ -859,7 +894,7 @@ def init_settings_lang(lang):
                         "lang_stop",
                         "light_stemmer"
                     ],
-                    "tokenizer": "standard",
+                    "tokenizer": "whitespace" if args.pyizumo_tokenization else "standard",
                     "char_filter": [
                         "icu_normalize"
                     ],
@@ -1008,6 +1043,8 @@ if __name__ == '__main__':
         'RESCONVAI': "convai.sl.res.ibm.com"
     }
 
+    normalize_text = args.normalize_text
+
     if args.host is None:
         if args.server == "SAP" or args.server == "SAP_TEST":
             print("The SAP server has been retired. Use CONVAI or AILANG")
@@ -1126,6 +1163,11 @@ if __name__ == '__main__':
                 passage_vectors = normalize(passage_vectors)
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
+
+        if args.pyizumo_tokenization:
+            for passage in tqdm(input_passages, desc="Getting pyizumo word tokens"):
+                passage['title'] = get_pyizumo_tokenized_text(text = passage['title'], language_code = args.language_code)
+                passage['text']  = get_pyizumo_tokenized_text(text = passage['text'], language_code = args.language_code)
 
         if args.db_engine in ['es-dense', 'es-bm25', 'es-hybrid']:
             mappings = coga_mappings[args.lang]
