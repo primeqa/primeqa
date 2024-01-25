@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 from tqdm import tqdm
 import numpy as np
-from typing import List, Union, Tuple, Any
+from typing import List, Union, Any
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
@@ -30,11 +30,14 @@ def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
     parser.add_argument('--input_passages', '-p', nargs="+", default=None)
     parser.add_argument('--input_queries', '-q', default=None)
-    
-    parser.add_argument('--db_engine', '-e', default='es-dense',
-                        choices=['es-dense', 'es-elser', 'es-bm25', 'es-hybrid'], required=False)
-    parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
 
+    parser.add_argument('--db_engine', '-e', default='es-dense',
+                        choices=['es-dense', 'es-elser', 'es-bm25', 'es-dense'], required=False)
+    parser.add_argument('--output_file', '-o', default=None, help="The output rank file.")
+    parser.add_argument("--model_on_server", action="store_true",
+                        help="If present, the given model is assumed to exist on the ES server.")
+    parser.add_argument("--hybrid", choices=['rrf'], default="rrf",
+                        help="The type of hybrid combination")
     parser.add_argument('--top_k', '-k', type=int, default=10, )
     parser.add_argument('--model_name', '-m')
     parser.add_argument('--actions', default="ir",
@@ -118,6 +121,7 @@ def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int 
                 )
                 texts.append(tt)
             return texts
+
 
 def get_pyizumo_tokenized_text(text=None, tokenized_text=None, language_code=None):
     tok_text = []
@@ -307,7 +311,7 @@ def process_product_id(url_fields, uniform_product_name, data_type):
     """
     if data_type == "sap":
         productId = "" if len(url_fields) == 0 \
-            else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#')\
+            else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#') \
             else 'SAP_BUSINESS_ONE'
         if uniform_product_name:
             productId = uniform_product_name
@@ -410,9 +414,9 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     return pieces
 
 
-def get_attr(args, val, default=None):
-    if val in args and args[val] is not None:
-        return args[val]
+def get_attr(_args, val, default=None):
+    if val in _args and _args[val] is not None:
+        return _args[val]
     else:
         return default
 
@@ -447,8 +451,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
         files = [input_files]
     else:
         raise RuntimeError(f"Unsupported type for {input_files}")
-    if 'docname2url' in kwargs:
-        docname2url = get_attr(kwargs, 'docname2url')
+    docname2url = get_attr(kwargs, 'docname2url', None)
     docs_read = 0
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
     unmapped_ids = []
@@ -1014,6 +1017,70 @@ def create_es_client(fingerprint, api_key, host):
     return _client
 
 
+def extract_answers(res):
+    rout = []
+    for rank, r in enumerate(res.body['hits']['hits']):
+        rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
+    return rout
+
+
+def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_server, vector_field_name):
+    _knn = None
+    _query = None
+    _rank = None
+    if db_engine in ["es-dense"]:
+        _knn = {
+            "field": vector_field_name,
+            "k": args.top_k,
+            "num_candidates": 1000,
+        }
+        if model_on_server:
+            _knn["query_vector_builder"] = {
+                "text_embedding": {
+                    "model_id": args.model_name,
+                    "model_text": text
+                }
+            }
+        else:
+            _knn['query_vector'] = compute_embedding(model, text, args.normalize_embs)
+
+        if hybrid_mode == "rrf":
+            _query = {
+                "bool": {
+                    "must": {
+                        "multi_match": {
+                            "query": query_text,
+                            "fields": ['text', 'title']
+                        }
+                    },
+                }
+            }
+            _rank = {"rrf": {
+                "window_size": 200
+            }}
+    elif args.db_engine == 'es-bm25':
+        _query = {
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "query": text,
+                        "fields": ['text', 'title']
+                    }
+                },
+            }
+        }
+    elif args.db_engine == "es-elser":
+        _query = {
+            "text_expansion": {
+                "ml.tokens": {
+                    "model_id": args.model_name,
+                    "model_text": query_text
+                }
+            }
+        }
+    return _query, _knn, _rank
+
+
 if __name__ == '__main__':
     from datetime import datetime
 
@@ -1027,7 +1094,7 @@ if __name__ == '__main__':
     if not args.model_name:
         if args.db_engine == 'es-elser':
             args.model_name = ".elser_model_1"
-        elif args.db_engine == 'es-dense':
+        elif args.db_engine.startswith('es-dense'):
             args.model_name = 'all-MiniLM-L6-v2'
 
     if args.data_type == "beir":
@@ -1096,7 +1163,7 @@ if __name__ == '__main__':
                 docid2loio[a[0]] = a[1]
 
     model = None
-    if args.db_engine in ['es-dense', 'es-hybrid'] or args.max_doc_length is not None:
+    if args.db_engine in ['es-dense'] or args.max_doc_length is not None:
         import torch
 
         batch_size = 64
@@ -1116,6 +1183,9 @@ if __name__ == '__main__':
         client = create_es_client("RESCONVAI_SSL_FINGERPRINT", "RESCONVAI_API_KEY", args.host)
     elif args.server == "local":
         client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
+    else:
+        print(f"Server {args.server} is unknown. Exiting..")
+        sys.exit(12)
 
     try:
         res = client.info()
@@ -1154,7 +1224,7 @@ if __name__ == '__main__':
 
         hidden_dim = -1
         passage_vectors = []
-        if args.db_engine in ['es-dense', 'es-hybrid']:
+        if args.db_engine in ['es-dense']:
             print("Encoding corpus documents:")
             passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
 
@@ -1166,20 +1236,59 @@ if __name__ == '__main__':
 
         if args.pyizumo_tokenization:
             for passage in tqdm(input_passages, desc="Getting pyizumo word tokens"):
-                passage['title'] = get_pyizumo_tokenized_text(text = passage['title'], language_code = args.language_code)
-                passage['text']  = get_pyizumo_tokenized_text(text = passage['text'], language_code = args.language_code)
+                passage['title'] = get_pyizumo_tokenized_text(text=passage['title'], language_code=args.language_code)
+                passage['text'] = get_pyizumo_tokenized_text(text=passage['text'], language_code=args.language_code)
 
-        if args.db_engine in ['es-dense', 'es-bm25', 'es-hybrid']:
+        vector_field_name = None
+        if args.db_engine in ['es-dense', 'es-bm25']:
             mappings = coga_mappings[args.lang]
-            if args.db_engine in ['es-dense', 'es-hybrid']:
-                mappings['properties']["vector"] = {
-                    "type": "dense_vector", "dims": hidden_dim,
-                    "similarity": "cosine", "index": "true"
+            processors = []
+            if args.db_engine in ['es-dense']:
+                if args.model_on_server:
+                    vector_field_name = "vector"
+                    pipeline_name = f"{args.model_name}-test"
+                    processors = [{
+                        "inference": {
+                            "model_id": args.model_name,
+                            "target_field": vector_field_name,
+                            "field_map": {
+                                "text": "text_field"
+                            }
+                        }
+                    }]
+                    on_failure = [{
+                        "set": {
+                            "description": "Index document to 'failed-<index>'",
+                            "field": "_index",
+                            "value": "failed-{{{_index}}}"
+                        }
+                    },
+                    {
+                        "set": {
+                            "description": "Set error message",
+                            "field": "ingest.failure",
+                            "value": "{{_ingest.on_failure_message}}"
+                        }
+                    }]
+                else:
+                    vector_field_name = "vector"
+                    pipeline_name = None
+                    on_failure = None
+
+                mappings['properties'][vector_field_name] = {
+                    "type": "dense_vector",
+                    "similarity": "cosine",
+                    "dims": hidden_dim,
+                    "index": "true"
                 }
 
             create_update_index(client, index_name, settings=settings[args.lang],
                                 mappings=mappings,
                                 do_update=do_update)
+
+            if args.models_on_server and len(processors)>0:
+                client.ingest.put_pipeline(processors=processors, id=pipeline_name, on_failure=on_failure)
+
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
 
@@ -1197,19 +1306,20 @@ if __name__ == '__main__':
                     }
                     for pi, row in enumerate(input_passages[k:min(k + bulk_batch, num_passages)])
                 ]
-                if args.db_engine in ['es-dense', 'es-hybrid']:
-                    for pi, (action, row) in enumerate(
-                            zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
-                        action["_source"]['vector'] = passage_vectors[pi + k]
+                if args.db_engine in ['es-dense']:
+                    if not args.model_on_server:
+                        for pi, (action, row) in enumerate(
+                                zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
+                            action["_source"]['vector'] = passage_vectors[pi + k]
                 try:
-                    bulk(client, actions=actions)
+                    bulk(client, actions=actions, pipeline=pipeline_name)
                 except Exception as e:
                     print(f"Got an error in indexing: {e}")
                 t.update(bulk_batch)
             t.close()
             if len(actions) > 0:
                 try:
-                    bulk(client=client, actions=actions, pipeline=args.model_name + "-test")
+                    bulk(client=client, actions=actions, pipeline=pipeline_name)
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
         elif args.db_engine == "es-elser":
@@ -1310,105 +1420,25 @@ if __name__ == '__main__':
                                       doc_based=doc_based_ingestion)
 
         result = []
-        if args.db_engine in ["es-dense"]:
-            for query_number in tqdm(range(len(input_queries))):
-                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
-                qid = input_queries[query_number]['id']
-                query = {
-                    "field": "vector",
-                    "query_vector": query_vector,
-                    "k": args.top_k,
-                    "num_candidates": 1000,
-                }
-                res = client.search(
-                    index=index_name,
-                    knn=query,
-                    size=args.top_k,
-                    source_excludes=['vector']
-                )
-                rout = []
-                for rank, r in enumerate(res.body['hits']['hits']):
-                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
-                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
-        elif args.db_engine == 'es-bm25':
-            for query_number in tqdm(range(len(input_queries))):
-                qid = input_queries[query_number]['id']
-                query = {
-                    "bool": {
-                        "must": {
-                            "multi_match": {
-                                "query": input_queries[query_number]['text'],
-                                "fields": ['text', 'title']
-                            }
-                        },
-                    }
-                }
-
-                res = client.search(
-                    index=index_name,
-                    query=query,
-                    size=args.top_k,
-                )
-                rout = []
-                for rank, r in enumerate(res.body['hits']['hits']):
-                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
-                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
-        elif args.db_engine == "es-elser":
-            for query_number in tqdm(range(len(input_queries))):
-                qid = input_queries[query_number]['id']
-                query = {
-                    "text_expansion": {
-                        "ml.tokens": {
-                            "model_id": args.model_name,
-                            "model_text": input_queries[query_number]['text']
-                        }
-                    }
-                }
-                res = client.search(
-                    index=index_name,
-                    query=query,
-                    size=args.top_k,
-                )
-                rout = []
-                for rank, r in enumerate(res.body['hits']['hits']):
-                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
-                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
-
-        elif args.db_engine == "es-hybrid":
-            for query_number in tqdm(range(len(input_queries))):
-                query_vector = compute_embedding(model, input_queries[query_number]['text'], args.normalize_embs)
-                qid = input_queries[query_number]['id']
-                knn = {
-                    "field": "vector",
-                    "query_vector": query_vector,
-                    "k": args.top_k,
-                    "num_candidates": 1000,
-                }
-                query = {
-                    "bool": {
-                        "must": {
-                            "multi_match": {
-                                "query": input_queries[query_number]['text'],
-                                "fields": ['text', 'title']
-                            }
-                        },
-                    }
-                }
-                rank = {"rrf": {
-                    "window_size": 200
-                }}
-
-                res = client.search(
-                    index=index_name,
-                    knn=knn,
-                    query=query,
-                    rank=rank,
-                    size=args.top_k,
-                )
-                rout = []
-                for rank, r in enumerate(res.body['hits']['hits']):
-                    rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
-                result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
+        for query in tqdm(input_queries):
+            qid = query['id']
+            query_text = query['text']
+            query, knn, rank = build_elastic_query(qid=qid,
+                                                   db_engine=args.db_engine,
+                                                   text=query_text,
+                                                   model_name=args.model_name,
+                                                   hybrid_mode=args.hybrid,
+                                                   model_on_server=args.model_on_server)
+            res = client.search(
+                index=index_name,
+                knn=knn,
+                query=query,
+                rank=rank,
+                size=args.top_k,
+                source_excludes=['vector']
+            )
+            result.append({'qid': qid, 'text': query_text,
+                           "answers": extract_answers(res)})
 
         if do_rerank:
             pass
@@ -1422,7 +1452,6 @@ if __name__ == '__main__':
                     for r in result:
                         json.dump(r, out, ensure_ascii=False)
                         out.write("\n")
-                        # out.write(json.dumps())
 
         if args.evaluate:
             score = compute_score(input_queries, result)

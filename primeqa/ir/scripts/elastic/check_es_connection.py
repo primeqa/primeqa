@@ -43,8 +43,9 @@ else:
     print('Unknown server')
     sys.exit(10)
 
+es_server = f"https://{args.host}:9200"
 
-client = Elasticsearch(f"https://{args.host}:9200",
+client = Elasticsearch(es_server,
                        ssl_assert_fingerprint=(args.fingerprint),
                        api_key=args.apikey
                        )
