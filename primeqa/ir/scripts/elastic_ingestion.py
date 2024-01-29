@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os, re, json, csv
 from argparse import ArgumentParser
 
@@ -90,6 +92,12 @@ def setup_argparse():
                                                      "override the defaults based on --server")
     parser.add_argument("-N", "--normalize_text", default=False, help="If provided, the text is normalized "
                                                                       "for UTF8 encoding.")
+    parser.add_argument("--pyizumo_tokenization", action="store_true", default=False,
+                        help="If provided, will use the PyIzumo tokenizer to tokenize the text instead"
+                             " of the ES tokenizers.")
+    parser.add_argument("--compute_rouge", action="store_true",
+                        help="If provided, will compute the ROUGE score between the answers and the gold passage "
+                             "(note: it will be pretty slow for long documents).")
 
     return parser
 
@@ -587,7 +595,12 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                     for val, loio in [[f'passage {k}', f'loio {k}'] for k in range(1, 4)]:
                         if type(data[val][i]) == str:
                             psgs.append(data[val][i])
-                            loio_v = data[loio][i].replace('loio', '')
+                            loio = data[loio][i]
+                            if type(loio) is not str or loio.find("loio") == -1:
+                                print(f"Error: the loio {loio} does not have the word 'loio' in it.")
+                                continue
+                            else:
+                                loio_v = loio.replace('loio', '')
                             if loio_v in docid_map:
                                 if docid_map[loio_v] not in ids:
                                     ids.append(docid_map[loio_v])
@@ -690,9 +703,10 @@ def normalize(passage_vectors):
     return [v / np.linalg.norm(v) for v in passage_vectors if np.linalg.norm(v) > 0]
 
 
-def compute_score(input_queries, results):
-    from rouge_score.rouge_scorer import RougeScorer
-    scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
+def compute_score(input_queries, results, compute_rouge_score=False):
+    if compute_rouge_score:
+        from rouge_score.rouge_scorer import RougeScorer
+        scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
     if "relevant" not in input_queries[0] or input_queries[0]['relevant'] is None:
         print("The input question file does not contain answers. Please fix that and restart.")
         sys.exit(12)
@@ -754,6 +768,8 @@ def compute_score(input_queries, results):
 
             if str(docid) in gt[qid]:  # Great, we found a match.
                 update_scores(ranks, aid, 1, sum, tmp_scores)
+            if not compute_rouge_score:
+                continue
             if len(query['passages']) == 0:
                 scr = 0.
             else:
@@ -766,15 +782,18 @@ def compute_score(input_queries, results):
 
         for r in ranks:
             scores[r] += int(tmp_scores[r] >= 1)
-            pscores[r] += tmp_pscores[r]
+            if compute_rouge_score:
+                pscores[r] += tmp_pscores[r]
 
     _result = {"num_ranked_queries": num_eval_questions,
                "num_judged_queries": num_eval_questions,
                "doc_scores":
                    {r: int(1000 * scores[r] / num_eval_questions) / 1000.0 for r in ranks},
-               "passage_scores":
-                   {r: int(1000 * pscores[r] / num_eval_questions) / 1000.0 for r in ranks}
                }
+    if compute_rouge_score:
+        _result['rouge_scores'] = \
+            {r: int(1000 * pscores[r] / num_eval_questions) / 1000.0 for r in ranks}
+
     return _result
 
 
@@ -1171,7 +1190,13 @@ if __name__ == '__main__':
         if args.db_engine == 'es-elser':
             model = MyEmbeddingFunction('all-MiniLM-L6-v2')
         else:
-            model = MyEmbeddingFunction(args.model_name)
+            if args.model_on_server:
+                if args.model_name.find("multilingual-e5"):
+                    model = MyEmbeddingFunction("intfloat/multilingual-e5-base")
+                else:
+                    model = MyEmbeddingFunction(args.model_name)
+            else:
+                model = MyEmbeddingFunction(args.model_name)
 
     print(f"Using the {args.server} server at {args.host}")
 
@@ -1225,12 +1250,19 @@ if __name__ == '__main__':
         hidden_dim = -1
         passage_vectors = []
         if args.db_engine in ['es-dense']:
-            print("Encoding corpus documents:")
-            passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
+            if args.model_on_server:
+                if 'ml' in client.__dict__:
+                    r = client.ml.get_trained_models(model_id=args.model_name)
+                    hidden_dim = r['trained_model_configs'][0]['inference_config']['text_embedding']['embedding_size']
+                else:
+                    hidden_dim = 384 # Some default value, the system might crash if it's wrong.
+            else:
+                print("Encoding corpus documents:")
+                passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
 
-            hidden_dim = len(passage_vectors[0])
-            if args.normalize_embs:
-                passage_vectors = normalize(passage_vectors)
+                hidden_dim = len(passage_vectors[0])
+                if args.normalize_embs:
+                    passage_vectors = normalize(passage_vectors)
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
@@ -1245,12 +1277,12 @@ if __name__ == '__main__':
             processors = []
             if args.db_engine in ['es-dense']:
                 if args.model_on_server:
-                    vector_field_name = "vector"
+                    vector_field_name = "ml"
                     pipeline_name = f"{args.model_name}-test"
                     processors = [{
                         "inference": {
                             "model_id": args.model_name,
-                            "target_field": vector_field_name,
+                            "target_field": "ml",
                             "field_map": {
                                 "text": "text_field"
                             }
@@ -1270,6 +1302,7 @@ if __name__ == '__main__':
                             "value": "{{_ingest.on_failure_message}}"
                         }
                     }]
+                    vector_field_name = f"ml.predicted_value"
                 else:
                     vector_field_name = "vector"
                     pipeline_name = None
@@ -1286,7 +1319,7 @@ if __name__ == '__main__':
                                 mappings=mappings,
                                 do_update=do_update)
 
-            if args.models_on_server and len(processors)>0:
+            if args.model_on_server and len(processors)>0:
                 client.ingest.put_pipeline(processors=processors, id=pipeline_name, on_failure=on_failure)
 
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
@@ -1419,6 +1452,9 @@ if __name__ == '__main__':
                                       data_type=args.data_type,
                                       doc_based=doc_based_ingestion)
 
+        if not do_ingest:
+            vector_field_name = "ml.predicted_value" if args.model_on_server else "vector"
+
         result = []
         for query in tqdm(input_queries):
             qid = query['id']
@@ -1428,6 +1464,7 @@ if __name__ == '__main__':
                                                    text=query_text,
                                                    model_name=args.model_name,
                                                    hybrid_mode=args.hybrid,
+                                                   vector_field_name=vector_field_name,
                                                    model_on_server=args.model_on_server)
             res = client.search(
                 index=index_name,
@@ -1435,7 +1472,7 @@ if __name__ == '__main__':
                 query=query,
                 rank=rank,
                 size=args.top_k,
-                source_excludes=['vector']
+                source_excludes=['vector', 'ml.predicted_value']
             )
             result.append({'qid': qid, 'text': query_text,
                            "answers": extract_answers(res)})

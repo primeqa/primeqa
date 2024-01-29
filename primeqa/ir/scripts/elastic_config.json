@@ -1263,16 +1263,6 @@
           "term_vector": "with_positions_offsets",
           "index_options": "offsets",
           "store": "true"
-        },
-        "collection": {
-          "type": "text",
-          "fields": {
-            "exact": {
-              "normalizer": "keyword_lowercase",
-              "type": "keyword",
-              "doc_values": "false"
-            }
-          }
         }
       }
     }
