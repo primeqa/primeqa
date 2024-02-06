@@ -1,6 +1,8 @@
 # use annotated data, mrc data, and full passage as preference data of "chosen" and "rejected"
 import pandas as pd
 
+T5_PROMPT = ("Please answer a question about this article. If the question is unanswerable, say \"unanswerable\".")
+
 split = "test"
 longnq_file = f"/dccstor/srosent2/generative/appen/final/longNQ/{split}/longNQ_{split}_answerable.jsonl"
 
@@ -21,11 +23,12 @@ for i, row in mrcLongNQ.iterrows():
     question = longNQRow['input']
     title = longNQRow['passages'][0]['title']
     preference_data_mrc[id] = {'id':id}
-    preference_data_mrc[id]['chosen'] = f"{title}: {text}\nquestion: {question} answer:{answer}"
-    preference_data_mrc[id]['rejected'] = f"{title}: {text}\nquestion: {question} answer:{mrc_target}"
+    context = f"{title}:\n\n{text}"
+    preference_data_mrc[id]['chosen'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {answer}"
+    preference_data_mrc[id]['rejected'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {mrc_target}"
     preference_data_passage[id] = {'id':id}
-    preference_data_passage[id]['chosen'] = f"{title}: {text}\nquestion: {question} answer:{answer}"
-    preference_data_passage[id]['rejected'] = f"{title}: {text}\nquestion: {question} answer:{text}"
+    preference_data_passage[id]['chosen'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {answer}"
+    preference_data_passage[id]['rejected'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {text}"
 
 pd.DataFrame.from_dict(preference_data_mrc, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_short/{split}_answerable.csv", index=False)
 pd.DataFrame.from_dict(preference_data_passage, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_long/{split}_answerable.csv", index=False)

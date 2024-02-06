@@ -506,6 +506,7 @@ def main():
             # Load train and validation datasets separately because they might have different columns
             if data_args.train_file is not None: 
                 data_files['train'] = glob.glob(data_args.train_file)
+                data_files['train'].sort()
                 raw_datasets["train"] = datasets.load_dataset(
                     data_args.data_file_format, 
                     data_files={"train": data_files["train"]}, 
@@ -514,6 +515,7 @@ def main():
                  )
             if data_args.eval_file is not None: 
                 data_files['validation'] = glob.glob(data_args.eval_file)
+                data_files['validation'].sort()
                 raw_datasets["validation"] = datasets.load_dataset(
                     data_args.data_file_format, 
                     data_files={"validation": data_files["validation"]}, 
@@ -674,7 +676,7 @@ def main():
             trainer.model.save_pretrained(lora_path)
             tokenizer.save_pretrained(lora_path)
             # if you want to save the base model to call
-            trainer.model.base_model.save_pretrained(lora_path)
+            # trainer.model.base_model.save_pretrained(lora_path)
         # trainer.save_model()  # Saves the tokenizer too for easy upload
         
         metrics = train_result.metrics

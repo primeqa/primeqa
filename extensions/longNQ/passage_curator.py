@@ -19,10 +19,11 @@ if do_corpus:
     data_files.extend(glob.glob("/dccstor/srosent2/generative/appen/final/original_tydi/dev/*.jsonl"))
     data_files.extend(glob.glob("/dccstor/srosent2/generative/appen/final/original_tydi/train/*.jsonl"))
 
-    old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
-    old_unique_passages[['doc_id','pasage_offset']] = old_unique_passages['id'].str.split('_', expand=True)
-    old_doc_ids = set(old_unique_passages['doc_id'].to_list())
-    old_questions = set(pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/train/question_train_answerable.tsv", sep="\t", header=0, dtype={'id':str})['id'].to_list())
+    # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
+    old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_nobool.tsv", sep="\t", header=0, names=["id","text","title"])
+    # old_unique_passages[['doc_id','pasage_offset']] = old_unique_passages['id'].str.split('_', expand=True)
+    old_doc_ids = set(old_unique_passages['id'].to_list())
+    old_questions = set(pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/train/question_train_answerable_nobool.tsv", sep="\t", header=0, dtype={'id':str})['id'].to_list())
 
     dfs = []
 
@@ -206,8 +207,8 @@ if do_corpus:
     unique_passages_df = pd.DataFrame.from_dict(unique_passages, orient='index', columns=["text","title", "example_ids", "splits"])
     unique_passages_df.index.name = 'id'
     unique_passages_df.drop(columns=["example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_wbool.tsv", sep="\t")
-    old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t", header=0)
-    unique_passages_df[~unique_passages_df.index.isin(old_unique_passages['id'])].to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_just_bool.tsv", sep="\t")
+    # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t", header=0)
+    # unique_passages_df[~unique_passages_df.index.isin(old_unique_passages['id'])].to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_just_bool.tsv", sep="\t")
     unique_passages_df.to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids_wbool.tsv", sep="\t")
 
 if do_questions:
@@ -215,7 +216,7 @@ if do_questions:
     # load longNQ data - make sep files for train, dev, test incorporate doc-ids and doc-passage-ids from above
 
     if unique_passages is None:
-        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids_wbool.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
+        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
 
     data_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/*/*.jsonl")
 
@@ -223,7 +224,7 @@ if do_questions:
 
     # make questions.tsv for each split
     for file_name in data_files:
-        if "train" not in file_name:
+        if "test" not in file_name:
             continue
         if "wdev" in file_name or "train_answerable.jso" in file_name:
             continue
@@ -231,6 +232,8 @@ if do_questions:
         answerable = "answerable"
         if "unanswerable" in file_name:
             answerable = "unanswerable"
+        else:
+            continue
         split = "train"
         if "dev" in file_name:
             split = "dev"
@@ -255,7 +258,7 @@ if do_questions:
 
 if do_check:
     # passages = pd.read_csv("/dccstor/srosent3/long_nq/retrieval/passages.tsv", delimiter="\t", header=0)
-    passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_wbool.tsv", delimiter="\t", header=0)
+    passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", delimiter="\t", header=0)
     
     # question_files = glob.glob("/dccstor/srosent3/long_nq/retrieval/*/*_answerable.tsv")
     question_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/question*_answerable.tsv")
