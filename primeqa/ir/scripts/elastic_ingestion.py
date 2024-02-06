@@ -27,6 +27,9 @@ coga_mappings = {}
 docname2url = {}
 normalize_text = False
 
+rouge_scorer = None
+
+
 
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
@@ -90,14 +93,19 @@ def setup_argparse():
     parser.add_argument("--lang", "--language_code", default="en", choices=languages)
     parser.add_argument("--host", default=None, help="Gives the IP for the ES server; can be used to "
                                                      "override the defaults based on --server")
-    parser.add_argument("-N", "--normalize_text", default=False, help="If provided, the text is normalized "
-                                                                      "for UTF8 encoding.")
+    parser.add_argument("-N", "--normalize_text", default=False, action="store_true",
+                        help="If provided, the text is normalized for UTF8 encoding.")
     parser.add_argument("--pyizumo_tokenization", action="store_true", default=False,
                         help="If provided, will use the PyIzumo tokenizer to tokenize the text instead"
                              " of the ES tokenizers.")
     parser.add_argument("--compute_rouge", action="store_true",
                         help="If provided, will compute the ROUGE score between the answers and the gold passage "
                              "(note: it will be pretty slow for long documents).")
+    parser.add_argument("--duplicate_removal", choices=["none", "rouge", "exact"], default="none",
+                        help="Defines the strategy for removing duplicates (default: don't remove). It can be 'rouge' (based on rouge similarity) or 'exact' "
+                             "(exact match)")
+    parser.add_argument('--rouge_duplicate_threshold', default=-1, type=float,
+                        help="The rouge-l F1 similarity for dropping duplicated in the result (default 0.7)")
 
     return parser
 
@@ -477,7 +485,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                         else csv.DictReader(in_file, delimiter="\t")
                 next(csv_reader)
                 for ri, row in tqdm(enumerate(csv_reader)):
-                    if ri >= max_num_documents:
+                    if docs_read >= max_num_documents:
                         break
                     assert len(row) in [2, 3, 4], f'Invalid .tsv record (has to contain 2 or 3 fields): {row}'
                     if 'answers' in row:
@@ -704,9 +712,6 @@ def normalize(passage_vectors):
 
 
 def compute_score(input_queries, results, compute_rouge_score=False):
-    if compute_rouge_score:
-        from rouge_score.rouge_scorer import RougeScorer
-        scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
     if "relevant" not in input_queries[0] or input_queries[0]['relevant'] is None:
         print("The input question file does not contain answers. Please fix that and restart.")
         sys.exit(12)
@@ -775,7 +780,7 @@ def compute_score(input_queries, results, compute_rouge_score=False):
             else:
                 scr = max(
                     [
-                        scorer.score(passage, answer['text'])['rouge1'].recall for passage in query['passages']
+                        rouge_scorer.score(passage, answer['text'])['rouge1'].recall for passage in query['passages']
                     ]
                 )
             update_scores(ranks, aid, scr, max, tmp_pscores)
@@ -1038,7 +1043,7 @@ def create_es_client(fingerprint, api_key, host):
 
 def extract_answers(res):
     rout = []
-    for rank, r in enumerate(res.body['hits']['hits']):
+    for rank, r in enumerate(res):
         rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
     return rout
 
@@ -1099,6 +1104,32 @@ def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_
         }
     return _query, _knn, _rank
 
+def remove_duplicates(results, duplicate_removal, rouge_duplicate_threshold):
+    res = results
+    if duplicate_removal == "none":
+        return res
+    if len(res)==0:
+        return results
+    ret = []
+    if duplicate_removal == "exact":
+        seen = {res[0]['_text']: 1}
+        ret = [res[0]]
+        for r in res[1:]:
+            if r['_text'] not in seen:
+                seen[r['_text']] = 1
+                ret.append(r)
+    elif duplicate_removal == "rouge":
+        for r in res[1:]:
+            found = False
+            for c in ret:
+                scr = rouge_scorer.score(c['_text'], r['_text'])
+                if scr['rougel'].fmeasure >= rouge_duplicate_threshold:
+                    found = True
+                    break
+            if not found:
+                ret.append(r)
+    return ret
+
 
 if __name__ == '__main__':
     from datetime import datetime
@@ -1121,6 +1152,17 @@ if __name__ == '__main__':
             args.input_passages = os.path.join(args.data, "corpus.jsonl")
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "queries.jsonl")
+
+    if args.duplicate_removal != "none":
+        if args.rouge_duplicate_threshold < 0:
+            args.rouge_duplicate_threshold = 0.7
+    elif args.rouge_duplicate_threshold > 0:
+        args.duplicate_removal = "rouge"
+
+    if args.compute_rouge or args.duplicate_removal=="rouge":
+        from rouge_score.rouge_scorer import RougeScorer
+
+        rouge_scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
 
     server_map = {
         'CONVAI': "convaidp-nlp.sl.cloud9.ibm.com",
@@ -1244,8 +1286,8 @@ if __name__ == '__main__':
                                    data_type=args.data_type,
                                    docid_map=docid2loio,
                                    )
-        if max_documents is not None and max_documents > 0:
-            input_passages = input_passages[:max_documents]
+        # if max_documents is not None and max_documents > 0:
+        #     input_passages = input_passages[:max_documents]
 
         hidden_dim = -1
         passage_vectors = []
@@ -1474,6 +1516,9 @@ if __name__ == '__main__':
                 size=args.top_k,
                 source_excludes=['vector', 'ml.predicted_value']
             )
+            res = remove_duplicates(res._body['hits']['hits'],
+                                    args.duplicate_removal,
+                                    args.rouge_duplicate_threshold)
             result.append({'qid': qid, 'text': query_text,
                            "answers": extract_answers(res)})
 

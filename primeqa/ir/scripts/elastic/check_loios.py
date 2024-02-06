@@ -22,7 +22,10 @@ num_missing = 0
 with open(args.loio_file, "r") as loios:
     for line in loios:
         line = line.strip()
-        loio, count = line.split("\t")
+        if line.find("\t") >= 0:
+            loio, count = line.split("\t")
+        else:
+            loio = line
         if loio not in urls:
             num_missing += 1
             print(f"Missing key {loio}")
