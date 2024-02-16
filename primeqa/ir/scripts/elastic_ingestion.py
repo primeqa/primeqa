@@ -603,12 +603,16 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                     for val, loio in [[f'passage {k}', f'loio {k}'] for k in range(1, 4)]:
                         if type(data[val][i]) == str:
                             psgs.append(data[val][i])
-                            loio = data[loio][i]
-                            if type(loio) is not str or loio.find("loio") == -1:
+                            loio = str(data[loio][i]).replace('\t','')
+                            if loio == 'nan':
+                                loio = ""
+                            if type(loio) is not str or (loio != "" and loio.find("loio") == -1):
                                 print(f"Error: the loio {loio} does not have the word 'loio' in it.")
                                 continue
                             else:
                                 loio_v = loio.replace('loio', '')
+                            if loio=="":
+                                continue
                             if loio_v in docid_map:
                                 if docid_map[loio_v] not in ids:
                                     ids.append(docid_map[loio_v])
@@ -1112,17 +1116,19 @@ def remove_duplicates(results, duplicate_removal, rouge_duplicate_threshold):
         return results
     ret = []
     if duplicate_removal == "exact":
-        seen = {res[0]['_text']: 1}
+        seen = {res[0]['_source']['text']: 1}
         ret = [res[0]]
         for r in res[1:]:
-            if r['_text'] not in seen:
-                seen[r['_text']] = 1
+            text_ = r['_source']['text']
+            if text_ not in seen:
+                seen[text_] = 1
                 ret.append(r)
     elif duplicate_removal == "rouge":
         for r in res[1:]:
             found = False
+            text_ = r['_source']['text']
             for c in ret:
-                scr = rouge_scorer.score(c['_text'], r['_text'])
+                scr = rouge_scorer.score(c['_source']['text'], text_)
                 if scr['rougel'].fmeasure >= rouge_duplicate_threshold:
                     found = True
                     break
@@ -1153,7 +1159,7 @@ if __name__ == '__main__':
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
-    if args.duplicate_removal != "none":
+    if args.duplicate_removal == "rouge":
         if args.rouge_duplicate_threshold < 0:
             args.rouge_duplicate_threshold = 0.7
     elif args.rouge_duplicate_threshold > 0:
