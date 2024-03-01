@@ -526,6 +526,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                 # data_type = get_attr(kwargs, 'data_type', 'sap')
                 if data_type in ['auto', 'sap']:
                     txtname = "document"
+                    psg_txtname = "text"
                     docidname = "document_id"
                     titlename = "title"
                     data_type = "sap"
@@ -571,11 +572,12 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                                              data_type=data_type
                                              ))
                         else:
-                            for passage in doc['passages']:
+                            for pi, passage in enumerate(doc['passages']):
+                                passage_id = passage['passage_id'] if 'passage_id' in passage else pi
                                 passages.extend(
-                                    process_text(id=f"{doc[docidname]}-{passage['passage_id']}",
-                                                 title=remove_stopwords(passage[titlename], remv_stopwords),
-                                                 text=remove_stopwords(passage[txtname], remv_stopwords),
+                                    process_text(id=f"{doc[docidname]}-{passage_id}",
+                                                 title=remove_stopwords(fix_title(title), lang, remv_stopwords),
+                                                 text=remove_stopwords(passage[psg_txtname], remv_stopwords),
                                                  max_doc_size=max_doc_size,
                                                  stride=stride,
                                                  remove_url=remove_url,

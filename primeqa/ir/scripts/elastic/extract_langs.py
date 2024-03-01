@@ -28,8 +28,13 @@ def get_lang_map(tsv_file):
     """
     with open(tsv_file, 'r', encoding='utf8') as inp:
         for i, line in enumerate(inp):
-            _id, url, title, _ = line.strip().split("\t")
+            try:
+                _id, url, title, _ = line.strip().split("\t")
+            except:
+                _id, url, title = line.strip().split("\t")
+
             pos = url.find("?locale=")
+            _id = _id.replace(".txt","")
             if pos >= 0:
                 lang = url[pos + LL:][0:2]
             else:
