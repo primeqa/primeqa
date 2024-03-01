@@ -5,14 +5,14 @@ from argparse import ArgumentParser
 
 from tqdm import tqdm
 import numpy as np
-from typing import List, Union, Any
+from typing import List, Union
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 import logging
 import sys
 import pyizumo
-import unicodedata
 import copy
+from text_tiler import TextTiler
 
 nlp = None
 product_counts = {}
@@ -26,7 +26,7 @@ settings = {}
 coga_mappings = {}
 docname2url = {}
 normalize_text = False
-
+tiler = None
 
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
@@ -157,124 +157,6 @@ def get_pyizumo_tokenized_text(text=None, tokenized_text=None, language_code=Non
     return token_text
 
 
-def split_text(text: str, tokenizer, title: str = "", max_length: int = 512, stride: int = None, language_code='en') \
-        -> tuple[list[str], list[list[int | Any]]]:
-    """
-    Method to split a text into pieces that are of a specified <max_length> length, with the
-    <stride> overlap, using a HF tokenizer.
-    :param text: str - the text to split
-    :param tokenizer: HF Tokenizer
-       - the tokenizer to do the work of splitting the words into word pieces
-    :param title: str - the title of the document
-    :param max_length: int - the maximum length of the resulting sequence
-    :param stride: int - the overlap between windows
-    """
-    global nlp
-    text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
-    if max_length is not None:
-        # res = tokenizer(text, max_length=max_length, stride=stride,
-        #                 return_overflowing_tokens=True, truncation=True)
-        tok_len = get_tokenized_length(tokenizer, text)
-        if tok_len <= max_length:
-            return [text], [[0, len(text)]]
-        else:
-            if title:  # make space for the title in each split text.
-                ltitle = get_tokenized_length(tokenizer, title)
-                max_length -= ltitle
-                ind = text.find(title)
-                if ind == 0:
-                    text = text[ind + len(title):]
-
-            if not nlp:
-                nlp = pyizumo.load(language_code, parsers=['token', 'sentence'])
-            parsed_text = nlp(text)
-
-            tsizes = []
-            begins = []
-            ends = []
-            tokens = []
-            for sent in parsed_text.sentences:
-                stext = sent.text
-                slen = get_tokenized_length(tokenizer, stext)
-                if slen > max_length:
-                    too_long = [[t for t in sent.tokens]]
-                    too_long[0].reverse()
-                    while len(too_long) > 0:
-                        tl = too_long.pop()
-                        ll = get_tokenized_length(tokenizer, text[tl[-1].begin:tl[0].end])
-                        if ll <= max_length:
-                            tsizes.append(ll)
-                            begins.append(tl[-1].begin)
-                            ends.append(tl[0].end)
-                        else:
-                            if len(tl) > 1:  # Ignore really long words
-                                mid = int(len(tl) / 2)
-                                too_long.extend([tl[:mid], tl[mid:]])
-                            else:
-                                pass
-                else:
-                    tsizes.append(slen)
-                    begins.append(sent.begin)
-                    ends.append(sent.end)
-
-            intervals = compute_intervals(tsizes, max_length, stride)
-
-            positions = [[begins[p[0]], ends[p[1]]] for p in intervals]
-            texts = [text[p[0]:p[1]] for p in positions]
-            return texts, positions
-
-
-MAX_TRIED = 10000
-
-
-def compute_intervals(segment_lengths: List[int], max_length: int, stride: int) -> List[List[int | Any]]:
-    def check_for_cycling(segments: List[List[int | Any]], prev_start_index: int) -> None:
-        if len(segments) > 0 and segments[-1][0] == prev_start_index:
-            raise RuntimeError(f"You have a problem with the splitting - it's cycling!: {segments[-3:]}")
-
-    def check_excessive_tries(number_of_tries: int) -> bool:
-        if number_of_tries > MAX_TRIED:
-            print(f"Too many tried - probably something is wrong with the document.")
-            return True
-        else:
-            return False
-
-    current_index = 1
-    current_total_length = segment_lengths[0]
-    prev_start_index = 0
-    segments = []
-    number_of_tries = 0
-
-    while current_index < len(segment_lengths):
-        if current_total_length + segment_lengths[current_index] > max_length:
-            check_for_cycling(segments, prev_start_index)
-            if check_excessive_tries(number_of_tries):
-                return segments
-            if segments is None:
-                break
-            number_of_tries += 1
-            segments.append([prev_start_index, current_index - 1])
-
-            if current_index > 1 and segment_lengths[current_index - 1] + segment_lengths[current_index] <= max_length:
-                overlap_index = current_index - 1
-                overlap = 0
-                max_length_tmp = max_length - segment_lengths[current_index]
-                while overlap_index > 0:
-                    overlap += segment_lengths[overlap_index]
-                    if overlap < stride and overlap + segment_lengths[overlap_index - 1] <= max_length_tmp:
-                        overlap_index -= 1
-                    else:
-                        break
-                current_index = overlap_index
-            prev_start_index = current_index
-            current_total_length = 0
-        else:
-            current_total_length += segment_lengths[current_index]
-            current_index += 1
-    segments.append([prev_start_index, len(segment_lengths) - 1])
-
-    return segments
-
 
 def get_tokenized_length(tokenizer, text):
     """
@@ -289,69 +171,14 @@ def get_tokenized_length(tokenizer, text):
     else:
         return -1
 
+#
+#
 
-def process_product_id(url_fields, uniform_product_name, data_type):
-    """
-    Process the product ID based on the given fields, uniform product name, and data type.
-
-    Parameters:
-    - fields (list): A list of fields.
-    - uniform_product_name (str): The uniform product name.
-    - data_type (str): The data type.
-
-    Returns:
-    - str: The processed product ID.
-
-    Example Usage:
-    ```python
-    fields = ["field1", "field2", "field3"]
-    uniform_product_name = "Uniform Product"
-    data_type = "sap"
-
-    result = process_product_id(fields, uniform_product_name, data_type)
-    print(result)  # Output: ""
-
-    data_type = "other"
-
-    result = process_product_id(fields, uniform_product_name, data_type)
-    print(result)  # Output: ""
-    ```
-    """
-    if data_type == "sap":
-        productId = "" if len(url_fields) == 0 \
-            else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#') \
-            else 'SAP_BUSINESS_ONE'
-        if uniform_product_name:
-            productId = uniform_product_name
-        if productId.startswith("SAP_SUCCESSFACTORS"):
-            productId = "SAP_SUCCESSFACTORS"
-        return productId
-    else:
-        return ""
-
-
-def process_url(doc_url, data_type):
-    if data_type == "sap":
-        url = re.sub(r'\?locale=.*', "", doc_url)
-        fields = url.split("/")
-        fields[-1] = fields[-1].replace(".html", "")
-        return url, fields
-    else:
-        return "", ["", "", "", "", "", ""]
-
-
-def update_product_counts(product_counts, productId):
-    if productId not in product_counts:
-        product_counts[productId] = 1
-    else:
-        product_counts[productId] += 1
-
-
-def process_text(id, title, text, max_doc_size, stride, remove_url=True,
+def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
                  tokenizer=None,
                  doc_url=None,
                  uniform_product_name=None,
-                 data_type="sap"
+                 data_type="sap",
                  ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -366,60 +193,154 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     :param uniform_product_name: str - if not None, all documents will receive this productId
     :return - a list of indexable items, each containing a title, id, text, and url.
     """
-    global product_counts, normalize_text
-    pieces = []
-    # Refactoring: extracted url processing to a separate function
+
+    def process_product_id(url_fields, uniform_product_name, data_type):
+        """
+        Process the product ID based on the given fields, uniform product name, and data type.
+
+        Parameters:
+        - fields (list): A list of fields.
+        - uniform_product_name (str): The uniform product name.
+        - data_type (str): The data type.
+
+        Returns:
+        - str: The processed product ID.
+
+        Example Usage:
+        ```python
+        fields = ["field1", "field2", "field3"]
+        uniform_product_name = "Uniform Product"
+        data_type = "sap"
+
+        result = process_product_id(fields, uniform_product_name, data_type)
+        print(result)  # Output: ""
+
+        data_type = "other"
+
+        result = process_product_id(fields, uniform_product_name, data_type)
+        print(result)  # Output: ""
+        ```
+        """
+        if data_type == "sap":
+            product_id_ = "" if len(url_fields) == 0 \
+                else url_fields[-3] if (len(url_fields) > 3 and url_fields[-3] != '#') \
+                else 'SAP_BUSINESS_ONE'
+            if uniform_product_name:
+                product_id_ = uniform_product_name
+            if product_id_.startswith("SAP_SUCCESSFACTORS"):
+                product_id_ = "SAP_SUCCESSFACTORS"
+            return product_id_
+        else:
+            return ""
+
+    def process_url(doc_url: str, data_type: str = ""):
+        """
+            process_url(doc_url:str, data_type:str="") -> Tuple[str, List[str]]
+            This method processes a given URL and returns the modified URL and a list of fields.
+            Parameters:
+            - doc_url (str): The URL to be processed.
+            - data_type (str): Optional. The data type to specify the processing. Default is an empty string.
+
+            Returns:
+            - Tuple[str, List[str]]: A tuple containing the processed URL and a list of fields.
+
+            Example:
+            >>> doc_url = "https://example.com/some_document.html?locale=en-US"
+            >>> data_type = "sap"
+            >>> process_url(doc_url, data_type)
+            ("https://example.com/some_document", ["https:", "", "example.com", "some_document"])
+
+            Note:
+            - If the data_type is "sap", the URL is modified by removing the query string, replacing the last part
+            with a filename (removing the .html extension), and returning the modified URL and a list of fields
+            extracted from the modified URL.
+            - If the data_type is not "sap", an empty string and a list of empty strings are returned.
+
+        """
+        if data_type == "sap":
+            url = re.sub(r'\?locale=.*', "", doc_url)
+            fields = url.split("/")
+            fields[-1] = fields[-1].replace(".html", "")
+            return url, fields
+        else:
+            return "", ["", "", "", "", "", ""]
+
+    global product_counts
     full_url, fields = process_url(doc_url, data_type)
+    product_id = process_product_id(fields, uniform_product_name, data_type)
+    if product_id not in product_counts:
+        product_counts[product_id] = 1
+    else:
+        product_counts[product_id] += 1
 
-    # Refactoring: extracted productId processing to a separate function
-    productId = process_product_id(fields, uniform_product_name, data_type)
-
-    # Refactoring: extracted product_counts updating to a separate function
-    update_product_counts(product_counts, productId)
     itm = {
-        'productId': productId,
+        'productId': product_id,
         'deliverableLoio': ("" if doc_url == "" else fields[-2]),
         'filePath': "" if doc_url == "" else fields[-1],
         'title': title,
         'url': doc_url,
         'app_name': "",
     }
-    #
-    url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
-    if text.find("With this app") >= 0 or text.find("App ID") >= 0:
-        itm['app_name'] = title
-    if not text.startswith(title):
-        expanded_text = f"{title}\n{text}"
-    else:
-        expanded_text = text
 
-    if remove_url:
-        # The normalization below deals with some issue in the re library - it would get stuck
-        # if the URL has some strange chars, like `\xa0`.
-        if normalize_text:
-            text = re.sub(url, 'URL', unicodedata.normalize("NFKC", text))
-        else:
-            text = re.sub(url, 'URL', text)
-
-    if tokenizer is not None:
-        merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
-        if merged_length <= max_doc_size:
-            itm.update({'id': f"{id}-0-{len(text)}", 'text': expanded_text})
-            pieces.append(itm.copy())
-        else:
-            maxl = max_doc_size  # - title_len
-            psgs, inds = split_text(text=text, max_length=maxl, title=title,
-                                    stride=stride, tokenizer=tokenizer)
-            for pi, (p, index) in enumerate(zip(psgs, inds)):
-                itm.update({
-                    'id': f"{id}-{index[0]}-{index[1]}",
-                    'text': f"{title}\n{p}"
-                })
-                pieces.append(itm.copy())
-    else:
-        itm.update({'id': id, 'text': expanded_text})
-        pieces.append(itm.copy())
-    return pieces
+    return tiler.create_tiles(id, title, text,
+                              max_doc_size=max_doc_size,
+                              stride=stride,
+                              remove_url=remove_url,
+                              template=itm)
+#     global product_counts, normalize_text
+#     pieces = []
+#     # Refactoring: extracted url processing to a separate function
+#     full_url, fields = process_url(doc_url, data_type)
+#
+#     # Refactoring: extracted productId processing to a separate function
+#     productId = process_product_id(fields, uniform_product_name, data_type)
+#
+#     # Refactoring: extracted product_counts updating to a separate function
+#     update_product_counts(product_counts, productId)
+#     itm = {
+#         'productId': productId,
+#         'deliverableLoio': ("" if doc_url == "" else fields[-2]),
+#         'filePath': "" if doc_url == "" else fields[-1],
+#         'title': title,
+#         'url': doc_url,
+#         'app_name': "",
+#     }
+#     #
+#     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
+#     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
+#         itm['app_name'] = title
+#     if not text.startswith(title):
+#         expanded_text = f"{title}\n{text}"
+#     else:
+#         expanded_text = text
+#
+#     if remove_url:
+#         # The normalization below deals with some issue in the re library - it would get stuck
+#         # if the URL has some strange chars, like `\xa0`.
+#         if normalize_text:
+#             text = re.sub(url, 'URL', unicodedata.normalize("NFKC", text))
+#         else:
+#             text = re.sub(url, 'URL', text)
+#
+#     if tokenizer is not None:
+#         merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
+#         if merged_length <= max_doc_size:
+#             itm.update({'id': f"{id}-0-{len(text)}", 'text': expanded_text})
+#             pieces.append(itm.copy())
+#         else:
+#             maxl = max_doc_size  # - title_len
+#             psgs, inds = split_text(text=text, max_length=maxl, title=title,
+#                                     stride=stride, tokenizer=tokenizer)
+#             for pi, (p, index) in enumerate(zip(psgs, inds)):
+#                 itm.update({
+#                     'id': f"{id}-{index[0]}-{index[1]}",
+#                     'text': f"{title}\n{p}"
+#                 })
+#                 pieces.append(itm.copy())
+#     else:
+#         itm.update({'id': id, 'text': expanded_text})
+#         pieces.append(itm.copy())
+#     return pieces
 
 
 def get_attr(_args, val, default=None):
@@ -441,7 +362,7 @@ def remove_stopwords(text: str, lang, do_replace: bool = False) -> str:
         return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
 
 
-def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
+def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -495,7 +416,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                         passages.append(itm)
                     else:
                         passages.extend(
-                            process_text(id=row['id'],
+                            process_text(tiler,
+                                         id=row['id'],
                                          title=remove_stopwords(fix_title(row['title']), lang,
                                                                 remv_stopwords) if 'title' in row else '',
                                          text=remove_stopwords(row['text'], lang, remv_stopwords),
@@ -551,7 +473,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                     try:
                         if doc_based:
                             passages.extend(
-                                process_text(id=doc[docidname],
+                                process_text(tiler,
+                                             id=doc[docidname],
                                              title=remove_stopwords(fix_title(title), lang, remv_stopwords),
                                              text=remove_stopwords(doc[txtname], remv_stopwords),
                                              max_doc_size=max_doc_size,
@@ -565,7 +488,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None,
                         else:
                             for passage in doc['passages']:
                                 passages.extend(
-                                    process_text(id=f"{doc[docidname]}-{passage['passage_id']}",
+                                    process_text(tiler,
+                                                 id=f"{doc[docidname]}-{passage['passage_id']}",
                                                  title=remove_stopwords(passage[titlename], remv_stopwords),
                                                  text=remove_stopwords(passage[txtname], remv_stopwords),
                                                  max_doc_size=max_doc_size,
@@ -1198,6 +1122,10 @@ if __name__ == '__main__':
             else:
                 model = MyEmbeddingFunction(args.model_name)
 
+    tiler = TextTiler(max_doc_size=args.max_doc_size,
+                      stride=args.stride,
+                      tokenizer=model.tokenizer)
+
     print(f"Using the {args.server} server at {args.host}")
 
     if args.server == "CONVAI":
@@ -1228,6 +1156,7 @@ if __name__ == '__main__':
         max_documents = args.max_num_documents
 
         input_passages = read_data(args.input_passages,
+                                   tiler=tiler,
                                    lang=args.lang,
                                    fields=["id", "text", "title"],
                                    remove_url=args.replace_links,
@@ -1421,10 +1350,7 @@ if __name__ == '__main__':
                 except Exception as e:
                     print(f"Got an error in indexing: {e}, {len(actions)}")
 
-        print(f"Product ID histogram:")
-        for k in sorted(product_counts.keys(), key=lambda x: product_counts[x], reverse=True):
-            print(f" {k}\t{product_counts[k]}")
-
+            tiler.print_product_histogram()
     ### QUERY TIME
 
     if do_retrieve:
