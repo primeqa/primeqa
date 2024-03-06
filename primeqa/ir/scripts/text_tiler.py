@@ -3,12 +3,14 @@ import re
 from typing import List, Any, Dict
 import pyizumo
 
+
 class TextTiler:
     """
     TextTiler is a class that helps splits a long string into segments that are
     of a specified length (in LLM tokenizer units), and can follow sentence boundaries
     or not.
     """
+
     def __init__(self, max_doc_size, stride, tokenizer,
                  aligned_on_sentences: bool = True):
         self.max_doc_size = max_doc_size
@@ -18,19 +20,16 @@ class TextTiler:
         self.aligned_on_sentences = aligned_on_sentences
         self.nlp = None
 
-    @staticmethod
-
-
     def create_tiles(self,
-                     id_:str,
-                     title,
-                     text,
-                     max_doc_size=None,
-                     stride=None,
-                     remove_url=True,
-                     normalize_text=False,
-                     title_handling:str="all",
-                     template:Dict[str: str]= {},
+                     id_: str,
+                     text: str,
+                     title: str = "",
+                     max_doc_size: int = None,
+                     stride: int = None,
+                     remove_url: bool = True,
+                     normalize_text: bool = False,
+                     title_handling: str = "all",
+                     template=None,
                      ):
         """
         Converts a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -49,6 +48,8 @@ class TextTiler:
                          keys with the split text.
         :return - a list of indexable items, each containing a title, id, text, and url.
         """
+        if template is None:
+            template = {}
         if max_doc_size is None:
             max_doc_size = self.max_doc_size
         if stride is None:
@@ -84,7 +85,7 @@ class TextTiler:
                     itm.update({
                         'id': f"{id_}-{index[0]}-{index[1]}",
                         'text': (f"{title}\n{p}"
-                                 if title_handling=="any" or title_handling=="first" and pi==0
+                                 if title_handling == "all" or title_handling == "first" and pi == 0
                                  else p)
                     })
                     pieces.append(itm.copy())
@@ -106,7 +107,7 @@ class TextTiler:
             return -1
 
     def split_text(self, text: str, tokenizer, title: str = "", max_length: int = -1, stride: int = -1,
-                   language_code='en', title_handling:str='any') \
+                   language_code='en', title_handling: str = 'any') \
             -> tuple[list[str], list[list[int | Any]]]:
         """
         Method to split a text into pieces that are of a specified <max_length> length, with the
@@ -125,9 +126,11 @@ class TextTiler:
         :return: Tuple[list[str], list[list[int | Any]]] - returns a pair of tile string list and a position list (each entry
                  is a list of the start/end position of the corresponding tile in the first returned argument).
         """
-        def get_expanded_text(text, pos=0, title_handling="all"):
-            if title_handling == "none" or title_handling == "first" and pos>0:
-                return title
+
+        title_length = self.get_tokenized_length(title)
+        def get_expanded_text(text:str, title:str, pos:int=0, title_handling:str="all"):
+            if title_handling == "none" or title_handling == "first" and pos > 0:
+                return text
             else:
                 return f"{title}\n{text}"
 
@@ -136,12 +139,13 @@ class TextTiler:
         if stride == -1:
             stride = self.stride
         text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
+        pos = 0
         if max_length is not None:
-            tok_len = self.get_tokenized_length(text)
+            tok_len = self.get_tokenized_length(get_expanded_text(text=text, title=title, title_handling=title_handling))
             if tok_len <= max_length:
                 return [text], [[0, len(text)]]
             else:
-                if title and title_handling != "none":  # make space for the title in each split text.
+                if title and title_handling == "all":  # make space for the title in each split text.
                     ltitle = self.get_tokenized_length(title)
                     max_length -= ltitle
                     ind = text.find(title)
@@ -180,7 +184,10 @@ class TextTiler:
                             begins.append(sent.begin)
                             ends.append(sent.end)
 
-                    intervals = TextTiler.compute_intervals(segment_lengths=tsizes, max_length=max_length, stride=stride)
+                    intervals = TextTiler.compute_intervals(segment_lengths=tsizes,
+                                                            max_length=max_length,
+                                                            first_length=(max_length-title_length if title_handling=="first" else -1),
+                                                            stride=stride)
 
                     positions = [[begins[p[0]], ends[p[1]]] for p in intervals]
                     texts = [text[p[0]:p[1]] for p in positions]
@@ -190,20 +197,24 @@ class TextTiler:
                     texts = []
                     positions = []
                     end = re.compile(f' {re.escape(tokenizer.sep_token)}$')
-                    init_pos=0
+                    init_pos = 0
                     for split_passage in res['input_ids']:
                         tt = end.sub(
                             "",
                             tokenizer.decode(split_passage).replace(f"{tokenizer.cls_token} ", "")
                         )
                         texts.append(tt)
-                        positions.append([init_pos, init_pos+len(tt)])
+                        positions.append([init_pos, init_pos + len(tt)])
                         init_pos += stride
                 return texts, positions
 
     MAX_TRIED = 10000
+
     @staticmethod
-    def compute_intervals(segment_lengths: List[int], max_length: int, stride: int) -> List[List[int | Any]]:
+    def compute_intervals(segment_lengths: List[int],
+                          max_length: int,
+                          first_length:int,
+                          stride:int) -> List[List[int | Any]]:
         """
         Compute Intervals Method
         This method computes intervals from a list of segment lengths based on a maximum length and a stride. It returns a list of interval ranges.
@@ -211,12 +222,15 @@ class TextTiler:
         Parameters:
         - segment_lengths (List[int]): A list of segment lengths.
         - max_length (int): The maximum length for each interval.
+        - first_length (int): The length of the first sentences, if different from the rest (it will happen when using
+          title_handling="first").
         - stride (int): The stride value for overlapping intervals.
 
         Returns:
         - List[List[int | Any]]: A list of interval ranges.
 
         """
+
         def check_for_cycling(segments_: List[List[int | Any]], prev_start_index_: int) -> None:
             if len(segments_) > 0 and segments_[-1][0] == prev_start_index_:
                 raise RuntimeError(f"You have a problem with the splitting - it's cycling!: {segments_[-3:]}")
@@ -233,9 +247,13 @@ class TextTiler:
         prev_start_index = 0
         segments = []
         number_of_tries = 0
+        if first_length > 0:
+            this_max_length = first_length
+        else:
+            this_max_length = max_length
 
         while current_index < len(segment_lengths):
-            if current_total_length + segment_lengths[current_index] > max_length:
+            if current_total_length + segment_lengths[current_index] > this_max_length:
                 check_for_cycling(segments, prev_start_index)
                 if check_excessive_tries(number_of_tries):
                     return segments
@@ -243,11 +261,13 @@ class TextTiler:
                     break
                 number_of_tries += 1
                 segments.append([prev_start_index, current_index - 1])
+                this_max_length = max_length
 
-                if current_index > 1 and segment_lengths[current_index - 1] + segment_lengths[current_index] <= max_length:
+                overlap = 0
+                if current_index > 1 and \
+                        segment_lengths[current_index - 1] + segment_lengths[current_index] <= this_max_length:
                     overlap_index = current_index - 1
-                    overlap = 0
-                    max_length_tmp = max_length - segment_lengths[current_index]
+                    max_length_tmp = this_max_length - segment_lengths[current_index]
                     while overlap_index > 0:
                         overlap += segment_lengths[overlap_index]
                         if overlap < stride and overlap + segment_lengths[overlap_index - 1] <= max_length_tmp:
@@ -255,11 +275,13 @@ class TextTiler:
                         else:
                             break
                     current_index = overlap_index
-                prev_start_index = current_index
                 current_total_length = 0
+                prev_start_index = current_index
+                # current_total_length = overlap
             else:
                 current_total_length += segment_lengths[current_index]
                 current_index += 1
+                number_of_tries = 0 # reset the failure count
         segments.append([prev_start_index, len(segment_lengths) - 1])
 
         return segments

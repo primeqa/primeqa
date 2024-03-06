@@ -282,7 +282,9 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
         'app_name': "",
     }
 
-    return tiler.create_tiles(id, title, text,
+    return tiler.create_tiles(id_=id,
+                              text=text,
+                              title=title,
                               max_doc_size=max_doc_size,
                               stride=stride,
                               remove_url=remove_url,
