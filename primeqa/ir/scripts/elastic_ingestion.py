@@ -372,7 +372,7 @@ def remove_stopwords(text: str, lang, do_replace: bool = False) -> str:
         return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
 
 
-def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
+def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
               max_doc_size=None, stride=None, **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -384,12 +384,12 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
         num_args = 3
     else:
         num_args = len(fields)
-    if isinstance(input_files, list):
-        files = input_files
-    elif isinstance(input_files, str):
-        files = [input_files]
+    if isinstance(input_files_or_paragraphs, list):
+        files = input_files_or_paragraphs
+    elif isinstance(input_files_or_paragraphs, str):
+        files = [input_files_or_paragraphs]
     else:
-        raise RuntimeError(f"Unsupported type for {input_files}")
+        raise RuntimeError(f"Unsupported type for {input_files_or_paragraphs}")
     docname2url = get_attr(kwargs, 'docname2url', None)
     docs_read = 0
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
@@ -500,7 +500,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                             for pi, passage in enumerate(doc['passages']):
                                 passage_id = passage['passage_id'] if 'passage_id' in passage else pi
                                 passages.extend(
-                                    process_text(tiler,
+                                    process_text(tiler=tiler,
                                                  id=f"{doc[docidname]}-{passage_id}",
                                                  title=remove_stopwords(fix_title(title), lang, remv_stopwords),
                                                  text=remove_stopwords(passage[psg_txtname], remv_stopwords),
@@ -973,6 +973,12 @@ def create_es_client(fingerprint, api_key, host):
                             api_key=ES_API_KEY,
                             request_timeout=60
                             )
+    try:
+        _ = _client.info()
+    except Exception as e:
+        print(f"Error: {e}")
+        raise e
+
     return _client
 
 
@@ -1183,34 +1189,38 @@ if __name__ == '__main__':
 
     print(f"Using the {args.server} server at {args.host}")
 
-    if args.server == "CONVAI":
-        client = create_es_client("CONVAI_SSL_FINGERPRINT", "CONVAI_API_KEY", args.host)
-    elif args.server == "AILANG":
-        client = create_es_client("AILANG_SSL_FINGERPRINT", "AILANG_API_KEY", args.host)
-    elif args.server == "RESCONVAI":
-        client = create_es_client("RESCONVAI_SSL_FINGERPRINT", "RESCONVAI_API_KEY", args.host)
-    elif args.server == "local":
-        client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
+    server_labels = {
+        "CONVAI": "ES",
+        "AILANG": "AILANG",
+        "RESCONVAI": "RESCONVAI",
+        "local": "LOCAL"
+    }
+
+    if args.server in server_labels:
+        server_ = server_labels[args.server]
+        client = create_es_client(f"{server_}_SSL_FINGERPRINT", f"{server_}_API_KEY")
     else:
         print(f"Server {args.server} is unknown. Exiting..")
         sys.exit(12)
 
-    try:
-        res = client.info()
-    except Exception as e:
-        print(f"Error: {e}")
-        raise e
+    # if args.server == "CONVAI":
+    #     client = create_es_client("ES_SSL_FINGERPRINT", "ES_API_KEY", args.host)
+    # elif args.server == "AILANG":
+    #     client = create_es_client("AILANG_SSL_FINGERPRINT", "AILANG_API_KEY", args.host)
+    # elif args.server == "RESCONVAI":
+    #     client = create_es_client("RESCONVAI_SSL_FINGERPRINT", "RESCONVAI_API_KEY", args.host)
+    # elif args.server == "local":
+    #     client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
+    # else:
+    #     print(f"Server {args.server} is unknown. Exiting..")
+    #     sys.exit(12)
 
-    # client = Elasticsearch("https://localhost:9200",
-    #                        ca_certs="/home/raduf/sandbox2/primeqa/ES-8.8.1/elasticsearch-8.8.1/config/certs/http_ca.crt",
-    #                        basic_auth=("elastic", ELASTIC_PASSWORD)
-    #                        )
     init_settings()
     stopwords = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
-        input_passages = read_data(args.input_passages,
+        input_passages = read_data(input_files_or_paragraphs=args.input_passages,
                                    tiler=tiler,
                                    lang=args.lang,
                                    fields=["id", "text", "title"],
@@ -1228,8 +1238,6 @@ if __name__ == '__main__':
                                    data_type=args.data_type,
                                    docid_map=docid2loio,
                                    )
-        # if max_documents is not None and max_documents > 0:
-        #     input_passages = input_passages[:max_documents]
 
         hidden_dim = -1
         passage_vectors = []
