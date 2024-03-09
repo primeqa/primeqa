@@ -28,8 +28,8 @@ docname2url = {}
 normalize_text = False
 tiler = None
 rouge_scorer = None
-
-
+default_cache_dir=os.path.join(f"{os.getenv('HOME')}", ".local", "share", "elastic_ingestion")
+cache_dir = default_cache_dir
 
 def setup_argparse():
     parser = ArgumentParser(description="Script to create/use ElasticSearch indices")
@@ -106,37 +106,11 @@ def setup_argparse():
                              "(exact match)")
     parser.add_argument('--rouge_duplicate_threshold', default=-1, type=float,
                         help="The rouge-l F1 similarity for dropping duplicated in the result (default 0.7)")
-
+    parser.add_argument("--cache_usage", type=bool, default=True, help="Turns on or off read caching.")
+    parser.add_argument("--cache_dir", type=str, default=default_cache_dir,
+                        help=f"Specifies the cache directory - by default {default_cache_dir}")
     return parser
 
-
-def old_split_passages(text: str, tokenizer, max_length: int = 512, stride: int = None) \
-        -> List[str]:
-    """
-    Method to split a text into pieces that are of a specified <max_length> length, with the
-    <stride> overlap, using a HF tokenizer.
-    :param text: str - the text to split
-    :param tokenizer: HF Tokenizer
-       - the tokenizer to do the work of splitting the words into word pieces
-    :param max_length: int - the maximum length of the resulting sequence
-    :param stride: int - the overlap between windows
-    """
-    text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
-    if max_length is not None:
-        res = tokenizer(text, max_length=max_length, stride=stride,
-                        return_overflowing_tokens=True, truncation=True)
-        if len(res['input_ids']) == 1:
-            return [text]
-        else:
-            texts = []
-            end = re.compile(f' {re.escape(tokenizer.sep_token)}$')
-            for split_passage in res['input_ids']:
-                tt = end.sub(
-                    "",
-                    tokenizer.decode(split_passage).replace(f"{tokenizer.cls_token} ", "")
-                )
-                texts.append(tt)
-            return texts
 
 
 def get_pyizumo_tokenized_text(text=None, tokenized_text=None, language_code=None):
@@ -165,7 +139,6 @@ def get_pyizumo_tokenized_text(text=None, tokenized_text=None, language_code=Non
     return token_text
 
 
-
 def get_tokenized_length(tokenizer, text):
     """
     Returns the size of the <text> after being tokenized by <tokenizer>
@@ -178,6 +151,7 @@ def get_tokenized_length(tokenizer, text):
         return len(toks['input_ids'])
     else:
         return -1
+
 
 #
 #
@@ -297,60 +271,6 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
                               stride=stride,
                               remove_url=remove_url,
                               template=itm)
-#     global product_counts, normalize_text
-#     pieces = []
-#     # Refactoring: extracted url processing to a separate function
-#     full_url, fields = process_url(doc_url, data_type)
-#
-#     # Refactoring: extracted productId processing to a separate function
-#     productId = process_product_id(fields, uniform_product_name, data_type)
-#
-#     # Refactoring: extracted product_counts updating to a separate function
-#     update_product_counts(product_counts, productId)
-#     itm = {
-#         'productId': productId,
-#         'deliverableLoio': ("" if doc_url == "" else fields[-2]),
-#         'filePath': "" if doc_url == "" else fields[-1],
-#         'title': title,
-#         'url': doc_url,
-#         'app_name': "",
-#     }
-#     #
-#     url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
-#     if text.find("With this app") >= 0 or text.find("App ID") >= 0:
-#         itm['app_name'] = title
-#     if not text.startswith(title):
-#         expanded_text = f"{title}\n{text}"
-#     else:
-#         expanded_text = text
-#
-#     if remove_url:
-#         # The normalization below deals with some issue in the re library - it would get stuck
-#         # if the URL has some strange chars, like `\xa0`.
-#         if normalize_text:
-#             text = re.sub(url, 'URL', unicodedata.normalize("NFKC", text))
-#         else:
-#             text = re.sub(url, 'URL', text)
-#
-#     if tokenizer is not None:
-#         merged_length = get_tokenized_length(tokenizer=tokenizer, text=expanded_text)
-#         if merged_length <= max_doc_size:
-#             itm.update({'id': f"{id}-0-{len(text)}", 'text': expanded_text})
-#             pieces.append(itm.copy())
-#         else:
-#             maxl = max_doc_size  # - title_len
-#             psgs, inds = split_text(text=text, max_length=maxl, title=title,
-#                                     stride=stride, tokenizer=tokenizer)
-#             for pi, (p, index) in enumerate(zip(psgs, inds)):
-#                 itm.update({
-#                     'id': f"{id}-{index[0]}-{index[1]}",
-#                     'text': f"{title}\n{p}"
-#                 })
-#                 pieces.append(itm.copy())
-#     else:
-#         itm.update({'id': id, 'text': expanded_text})
-#         pieces.append(itm.copy())
-#     return pieces
 
 
 def get_attr(_args, val, default=None):
@@ -372,8 +292,65 @@ def remove_stopwords(text: str, lang, do_replace: bool = False) -> str:
         return re.sub(r' {2,}', ' ', re.sub(stopwords, " ", text))
 
 
-def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
-              max_doc_size=None, stride=None, **kwargs):
+def get_cached_filename(input_file:str,
+                     max_doc_size:int,
+                     stride:int,
+                     tiler:TextTiler,
+                     cache_dir:str=default_cache_dir):
+    return os.path.join(cache_dir,
+                        "::".join([f"{input_file.replace('/', '__')}",
+                                   f"{max_doc_size}",
+                                   f"{stride}",
+                                   f"{tiler.tokenizer.name_or_path}"
+                                  ]),
+                        ".jsonl.bz2"
+                        )
+
+def open_cache_file(cache_file_name: str, write:bool=False):
+    if write:
+        mode = "w"
+        cache_dir = os.path.dirname(cache_file_name)
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+    else:
+        mode = "r"
+    if cache_file_name.endswith(".jsonl.bz2"):
+        import bz2
+        input_stream = bz2.open(cache_file_name, mode)
+    elif cache_file_name.endswith(".jsonl.gz"):
+        import gzip
+        input_stream = gzip.open(cache_file_name, mode)
+    elif cache_file_name.endswith(".jsonl"):
+        input_stream = open(cache_file_name, mode)
+    else:
+        print(f"Unknown file extension for file: {cache_file_name}")
+        raise RuntimeError(f"Unknown file extension for file: {cache_file_name}")
+
+
+def read_cache_file_if_needed(cache_file_name, input_file):
+    passages = []
+    input_stream = open_cache_file(cache_file_name, write=False)
+    if os.path.getmtime(cache_file_name) > os.path.getmtime(input_file):
+        for line in input_stream:
+            passages.extend(json.loads(line))
+
+        input_stream.close()
+
+    return passages
+
+def write_cache_file(cache_filename, passages, use_cache=True):
+    if not use_cache:
+        return
+    output_stream = open_cache_file(cache_filename, write=True)
+    for p in passages:
+        output_stream.write(json.dumps(p)+"\n")
+    output_stream.close()
+
+def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
+              max_doc_size=None, stride=None,
+              use_cache=True,
+              cache_dir=default_cache_dir,
+              **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
     docid_map = get_attr(kwargs, 'docid_map', default={})
@@ -384,12 +361,12 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
         num_args = 3
     else:
         num_args = len(fields)
-    if isinstance(input_files_or_paragraphs, list):
-        files = input_files_or_paragraphs
-    elif isinstance(input_files_or_paragraphs, str):
-        files = [input_files_or_paragraphs]
+    if isinstance(input_files, list):
+        files = input_files
+    elif isinstance(input_files, str):
+        files = [input_files]
     else:
-        raise RuntimeError(f"Unsupported type for {input_files_or_paragraphs}")
+        raise RuntimeError(f"Unsupported type for {input_files}")
     docname2url = get_attr(kwargs, 'docname2url', None)
     docs_read = 0
     remv_stopwords = get_attr(kwargs, 'remove_stopwords', False)
@@ -398,7 +375,13 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
 
     for input_file in files:
         docs_read = 0
+        cached_passages = read_cache_file_if_needed(get_cached_filename(input_file, max_doc_size, stride, tiler),
+                                                    input_file)
+        if cached_passages:
+            passages.extend(cached_passages)
+            continue
         print(f"Reading {input_file}")
+        tpassages = []
         with open(input_file) as in_file:
             if input_file.endswith(".tsv"):
                 # We'll assume this is the PrimeQA standard format
@@ -423,9 +406,9 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
                         if 'answers' in row:
                             itm['answers'] = row['answers'].split("::")
                             itm['passages'] = itm['answers']
-                        passages.append(itm)
+                        tpassages.append(itm)
                     else:
-                        passages.extend(
+                        tpassages.extend(
                             process_text(tiler=tiler,
                                          id=row['id'],
                                          title=remove_stopwords(fix_title(row['title']), lang,
@@ -483,7 +466,7 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
 
                     try:
                         if doc_based:
-                            passages.extend(
+                            tpassages.extend(
                                 process_text(tiler=tiler,
                                              id=doc[docidname],
                                              title=remove_stopwords(fix_title(title), lang, remv_stopwords),
@@ -499,7 +482,7 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
                         else:
                             for pi, passage in enumerate(doc['passages']):
                                 passage_id = passage['passage_id'] if 'passage_id' in passage else pi
-                                passages.extend(
+                                tpassages.extend(
                                     process_text(tiler=tiler,
                                                  id=f"{doc[docidname]}-{passage_id}",
                                                  title=remove_stopwords(fix_title(title), lang, remv_stopwords),
@@ -531,7 +514,7 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
                     for val, loio in [[f'passage {k}', f'loio {k}'] for k in range(1, 4)]:
                         if type(data[val][i]) == str:
                             psgs.append(data[val][i])
-                            loio = str(data[loio][i]).replace('\t','')
+                            loio = str(data[loio][i]).replace('\t', '')
                             if loio == 'nan':
                                 loio = ""
                             if type(loio) is not str or (loio != "" and loio.find("loio") == -1):
@@ -539,7 +522,7 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
                                 continue
                             else:
                                 loio_v = loio.replace('loio', '')
-                            if loio=="":
+                            if loio == "":
                                 continue
                             if loio_v in docid_map:
                                 if docid_map[loio_v] not in ids:
@@ -549,11 +532,17 @@ def read_data(input_files_or_paragraphs, lang, fields=None, remove_url=False, to
                                 unmapped_ids.append(loio_v)
                     itm['passages'] = psgs
                     itm['relevant'] = ids
-                    passages.append(itm)
+                    tpassages.append(itm)
+                write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler),
+                                tpassages, use_cache)
                 if return_unmapped_ids:
-                    return passages, unmapped_ids
+                    return tpassages, unmapped_ids
             else:
                 raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
+        write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler),
+                         tpassages,
+                         use_cache)
+        passages.extend(tpassages)
         max_num_documents -= docs_read
 
     if return_unmapped_ids:
@@ -1045,11 +1034,12 @@ def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_
         }
     return _query, _knn, _rank
 
+
 def remove_duplicates(results, duplicate_removal, rouge_duplicate_threshold):
     res = results
     if duplicate_removal == "none":
         return res
-    if len(res)==0:
+    if len(res) == 0:
         return results
     ret = []
     if duplicate_removal == "exact":
@@ -1102,10 +1092,12 @@ if __name__ == '__main__':
     elif args.rouge_duplicate_threshold > 0:
         args.duplicate_removal = "rouge"
 
-    if args.compute_rouge or args.duplicate_removal=="rouge":
+    if args.compute_rouge or args.duplicate_removal == "rouge":
         from rouge_score.rouge_scorer import RougeScorer
 
         rouge_scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
+    cache_dir = args.cache_dir
+    use_cache = args.use_cache
 
     server_map = {
         'CONVAI': "convaidp-nlp.sl.cloud9.ibm.com",
@@ -1203,24 +1195,12 @@ if __name__ == '__main__':
         print(f"Server {args.server} is unknown. Exiting..")
         sys.exit(12)
 
-    # if args.server == "CONVAI":
-    #     client = create_es_client("ES_SSL_FINGERPRINT", "ES_API_KEY", args.host)
-    # elif args.server == "AILANG":
-    #     client = create_es_client("AILANG_SSL_FINGERPRINT", "AILANG_API_KEY", args.host)
-    # elif args.server == "RESCONVAI":
-    #     client = create_es_client("RESCONVAI_SSL_FINGERPRINT", "RESCONVAI_API_KEY", args.host)
-    # elif args.server == "local":
-    #     client = create_es_client("LOCAL_SSL_FINGERPRINT", "LOCAL_API_KEY", args.host)
-    # else:
-    #     print(f"Server {args.server} is unknown. Exiting..")
-    #     sys.exit(12)
-
     init_settings()
     stopwords = None
     if do_ingest or do_update:
         max_documents = args.max_num_documents
 
-        input_passages = read_data(input_files_or_paragraphs=args.input_passages,
+        input_passages = read_data(input_files=args.input_passages,
                                    tiler=tiler,
                                    lang=args.lang,
                                    fields=["id", "text", "title"],
@@ -1237,6 +1217,8 @@ if __name__ == '__main__':
                                    uniform_product_name=args.product_name,
                                    data_type=args.data_type,
                                    docid_map=docid2loio,
+                                   cache_dir=cache_dir,
+                                   use_cache=use_cache
                                    )
 
         hidden_dim = -1
@@ -1247,7 +1229,7 @@ if __name__ == '__main__':
                     r = client.ml.get_trained_models(model_id=args.model_name)
                     hidden_dim = r['trained_model_configs'][0]['inference_config']['text_embedding']['embedding_size']
                 else:
-                    hidden_dim = 384 # Some default value, the system might crash if it's wrong.
+                    hidden_dim = 384  # Some default value, the system might crash if it's wrong.
             else:
                 print("Encoding corpus documents:")
                 passage_vectors = model.encode([passage['text'] for passage in input_passages], _batch_size=batch_size)
@@ -1287,13 +1269,13 @@ if __name__ == '__main__':
                             "value": "failed-{{{_index}}}"
                         }
                     },
-                    {
-                        "set": {
-                            "description": "Set error message",
-                            "field": "ingest.failure",
-                            "value": "{{_ingest.on_failure_message}}"
-                        }
-                    }]
+                        {
+                            "set": {
+                                "description": "Set error message",
+                                "field": "ingest.failure",
+                                "value": "{{_ingest.on_failure_message}}"
+                            }
+                        }]
                     vector_field_name = f"ml.predicted_value"
                 else:
                     vector_field_name = "vector"
@@ -1311,7 +1293,7 @@ if __name__ == '__main__':
                                 mappings=mappings,
                                 do_update=do_update)
 
-            if args.model_on_server and len(processors)>0:
+            if args.model_on_server and len(processors) > 0:
                 client.ingest.put_pipeline(processors=processors, id=pipeline_name, on_failure=on_failure)
 
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
@@ -1431,7 +1413,8 @@ if __name__ == '__main__':
                                                     docid_map=loio2docid, return_unmapped=True,
                                                     remove_stopwords=args.remove_stopwords,
                                                     data_type=args.data_type,
-                                                    doc_based=doc_based_ingestion)
+                                                    doc_based=doc_based_ingestion,
+                                                    cache_dir=cache_dir)
             print("Unmapped ids:", unmapped_ids)
         else:
             input_queries = read_data(args.input_queries,
@@ -1439,7 +1422,8 @@ if __name__ == '__main__':
                                       fields=["id", "text"],
                                       remove_stopwords=args.remove_stopwords,
                                       data_type=args.data_type,
-                                      doc_based=doc_based_ingestion)
+                                      doc_based=doc_based_ingestion,
+                                      cache_dir=cache_dir)
 
         if not do_ingest:
             vector_field_name = "ml.predicted_value" if args.model_on_server else "vector"
