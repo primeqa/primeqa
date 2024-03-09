@@ -301,15 +301,18 @@ def remove_stopwords(text: str, lang, do_replace: bool = False) -> str:
 
 
 def get_cached_filename(input_file:str,
-                     max_doc_size:int,
-                     stride:int,
-                     tiler:TextTiler,
-                     cache_dir:str=default_cache_dir):
+                        max_doc_size:int,
+                        stride:int,
+                        tiler:TextTiler,
+                        title_handling = "all",
+                        cache_dir:str=default_cache_dir):
     tok_dir_name = os.path.basename(tiler.tokenizer.name_or_path)
     if tok_dir_name == "":
         tok_dir_name = os.path.basename(os.path.dirname(tiler.tokenizer.name_or_path))
-    cache_file_name = os.path.join(cache_dir, "::".join([f"{input_file.replace('/', '__')}",
-                                                         f"{max_doc_size}", f"{stride}",
+    cache_file_name = os.path.join(cache_dir, "_".join([f"{input_file.replace('/', '__')}",
+                                                         f"{max_doc_size}",
+                                                         f"{stride}",
+                                                         f"{title_handling}",
                                                          f"{tok_dir_name}"])+".jsonl.bz2")
     print(f"Cache filename is {cache_file_name}")
     return cache_file_name
@@ -393,7 +396,10 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
             productId, input_file = input_file.split(":")
         else:
             productId = None
-        cached_passages = read_cache_file_if_needed(get_cached_filename(input_file, max_doc_size, stride, tiler),
+        cached_passages = read_cache_file_if_needed(get_cached_filename(input_file,
+                                                                        max_doc_size=max_doc_size, stride=stride,
+                                                                        title_handling=title_handling,
+                                                                        tiler=tiler),
                                                     input_file)
         if cached_passages:
             passages.extend(cached_passages)
@@ -553,13 +559,13 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                     itm['passages'] = psgs
                     itm['relevant'] = ids
                     tpassages.append(itm)
-                write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler),
+                write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling=title_handling),
                                 tpassages, use_cache)
                 if return_unmapped_ids:
                     return tpassages, unmapped_ids
             else:
                 raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
-        write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler),
+        write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling),
                          tpassages,
                          use_cache)
         passages.extend(tpassages)
