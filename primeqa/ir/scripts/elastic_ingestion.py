@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bz2
 import os, re, json, csv
 from argparse import ArgumentParser
 
@@ -304,14 +305,14 @@ def get_cached_filename(input_file:str,
                      stride:int,
                      tiler:TextTiler,
                      cache_dir:str=default_cache_dir):
-    return os.path.join(cache_dir,
-                        "::".join([f"{input_file.replace('/', '__')}",
-                                   f"{max_doc_size}",
-                                   f"{stride}",
-                                   f"{os.path.basename(tiler.tokenizer.name_or_path)}"
-                                  ]),
-                        ".jsonl.bz2"
-                        )
+    tok_dir_name = os.path.basename(tiler.tokenizer.name_or_path)
+    if tok_dir_name == "":
+        tok_dir_name = os.path.basename(os.path.dirname(tiler.tokenizer.name_or_path))
+    cache_file_name = os.path.join(cache_dir, "::".join([f"{input_file.replace('/', '__')}",
+                                                         f"{max_doc_size}", f"{stride}",
+                                                         f"{tok_dir_name}"])+".jsonl.bz2")
+    print(f"Cache filename is {cache_file_name}")
+    return cache_file_name
 
 def open_cache_file(cache_file_name: str, write:bool=False):
     if write:
@@ -321,9 +322,9 @@ def open_cache_file(cache_file_name: str, write:bool=False):
             os.makedirs(cache_dir)
     else:
         mode = "r"
+        if not os.path.exists(cache_file_name):
+            return None
     input_stream = None
-    if not os.path.exists(cache_file_name):
-        return None
     if cache_file_name.endswith(".jsonl.bz2"):
         import bz2
         input_stream = bz2.open(cache_file_name, mode)
@@ -344,7 +345,7 @@ def read_cache_file_if_needed(cache_file_name, input_file):
     if os.path.exists(cache_file_name) and os.path.getmtime(cache_file_name) > os.path.getmtime(input_file):
         input_stream = open_cache_file(cache_file_name, write=False)
         for line in input_stream:
-            passages.extend(json.loads(line))
+            passages.append(json.loads(line.decode('utf-8')))
 
         input_stream.close()
 
@@ -355,7 +356,7 @@ def write_cache_file(cache_filename, passages, use_cache=True):
         return
     output_stream = open_cache_file(cache_filename, write=True)
     for p in passages:
-        output_stream.write(json.dumps(p)+"\n")
+        output_stream.write(f"{json.dumps(p)}\n".encode("utf-8"))
     output_stream.close()
 
 def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, tiler=None,
@@ -390,6 +391,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
         docs_read = 0
         if input_file.find(":") >= 0:
             productId, input_file = input_file.split(":")
+        else:
+            productId = None
         cached_passages = read_cache_file_if_needed(get_cached_filename(input_file, max_doc_size, stride, tiler),
                                                     input_file)
         if cached_passages:
@@ -1115,7 +1118,7 @@ if __name__ == '__main__':
         rouge_scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
     cache_dir = args.cache_dir
     use_cache = args.cache_usage
-
+    print(f"Using cache dir: {cache_dir}")
     server_map = {
         'CONVAI': "convaidp-nlp.sl.cloud9.ibm.com",
         'AILANG': "ai-lang-conv-es.sl.cloud9.ibm.com",
