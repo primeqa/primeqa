@@ -106,6 +106,11 @@ def setup_argparse():
                              "(exact match)")
     parser.add_argument('--rouge_duplicate_threshold', default=-1, type=float,
                         help="The rouge-l F1 similarity for dropping duplicated in the result (default 0.7)")
+    parser.add_argument("--title_handling", type=str, default="all", choices=["all", "first", "none"],
+                        help="Defines the policy of adding titles to the passages: can be 'all', 'first', or 'none'."
+                             "'all' will add the document title to every tile, 'first' will add to the first split tile, "
+                             "and 'none' will not add it at all.")
+
     parser.add_argument("--cache_usage", type=bool, default=True, help="Turns on or off read caching.")
     parser.add_argument("--cache_dir", type=str, default=default_cache_dir,
                         help=f"Specifies the cache directory - by default {default_cache_dir}")
@@ -161,6 +166,7 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
                  doc_url=None,
                  uniform_product_name=None,
                  data_type="sap",
+                 title_handling="all",
                  ):
     """
     Convert a given document or passage (from 'output.json') to a dictionary, splitting the text as necessary.
@@ -270,7 +276,8 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
                               max_doc_size=max_doc_size,
                               stride=stride,
                               remove_url=remove_url,
-                              template=itm)
+                              template=itm,
+                              title_handling=title_handling)
 
 
 def get_attr(_args, val, default=None):
@@ -350,6 +357,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
               max_doc_size=None, stride=None,
               use_cache=True,
               cache_dir=default_cache_dir,
+              title_handling='all',
               **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -420,7 +428,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                                          tokenizer=tokenizer,
                                          doc_url=url,
                                          uniform_product_name=None,
-                                         data_type=data_type
+                                         data_type=data_type,
+                                         title_handling=title_handling
                                          ))
             elif input_file.endswith('.json') or input_file.endswith(".jsonl"):
                 # This should be the SAP or BEIR json format
@@ -493,7 +502,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                                                  tokenizer=tokenizer,
                                                  doc_url=url,
                                                  uniform_product_name=uniform_product_name,
-                                                 data_type=data_type
+                                                 data_type=data_type,
+                                                 title_handling=title_handling
                                                  ))
                     except Exception as e:
                         print(f"Error at line {di}: {e}")
@@ -1175,7 +1185,7 @@ if __name__ == '__main__':
             else:
                 model = MyEmbeddingFunction(args.model_name)
 
-    tiler = TextTiler(max_doc_size=args.max_doc_size,
+    tiler = TextTiler(max_doc_size=args.max_doc_length,
                       stride=args.stride,
                       tokenizer=model.tokenizer)
 
@@ -1190,7 +1200,8 @@ if __name__ == '__main__':
 
     if args.server in server_labels:
         server_ = server_labels[args.server]
-        client = create_es_client(f"{server_}_SSL_FINGERPRINT", f"{server_}_API_KEY")
+        client = create_es_client(f"{server_}_SSL_FINGERPRINT", f"{server_}_API_KEY",
+                                  host=args.host)
     else:
         print(f"Server {args.server} is unknown. Exiting..")
         sys.exit(12)
@@ -1218,7 +1229,8 @@ if __name__ == '__main__':
                                    data_type=args.data_type,
                                    docid_map=docid2loio,
                                    cache_dir=cache_dir,
-                                   use_cache=use_cache
+                                   use_cache=use_cache,
+                                   title_handling=args.title_handling
                                    )
 
         hidden_dim = -1

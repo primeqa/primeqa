@@ -2,7 +2,7 @@ import unicodedata
 import re
 from typing import List, Any, Dict
 import pyizumo
-
+from collections import deque
 
 class TextTiler:
     """
@@ -16,6 +16,8 @@ class TextTiler:
         self.max_doc_size = max_doc_size
         self.stride = stride
         self.tokenizer = tokenizer
+        self.tokenizer_num_special_tokens = self.tokenizer.num_special_tokens_to_add()
+        self.max_doc_size -= self.tokenizer_num_special_tokens
         self.product_counts = {}
         self.aligned_on_sentences = aligned_on_sentences
         self.nlp = None
@@ -55,14 +57,17 @@ class TextTiler:
         if stride is None:
             stride = self.stride
         itm = template
+        text = text.replace(r'\n+', '\n').replace(r' +', ' ')
         pieces = []
         url = r'https?://(?:www\.)?(?:[-a-zA-Z0-9@:%._\+~#=]{1,256})\.(:?[a-zA-Z0-9()]{1,6})(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)*\b'
         if text.find("With this app") >= 0 or text.find("App ID") >= 0:
             itm['app_name'] = title
-        if not text.startswith(title):
-            expanded_text = f"{title}\n{text}"
-        else:
+        title_in_text = False
+        if 0 <= text.find(title) <= 2:
             expanded_text = text
+            title_in_text = True
+        else:
+            expanded_text = f"{title}\n{text}"
 
         if remove_url:
             # The normalization below deals with some issue in the re library - it would get stuck
@@ -79,13 +84,15 @@ class TextTiler:
                 pieces.append(itm.copy())
             else:
                 maxl = max_doc_size  # - title_len
-                psgs, inds = self.split_text(text=text, max_length=maxl, title=title,
-                                             stride=stride, tokenizer=self.tokenizer, title_handling=title_handling)
-                for pi, (p, index) in enumerate(zip(psgs, inds)):
+                psgs, inds, added_titles = \
+                    self.split_text(text=text, max_length=maxl, title=title,
+                                    stride=stride, tokenizer=self.tokenizer, title_handling=title_handling,
+                                    title_in_text=title_in_text)
+                for pi, (p, index, added_title) in enumerate(zip(psgs, inds, added_titles)):
                     itm.update({
                         'id': f"{id_}-{index[0]}-{index[1]}",
                         'text': (f"{title}\n{p}"
-                                 if title_handling == "all" or title_handling == "first" and pi == 0
+                                 if added_title
                                  else p)
                     })
                     pieces.append(itm.copy())
@@ -94,21 +101,23 @@ class TextTiler:
             pieces.append(itm.copy())
         return pieces
 
-    def get_tokenized_length(self, text):
+    def get_tokenized_length(self, text, exclude_special_tokens=True):
         """
-        Returns the size of the <text> after being tokenized by <tokenizer>
+        Returns the size of the <text> (in tokens) after being tokenized by <tokenizer>
         :param text: str - the input text
         :return the length (in word pieces) of the tokenized text.
         """
         if self.tokenizer is not None:
             toks = self.tokenizer(text)
-            return len(toks['input_ids'])
+            return len(toks['input_ids'])-(self.tokenizer_num_special_tokens if not exclude_special_tokens else 0)
         else:
             return -1
 
-    def split_text(self, text: str, tokenizer, title: str = "", max_length: int = -1, stride: int = -1,
-                   language_code='en', title_handling: str = 'any') \
-            -> tuple[list[str], list[list[int | Any]]]:
+    def split_text(self, text: str, tokenizer, title: str = "",
+                   max_length: int = -1, stride: int = -1,
+                   language_code='en', title_handling: str = 'any',
+                   title_in_text=False) \
+            -> tuple[list[str], list[list[int | Any]], list[bool]]:
         """
         Method to split a text into pieces that are of a specified <max_length> length, with the
         <stride> overlap, using an HF tokenizer.
@@ -123,13 +132,14 @@ class TextTiler:
            * 'all': the title is added to each of the created tiles
            * 'first': the title is added to only the first tile
            * 'none': the title is not added to any of the resulting tiles
+        :param title_in_text: bool - true if the title is part of the text.
         :return: Tuple[list[str], list[list[int | Any]]] - returns a pair of tile string list and a position list (each entry
                  is a list of the start/end position of the corresponding tile in the first returned argument).
         """
-
+        added_titles = []
         title_length = self.get_tokenized_length(title)
-        def get_expanded_text(text:str, title:str, pos:int=0, title_handling:str="all"):
-            if title_handling == "none" or title_handling == "first" and pos > 0:
+        def get_expanded_text(text:str, title:str, pos:int=0, title_handling:str="all", title_in_text:bool=False):
+            if title_handling == "none" or title_handling == "first" and pos > 0 or title_in_text:
                 return text
             else:
                 return f"{title}\n{text}"
@@ -141,9 +151,12 @@ class TextTiler:
         text = re.sub(r' {2,}', ' ', text, flags=re.MULTILINE)  # remove multiple spaces.
         pos = 0
         if max_length is not None:
-            tok_len = self.get_tokenized_length(get_expanded_text(text=text, title=title, title_handling=title_handling))
+            tok_len = self.get_tokenized_length(get_expanded_text(text=text, title=title,
+                                                                  title_handling=title_handling,
+                                                                  title_in_text=title_in_text)
+                                                )
             if tok_len <= max_length:
-                return [text], [[0, len(text)]]
+                return [text], [[0, len(text)]], [not title_in_text and title_handling in ['all', 'first']]
             else:
                 if title and title_handling == "all":  # make space for the title in each split text.
                     ltitle = self.get_tokenized_length(title)
@@ -160,37 +173,71 @@ class TextTiler:
                     tsizes = []
                     begins = []
                     ends = []
-                    for sent in parsed_text.sentences:
+                    _begins = []
+                    _ends = []
+                    sents = list(parsed_text.sentences)
+                    for i in range(len(sents)):
+                        _begins.append(sents[i].begin)
+                        _ends.append(sents[i+1].begin if i<len(sents)-1 else len(text))
+
+                    num_sents = len(list(parsed_text.sentences))
+                    for i, sent in enumerate(parsed_text.sentences):
                         stext = sent.text
-                        slen = self.get_tokenized_length(stext)
+                        begin = _begins[i]
+                        end = _begins[i+1] if i<num_sents-1 else len(text)
+                        slen = self.get_tokenized_length(text[begin:end])
                         if slen > max_length:
-                            too_long = [[t for t in sent.tokens]]
-                            too_long[0].reverse()
-                            while len(too_long) > 0:
-                                tl = too_long.pop(-1)
-                                ll = self.get_tokenized_length(text[tl[-1].begin:tl[0].end])
+                            tokens = list(sent.tokens)
+                            too_long = [[tokens[k].begin, tokens[k+1].begin] for k in range(len(tokens)-1)]
+                            too_long.append([tokens[-1].begin, end])
+                            q = deque()
+                            q.append(too_long)
+                            while len(q) > 0:
+                                head = q.pop()
+                                ll = self.get_tokenized_length(text[head[0][0]:head[-1][1]])
                                 if ll <= max_length:
                                     tsizes.append(ll)
-                                    begins.append(tl[-1].begin)
-                                    ends.append(tl[0].end)
+                                    begins.append(head[0][0])
+                                    ends.append(head[-1][1])
                                 else:
-                                    if len(tl) > 1:  # Ignore really long words
-                                        mid = int(len(tl) / 2)
-                                        too_long.extend([tl[:mid], tl[mid:]])
+                                    if len(head) > 1:
+                                        mid = int(len(head)/2)
+                                        q.extend([head[mid:],head[:mid]])
                                     else:
                                         pass
+                            # too_long = [[t for t in sent.tokens]]
+                            # too_long[0].reverse()
+                            # while len(too_long) > 0:
+                            #     tl = too_long.pop(-1)
+                            #     ll = self.get_tokenized_length(text[tl[-1].begin:tl[0].end])
+                            #     if ll <= max_length:
+                            #         tsizes.append(ll)
+                            #         begins.append(tl[-1].begin)
+                            #         ends.append(tl[0].end)
+                            #     else:
+                            #         if len(tl) > 1:  # Ignore really long words
+                            #             mid = int(len(tl) / 2)
+                            #             too_long.extend([tl[:mid], tl[mid:]])
+                            #         else:
+                            #             pass
                         else:
                             tsizes.append(slen)
                             begins.append(sent.begin)
-                            ends.append(sent.end)
+                            ends.append(end)
+                    if title_handling in ['all', 'first']:
+                        first_length = max_length-title_length if not title_in_text else max_length
+                    elif title_handling in ['none']:
+                        first_length = max_length
 
                     intervals = TextTiler.compute_intervals(segment_lengths=tsizes,
                                                             max_length=max_length,
-                                                            first_length=(max_length-title_length if title_handling=="first" else -1),
+                                                            first_length=first_length,
                                                             stride=stride)
 
                     positions = [[begins[p[0]], ends[p[1]]] for p in intervals]
                     texts = [text[p[0]:p[1]] for p in positions]
+                    added_titles.extend([True if title_handling == 'all' else False for _ in positions])
+                    added_titles[0] = False if title_in_text or title_handling=='none' else True
                 else:
                     res = self.tokenizer(max_length=max_length, stride=stride,
                                          return_overflowing_tokens=True, truncation=True)
@@ -206,7 +253,8 @@ class TextTiler:
                         texts.append(tt)
                         positions.append([init_pos, init_pos + len(tt)])
                         init_pos += stride
-                return texts, positions
+                    added_titles = [False for _ in positions]
+                return texts, positions, added_titles
 
     MAX_TRIED = 10000
 
@@ -223,7 +271,7 @@ class TextTiler:
         - segment_lengths (List[int]): A list of segment lengths.
         - max_length (int): The maximum length for each interval.
         - first_length (int): The length of the first sentences, if different from the rest (it will happen when using
-          title_handling="first").
+                              title_handling="first" and the title is not in text.).
         - stride (int): The stride value for overlapping intervals.
 
         Returns:
@@ -247,10 +295,7 @@ class TextTiler:
         prev_start_index = 0
         segments = []
         number_of_tries = 0
-        if first_length > 0:
-            this_max_length = first_length
-        else:
-            this_max_length = max_length
+        this_max_length = first_length
 
         while current_index < len(segment_lengths):
             if current_total_length + segment_lengths[current_index] > this_max_length:
@@ -270,7 +315,9 @@ class TextTiler:
                     max_length_tmp = this_max_length - segment_lengths[current_index]
                     while overlap_index > 0:
                         overlap += segment_lengths[overlap_index]
-                        if overlap < stride and overlap + segment_lengths[overlap_index - 1] <= max_length_tmp:
+                        if overlap_index>prev_start_index+1 and \
+                                overlap < stride and\
+                                overlap + segment_lengths[overlap_index - 1] <= max_length_tmp:
                             overlap_index -= 1
                         else:
                             break

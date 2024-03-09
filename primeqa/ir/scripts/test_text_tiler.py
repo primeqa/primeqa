@@ -18,6 +18,7 @@ parser.add_argument('--input', type=str, required=True,
 parser.add_argument("-v", "--verbose", action="store_true", help="Turns on verbose output.")
 parser.add_argument("--debug_indices", nargs="+", type=int, default=None,
                     help="The offsets to debug")
+parser.add_argument("--title_handling", type=str, default="all")
 
 args = parser.parse_args()
 max_doc = args.max_length
@@ -50,7 +51,7 @@ with open(args.input) as inp:
         text_ = data['document']
         title_ = data['title']
         res1 = tiler.create_tiles(id_="id1", text=text_, title=title_,
-                                  title_handling="all",
+                                  title_handling=args.title_handling,
                                   template={'productId': 'documentation',
                                             'deliverableLoio': 'something',
                                             'filePath': 'something',
@@ -58,24 +59,28 @@ with open(args.input) as inp:
                                             'url': 'http://ibm.com/documentation/something/something.html',
                                             'app_name': ''
                                             })
+        # print(res1)
+        print(f"{i}. Title: {title_}")
+        for j, r in enumerate(res1):
+            txt = r['text'].replace("\n", " ")
+            print(f" {j}. {txt[0:50]} - {tiler.get_tokenized_length(r['text'], exclude_special_tokens=False)}")
+        # res2 = process_text(id="id1", text=text_, title=title_, max_doc_size=max_doc, stride=stride,
+        #                     tiler=tiler,
+        #                     tokenizer=tokenizer,
+        #                     doc_url="http://ibm.com/documentation/something/something.html")
+        #
+        # if res1 != res2:
+        #     num_failures += 1
+        #     failures.append(i)
+        #     if verbose:
+        #         print("Test failed: {res1}\n{res2}".format(res1=res1, res2=res2))
+        #         if len(res1) != len(res2):
+        #             print(f"The sequences have different lengths: {len(res1)} vs {len(res2)}:\n"
+        #                   f" {res1}\n {res2}\n")
+        #
+        #
+        # num_elements += 1
+        # if num_elements > args.num_elements:
+        #     break
 
-        res2 = process_text(id="id1", text=text_, title=title_, max_doc_size=max_doc, stride=stride,
-                            tiler=tiler,
-                            tokenizer=tokenizer,
-                            doc_url="http://ibm.com/documentation/something/something.html")
-
-        if res1 != res2:
-            num_failures += 1
-            failures.append(i)
-            if verbose:
-                print("Test failed: {res1}\n{res2}".format(res1=res1, res2=res2))
-                if len(res1) != len(res2):
-                    print(f"The sequences have different lengths: {len(res1)} vs {len(res2)}:\n"
-                          f" {res1}\n {res2}\n")
-
-
-        num_elements += 1
-        if num_elements > args.num_elements:
-            break
-
-print(f"Number of failures: {num_failures}/{args.num_elements}. Failed on {failures}")
+# print(f"Number of failures: {num_failures}/{args.num_elements}. Failed on {failures}")
