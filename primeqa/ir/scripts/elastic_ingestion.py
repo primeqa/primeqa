@@ -71,7 +71,7 @@ def setup_argparse():
                              "increment of the window start while tiling the documents.")
     parser.add_argument("--max_num_documents", type=int, default=None,
                         help="If defined, it will restrict the ingestion to the first <max_num_documents> documents")
-    parser.add_argument("--docid_map", type=str, default=None,
+    parser.add_argument("--docid_map", nargs="+", default=None,
                         help="If defined, this provides a link to a file mapping docid values to loio values.")
     parser.add_argument("-I", "--index_name", type=str, default=None,
                         help="Defines the index name to use. If not specified, it is built as " \
@@ -79,7 +79,7 @@ def setup_argparse():
     parser.add_argument("--doc_based", action="store_true", default=False,
                         help="If present, the document text will be ingested, otherwise the ingestion will be done"
                              " at passage level.")
-    parser.add_argument("--hana_file2url", type=str, default=None,
+    parser.add_argument("--hana_file2url", nargs="+", default=None,
                         help="The file mapping the docid to the url to the title")
     parser.add_argument("--remove_stopwords", action="store_true", default=False,
                         help="If defined, the stopwords are removed from text before indexing.")
@@ -383,6 +383,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
 
     for input_file in files:
         docs_read = 0
+        if input_file.find(":") >= 0:
+            productId, input_file = input_file.split(":")
         cached_passages = read_cache_file_if_needed(get_cached_filename(input_file, max_doc_size, stride, tiler),
                                                     input_file)
         if cached_passages:
@@ -437,7 +439,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                     data = json.load(in_file)
                 else:
                     data = [json.loads(line) for line in open(input_file).readlines()]
-                uniform_product_name = get_attr(kwargs, 'uniform_product_name')
+                uniform_product_name = get_attr(kwargs, 'uniform_product_name', default=productId)
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
                 # data_type = get_attr(kwargs, 'data_type', 'sap')
                 if data_type in ['auto', 'sap']:
@@ -1147,12 +1149,13 @@ if __name__ == '__main__':
     docname2url = {}
     docname2title = {}
     if args.hana_file2url is not None:
-        with open(args.hana_file2url) as inp:
-            # fl = csv.reader(inp, delimiter="\t")
-            for ln in inp.readlines():
-                line = ln.strip().split("\t")
-                docname2url[line[0]] = line[1]
-                docname2title[line[0]] = line[2].strip()
+        for file_ in args.hana_file2url:
+            with open(file_) as inp:
+                # fl = csv.reader(inp, delimiter="\t")
+                for ln in inp.readlines():
+                    line = ln.strip().split("\t")
+                    docname2url[line[0]] = line[1]
+                    docname2title[line[0]] = line[2].strip()
 
     docid_filter = []
     if args.docids_to_ingest is not None:
@@ -1163,10 +1166,11 @@ if __name__ == '__main__':
 
     docid2loio = {}
     if args.docid_map is not None:
-        with open(args.docid_map) as inp:
-            for line in inp:
-                a = line.split()
-                docid2loio[a[0]] = a[1]
+        for file_ in args.docid_map:
+            with open(file_) as inp:
+                for line in inp:
+                    a = line.split()
+                    docid2loio[a[0]] = a[1]
 
     model = None
     if args.db_engine in ['es-dense'] or args.max_doc_length is not None:
