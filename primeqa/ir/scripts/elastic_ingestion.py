@@ -308,7 +308,7 @@ def get_cached_filename(input_file:str,
                         "::".join([f"{input_file.replace('/', '__')}",
                                    f"{max_doc_size}",
                                    f"{stride}",
-                                   f"{tiler.tokenizer.name_or_path}"
+                                   f"{os.path.basename(tiler.tokenizer.name_or_path)}"
                                   ]),
                         ".jsonl.bz2"
                         )
@@ -321,6 +321,9 @@ def open_cache_file(cache_file_name: str, write:bool=False):
             os.makedirs(cache_dir)
     else:
         mode = "r"
+    input_stream = None
+    if not os.path.exists(cache_file_name):
+        return None
     if cache_file_name.endswith(".jsonl.bz2"):
         import bz2
         input_stream = bz2.open(cache_file_name, mode)
@@ -332,12 +335,14 @@ def open_cache_file(cache_file_name: str, write:bool=False):
     else:
         print(f"Unknown file extension for file: {cache_file_name}")
         raise RuntimeError(f"Unknown file extension for file: {cache_file_name}")
+    return input_stream
 
 
 def read_cache_file_if_needed(cache_file_name, input_file):
     passages = []
-    input_stream = open_cache_file(cache_file_name, write=False)
-    if os.path.getmtime(cache_file_name) > os.path.getmtime(input_file):
+
+    if os.path.exists(cache_file_name) and os.path.getmtime(cache_file_name) > os.path.getmtime(input_file):
+        input_stream = open_cache_file(cache_file_name, write=False)
         for line in input_stream:
             passages.extend(json.loads(line))
 
@@ -1109,7 +1114,7 @@ if __name__ == '__main__':
 
         rouge_scorer = RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
     cache_dir = args.cache_dir
-    use_cache = args.use_cache
+    use_cache = args.cache_usage
 
     server_map = {
         'CONVAI': "convaidp-nlp.sl.cloud9.ibm.com",
