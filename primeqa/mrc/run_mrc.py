@@ -585,6 +585,8 @@ def main():
     # process train data
     if training_args.do_train:
         train_examples = raw_datasets['train']
+        logger.info(f"TRAIN dataset size {len(train_examples)}")
+
         if data_args.train_fof is None:
             if data_args.dataset_filter_column_values is not None:
                 logger.info(f"Filter TRAIN dataset {data_args.dataset_filter_column_name} {data_args.dataset_filter_column_values}")
@@ -602,6 +604,7 @@ def main():
                 train_dataset = concatenate_datasets(train_datasets).shuffle(seed=training_args.seed)
         else:
             train_dataset = train_datasets[0]
+        # logger.info(f"TRAIN dataset size {len(train_examples)}")
     # process val data
     if training_args.do_eval:
         eval_examples = raw_datasets['validation']
@@ -704,6 +707,8 @@ def main():
         trainer.log_metrics("eval", metrics)
         trainer.save_metrics("eval", metrics)
 
+        predictions = trainer.predict(eval_dataset, eval_examples)
+
         output_file = os.path.join(training_args.output_dir, "model_generate.eval_set")
         OUT = open(output_file, "w")
         answers = []
@@ -711,16 +716,10 @@ def main():
             id = eval_dataset[i]['example_id']
             input_ids = torch.LongTensor(eval_dataset[i]['input_ids']).unsqueeze(0).to(device='cuda')
             attention_mask = torch.LongTensor(eval_dataset[i]['attention_mask']).unsqueeze(0).to(device='cuda')
-            outputs = model.generate(input_ids,
-                                     attention_mask=attention_mask,
-                                     max_length=256,
-                                     min_length=40,
+            outputs = trainer.model.generate(**{'input_ids': input_ids, 'attention_mask': attention_mask},
+                                     max_length=data_args.max_seq_length,
                                      num_beams=1,
-                                     repetition_penalty=2.5,
-                                     length_penalty=1.0,
-                                     early_stopping=True,
-                                     use_cache=False,
-                                     eos_token_id=tokenizer.convert_tokens_to_ids(tokenizer.eos_token))
+                                     use_cache=False,)
             prediction_text = " ".join(tokenizer.decode(outputs[0], skip_special_tokens=True).strip().split())
             answers.append({
                 "id": id,

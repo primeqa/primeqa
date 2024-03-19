@@ -115,8 +115,8 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
             max_new_tokens=50
             prompt = create_template(documents,question,titles)
             prompt_len = len(self._tokenizer(prompt)[0])
-            model_len = 4096
-            if prompt_len+max_new_tokens > 4096:
+            model_len = 512
+            if prompt_len+max_new_tokens > model_len:
                 print("Input Prompt Length (with  max_new_tokens buffer):",prompt_len+max_new_tokens)
                 print("Model Supported Length:",model_len)
                 # approximate length so doesn't take a while.
@@ -155,8 +155,13 @@ class ELI5FiDPreprocessor(AbstractPreProcessor):
                     indices.append(examples["id"][idx])
                 else: # multiple answers - keep last only for LongNQ
                     answer_data = answer_list[-1]
+
                     # for answer_data in answer_list:
                     a = answer_data["answer"]
+
+                    # skip if multiple answers and the second one is unanswerable
+                    if len(answer_list) > 1 and a == "":
+                        continue
                     # answer_score = answer_data["meta"]["score"]     
                     # if answer_score >= 3: # only takes answers whose score>3
                     inputs.append(question_passages)

@@ -10,6 +10,7 @@ from tqdm import tqdm
 # Step 3: If there are no mentions shuffle nouns.
 # Alternative/Future approach: select n random mentions/nouns from other answers - build a list.
 
+T5_PROMPT = ("Please answer a question about this article. If the question is unanswerable, say \"unanswerable\".")
 
 # Load the syntax model for English
 model_path = watson_nlp.download('noun-phrases_rbr_en_stock', parent_dir='/dccstor/srosent2/watson_nlp') #syntax_izumo_en_stock')
@@ -24,13 +25,14 @@ syntax_model_en = watson_nlp.load(watson_nlp.download('syntax_izumo_en_stock', p
 rouge = rouge_scorer.RougeScorer(rouge_types=['rougeLsum'], split_summaries=True)
 
 split = "dev"
-longnq_file = f"/dccstor/srosent2/generative/appen/final/longNQ/{split}/longNQ_{split}_answerable.jsonl"
+answerable = "answerable"
+longnq_file = f"/dccstor/srosent2/generative/appen/final/longNQ/{split}/longNQ_{split}_{answerable}.jsonl"
 
 longNQ = pd.read_json(longnq_file, lines=True, orient='records')
 
 randomly_change = 3
 nounphrase_count = 0
-
+skip = 0
 preference_data = {}
 
 with tqdm(total=longNQ.shape[0]) as pbar:    
@@ -125,14 +127,26 @@ with tqdm(total=longNQ.shape[0]) as pbar:
                         random_type = random.choice(list(passage_mentions.items()))[1] 
                     replacement_mention = random.choice(list(random_type[1]))
                 # adversarial_answer = answer[:answer_mention.span.begin] + "|" + replacement_mention + "|" + answer[answer_mention.span.end:]
+                n_mentions_changed += 1
                 adversarial_answer = adversarial_answer[:answer_mention.span.begin] + replacement_mention + adversarial_answer[answer_mention.span.end:]
+
+        # if only one mention was changed its unlikely to be adversarial enough, so don't include it.        
+        if n_mentions_changed == 1:
+            skip += 1
+            continue
+        context = f"{title}:\n\n{text}"
+        if answerable == "unanswerable":
+            answer = "unanswerable"
         preference_data[row['id']] = {'id':row['id']}
-        preference_data[row['id']]['chosen'] = f"{title}: {text}\nquestion: {question} answer:{answer}"
-        preference_data[row['id']]['rejected'] = f"{title}: {text}\nquestion: {question} answer:{adversarial_answer}"
-        if i > 10:
-            break
+        preference_data[row['id']]['chosen'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {answer}"
+        #f"{title}: {text}\nquestion: {question} answer:{answer}"
+        preference_data[row['id']]['rejected'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {adversarial_answer}"
+        #f"{title}: {text}\nquestion: {question} answer:{adversarial_answer}"
+        # if i > 10:
+        #     break
         # print(f"adversarial answer\t {adversarial_answer}")
         # print("-------")
     
-pd.DataFrame.from_dict(preference_data, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/faithful/{split}_answerable_sub10.csv", index=False)
+pd.DataFrame.from_dict(preference_data, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/faithful/{split}/{split}_{answerable}.csv", index=False)
 print(f"{nounphrase_count}/{i} noun phrases")
+print(f"{skip} skipped")

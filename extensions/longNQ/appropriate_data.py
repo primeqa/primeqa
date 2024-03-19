@@ -3,12 +3,13 @@ import pandas as pd
 
 T5_PROMPT = ("Please answer a question about this article. If the question is unanswerable, say \"unanswerable\".")
 
-split = "test"
-longnq_file = f"/dccstor/srosent2/generative/appen/final/longNQ/{split}/longNQ_{split}_answerable.jsonl"
+split = "train"
+answerable = "answerable"
+longnq_file = f"/dccstor/srosent2/generative/appen/final/longNQ/{split}/longNQ_{split}_{answerable}.jsonl"
 
 longNQ = pd.read_json(longnq_file, lines=True, orient='records', dtype={'id':str})
 
-mrc_longnq_file = f"/dccstor/srosent2/primeqa/experiments/long_nq/{split}/output/eval_predictions.json"
+mrc_longnq_file = f"/dccstor/srosent2/primeqa/experiments/long_nq_{answerable}/{split}/output/eval_predictions.json"
 mrcLongNQ = pd.read_json(mrc_longnq_file, orient='index')
 
 preference_data_passage = {}
@@ -24,11 +25,13 @@ for i, row in mrcLongNQ.iterrows():
     title = longNQRow['passages'][0]['title']
     preference_data_mrc[id] = {'id':id}
     context = f"{title}:\n\n{text}"
+    if answerable == "unanswerable":
+        answer = "unanswerable"
     preference_data_mrc[id]['chosen'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {answer}"
     preference_data_mrc[id]['rejected'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {mrc_target}"
     preference_data_passage[id] = {'id':id}
     preference_data_passage[id]['chosen'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {answer}"
     preference_data_passage[id]['rejected'] = f"{context}\n\n{T5_PROMPT} {question}, answer: {text}"
 
-pd.DataFrame.from_dict(preference_data_mrc, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_short/{split}_answerable.csv", index=False)
-pd.DataFrame.from_dict(preference_data_passage, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_long/{split}_answerable.csv", index=False)
+pd.DataFrame.from_dict(preference_data_mrc, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_short/{split}_{answerable}.csv", index=False)
+pd.DataFrame.from_dict(preference_data_passage, orient='index').to_csv(f"/dccstor/srosent3/long_nq/preference_data/appropriate_long/{split}_{answerable}.csv", index=False)
