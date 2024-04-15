@@ -46,6 +46,7 @@ def compute_stats(data):
     stats['q_words'] = 0
     stats['p_words'] = 0
     stats['a_words'] = 0
+    stats['a_chars'] = 0
     stats['a_sentences'] = 0
     stats['a_per_q'] = 0
     stats['s_per_p'] = 0
@@ -102,6 +103,7 @@ def compute_stats(data):
                 continue
             token_count, sentence_count = nlp_count(answer['answer'])
             stats['a_words'] += token_count
+            stats['a_chars'] += len(answer['answer'])
             stats['a_sentences'] += sentence_count
             stats['a_per_q'] += 1
 
@@ -132,6 +134,7 @@ def compute_stats(data):
     print(f"A per Q\t{stats['a_per_q']/len(data)}")
     print(f"WORDS in Q\t{stats['q_words']/len(data)}")
     if stats['a_per_q'] > 0:
+        print(f"CHARS in A\t{stats['a_chars']/stats['a_per_q']}")
         print(f"WORDS in A\t{stats['a_words']/stats['a_per_q']}")
         print(f"SENTENCES in A\t{stats['a_sentences']/stats['a_per_q']}")
     if stats['passages'] > 0:

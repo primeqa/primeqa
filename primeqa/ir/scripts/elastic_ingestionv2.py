@@ -38,7 +38,7 @@ def setup_argparse():
     parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
                                                                "file is assumed to be args.data/psgs.tsv and "
                                                                "the question file is args.data/questions.tsv.")
-    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh'],
+    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh', 'govt'],
                         help=("The type of the dataset to use. If auto, then the type will be determined"
                               "by the file extension: .tsv->pqa, .json|.jsonl -> sap, csv -> SAP question"))
     parser.add_argument("--ingestion_batch_size", default=40, type=int,
@@ -260,7 +260,7 @@ def process_text(id, title, text, max_doc_size, stride, remove_url=True,
     else:
         productId = ""
         fields = ["", "", "", "", "", ""]
-        doc_url = ""
+        # doc_url = ""
     if productId.startswith("SAP_SUCCESSFACTORS"):
         productId = "SAP_SUCCESSFACTORS"
     if domain is not None:
@@ -394,6 +394,8 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     data = [json.loads(line) for line in open(input_file).readlines()]
                 uniform_product_name = get_attr(kwargs, 'uniform_product_name')
                 docid_filter = get_attr(kwargs, 'docid_filter', [])
+                urlname = 'document_url'
+                titlename = "title"
                 # data_type = get_attr(kwargs, 'data_type', 'sap')
                 if data_type in ['auto', 'sap']:
                     txtname = "document"
@@ -404,6 +406,10 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                     txtname = "text"
                     docidname = "_id"
                     titlename = 'title'
+                elif data_type == "govt":
+                    txtname = "text"
+                    docidname = "document_id"
+                    urlname = 'url'
 
                 for di, doc in tqdm(enumerate(data),
                                     total=min(max_num_documents, len(data)),
@@ -418,13 +424,19 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
 
                     if docid_filter != [] and docid not in docid_filter:
                         continue
-                    url = doc['document_url'] if 'document_url' in doc else ""
-                    title = doc[titlename] if 'title' in doc else None
+                    url = doc[urlname] if urlname in doc else ""
+                    title = doc[titlename] if titlename in doc else None
                     if title is None:
                         title = ""
                     if docid in docname2url:
                         url = docname2url[docid]
                         title = docname2title[docid]
+
+                    domain = None
+                    if 'metadata' in doc and 'domain' in doc['metadata']:
+                        domain = doc['metadata']['domain']
+                    elif 'domain' in doc:
+                        domain = doc['domain']
 
                     try:
                         if doc_based:
@@ -438,7 +450,7 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                                              doc_url=url,
                                              uniform_product_name=uniform_product_name,
                                              data_type=data_type,
-                                             domain=doc['metadata']['domain'] if 'metadata' in doc and 'domain' in doc['metadata'] else None
+                                             domain=domain
                                              )
                             passages.extend(processed_passage)
                         else:
@@ -855,7 +867,7 @@ if __name__ == '__main__':
 
     if args.data_type == "beir":
         if args.input_passages is None:
-            args.input_passages = os.path.join(args.data, "elser_indexable_chunks.jsonl") #"corpus.jsonl")
+            args.input_passages = os.path.join(args.data, "corpus.jsonl")
         if args.input_queries is None:
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
