@@ -418,14 +418,3 @@ def compute_faiss_kmeans(dim, num_partitions, kmeans_niters, shared_lists, retur
         return_value_queue.put(centroids)
 
     return centroids
-
-
-"""
-TODOs:
-
-1. Notice we're using self.config.bsize.
-
-2. Consider saving/using heldout_avg_residual as a vector --- that is, using 128 averages!
-
-3. Consider the operations with .cuda() tensors. Are all of them good for OOM?
-"""

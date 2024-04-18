@@ -30,16 +30,4 @@ class CollectionEncoder():
 
             embs = torch.cat(embs)
 
-            # embs, doclens = self.checkpoint.docFromText(passages, bsize=self.config.bsize,
-            #                                                   keep_dims='flatten', showprogress=(self.config.rank < 1))
-
-        # with torch.inference_mode():
-        #     embs = self.checkpoint.docFromText(passages, bsize=self.config.bsize,
-        #                                        keep_dims=False, showprogress=(self.config.rank < 1))
-        #     assert type(embs) is list
-        #     assert len(embs) == len(passages)
-
-        #     doclens = [d.size(0) for d in embs]
-        #     embs = torch.cat(embs)
-
         return embs, doclens

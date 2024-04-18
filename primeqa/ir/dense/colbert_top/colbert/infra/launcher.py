@@ -1,5 +1,6 @@
 import os
 import time
+import copy
 import torch
 import random
 
@@ -35,10 +36,11 @@ class Launcher:
 
         all_procs = []
         for new_rank in range(0, self.nranks):
-            assert isinstance(custom_config, BaseConfig)
-            assert isinstance(custom_config, RunSettings)
-
-            new_config = type(custom_config).from_existing(custom_config, self.run_config, RunConfig(rank=new_rank))
+            if isinstance(custom_config, BaseConfig) or isinstance(custom_config, RunSettings):
+                new_config = type(custom_config).from_existing(custom_config, self.run_config, RunConfig(rank=new_rank))
+            else:
+                new_config = copy.deepcopy(custom_config)
+                new_config.rank = new_rank
 
             args_ = (self.callee, port, return_value_queue, new_config, *args)
             all_procs.append(mp.Process(target=setup_new_process, args=args_))
