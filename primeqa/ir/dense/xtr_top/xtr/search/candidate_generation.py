@@ -2,8 +2,8 @@ import numpy as np
 
 import torch
 
-from primeqa.ir.dense.xtr_top.xtr.utils.xtr_inference import xtr_inference
 from primeqa.ir.dense.xtr_top.xtr.search.strided_tensor import StridedTensor
+from primeqa.ir.dense.xtr_top.xtr.search.utils.xtr_inference import xtr_inference
 from primeqa.ir.dense.xtr_top.xtr.search.strided_tensor_core import _create_mask, _create_view
 
 
