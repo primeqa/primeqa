@@ -13,28 +13,6 @@ from primeqa.ir.dense.xtr_top.xtr.searcher import Searcher
 
 
 class TestTraining(UnitTest):
-    @pytest.fixture(scope='session')
-    @classmethod
-    def setup_class(cls):
-
-        if torch.cuda.is_available():
-            import time
-            import random
-
-            rank = 0
-            nranks = 1
-
-            rng = random.Random(time.time())
-            port = str(12355 + rng.randint(0, 1000))
-
-            os.environ["MASTER_PORT"] = port
-            os.environ["MASTER_ADDR"] = "localhost"
-            os.environ["WORLD_SIZE"] = str(nranks)
-            os.environ["RANK"] = str(rank)
-
-            torch.cuda.set_device(0)
-            torch.distributed.init_process_group(backend='nccl', init_method='env://')
-
     def test_trainer(self):
         test_files_location = 'tests/resources/ir_dense'
         #test_files_location = '../../../../resources/ir_dense'
