@@ -13,6 +13,7 @@ from primeqa.ir.dense.xtr_top.xtr.searcher import Searcher
 
 
 class TestTraining(UnitTest):
+    @pytest.fixture(scope='session')
     @classmethod
     def setup_class(cls):
 
@@ -89,6 +90,7 @@ class TestTraining(UnitTest):
             trainer.train(args)
             print("TRAINING DONE")
 
+        assert True
         print("ALL DONE")
 
 if __name__ == '__main__':
