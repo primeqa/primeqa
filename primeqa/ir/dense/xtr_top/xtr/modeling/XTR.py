@@ -70,7 +70,10 @@ class XTR(T5EncoderModel):
                     device=topk_scores.device), amat_ids.view(-1)].view(amat_ids.shape) * amat_mask
     
         labels = torch.arange(0, Q.size(0), device=Q.device) * nway 
-        Z = (aligned > 0.0).float().flatten(2,3).sum(-1).clamp(min=1e-3)
+        Z = (aligned > 0.0).float().flatten(2,3).sum(-1)
+        
+        with torch.no_grad():
+            Z.clamp_(min=1e-3)
         
         doc_tok_summed_normalized = (1/Z) * aligned.sum(2).squeeze(-1)
 
