@@ -23,7 +23,7 @@ class XTR(T5EncoderModel):
 
     def create_alignment_matrix(self, indices, num_docs, t=5):
         doc_ids = torch.arange(t * num_docs).view(num_docs, t).to(device=indices.device)
-        alignment_matrix = torch.zeros_like(indices, dtype=torch.float, requires_grad=True).to(device=indices.device)
+        alignment_matrix = torch.zeros_like(indices, dtype=torch.float).to(device=indices.device)
 
         for j in range(indices.size(1)):
             alignment = torch.isin(indices[:, j], doc_ids[j]).float()
@@ -51,7 +51,8 @@ class XTR(T5EncoderModel):
         
         clubbed_doc_scores = scores.permute(0,2,1,3).flatten(2,3) 
         
-        topk_scores, topk_indices = clubbed_doc_scores.topk(k, -1)
+        #topk_scores, topk_indices = clubbed_doc_scores.topk(k, -1)
+        topk_scores, indices = clubbed_doc_scores.topk(k, -1)
 
         #remove Query <pad> scores and indices
         #avoid breaking computational graph for backward pass :(
@@ -59,12 +60,13 @@ class XTR(T5EncoderModel):
 
         #create a copy of topk_indices. It can't be modified by inplace operation. 
         #Its needed for gradient computation, even though it's no grads itself.
-        indices = copy.deepcopy(topk_indices) 
+        #indices = copy.deepcopy(topk_indices) 
         topk_scores = topk_scores.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
         indices = indices.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
 
-        #create alignment matrix
-        amat_mask, amat_ids = self.create_alignment_matrix(indices, Db, Dt)
+        with torch.no_grad():
+            #create alignment matrix
+            amat_mask, amat_ids = self.create_alignment_matrix(indices, Db, Dt)
 
         aligned = topk_scores.view(-1, k)[torch.arange(Qb * Db * Qt).to(\
                     device=topk_scores.device), amat_ids.view(-1)].view(amat_ids.shape) * amat_mask
