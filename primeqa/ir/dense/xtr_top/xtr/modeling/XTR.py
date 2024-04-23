@@ -23,7 +23,7 @@ class XTR(T5EncoderModel):
 
     def create_alignment_matrix(self, indices, num_docs, t=5):
         doc_ids = torch.arange(t * num_docs).view(num_docs, t).to(device=indices.device)
-        alignment_matrix = torch.zeros_like(indices, dtype=torch.float).to(device=indices.device)
+        alignment_matrix = torch.zeros_like(indices, dtype=torch.float, requires_grad=True).to(device=indices.device)
 
         for j in range(indices.size(1)):
             alignment = torch.isin(indices[:, j], doc_ids[j]).float()
