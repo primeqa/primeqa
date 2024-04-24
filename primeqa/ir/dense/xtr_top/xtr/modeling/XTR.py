@@ -64,24 +64,19 @@ class XTR(T5EncoderModel):
         topk_scores = topk_scores.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
         indices = indices.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
 
-        with torch.no_grad():
-            #create alignment matrix
-            amat_mask, amat_ids = self.create_alignment_matrix(indices, Db, Dt)
+        #create alignment matrix
+        amat_mask, amat_ids = self.create_alignment_matrix(indices, Db, Dt)
 
         aligned = topk_scores.view(-1, k)[torch.arange(Qb * Db * Qt).to(\
                     device=topk_scores.device), amat_ids.view(-1)].view(amat_ids.shape) * amat_mask
     
         labels = torch.arange(0, Q.size(0), device=Q.device) * nway 
-        Z = (aligned > 0.0).float().flatten(2,3).sum(-1)
-        
-        with torch.no_grad():
-            Z.clamp_(min=1e-3)
+        Z = (aligned > 0.0).float().flatten(2,3).sum(-1).clamp(min=1e-3)
         
         doc_tok_summed_normalized = (1/Z) * aligned.sum(2).squeeze(-1)
 
-        with torch.no_grad():
-            _, predictions = doc_tok_summed_normalized.max(-1)
-            accuracy = 100. * (predictions.view(-1) == labels.view(-1)).long().sum()/predictions.size(0)
+        _, predictions = doc_tok_summed_normalized.max(-1)
+        accuracy = 100. * (predictions.view(-1) == labels.view(-1)).long().sum()/predictions.size(0)
             
         loss = torch.nn.CrossEntropyLoss()(doc_tok_summed_normalized, labels)
 
