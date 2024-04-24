@@ -79,6 +79,6 @@ class XTR(T5EncoderModel):
         accuracy = 100. * (predictions.view(-1) == labels.view(-1)).long().sum()/predictions.size(0)
             
         loss = torch.nn.CrossEntropyLoss()(doc_tok_summed_normalized, labels)
-        assert loss.requires_grad == True, (doc_tok_summed_normalized.requires_grad, Z.requires_grad, alligned.requires_grad)
+        assert loss.requires_grad == True, (doc_tok_summed_normalized.requires_grad, Z.requires_grad, aligned.requires_grad, indices.requires_grad, topk_scores.requires_grad, amat_mask.requires_grad, amat_ids.requires_grad, scores.requires_grad, clubbed_doc_scores.requires_grad, D.requires_grad, Q.requires_grad)
 
         return loss, accuracy
