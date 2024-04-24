@@ -35,6 +35,7 @@ class XTR(T5EncoderModel):
     def forward(self, query_ids, doc_ids, query_attention_mask, doc_attention_mask, nway=1, k=55):
         D = self.encoder(doc_ids, attention_mask=doc_attention_mask)[0]
         Q = self.encoder(query_ids, attention_mask=query_attention_mask)[0]
+        assert D.requires_grad == True, (D.requires_grad, Q.requires_grad)
 
         D = self.bottleneck(D) 
         Q = self.bottleneck(Q) 
