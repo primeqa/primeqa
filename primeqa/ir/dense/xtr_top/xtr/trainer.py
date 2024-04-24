@@ -99,7 +99,7 @@ def train(config):
                                     nway=config.nway, k=config.k_train)
     
             #loss = loss / config.accumsteps
-            assert loss.requires_grad == True
+            assert loss.requires_grad == True, (loss, accuracy)
 
             loss.backward()
             batch_loss += loss.item()
