@@ -35,7 +35,6 @@ class XTR(T5EncoderModel):
     def forward(self, query_ids, doc_ids, query_attention_mask, doc_attention_mask, nway=1, k=55):
         D = self.encoder(doc_ids, attention_mask=doc_attention_mask)[0]
         Q = self.encoder(query_ids, attention_mask=query_attention_mask)[0]
-        assert D.requires_grad == True, (D.requires_grad, Q.requires_grad)
 
         D = self.bottleneck(D) 
         Q = self.bottleneck(Q) 
@@ -59,9 +58,6 @@ class XTR(T5EncoderModel):
         #avoid breaking computational graph for backward pass :(
         topk_scores = topk_scores * query_attention_mask.unsqueeze(2) #differentialble
 
-        #create a copy of topk_indices. It can't be modified by inplace operation. 
-        #Its needed for gradient computation, even though it's no grads itself.
-        #indices = copy.deepcopy(topk_indices) 
         topk_scores = topk_scores.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
         indices = indices.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
 
@@ -80,6 +76,5 @@ class XTR(T5EncoderModel):
         accuracy = 100. * (predictions.view(-1) == labels.view(-1)).long().sum()/predictions.size(0)
             
         loss = torch.nn.CrossEntropyLoss()(doc_tok_summed_normalized, labels)
-        assert loss.requires_grad == True, (doc_tok_summed_normalized.requires_grad, Z.requires_grad, aligned.requires_grad, indices.requires_grad, topk_scores.requires_grad, amat_mask.requires_grad, amat_ids.requires_grad, scores.requires_grad, clubbed_doc_scores.requires_grad, D.requires_grad, Q.requires_grad)
 
         return loss, accuracy
