@@ -222,6 +222,20 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
         else:
             return ""
 
+    def get_course_product_id(product_id):
+        """
+        @param product_id: The product ID used to determine the course product ID for SAP.
+        @return: The course product ID based on the given product ID.
+        """
+        if product_id.find('S4HANA') >= 0:
+            return "S4"
+        elif product_id.find("SUCCESS_FACTORS") >= 0:
+            return "SFSF"
+        elif product_id.find("BUSSINESONE") >= 0:
+            return "B1"
+        else:
+            return product_id
+
     def process_url(doc_url: str, data_type: str = ""):
         """
             process_url(doc_url:str, data_type:str="") -> Tuple[str, List[str]]
@@ -269,6 +283,7 @@ def process_text(tiler, id, title, text, max_doc_size, stride, remove_url=True,
         'title': title,
         'url': doc_url,
         'app_name': "",
+        'courseGrainedProductId': get_course_product_id(product_id)
     }
 
     return tiler.create_tiles(id_=id,
@@ -1090,6 +1105,15 @@ def remove_duplicates(results, duplicate_removal, rouge_duplicate_threshold):
     return ret
 
 
+def get_keys_to_index(all_keys_to_index):
+    keys_to_index = []
+    for k in all_keys_to_index:
+        if k not in input_passages[0]:
+            print(f"Dropping key {k} - they are not in the passages")
+        else:
+            keys_to_index.append(k)
+    return keys_to_index
+
 if __name__ == '__main__':
     from datetime import datetime
 
@@ -1103,7 +1127,7 @@ if __name__ == '__main__':
     if not args.model_name:
         if args.db_engine == 'es-elser':
             args.model_name = ".elser_model_1"
-        elif args.db_engine.startswith('es-dense'):
+        else: # The default model is all-MiniLM-L6-v2 now.
             args.model_name = 'all-MiniLM-L6-v2'
 
     if args.data_type == "beir":
@@ -1187,7 +1211,7 @@ if __name__ == '__main__':
                     docid2loio[a[0]] = a[1]
 
     model = None
-    if args.db_engine in ['es-dense'] or args.max_doc_length is not None:
+    if args.db_engine in ['es-dense', 'es-bm25'] or args.max_doc_length is not None:
         import torch
 
         batch_size = 64
@@ -1276,6 +1300,8 @@ if __name__ == '__main__':
                 passage['text'] = get_pyizumo_tokenized_text(text=passage['text'], language_code=args.language_code)
 
         vector_field_name = None
+        all_keys_to_index = ['title', 'id', 'url', 'productId',  # 'versionId',
+                         'filePath', 'deliverableLoio', 'text', 'app_name', 'courseGrainedProductId']
         if args.db_engine in ['es-dense', 'es-bm25']:
             mappings = coga_mappings[args.lang]
             processors = []
@@ -1318,22 +1344,23 @@ if __name__ == '__main__':
                     "dims": hidden_dim,
                     "index": "true"
                 }
+            else:
+                pipeline_name = None
 
             create_update_index(client, index_name, settings=settings[args.lang],
                                 mappings=mappings,
                                 do_update=do_update)
 
-            if args.model_on_server and len(processors) > 0:
+            if args.model_on_server and len(processors) > 0 and pipeline_name is not None:
                 client.ingest.put_pipeline(processors=processors, id=pipeline_name, on_failure=on_failure)
 
             logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
             bulk_batch = args.ingestion_batch_size
 
             num_passages = len(input_passages)
-            keys_to_index = ['title', 'id', 'url', 'productId',  # 'versionId',
-                             'filePath', 'deliverableLoio', 'text', 'app_name']
-            t = tqdm(total=num_passages, desc="Ingesting dense documents: ", smoothing=0.05)
-            print(input_passages[0].keys())
+            t = tqdm(total=num_passages, desc=f"Ingesting {args.db_engine.replace('es-','')} documents: ", smoothing=0.05)
+            # print(input_passages[0].keys())
+            keys_to_index = get_keys_to_index(all_keys_to_index=all_keys_to_index)
             for k in range(0, num_passages, bulk_batch):
                 actions = [
                     {
@@ -1349,7 +1376,10 @@ if __name__ == '__main__':
                                 zip(actions, input_passages[k:min(k + bulk_batch, num_passages)])):
                             action["_source"]['vector'] = passage_vectors[pi + k]
                 try:
-                    bulk(client, actions=actions, pipeline=pipeline_name)
+                    if pipeline_name is not None:
+                        bulk(client, actions=actions, pipeline=pipeline_name)
+                    else:
+                        bulk(client, actions=actions)
                 except Exception as e:
                     print(f"Got an error in indexing: {e}")
                 t.update(bulk_batch)
@@ -1387,14 +1417,7 @@ if __name__ == '__main__':
 
             client.ingest.put_pipeline(processors=processors, id=args.model_name + "-test")
             actions = []
-            all_keys_to_index = ['title', 'id', 'url', 'productId',
-                                 'filePath', 'deliverableLoio', 'text', 'app_name']
-            keys_to_index = []
-            for k in all_keys_to_index:
-                if k not in input_passages[0]:
-                    print(f"Dropping key {k} - they are not in the passages")
-                else:
-                    keys_to_index.append(k)
+            keys_to_index = get_keys_to_index(all_keys_to_index)
             num_passages = len(input_passages)
             t = tqdm(total=num_passages, desc="Ingesting documents (w ELSER): ", smoothing=0.05)
             # for ri, row in tqdm(enumerate(input_passages), total=len(input_passages), desc="Indexing passages"):

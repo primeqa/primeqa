@@ -13,8 +13,8 @@ class TextTiler:
 
     def __init__(self, max_doc_size, stride, tokenizer,
                  aligned_on_sentences: bool = True):
-        self.max_doc_size = max_doc_size
-        self.stride = stride
+        self.max_doc_size = max_doc_size if max_doc_size is not None else 1000000
+        self.stride = stride if stride is not None else 0
         self.tokenizer = tokenizer
         self.tokenizer_num_special_tokens = self.tokenizer.num_special_tokens_to_add()
         self.max_doc_size -= self.tokenizer_num_special_tokens
@@ -63,7 +63,7 @@ class TextTiler:
         if text.find("With this app") >= 0 or text.find("App ID") >= 0:
             itm['app_name'] = title
         title_in_text = False
-        if 0 <= text.find(title) <= 2:
+        if TextTiler.title_in_text_pos(title, text) >= 0 :
             expanded_text = text
             title_in_text = True
         else:
@@ -161,9 +161,10 @@ class TextTiler:
                 if title and title_handling == "all":  # make space for the title in each split text.
                     ltitle = self.get_tokenized_length(title)
                     max_length -= ltitle
-                    ind = text.find(title)
-                    if ind == 0:
+                    ind = TextTiler.title_in_text_pos(title, text)
+                    if 0 <= ind <= 10:
                         text = text[ind + len(title):]
+                    title_in_text = False
 
                 if self.aligned_on_sentences:
                     if not self.nlp:
@@ -224,10 +225,13 @@ class TextTiler:
                             tsizes.append(slen)
                             begins.append(sent.begin)
                             ends.append(end)
-                    if title_handling in ['all', 'first']:
-                        first_length = max_length-title_length if not title_in_text else max_length
-                    elif title_handling in ['none']:
-                        first_length = max_length
+                    first_length = max_length
+                    if title_handling in ['first']:
+                        first_length = max_length - title_length
+                    # if title_handling in ['all', 'first']:
+                    #     first_length = max_length-title_length if title_in_text else max_length
+                    # elif title_handling in ['none']:
+                    #     first_length = max_length
 
                     intervals = TextTiler.compute_intervals(segment_lengths=tsizes,
                                                             max_length=max_length,
@@ -257,6 +261,11 @@ class TextTiler:
                 return texts, positions, added_titles
 
     MAX_TRIED = 10000
+
+    @staticmethod
+    def title_in_text_pos(title:str, text:str) -> int:
+        pos = text.find(title)
+        return pos if 0 <= pos <= 5 else -1
 
     @staticmethod
     def compute_intervals(segment_lengths: List[int],
