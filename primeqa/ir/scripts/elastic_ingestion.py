@@ -55,7 +55,7 @@ def setup_argparse():
     parser.add_argument('--data', default=None, type=str, help="The directory containing the data to use. The passage "
                                                                "file is assumed to be args.data/psgs.tsv and "
                                                                "the question file is args.data/questions.tsv.")
-    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh'],
+    parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh', 'ocquac'],
                         help=("The type of the dataset to use. If auto, then the type will be determined"
                               "by the file extension: .tsv->pqa, .json|.jsonl -> sap, csv -> SAP question"))
     parser.add_argument("--ingestion_batch_size", default=40, type=int,
@@ -481,6 +481,10 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                     txtname = "text"
                     docidname = "_id"
                     titlename = 'title'
+                elif data_type == "ocquac":
+                    txtname = "text"
+                    docidname = "id"
+                    titlename = "title"
 
                 for di, doc in tqdm(enumerate(data),
                                     total=min(max_num_documents, len(data)),
@@ -488,7 +492,10 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                                     smoothing=0.05):
                     if di >= max_num_documents:
                         break
-                    docid = doc[docidname]
+                    if docidname in doc:
+                        docid = doc[docidname]
+                    elif 'id' in doc:
+                        docid = doc['id']
 
                     if ".txt" in docid:
                         docid = docid.replace(".txt", "")
@@ -508,7 +515,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                         if doc_based:
                             tpassages.extend(
                                 process_text(tiler=tiler,
-                                             id=doc[docidname],
+                                             id=docid,
                                              title=remove_stopwords(fix_title(title), lang, remv_stopwords),
                                              text=remove_stopwords(doc[txtname], remv_stopwords),
                                              max_doc_size=max_doc_size,
@@ -524,7 +531,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                                 passage_id = passage['passage_id'] if 'passage_id' in passage else pi
                                 tpassages.extend(
                                     process_text(tiler=tiler,
-                                                 id=f"{doc[docidname]}-{passage_id}",
+                                                 id=f"{docid}-{passage_id}",
                                                  title=remove_stopwords(fix_title(title), lang, remv_stopwords),
                                                  text=remove_stopwords(passage[psg_txtname], remv_stopwords),
                                                  max_doc_size=max_doc_size,
@@ -1462,6 +1469,8 @@ if __name__ == '__main__':
         if args.evaluate:
             input_queries, unmapped_ids = read_data(args.input_queries,
                                                     lang=args.lang,
+                                                    tiler=tiler,
+                                                    tokenizer=model.tokenizer,
                                                     fields=["id", "text", "relevant", "answers"],
                                                     docid_map=loio2docid, return_unmapped=True,
                                                     remove_stopwords=args.remove_stopwords,
@@ -1472,6 +1481,8 @@ if __name__ == '__main__':
         else:
             input_queries = read_data(args.input_queries,
                                       lang=args.lang,
+                                      tiler=tiler,
+                                      tokenizer=model.tokenizer,
                                       fields=["id", "text"],
                                       remove_stopwords=args.remove_stopwords,
                                       data_type=args.data_type,

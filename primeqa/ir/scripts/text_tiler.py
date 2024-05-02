@@ -22,6 +22,15 @@ class TextTiler:
         self.aligned_on_sentences = aligned_on_sentences
         self.nlp = None
 
+    def _shorten_title(self, title:List[str], max_length:int) -> List[str]:
+        """
+        @param title: A list of strings representing the title to be shortened.
+        @param max_length: An integer representing the maximum length of the shortened title.
+        @return: A list of strings representing the shortened title.
+        """
+
+
+
     def create_tiles(self,
                      id_: str,
                      text: str,
