@@ -582,13 +582,13 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                     itm['passages'] = psgs
                     itm['relevant'] = ids
                     tpassages.append(itm)
-                write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling=title_handling),
+                write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling=title_handling, cache_dir=cache_dir),
                                 tpassages, use_cache)
                 if return_unmapped_ids:
                     return tpassages, unmapped_ids
             else:
                 raise RuntimeError(f"Unknown file extension: {os.path.splitext(input_file)[1]}")
-        write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling),
+        write_cache_file(get_cached_filename(input_file, max_doc_size, stride, tiler, title_handling, cache_dir=cache_dir),
                          tpassages,
                          use_cache)
         passages.extend(tpassages)
