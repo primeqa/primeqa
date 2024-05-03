@@ -414,7 +414,8 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
         cached_passages = read_cache_file_if_needed(get_cached_filename(input_file,
                                                                         max_doc_size=max_doc_size, stride=stride,
                                                                         title_handling=title_handling,
-                                                                        tiler=tiler),
+                                                                        tiler=tiler,
+                                                                        cache_dir=cache_dir),
                                                     input_file)
         if cached_passages:
             passages.extend(cached_passages)
@@ -443,7 +444,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                         if 'relevant' in row:
                             itm['relevant'] = row['relevant'].split(",")
                         if 'answers' in row:
-                            itm['answers'] = row['answers'].split("::")
+                            itm['answers'] = row['answers'].split("::") if row['answers'] is not None else []
                             itm['passages'] = itm['answers']
                         tpassages.append(itm)
                     else:
