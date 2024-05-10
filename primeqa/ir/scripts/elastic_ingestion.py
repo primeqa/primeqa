@@ -115,6 +115,8 @@ def setup_argparse():
     parser.add_argument("--cache_usage", type=bool, default=True, help="Turns on or off read caching.")
     parser.add_argument("--cache_dir", type=str, default=default_cache_dir,
                         help=f"Specifies the cache directory - by default {default_cache_dir}")
+    parser.add_argument("--report_only_on_errors_in_documents", action="store_true", default=False,
+                        help="If error in a document is found, only report it, skip the document, and continue.")
     return parser
 
 
@@ -382,6 +384,7 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
               use_cache=True,
               cache_dir=default_cache_dir,
               title_handling='all',
+              report_only_on_errors_in_documents=False,
               **kwargs):
     passages = []
     doc_based = get_attr(kwargs, 'doc_based')
@@ -546,7 +549,11 @@ def read_data(input_files, lang, fields=None, remove_url=False, tokenizer=None, 
                                                  ))
                     except Exception as e:
                         print(f"Error at line {di}: {e}")
-                        raise e
+                        if report_only_on_errors_in_documents:
+                            print(f"{doc}\n")
+                            continue
+                        else:
+                            raise e
                     docs_read += 1
             elif get_attr(kwargs, 'read_sap_qfile', default=False) or input_file.endswith(".csv"):
                 import pandas as pd
@@ -1020,6 +1027,16 @@ def create_es_client(fingerprint, api_key, host):
     return _client
 
 
+def recreate_es_client_if_needed(client, fingerprint, api_key, host):
+    try:
+        _ = client.info()
+    except Exception as e:
+        print(f"Re-creating ES client")
+        client = create_es_client(fingerprint, api_key, host)
+
+    return client
+
+
 def extract_answers(res):
     rout = []
     for rank, r in enumerate(res):
@@ -1027,7 +1044,7 @@ def extract_answers(res):
     return rout
 
 
-def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_server, vector_field_name):
+def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_server, vector_field_name, top_k):
     _knn = None
     _query = None
     _rank = None
@@ -1059,7 +1076,7 @@ def build_elastic_query(qid, text, db_engine, model_name, hybrid_mode, model_on_
                 }
             }
             _rank = {"rrf": {
-                "window_size": 200
+                "window_size": 200 if top_k < 200 else top_k
             }}
     elif args.db_engine == 'es-bm25':
         _query = {
@@ -1125,9 +1142,14 @@ def get_keys_to_index(all_keys_to_index):
 if __name__ == '__main__':
     from datetime import datetime
 
-    with open("logfile", "a") as cmdlog:
+    '''with open("logfile", "a") as cmdlog:
         cmdlog.write(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - {os.getenv('USER')} - "
                      f"{' '.join(sys.argv)}\n")
+    '''
+
+    print(f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')} - {os.getenv('USER')} - "
+                     f"{' '.join(sys.argv)}\n")
+
     parser = setup_argparse()
 
     args = parser.parse_args()
@@ -1280,8 +1302,11 @@ if __name__ == '__main__':
                                    docid_map=docid2loio,
                                    cache_dir=cache_dir,
                                    use_cache=use_cache,
-                                   title_handling=args.title_handling
+                                   title_handling=args.title_handling,
+                                   report_only_on_errors_in_documents=args.report_only_on_errors_in_documents
                                    )
+
+        client = recreate_es_client_if_needed(client, f"{server_}_SSL_FINGERPRINT", f"{server_}_API_KEY", host=args.host)
 
         hidden_dim = -1
         passage_vectors = []
@@ -1299,6 +1324,8 @@ if __name__ == '__main__':
                 hidden_dim = len(passage_vectors[0])
                 if args.normalize_embs:
                     passage_vectors = normalize(passage_vectors)
+
+                client = recreate_es_client_if_needed(client, f"{server_}_SSL_FINGERPRINT", f"{server_}_API_KEY", host=args.host)
 
         logging.getLogger("elastic_transport.transport").setLevel(logging.WARNING)
 
@@ -1503,7 +1530,8 @@ if __name__ == '__main__':
                                                    model_name=args.model_name,
                                                    hybrid_mode=args.hybrid,
                                                    vector_field_name=vector_field_name,
-                                                   model_on_server=args.model_on_server)
+                                                   model_on_server=args.model_on_server,
+                                                   top_k=args.top_k)
             res = client.search(
                 index=index_name,
                 knn=knn,
