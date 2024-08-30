@@ -42,7 +42,7 @@ class QGProcessor():
 		processed_data_dict = {'label':[], 'input':[]}
 		
 		for answers, context, question in zip(example_batch['answers'], example_batch['context'], example_batch['question']):
-			input = answers['text'][0] +' '+QGSpecialTokens.sep+' ' + context
+			input = answers['text'][0] if hasattr(answers,'text') else answers[0] +' '+QGSpecialTokens.sep+' ' + context
 			
 			processed_data_dict['input'].append(input)
 			processed_data_dict['label'].append(question)
