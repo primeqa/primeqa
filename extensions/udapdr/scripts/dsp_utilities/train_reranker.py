@@ -222,6 +222,7 @@ def train_reranker(zeroshot_ranking, synthetic_queries_filename, synthetic_qas_f
 	    	current_row = zero_shot_ranking_results.iloc[i * 1000]
 	    	current_qid = int(current_row[0])
 	    	current_original_query = original_queries.loc[current_qid]['question']
+	    	current_original_retrieved_passages = original_qid_to_retrieved_passages[current_qid]
 	    	found_query = True 
 	    except:
 	    	found_query = False

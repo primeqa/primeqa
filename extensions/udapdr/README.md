@@ -9,7 +9,7 @@ This repository includes the code and datasets for the experiments in [UDAPDR: U
 In addition to the standard installation instructions for PrimeQA, run the following commands to setup a conda environment:
 
 ````
-conda create --name udapdr --file requirements.txt
+conda create --name udapdr --file environment.yml
 conda activate udapdr
 ````
 

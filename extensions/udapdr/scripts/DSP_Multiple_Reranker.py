@@ -377,7 +377,7 @@ def end_to_end_reranker_training(given_prompt, given_device, given_process_numbe
 
 	print("Completed step #3!")
 
-	reranker_performance, baseline_performance = evaluate_reranker(reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
+	reranker_performance, baseline_performance = evaluate_reranker(zeroshot_ranking, reranker_checkpoint_path, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, given_device, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
 	
 	print("reranker_performance: " + str(reranker_performance))
 	print("baseline_performance: " + str(baseline_performance))
@@ -394,7 +394,7 @@ def end_to_end_reranker_training(given_prompt, given_device, given_process_numbe
 
 def combine_rerankers_and_evaluate(triples_and_queries_list):
 
-	distilled_checkpoint = "DSP_Experiments/msmarco.psg.kldR2.nway64.ib__colbert-400000"
+	distilled_checkpoint = "downloads/msmarco.psg.kldR2.nway64.ib__colbert-400000"
 	for triples_and_queries in triples_and_queries_list:
 
 		distilled_checkpoint = distill_triples_with_retriever(triples_and_queries[0], triples_and_queries[1], distilled_checkpoint, chosen_LoTTE_split, chosen_LoTTE_type, chosen_LoTTE_set, LoTTE_or_BEIR, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
@@ -410,29 +410,29 @@ def combine_rerankers_and_evaluate(triples_and_queries_list):
 	if LoTTE_or_BEIR == "LoTTE":
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 5, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 20, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 100, 
-			             "../ColBERT_FM/downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
+			             "./downloads/lotte/" + chosen_LoTTE_split + "/" + chosen_LoTTE_set + "/qas." + chosen_LoTTE_type + ".jsonl", 
 			             distilled_ranking)
 	
 	elif LoTTE_or_BEIR == "BEIR":
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 5, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 20, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_dataset(chosen_LoTTE_type, chosen_LoTTE_split, chosen_LoTTE_set, 100, 
-			             "../ColBERT_FM/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
+			             "./downloads/beir_datasets/" + chosen_BEIR_set + "/" + chosen_BEIR_type + "/qas.jsonl", 
 			             distilled_ranking)
 
 		evaluate_beir(distilled_ranking, chosen_BEIR_set, chosen_BEIR_type, downloads_folder)
@@ -457,13 +457,13 @@ if __name__ == '__main__':
 
 	parser.add_argument("--sample_count", type=int, required=True)
 	parser.add_argument("--reranker_count", type=int, default=5, required=True)
-	parser.add_argument("--devices", type=list, default=["cuda:0", "cuda:1", "cuda:2", "cuda:3", "cuda:4"], required=False)
+	parser.add_argument("--devices", type=str, default="cuda:0,cuda:1,cuda:2,cuda:3,cuda:4", required=False)
 
 	parser.add_argument("--query_count", type=int, required=True)
 	parser.add_argument("--model_choice", type=str, required=True)
 	parser.add_argument("--gpt3_model_choice", type=str, required=True)
-	parser.add_argument("--parallelization", type=bool, required=True)
-	parser.add_argument("--dsp_prompting", type=bool, required=True, help="Use DSP prompting if true, use direct GPT-3 API prompting if false")
+	parser.add_argument("--parallelization", default=False, type=bool, required=False)
+	parser.add_argument("--dsp_prompting", default=False, type=bool, required=False, help="Use DSP prompting if true, use direct GPT-3 API prompting if false")
 	parser.add_argument("--use_FLAN_for_all_synthetic_query_generation", default=False, type=bool, required=False, help="Use FLAN for initial query generation if true, use GPT-3 if false")
 	parser.add_argument("--downloads_folder", type=str, default="../downloads", required=True, help="Folder containing LoTTE and BEIR directories")
 
@@ -483,7 +483,7 @@ if __name__ == '__main__':
 	number_of_prompts = 5
 	prompts_to_use = [0, 1, 2, 3, 4]
 	reranker_count = args.reranker_count
-	devices = args.devices
+	devices = args.devices.split(",")
 
 	query_count = args.query_count
 	model_choice = args.model_choice
@@ -492,6 +492,9 @@ if __name__ == '__main__':
 	dsp_prompting = args.dsp_prompting
 	use_FLAN_for_all_synthetic_query_generation = args.use_FLAN_for_all_synthetic_query_generation
 	downloads_folder = args.downloads_folder
+
+	os.makedirs('checkpoints', exist_ok=True)
+	os.makedirs('datasets', exist_ok=True)
 
 	######################################################################
 
