@@ -93,6 +93,15 @@ class ExtractiveReader(BaseReader):
             "exclude_from_hash": True,
         },
     )
+    min_answer_length: int = field(
+        default=0,
+        metadata={
+            "name": "Maximum answer length",
+            "range": [2, 2000, 2],
+            "api_support": True,
+            "exclude_from_hash": True,
+        },
+    )
     scorer_type: str = field(
         default=SupportedSpanScorers.WEIGHTED_SUM_TARGET_TYPE_AND_SCORE_DIFF.value,
         metadata={
@@ -209,6 +218,12 @@ class ExtractiveReader(BaseReader):
             else self.max_answer_length
         )
 
+        min_answer_length = (
+            kwargs["min_answer_length"]
+            if "min_answer_length" in kwargs
+            else self.min_answer_length
+        )
+
         min_score_threshold = (
             kwargs["min_score_threshold"]
             if "min_score_threshold" in kwargs
@@ -220,6 +235,7 @@ class ExtractiveReader(BaseReader):
             k=max_num_answers,
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
+            min_answer_length=min_answer_length,
             scorer_type=self._scorer_type_as_enum,
         )
 
@@ -269,9 +285,21 @@ class ExtractiveReader(BaseReader):
                 processed_prediction["span_answer_score"] = raw_prediction[
                     "span_answer_score"
                 ]
+                processed_prediction["start_end_score"] = raw_prediction[
+                    "start_end_score"
+                ]
                 processed_prediction["confidence_score"] = raw_prediction[
                     "confidence_score"
                 ]
+                processed_prediction["normalized_span_answer_score"] = raw_prediction[
+                    "normalized_span_answer_score"
+                ]
+                processed_prediction["cls_score"] = raw_prediction[
+                    "cls_score"
+                ]
+                processed_prediction["target_type_logits"] = raw_prediction["target_type_logits"]
+                processed_prediction["start_logit"] = raw_prediction["start_logit"]
+                processed_prediction["end_logit"] = raw_prediction["end_logit"]
 
                 predictions[example_id].append(processed_prediction)
 

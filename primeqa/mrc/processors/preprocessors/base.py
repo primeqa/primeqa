@@ -81,7 +81,9 @@ class BasePreProcessor(AbstractPreProcessor):
         """
         Provides implementation for public processing methods.
         """
-        examples = self.adapt_dataset(examples, is_train)
+
+        if not self.adapted_on_disk:
+            examples = self.adapt_dataset(examples, is_train)
         if examples.num_rows == 0:
             raise ValueError("No examples to process")
 
@@ -222,11 +224,25 @@ class BasePreProcessor(AbstractPreProcessor):
                     window_contains_correct_passage = passage_index == context_idx
 
             if window_contains_correct_passage and start_position == -1:  # Passage or Y/N Answer
-                tokenized_examples["start_positions"].append(cls_index)
-                tokenized_examples["end_positions"].append(cls_index)
+                # optional: when there is no short answer, make the long answer the short answer.
+                if self._long_answer_as_short_answer:
+                    passage_candidates = examples['passage_candidates'][example_index]
+                    passage_start_position = passage_candidates['start_positions'][passage_index]
+                    passage_end_position = passage_candidates['end_positions'][passage_index]
+
+                    while token_start_index < len(offsets) and offsets[token_start_index][0] <= passage_start_position:
+                        token_start_index += 1
+                    while offsets[token_end_index][1] >= passage_end_position:
+                        token_end_index -= 1
+
+                    tokenized_examples["start_positions"].append(token_start_index-1)
+                    tokenized_examples["end_positions"].append(token_end_index+1)
+                else:
+                    tokenized_examples["start_positions"].append(cls_index)
+                    tokenized_examples["end_positions"].append(cls_index)
                 tt = yes_no_answer
                 if tt not in (TargetType.YES, TargetType.NO):
-                    tt = TargetType.PASSAGE_ANSWER
+                    tt = TargetType.SPAN_ANSWER
                 tokenized_examples["target_type"].append(tt)
             elif not window_contains_correct_passage or start_position == -1:  # No Answer
                 tokenized_examples["start_positions"].append(cls_index)
@@ -280,9 +296,26 @@ class BasePreProcessor(AbstractPreProcessor):
         example_mapping = tokenized_examples['example_idx']
 
         tokenized_examples['subsample_type'] = []
+
+        seen_span = None
+        seen_offset = -1
+        discard_count = 0
+
         for i in range(len(tokenized_examples['input_ids'])):
             if tokenized_examples['target_type'][i] != TargetType.NO_ANSWER:
-                st = SubsampleType.POSITIVE
+                # optional: exclude passages that are part of the long answer and not the short answer  
+                if tokenized_examples['target_type'][i] == TargetType.PASSAGE_ANSWER and self._exclude_passage_answers:
+                    st = SubsampleType.EXCLUDE
+                else:
+                    answer_span_tokens = str(tokenized_examples[i].tokens[
+                        tokenized_examples.data['start_positions'][i]:tokenized_examples.data['end_positions'][i]+1])
+                    if answer_span_tokens == seen_span and seen_offset == i-1 and self._discard_duplicate_spans:
+                        st = SubsampleType.EXCLUDE
+                        discard_count += 1
+                    else:
+                        st = SubsampleType.POSITIVE
+                        seen_span = answer_span_tokens
+                        seen_offset = i
             else:
                 example_idx = example_mapping[i]
                 passage_mapping = examples['target'][example_idx]['passage_indices']
@@ -293,7 +326,6 @@ class BasePreProcessor(AbstractPreProcessor):
                 else:
                     st = SubsampleType.NEGATIVE_NO_ANSWER
             tokenized_examples['subsample_type'].append(st)
-
         return tokenized_examples
 
     def subsample_features(self, dataset: Dataset) -> Dataset:
@@ -319,6 +351,8 @@ class BasePreProcessor(AbstractPreProcessor):
         """
         if st == SubsampleType.POSITIVE:
             return True
+        elif st == SubsampleType.EXCLUDE:
+            return False
         elif st == SubsampleType.NEGATIVE_HAS_ANSWER:
             return random.random() < self._negative_sampling_prob_when_has_answer
         elif st == SubsampleType.NEGATIVE_NO_ANSWER:

@@ -180,7 +180,7 @@ class ReaderService(ReadingServiceServicer):
                                             Answer(
                                                 text=prediction["span_answer_text"],
                                                 confidence_score=prediction[
-                                                    "confidence_score"
+                                                    "start_end_score"
                                                 ],
                                                 evidences=[
                                                     Evidence(

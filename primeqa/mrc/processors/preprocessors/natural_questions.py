@@ -62,7 +62,7 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             self._single_context_multiple_passages = True
 
 
-    def adapt_dataset(self, dataset: Dataset, is_train: bool, keep_html: bool=True) -> Dataset:
+    def adapt_dataset(self, dataset: Dataset, is_train: bool, keep_html: bool=False) -> Dataset:
         """
         Process dataset examples to rename fields, create context and set answer offset.
         Args:
@@ -83,7 +83,7 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
         return dataset
 
 
-    def _rename_examples_create_context_and_adjust_offset(self, example: Example, is_train: bool, keep_html: bool=True):
+    def _rename_examples_create_context_and_adjust_offset(self, example: Example, is_train: bool, keep_html: bool=False):
         """
         Rename examples to BasePreProcessor schema,
         create context from document token,
@@ -214,11 +214,10 @@ class NaturalQuestionsPreProcessor(BasePreProcessor):
             if len(start_byte) == 0:
                 start_byte = -1
                 end_byte = -1
-                candidate_index = -1
             else:
                 start_byte = start_byte[0]
                 end_byte = end_byte[0]
-                candidate_index = annotations['long_answer'][i]['candidate_index']
+            candidate_index = annotations['long_answer'][i]['candidate_index']
             if end_byte < start_byte:
                 self._logger.error("end_byte < start_byte")
 
