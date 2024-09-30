@@ -23,7 +23,7 @@ chosen_dataset = "XOR_TyDi"
 
 def evaluate(index=True):
     split = "dev"
-    nbits = 2
+    nbits = 1
     k = 10
     experiment = (f"msmarco.nbits={nbits}",)
     collection = chosen_collection
