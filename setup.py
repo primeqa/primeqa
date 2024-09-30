@@ -49,6 +49,7 @@ include_packages = list(
 
 _deps = {
     "docutils>=0.14,<0.18": ["tests"],
+    "anyio<4.0.0": ["install", "gpu"],
     "bitarray~=2.3.7": ["install", "gpu"],
     "bump2version~=1.0.1": ["dev"],
     "click~=8.0.4": ["install", "gpu"],
