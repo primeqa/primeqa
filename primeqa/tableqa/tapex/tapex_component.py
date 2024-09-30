@@ -180,7 +180,7 @@ class TapexReader(Reader):
             raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
 
     def train(self):
-        logger.info(f"loading from config at {self._config_jsonn}")
+        logger.info(f"loading from config at {self._config_json}")
         self.load(self._config_json)
 
         parser = HfArgumentParser((ModelArguments, DataTrainingArguments, Seq2SeqTrainingArguments))
