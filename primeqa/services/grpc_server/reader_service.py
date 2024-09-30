@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Union
 
 from primeqa.components.reader.extractive import ExtractiveReader
@@ -32,7 +33,7 @@ from primeqa.services.grpc_server.grpc_generated.reader_pb2 import (
     Evidence,
     Offset,
 )
-
+from primeqa.services.store import StoreFactory
 
 class ReaderService(ReadingServiceServicer):
     def __init__(self, config: Settings, logger: Union[logging.Logger, None] = None):
@@ -41,6 +42,7 @@ class ReaderService(ReadingServiceServicer):
         else:
             self._logger = logger
         self._config = config
+        self._store = StoreFactory.get_store()
         self.loaded_readers = {}
         self._logger.info("%s is successfully initialized.", self.__class__.__name__)
 
@@ -103,6 +105,12 @@ class ReaderService(ReadingServiceServicer):
         reader_kwargs = {
             k: v.default for k, v in reader.__dataclass_fields__.items() if v.init
         }
+        
+        confidence_model = self._store.get_confidence_model_file_path(
+            model_id=reader_kwargs['model'].split("/")[-1]
+        )
+        if os.path.exists(confidence_model):
+            reader_kwargs["confidence_model"] = confidence_model
 
         # Step 4: If parameters are provided in request then update keyword arguments used to instantiate reader instance
         if request.reader.parameters:

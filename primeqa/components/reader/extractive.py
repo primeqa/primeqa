@@ -7,6 +7,7 @@ from datasets import Dataset
 
 from primeqa.components.base import Reader as BaseReader
 from primeqa.mrc.models.heads.extractive import EXTRACTIVE_HEAD
+from primeqa.mrc.models.heads.extractive import EXTRACTIVE_WITH_CONFIDENCE_HEAD
 from primeqa.mrc.models.task_model import ModelForDownstreamTasks
 from primeqa.mrc.processors.preprocessors.base import BasePreProcessor
 from primeqa.mrc.processors.postprocessors.extractive import ExtractivePostProcessor
@@ -28,6 +29,7 @@ class ExtractiveReader(BaseReader):
         max_answer_length (int, optional): Maximum answer length. Defaults to 32.
         scorer_type (str, optional): Scoring algorithm. Defaults to "weighted_sum_target_type_and_score_diff".
         min_score_threshold: (float, optional): Minimum score threshold. Defaults to None.
+        confidence_model (str,optional)
 
     Important:
         1. Each field has metadata property which can carry additional information for other downstream usages.
@@ -43,6 +45,10 @@ class ExtractiveReader(BaseReader):
     model: str = field(
         default="PrimeQA/nq_tydi_sq1-reader-xlmr_large-20221110",
         metadata={"name": "Model", "api_support": True},
+    )
+    confidence_model: str = field(
+        default=None,
+        metadata={"name": "Confidence Calibrator Model"},
     )
     use_fast: bool = field(
         default=True,
@@ -120,6 +126,7 @@ class ExtractiveReader(BaseReader):
         self._preprocessor = None
         self._scorer_type_as_enum = None
         self._data_collector = None
+        self._loaded_confidence_model = None
 
     def __hash__(self) -> int:
         # Step 1: Identify all fields to be included in the hash
@@ -136,7 +143,11 @@ class ExtractiveReader(BaseReader):
         )
 
     def load(self, *args, **kwargs):
-        task_heads = EXTRACTIVE_HEAD
+        
+        if self.confidence_model is not None:
+            task_heads = EXTRACTIVE_WITH_CONFIDENCE_HEAD
+        else:
+            task_heads = EXTRACTIVE_HEAD
         # Load configuration for model
         config = AutoConfig.from_pretrained(self.model)
 
@@ -221,6 +232,8 @@ class ExtractiveReader(BaseReader):
             n_best_size=self.n_best_size,
             max_answer_length=max_answer_length,
             scorer_type=self._scorer_type_as_enum,
+            confidence_model_path=self.confidence_model,
+            output_confidence_feature=True if self.confidence_model is not None else False,
         )
 
         # Step 3: Load trainer

@@ -14,15 +14,16 @@ DIR_NAME_INDEXES = "indexes"
 DIR_NAME_INDEX = "index"
 DIR_NAME_MODELS = "models"
 DIR_NAME_CHECKPOINTS = "checkpoints"
-DIR_NAME_MODELS = "models"
 FILENAME_INFORMATION = "information"
 FILENAME_DOCUMENTS = "documents"
 FILENAME_DOCUMENT_IDS = "document_ids"
 FILENAME_MODEL = "model.dnn"
+FILENAME_CONFIDENCE_MODEL = "confidence_model"
 EXTN_JSON = ".json"
 EXTN_TSV = ".tsv"
 EXTN_TXT = ".txt"
 EXTN_SQL_LITE = ".sqlite"
+EXTN_BIN = ".bin"
 
 #############################################################################################
 # indexes/
@@ -70,6 +71,25 @@ class Store:
 
     #############################################################################################
     #                       models
+    #############################################################################################
+    def get_model_path(self, model: str):
+            return glob.glob(
+            f"{os.path.join(self.root_dir, DIR_NAME_MODELS, str(model))}/*"
+        )[0]
+            
+    #############################################################################################
+    #                       confidence model
+    #############################################################################################
+    def get_confidence_model_file_path(self, model_id: str, extension: str = EXTN_BIN):
+        return os.path.join(
+            self.root_dir,
+            DIR_NAME_MODELS,
+            str(model_id),
+            f"{FILENAME_CONFIDENCE_MODEL}{extension}",
+        )
+    
+    #############################################################################################
+    #                       documents
     #############################################################################################
     def get_index_documents_file_path(self, index_id: str, extension: str = EXTN_TSV):
         return os.path.join(
