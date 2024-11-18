@@ -21,17 +21,6 @@ class XTR(T5EncoderModel):
         outputs = self.encoder(input_ids, attention_mask=attention_mask)
         return self.bottleneck(outputs[0])
 
-    def create_alignment_matrix(self, indices, num_docs, t=5):
-        doc_ids = torch.arange(t * num_docs).view(num_docs, t).to(device=indices.device)
-        alignment_matrix = torch.zeros_like(indices, dtype=torch.float).to(device=indices.device)
-
-        for j in range(indices.size(1)):
-            alignment = torch.isin(indices[:, j], doc_ids[j]).float()
-            alignment_matrix[:, j] = alignment
-            
-        amat_mask, amat_ids = alignment_matrix.max(dim=-1, keepdim=True)
-        return amat_mask, amat_ids
-
     def forward(self, query_ids, doc_ids, query_attention_mask, doc_attention_mask, nway=1, k=55):
         D = self.encoder(doc_ids, attention_mask=doc_attention_mask)[0]
         Q = self.encoder(query_ids, attention_mask=query_attention_mask)[0]
@@ -44,6 +33,7 @@ class XTR(T5EncoderModel):
         
         D_mask = doc_attention_mask.repeat(query_ids.size(0), 1, 1)
 
+        #replace Doc <pad> scores with a large -ve number
         scores.transpose(2,3)[~D_mask.bool()] = -99999
     
         ##Qb, Db, Qt = max_scores.shape[:3]
@@ -51,30 +41,38 @@ class XTR(T5EncoderModel):
         
         clubbed_doc_scores = scores.permute(0,2,1,3).flatten(2,3) 
         
-        #topk_scores, topk_indices = clubbed_doc_scores.topk(k, -1)
-        topk_scores, indices = clubbed_doc_scores.topk(k, -1)
+        topk_scores, topk_indices = clubbed_doc_scores.topk(k, -1)
 
-        #remove Query <pad> scores and indices
-        #avoid breaking computational graph for backward pass :(
-        topk_scores = topk_scores * query_attention_mask.unsqueeze(2) #differentialble
+        #create a boolen vector of True for all positions
+        alignment_mask = torch.ones_like(clubbed_doc_scores, dtype=torch.bool)
 
-        topk_scores = topk_scores.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
-        indices = indices.repeat_interleave(Db, 0).view(Qb, Db, Qt, -1)
+        #mask Query <pad> scores and indices
+        topk_scores = topk_scores * query_attention_mask.unsqueeze(2) 
 
-        #create alignment matrix
-        amat_mask, amat_ids = self.create_alignment_matrix(indices, Db, Dt)
-
-        aligned = topk_scores.view(-1, k)[torch.arange(Qb * Db * Qt).to(\
-                    device=topk_scores.device), amat_ids.view(-1)].view(amat_ids.shape) * amat_mask
-    
-        labels = torch.arange(0, Q.size(0), device=Q.device) * nway 
-        Z = (aligned > 0.0).float().flatten(2,3).sum(-1).clamp(min=1e-3)
+        #mask the topk positions to 0
+        alignment_mask.scatter_(-1, topk_indices, 0)
         
-        doc_tok_summed_normalized = (1/Z) * aligned.sum(2).squeeze(-1)
+        #change to 0 all the non-topk position scores, leaving topk scores intact
+        clubbed_doc_scores.masked_fill(alignment_mask, 0)
+        
+        #change the clubbed scores to original shape of QbxQtxDbxDt
+        topk_scores_max = clubbed_doc_scores.view(Qb,Qt,Db,-1).max(-1).values
+    
+        #get the normalizer for each doc score as the number of non-zeros scores per doc
+        #clamp 0's with some small number to avoid division by zero errors
+        Z = (topk_scores_max > 0.0).float().sum(1).clamp(min=1e-3)
+        
+        #normalize scores
+        doc_tok_summed_normalized = (1/Z) * topk_scores_max.sum(1)
+                    
+        #create labels
+        labels = torch.arange(0, Q.size(0), device=Q.device) * nway 
 
+        #compute training accuracy
         _, predictions = doc_tok_summed_normalized.max(-1)
         accuracy = 100. * (predictions.view(-1) == labels.view(-1)).long().sum()/predictions.size(0)
-            
+
+        #compute loss
         loss = torch.nn.CrossEntropyLoss()(doc_tok_summed_normalized, labels)
 
         return loss, accuracy
