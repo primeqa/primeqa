@@ -1,17 +1,19 @@
-import logging
 import os
 import sys
+import json
+import logging
 import traceback
-from dataclasses import dataclass, field
-from importlib import import_module
 from operator import attrgetter
 from typing import Optional, Type
-import logging
+from importlib import import_module
+from dataclasses import dataclass, field
 
 from transformers import HfArgumentParser
-from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
+
 from primeqa.ir.sparse.config import BM25Config
+from primeqa.ir.dense.xtr_top.xtr import trainer
 from primeqa.ir.sparse.bm25_engine import BM25Engine
+from primeqa.ir.dense.colbert_top.colbert.infra.config.settings import *
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +130,54 @@ def main():
                 rankings = searcher.search_all(args.queries, args.topK)
                 out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
                 rankings.save(out_fn)
+
+    if process_args.engine_type == 'XTR':
+        logger.info(f"XTR")
+        from primeqa.ir.dense.xtr_top.xtr.utils.parser import Arguments
+
+        if hasattr(process_args, 'do_train') and process_args.do_train:
+            from primeqa.ir.dense.xtr_top.xtr import trainer
+            xtr_parser = Arguments(description='XTR training')
+
+            xtr_parser.add_model_parameters()
+            xtr_parser.add_model_training_parameters()
+            xtr_parser.add_training_input()
+            args = xtr_parser.parse()
+
+            trainer.train(args)
+
+        if hasattr(process_args, 'do_index') and process_args.do_index:
+            from primeqa.ir.dense.xtr_top.xtr.indexer import Indexer
+
+            xtr_parser = Arguments(description='XTR indexing')
+
+            xtr_parser.add_model_parameters()
+            xtr_parser.add_model_inference_parameters()
+            xtr_parser.add_indexing_input()
+            xtr_parser.add_compressed_index_input()
+            xtr_parser.add_argument('--nway', dest='nway', default=2, type=int)
+            args = xtr_parser.parse()
+
+            indexer = Indexer(args)
+            indexer.index(name=args.index_name, collection=args.collection, overwrite=True)
+
+        if hasattr(process_args, 'do_search') and process_args.do_search:
+            from primeqa.ir.dense.xtr_top.xtr.searcher import Searcher
+            parser = Arguments(description='XTR search')
+
+            parser.add_model_parameters()
+            parser.add_model_inference_parameters()
+            parser.add_compressed_index_input()
+            parser.add_retrieval_input()
+            args = parser.parse()
+
+            searcher = Searcher(args.index_name, checkpoint=args.model_name_or_path, config=args)
+
+            rankings = searcher.search_all(args.queries, k=args.topK)
+            os.makedirs(args.output_dir, exist_ok=True)
+            out_fn = os.path.join(args.output_dir, 'ranked_passages.tsv')
+            with open(out_fn, 'w') as ofp:
+                json.dump(rankings, ofp, indent=4)
 
     elif process_args.engine_type == 'DPR':
         logger.info(f"Running DPR")

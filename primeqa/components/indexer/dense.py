@@ -1,13 +1,16 @@
+import json
+import argparse
 from typing import Union, List
 from dataclasses import dataclass, field
-import json
 
 from primeqa.components.base import Indexer as BaseIndexer
-from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 from primeqa.ir.dense.colbert_top.colbert.indexer import Indexer
+from primeqa.ir.dense.colbert_top.colbert.infra.config import ColBERTConfig
 
 from primeqa.ir.dense.dpr_top.dpr.config import DPRIndexingArguments
+from primeqa.ir.dense.xtr_top.xtr.indexer import Indexer as XtrIndexer
 from primeqa.ir.dense.dpr_top.dpr.index_simple_corpus import DPRIndexer as DprIndexer
+from primeqa.ir.dense.xtr_top.xtr.utils.config import XTRIndexingArguments as XTRConfig
 
 
 @dataclass
@@ -148,6 +151,120 @@ class ColBERTIndexer(BaseIndexer):
 
 
 @dataclass
+class XTRIndexer(BaseIndexer):
+    """_summary_
+
+    Args:
+        index_name (str): Index name.
+        model_name_or_path (str): Model to load.
+        dim (int, optional): Dimension. Defaults to 128
+        query_maxlen (int, optional): Maximum query length. Defaults to 32.
+        doc_maxlen (int, optional): Maximum document length. Defaults to 180.
+        bsize (int, optional): Batch size. Defaults to 128.
+        nbits (int, optional): Number of bits. Defaults to 1.
+        kmeans_niters (int, optional): Number of iterations (kmeans). Defaults to 4.
+        num_partitions_max (int, optional): Maximum partions size. Defaults to 10000000.
+
+    Important:
+    1. Each field has metadata property which can carry additional information for other downstream usages.
+    2. Two special keys (api_support and exclude_from_hash) are defined in "metadata" property.
+        a. api_support (bool, optional): If set to True, that parameter is exposed via service layer. Defaults to False.
+        b. exclude_from_hash (bool,optional): If set to True, that parameter is not considered 
+            while building the hash representation for the object. Defaults to False.
+
+    Raises:
+        TypeError: _description_
+    """
+
+    model_name_or_path: str = field(
+        metadata={
+            "name": "model_name_or_path",
+            "description": "Path to checkpoint",
+            "api_support": True,
+        },
+    )
+    dim: int = field(
+        default=128,
+        metadata={
+            "name": "Dimension",
+        },
+    )
+    query_maxlen: int = field(
+        default=32,
+        metadata={
+            "name": "Maximum query length",
+            "range": [8, 64, 8],
+            "api_support": True,
+        },
+    )
+    doc_maxlen: int = field(
+        default=180,
+        metadata={
+            "name": "Maximum document length",
+            "range": [32, 256, 4],
+            "api_support": True,
+        },
+    )
+    bsize: int = field(
+        default=128,
+        metadata={"name": "Dimension", "range": [8, 256, 8]},
+    )
+    nbits: int = field(
+        default=1,
+        metadata={"name": "nbits", "options": [1, 2, 4]},
+    )
+    kmeans_niters: int = field(
+        default=4,
+        metadata={"name": "Number of iterations (kmeans)", "range": [1, 8, 1]},
+    )
+    num_partitions_max: int = field(
+        default=10000000,
+        metadata={
+            "name": "Maximum number of partitions",
+            "api_support": True,
+        },
+    )
+
+    def __post_init__(self):
+        config = XTRConfig(
+            index_name=self.index_name,
+            model_name_or_path=self.model_name_or_path,
+            dim=self.dim,
+            query_maxlen=self.query_maxlen,
+            doc_maxlen=self.doc_maxlen,
+            bsize=self.bsize,
+            nbits=self.nbits,
+            kmeans_niters=self.kmeans_niters,
+            num_partitions_max=self.num_partitions_max,
+        )
+        config_dict = vars(config)
+        self._config = argparse.Namespace(**config_dict)
+        # Placeholder variables
+        self._indexer = None
+
+    def __hash__(self) -> int:
+        return hash(
+            f"{self.__class__.__name__}::{json.dumps({k: v.default for k, v in self.__class__.__dataclass_fields__.items() if not 'exclude_from_hash' in v.metadata or not v.metadata['exclude_from_hash']}, sort_keys=True)}"
+        )
+
+    def load(self, *args, **kwargs):
+        self._indexer = XtrIndexer(self._config)
+
+    def get_engine_type(self):
+        return "XTR"
+
+    def index(self, collection: Union[List[dict], str], *args, **kwargs):
+        if not isinstance(collection, str):
+            raise TypeError(
+                "XTR indexer expects path to `documents.tsv` as value for `collection` argument."
+            )
+        self._indexer.index(
+            self.index_name,
+            collection,
+            overwrite="overwrite" in kwargs and kwargs["overwrite"],
+        )
+
+@dataclass
 class DPRIndexer(BaseIndexer):
     """
     Arguments used in indexing
@@ -212,7 +329,6 @@ class DPRIndexer(BaseIndexer):
             sharded_index=self.sharded_index,
         )
         assert not self.vector_db != 'FAISS',  f"Only FAISS is supported as vector_db now, stay tuned for updates"
-
 
         # Placeholder variables
         self._indexer = None
