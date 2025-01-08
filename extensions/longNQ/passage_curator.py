@@ -7,23 +7,30 @@ from rouge_score import rouge_scorer
 
 rouge = rouge_scorer.RougeScorer(rouge_types=['rouge1',], split_summaries=False)
 
-do_corpus = False
-do_questions = True
-do_check = True
+do_corpus = True
+do_questions = False
+do_check = False
 # convert_to_beir = True
 unique_passages = None
 
 if do_corpus:
+
+
+    # data_files = glob.glob("/dccstor/srosent2/primeqa/data/train/nq-full/*-12*")
+
     # ensure priority of ids - test -> dev -> train
     data_files = glob.glob("/dccstor/srosent2/generative/appen/final/original_tydi/test/*.jsonl")
     data_files.extend(glob.glob("/dccstor/srosent2/generative/appen/final/original_tydi/dev/*.jsonl"))
     data_files.extend(glob.glob("/dccstor/srosent2/generative/appen/final/original_tydi/train/*.jsonl"))
 
-    # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
-    old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_nobool.tsv", sep="\t", header=0, names=["id","text","title"])
-    # old_unique_passages[['doc_id','pasage_offset']] = old_unique_passages['id'].str.split('_', expand=True)
-    old_doc_ids = set(old_unique_passages['id'].to_list())
-    old_questions = set(pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/train/question_train_answerable_nobool.tsv", sep="\t", header=0, dtype={'id':str})['id'].to_list())
+    # # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
+    # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t", header=0, names=["id","text","title"])
+    # # old_unique_passages[['doc_id','pasage_offset']] = old_unique_passages['id'].str.split('_', expand=True)
+    # old_doc_ids = set(old_unique_passages['id'].to_list())
+    # old_titles = set(old_unique_passages['title'].to_list())
+    # old_questions = set(pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/train/question_train_answerable_nobool.tsv", sep="\t", header=0, dtype={'id':str})['id'].to_list())
+    old_doc_ids = None
+    old_questions = None
 
     dfs = []
 
@@ -47,6 +54,8 @@ if do_corpus:
     passage_lengths=[20000,0,0,0]
     num_passages = 0
     multiple_gold_passages = 0
+    duplicate_gold = 0
+    new_unseen_gold = 0
 
     def compute_length(passage_text):
         passage_len = len(passage_text.decode().split(" "))
@@ -71,8 +80,8 @@ if do_corpus:
         if row['document_title'] in data_by_title:
             duplicates += 1
 
-            if row['document_url'][row['document_url'].rindex("=")+1:] !=  data_by_title[row['document_title']]['id']:
-                print(f"New ID for {row['document_title']}")
+            # if row['document_url'][row['document_url'].rindex("=")+1:] !=  data_by_title[row['document_title']]['id']:
+            #     print(f"New ID for {row['document_title']}")
             data_by_title[row['document_title']]['id'].add(row['document_url'][row['document_url'].rindex("=")+1:])
             
             index = -1
@@ -91,6 +100,7 @@ if do_corpus:
                 if f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}" in data_by_title[row['document_title']]['passages']:
                     if data_by_title[row['document_title']]['passages'][f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}"]['passage_text'] != passage_text:
                         rouge_score = rouge.score(data_by_title[row['document_title']]['passages'][f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}"]['passage_text'],passage_text)['rouge1'][2]
+                        duplicate_gold += 1
                         print(f"duplicate offsets - similar gold passage ({rouge_score}). keep this one and not the other")
                         if rouge_score < .98:
                             print(data_by_title[row['document_title']]['passages'][f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}"]['passage_text'])
@@ -111,7 +121,7 @@ if do_corpus:
                             break
                     # delete the close match if no answers associated with it.
                     if matching_passage_id != None:
-                        if row['split'] == 'train' and row['example_id'] not in list(old_questions):
+                        if row['split'] == 'train' and old_questions is not None and row['example_id'] not in list(old_questions):
                             data_by_title[row['document_title']]['passages'][matching_passage_id]['example_id'].append(row['example_id'])
                             data_by_title[row['document_title']]['passages'][matching_passage_id]['split'].add(row['split'])
                             continue
@@ -121,12 +131,15 @@ if do_corpus:
                             data_by_title[row['document_title']]['passages'][f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}"] = {"passage_text":passage_text,"example_id":[row['example_id']],"split":set([row['split']])}
                         else:
                             print(f"exact/similar ({rouge_score}) passage is gold, keep the longer one.")
+                            if rouge_score < 1:
+                                duplicate_gold += 1
                             if rouge_score < 1 and len(passage_text) > len(data_by_title[row['document_title']]['passages'][matching_passage_id]['passage_text']):
                                 data_by_title[row['document_title']]['passages'][matching_passage_id]['passage_text'] = passage_text
                             data_by_title[row['document_title']]['passages'][matching_passage_id]['example_id'].append(row['example_id'])
                             data_by_title[row['document_title']]['passages'][matching_passage_id]['split'].add(row['split'])
                     else:
                         print("adding a new gold passage from a different question")
+                        new_unseen_gold += 1
                         data_by_title[row['document_title']]['passages'][f"{candidate['plaintext_start_byte']}-{candidate['plaintext_end_byte']}"] = {"passage_text":passage_text,"example_id":[row['example_id']], "split":set([row['split']])}
             continue
         id = row['document_url'][row['document_url'].rindex("=")+1:]
@@ -164,7 +177,9 @@ if do_corpus:
         data_by_title[title] = {'id':set([id]), 'title':title, 'passages': passages} #, 'answers': answers}
 
     print(f"multiple gold passages: {multiple_gold_passages}")
-    print(f"{duplicates} duplicates. more passages needed to be added: {more_passages}")
+    print(f"duplicate gold passages that are not exact but close: {duplicate_gold}")
+    print(f"new unseen gold passages to existing document: {new_unseen_gold}")
+    print(f"{duplicates} duplicates including unanswerables. more passages needed to be added: {more_passages}")
     passage_lengths[1] = passage_lengths[1]/passage_lengths[3]
     print(f"min, average, max lengths {passage_lengths}")
 
@@ -186,7 +201,7 @@ if do_corpus:
                 num_questions += len(data_by_title[item]['passages'][passage]['example_id'])
             if list(data_by_title[item]['id'])[0] in unique_passages:
                 print('duplicate id')
-            if list(data_by_title[item]['id'])[0] not in old_doc_ids:
+            if old_doc_ids is not None and list(data_by_title[item]['id'])[0] not in old_doc_ids:
                 index = 0
                 found_id = False
                 for item_id in list(data_by_title[item]['id']):
@@ -206,17 +221,17 @@ if do_corpus:
     # dump passages to tsv
     unique_passages_df = pd.DataFrame.from_dict(unique_passages, orient='index', columns=["text","title", "example_ids", "splits"])
     unique_passages_df.index.name = 'id'
-    unique_passages_df.drop(columns=["example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_wbool.tsv", sep="\t")
+    # unique_passages_df.drop(columns=["example_ids","splits"]).to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_wbool.tsv", sep="\t")
     # old_unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", sep="\t", header=0)
     # unique_passages_df[~unique_passages_df.index.isin(old_unique_passages['id'])].to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages_just_bool.tsv", sep="\t")
-    unique_passages_df.to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids_wbool.tsv", sep="\t")
+    # unique_passages_df.to_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/LongNQ_train_dev_test_passages_wids.tsv", sep="\t")
 
 if do_questions:
     # questions.tsv: <id> <question> <doc-id-list> <answers>
     # load longNQ data - make sep files for train, dev, test incorporate doc-ids and doc-passage-ids from above
 
     if unique_passages is None:
-        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
+        unique_passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/LongNQ_train_dev_test_passages_wids.tsv", sep="\t", header=0, names=["id","text","title","example_ids","splits"])
 
     data_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/*/*.jsonl")
 
@@ -224,16 +239,16 @@ if do_questions:
 
     # make questions.tsv for each split
     for file_name in data_files:
-        if "test" not in file_name:
-            continue
-        if "wdev" in file_name or "train_answerable.jso" in file_name:
+        # if "test" not in file_name:
+        #     continue
+        if "wdev" in file_name: # or "train_answerable.jso" in file_name:
             continue
         print(file_name)
         answerable = "answerable"
         if "unanswerable" in file_name:
             answerable = "unanswerable"
-        else:
-            continue
+        # else:
+        #     continue
         split = "train"
         if "dev" in file_name:
             split = "dev"
@@ -254,14 +269,14 @@ if do_questions:
             except:
                 print("error")
         print(file_name)
-        pd.DataFrame(questions, columns=["id","question","doc-id-list","answers"]).to_csv(f"/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/question_{split}_{answerable}.tsv","\t", index=False)
+        pd.DataFrame(questions, columns=["id","question","doc-id-list","answers"]).to_csv(f"/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/question_{split}_{answerable}.tsv","\t", index=False)
 
 if do_check:
     # passages = pd.read_csv("/dccstor/srosent3/long_nq/retrieval/passages.tsv", delimiter="\t", header=0)
-    passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv", delimiter="\t", header=0)
+    passages = pd.read_csv("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/passages.tsv", delimiter="\t", header=0)
     
     # question_files = glob.glob("/dccstor/srosent3/long_nq/retrieval/*/*_answerable.tsv")
-    question_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/question*_answerable.tsv")
+    question_files = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/question*_answerable.tsv")
 
     for question_file in question_files:
         print(question_file)

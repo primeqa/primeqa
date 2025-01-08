@@ -10,6 +10,7 @@ import logging
 import sys
 import pyizumo
 import unicodedata
+import time
 
 nlp = None
 product_counts = {}
@@ -41,7 +42,7 @@ def setup_argparse():
     parser.add_argument("--data_type", default="auto", type=str, choices=["auto", 'pqa', 'sap', 'beir', 'rh', 'govt'],
                         help=("The type of the dataset to use. If auto, then the type will be determined"
                               "by the file extension: .tsv->pqa, .json|.jsonl -> sap, csv -> SAP question"))
-    parser.add_argument("--ingestion_batch_size", default=40, type=int,
+    parser.add_argument("--ingestion_batch_size", default=20, type=int,
                         help="For elastic search only, sets the ingestion batch "
                              "size (default 40).")
     parser.add_argument("--replace_links", action="store_true", default=False,
@@ -71,7 +72,7 @@ def setup_argparse():
                                                                  "ids in the file will be added.")
     parser.add_argument("--product_name", default=None, help="If set, this product name will be used "
                                                              "for all documents")
-    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST'],
+    parser.add_argument("--server", default="SAP", choices=['SAP', 'CONVAI', 'SAP_TEST', 'MT_RAG', 'DEFINED_MT_RAG'],
                         help="The server to connect to.")
 
     return parser
@@ -872,6 +873,7 @@ if __name__ == '__main__':
             args.input_queries = os.path.join(args.data, "queries.jsonl")
 
     ELASTIC_PASSWORD = os.getenv("ELASTIC_PASSWORD")
+    print(f"ELASTIC: {ELASTIC_PASSWORD}")
     if args.server in ["SAP", 'SAP_TEST'] and (ELASTIC_PASSWORD is None or ELASTIC_PASSWORD == ""):
         print(
             f"You need to define the environment variable ELASTIC_PASSWORD for the elastic user! Define it and restart.")
@@ -906,6 +908,7 @@ if __name__ == '__main__':
                 line = line.replace(".txt", "").strip()
                 docid_filter.append(line)
 
+    model_id = ".elser_model_1"
     model = None
     if args.db_engine == "es-dense" or args.max_doc_length is not None:
         import torch
@@ -924,6 +927,19 @@ if __name__ == '__main__':
             "https://esproxytestinghr716j372g.hana.ondemand.com:443",
             basic_auth=("elastic", ELASTIC_PASSWORD)
         )
+    elif args.server == "MT_RAG":
+        client = Elasticsearch(
+            "https://dbcc936c-8274-450e-9cb1-44a30ec26d88.c13paqsd05a0ept695ng.databases.appdomain.cloud:32765",
+            ca_certs="/dccstor/srosent2/primeqa/primeqa/primeqa/ir/scripts/mt_rag.crt",
+            basic_auth=("ibm_cloud_4ae4bca5_f6aa_43b6_93a3_befbd8fcb0e7", ELASTIC_PASSWORD)
+        )
+    elif args.server == "DEFINED_MT_RAG":
+        client = Elasticsearch(
+            "https://64192142-48e0-4d4a-8ef3-52732e6df37b.0135ec03d5bf43b196433793c98e8bd5.databases.appdomain.cloud:31638",
+            ca_certs="/dccstor/srosent2/primeqa/primeqa/primeqa/ir/scripts/defined_mt_rag.crt",
+            basic_auth=("ibm_cloud_b9e42ad0_1f4f_477a_b7c5_3aba94c43983", ELASTIC_PASSWORD)
+        )
+        model_id = ".elser_model_2"
     elif args.server == "CONVAI":
         ES_SSL_FINGERPRINT = os.getenv("ES_SSL_FINGERPRINT")
         ES_API_KEY = os.getenv("ES_API_KEY")
@@ -1023,7 +1039,7 @@ if __name__ == '__main__':
             processors = [
                 {
                     "inference": {
-                        "model_id": ".elser_model_1",
+                        "model_id": model_id,
                         "target_field": "ml",
                         "field_map": {
                             "text": "text_field"
@@ -1069,10 +1085,11 @@ if __name__ == '__main__':
                 failures = 0
                 while failures < 5:
                     try:
-                        res = bulk(client=client, actions=actions, pipeline="elser-v1-test")
+                        res = bulk(client=client, actions=actions, pipeline="elser-v1-test", max_retries=3)
                         break
                     except Exception as e:
                         print(f"Got an error in indexing: {e}, {len(actions)}")
+                        time.sleep(5) 
                     failures += 5
                 t.update(bulk_batch)
             t.close()
@@ -1150,12 +1167,12 @@ if __name__ == '__main__':
                     rout.append({'id': r['_id'], 'score': r['_score'], 'text': r['_source']['text']})
                 result.append({'qid': qid, 'text': input_queries[query_number]['text'], "answers": rout})
         elif args.db_engine == "es-elser":
-            for query_number in tqdm(range(len(input_queries[:50]))):
+            for query_number in tqdm(range(len(input_queries))):
                 qid = input_queries[query_number]['id']
                 query = {
                     "text_expansion": {
                         "ml.tokens": {
-                            "model_id": ".elser_model_1",
+                            "model_id": model_id,
                             "model_text": input_queries[query_number]['text']
                         }
                     }
@@ -1163,7 +1180,7 @@ if __name__ == '__main__':
                 res = client.search(
                     index=index_name,
                     query=query,
-                    size=args.top_k,
+                    size=args.top_k
                 )
                 rout = []
                 for rank, r in enumerate(res.body['hits']['hits']):

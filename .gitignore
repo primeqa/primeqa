@@ -175,3 +175,5 @@ tags
 
 # service data directory
 store
+
+*.crt

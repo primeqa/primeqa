@@ -2,21 +2,23 @@
 import pandas as pd
 import glob
 import os
+import sys
 
 # load tsv questions and passages
 # output queries, corpus, qrels beir format
 
-language = "pt"
+language = "en"
 
-passages_file = "/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/passages.tsv"
+# passages_file = "/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/passages.tsv"
 passages_file = f"/dccstor/srosent3/long_nq_multilingual/retrieval/{language}/passages.tsv"
 
 passages_df = pd.read_csv(passages_file, delimiter='\t', names=["_id", "text", "title"], header=0, dtype=str)
 passages_df['metadata'] = [{} for _ in range(passages_df.shape[0])]
 
-os.makedirs(f"/dccstor/srosent3/long_nq_multilingual/retrieval_beir/{language}/qrels", exist_ok=True)
-# passages_df.to_json("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/beir_format/corpus.jsonl", lines=True, orient="records")
-passages_df.to_json(f"/dccstor/srosent3/long_nq_multilingual/retrieval_beir/{language}/corpus.jsonl", lines=True, orient="records")
+# os.makedirs(f"/dccstor/srosent3/long_nq_multilingual/retrieval_beir/{language}/qrels", exist_ok=True)
+# passages_df.to_json("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index_large/beir_format/corpus.jsonl", lines=True, orient="records")
+# passages_df.to_json(f"/dccstor/srosent3/long_nq_multilingual/retrieval_beir/{language}/corpus.jsonl", lines=True, orient="records")
+# sys.exit(0)
 
 #questions_file = glob.glob("/dccstor/srosent2/generative/appen/final/longNQ/passages_for_index/*/*answerable.tsv")
 questions_file = glob.glob(f"/dccstor/srosent3/long_nq_multilingual/retrieval/{language}/*/*answerable.tsv")
