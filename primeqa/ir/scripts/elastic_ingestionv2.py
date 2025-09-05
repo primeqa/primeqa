@@ -11,6 +11,7 @@ import sys
 import pyizumo
 import unicodedata
 import time
+import pandas as pd
 
 nlp = None
 product_counts = {}
@@ -473,7 +474,6 @@ def read_data(input_files, fields=None, remove_url=False, tokenizer=None,
                         raise e
                     docs_read += 1
             elif get_attr(kwargs, 'read_sap_qfile', default=False) or input_file.endswith(".csv"):
-                import pandas as pd
                 data = pd.read_csv(in_file)
                 passages = []
                 unmapped_ids = []
@@ -976,8 +976,9 @@ if __name__ == '__main__':
                                    uniform_product_name=args.product_name,
                                    data_type=args.data_type
                                    )
-        # input_passages = input_passages[3694280:]
+        pd.DataFrame(input_passages).transpose().to_json(f"/dccstor/srosent3/mtrag_corpus_passages/{index_name}.json")
         print(f"number of passages that need to be ingested: {len(input_passages)}")
+        sys.exit(0)
         if max_documents is not None and max_documents > 0:
             input_passages = input_passages[:max_documents]
 
